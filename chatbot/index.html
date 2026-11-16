@@ -675,10 +675,8 @@ VISTAS.bandeja = async () => {
     seguro(() => api("preguntas", { estado: "borrador", limite: 100 })),
   ]);
   const todas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
-  // Las asignadas a otra persona del equipo (por turno) se pueden mirar, pero no son tuyas
-  const filas = todas.filter((f) => f.es_mia || !f.asignada_a), otras = todas.filter((f) => f.asignada_a && !f.es_mia);
-  const turno = await seguro(() => api("mi_turno")) ?? [];
-  const conTurnos = turno.filter((t) => t.hay_turnos), deTurno = conTurnos.filter((t) => t.de_turno);
+  // El operador solo ve lo que le llega a él (o lo que todavía no tiene a nadie asignado); no ve horarios ni lo de los demás
+  const filas = todas.filter((f) => f.es_mia || !f.asignada_a);
   S.pendOp = filas.length; armarNav();
   const n = filas.length, nombre = (S.yo?.usuario?.nombre ?? "").split(" ")[0];
   const emps = S.empresaId ? [empresaYo(S.empresaId)] : (S.yo?.empresas ?? []);
@@ -686,13 +684,11 @@ VISTAS.bandeja = async () => {
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
-      <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p>
-      ${conTurnos.length ? `<p style="margin-top:6px">${deTurno.length ? `<span class="chip c-respondida">Estás de turno</span>` : `<span class="chip">Estás fuera de turno</span> <span class="mut peq">Las preguntas nuevas van a quien está de turno.</span>`}</p>` : ""}</div>
+      <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
     ${emps.length > 1 ? `<div class="filtros">${emps.map((e) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--sup);border:1px solid var(--linea);border-radius:99px;padding:6px 12px">${etiquetaEmpresa(e.id)}<b style="font-size:13px">${filas.filter((f) => f.empresa_id === e.id).length}</b></span>`).join("")}</div>` : ""}
-    <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>
-    ${otras.length ? `<details style="margin-top:24px"><summary class="enlace">Ver ${otras.length === 1 ? "la pregunta asignada" : `las ${otras.length} preguntas asignadas`} a otras personas del equipo</summary><div id="cola2" style="margin-top:12px">${otras.map(tarjetaConv).join("")}</div></details>` : ""}`;
-  enlazarCola($("#cola")); if ($("#cola2")) enlazarCola($("#cola2"));
+    <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>`;
+  enlazarCola($("#cola"));
 };
 
 // ================= EQUIPO (administrador de la empresa) =================
