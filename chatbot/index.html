@@ -244,6 +244,9 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .emp-f.on b{background:var(--emp,var(--tinta));color:#fff}
 /* Mejorar redacción y aprender */
 .mej-fila{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.mej-bot{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.reg-ok{background:var(--pino-2);color:var(--pino-t);border-radius:8px;padding:8px 12px;font-size:14px}
+.reg-mal{background:var(--ladrillo-2);color:var(--ladrillo);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px}.reg-mal ul{margin:4px 0 0;padding-left:18px}
 .mej-caja{margin-top:8px;padding:10px 12px;border-radius:var(--r-m);background:var(--cielo-2);color:var(--tinta)}
 .mej-al{background:var(--ambar-2);color:var(--ambar-t);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px}.mej-al ul{margin:4px 0 0;padding-left:18px}
 .aprender-r{background:var(--pino-2);color:var(--pino-t);border-radius:var(--r-m);padding:10px 14px;font-weight:600;margin-top:8px}
@@ -710,10 +713,14 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && S.
 
 // ----- notificaciones push -----
 const b64aBytes = (s) => { const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, (c) => c.charCodeAt(0)); };
+// Identificador de este navegador: evita que el mismo dispositivo quede registrado dos veces para avisos
+function idInstalacion() {
+  try { let x = localStorage.getItem("mostrador_instalacion"); if (!x) { x = crypto.randomUUID(); localStorage.setItem("mostrador_instalacion", x); } return x; } catch { return null; }
+}
 async function suscripcionActual() { if (!pushPosible()) return null; const r = await navigator.serviceWorker.getRegistration(); return r ? r.pushManager.getSubscription() : null; }
 // Al entrar, la suscripción de este dispositivo queda asociada a la persona que entró
 async function renovarSuscripcion() {
-  try { const s = await suscripcionActual(); if (s && Notification.permission === "granted") await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent }); } catch {}
+  try { const s = await suscripcionActual(); if (s && Notification.permission === "granted") await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent, instalacion: idInstalacion() }); } catch {}
 }
 async function activarAvisos() {
   if (!pushPosible()) return explicarAvisos();
@@ -724,7 +731,7 @@ async function activarAvisos() {
     const { clave } = await api("push_clave");
     let s = await reg.pushManager.getSubscription();
     if (!s) s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(clave) });
-    await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent });
+    await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent, instalacion: idInstalacion() });
     aviso("Listo: en este dispositivo te va a llegar un aviso con cada pregunta para responder");
   } catch (e) { aviso("No se pudieron activar los avisos en este dispositivo: " + e.message); }
   pintarAvisosBtn();
@@ -914,7 +921,7 @@ function tarjetaConv(p) {
       ${multi && emp ? `<div class="como" style="background:${esc(emp.color)}">Respondés como <b>${esc(emp.nombre)}</b></div>` : ""}
       <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${p.escalada_at ? `<span class="chip c-error">Esperando hace ${esc(espera(p.fecha_pregunta ?? p.created_at))}</span>` : ""}${p.repregunta_de ? `<span class="chip c-borrador">Volvió a preguntar</span>` : ""}${S.rol !== "operador" && (p.asignados_nombres ?? []).length ? `<span class="chip">Para ${esc(p.es_mia ? "vos" : p.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</div>
       <textarea maxlength="2000" aria-label="Respuesta" placeholder="Escribí la respuesta…">${esc(p.respuesta_sugerida ?? "")}</textarea>
-      <div class="mej-fila"><span></span><button class="btn lin chico" type="button" data-mej="${p.id}">${ICONO.varita}Mejorar redacción</button></div><div class="mej-res"></div>
+      <div class="mej-fila"><span></span><span class="mej-bot"><button class="btn lin chico" type="button" data-reg="${p.id}">${ICONO.escudo}Revisar reglas</button><button class="btn lin chico" type="button" data-mej="${p.id}">${ICONO.varita}Mejorar redacción</button></span></div><div class="mej-res"></div>
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
     <div class="acciones">
@@ -928,6 +935,7 @@ function tarjetaConv(p) {
 function enlazarCola(cont) {
   cont.onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.reg) { const c = b.closest(".conv"); return revisarReglas(Number(b.dataset.reg), c.querySelector("textarea"), c.querySelector(".mej-res"), b); }
     if (b.dataset.mej) { const c = b.closest(".conv"); return mejorarTexto(Number(b.dataset.mej), c.querySelector("textarea"), c.querySelector(".mej-res"), b); }
     const card = b.closest(".conv"); const id = Number(b.dataset.pub || b.dataset.det || b.dataset.desc);
     if (b.dataset.det) return detalle(id);
@@ -978,6 +986,7 @@ const ICONO = {
   pc: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>`,
   celular: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
   tablet: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
+  escudo: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>`,
   varita: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 20 10-10M14 4v2M19 9h2M17.5 5.5 19 4M12 10l2 2"/></svg>`,
   campana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>`,
   sinCampana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 4.4A6 6 0 0 1 18 9c0 3 .6 4.9 1.3 6M6.3 6.3A6 6 0 0 0 6 9c0 6-2.5 7.5-2.5 7.5H16"/><path d="M10 20a2.2 2.2 0 0 0 4 0M3 3l18 18"/></svg>`,
@@ -1529,7 +1538,7 @@ async function detalle(id) {
       <div class="caja pre">${esc(p.respuesta_enviada)}</div><button class="btn lin chico" style="margin-top:8px" id="malR">Marcar como incorrecta</button></div>` : ""}
     ${p.respuesta_enviada && p.respuesta_sugerida && p.respondida_por === "mercadolibre" ? `<div class="bloque"><h3>Lo que había sugerido el bot</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : ""}
     ${editable ? `<div class="bloque"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
-      <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><div class="mej-fila"><p class="peq mut" id="cnt" style="margin:0"></p><button class="btn lin chico" type="button" id="mejD">${ICONO.varita}Mejorar redacción</button></div><div id="mejDres"></div>
+      <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><div class="mej-fila"><p class="peq mut" id="cnt" style="margin:0"></p><span class="mej-bot"><button class="btn lin chico" type="button" id="regD">${ICONO.escudo}Revisar reglas</button><button class="btn lin chico" type="button" id="mejD">${ICONO.varita}Mejorar redacción</button></span></div><div id="mejDres"></div>
       <div class="fila">${S.rol !== "operador" || empresaYo(p.empresa_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.empresas.length ?? 0) > 1 && empresaYo(p.empresa_id) ? "Publicar como " + esc(empresaYo(p.empresa_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
       : (p.respuesta_sugerida && !p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta sugerida</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : "")}
     ${p.estado === "descartada" ? `<div class="bloque"><h3>Descartada</h3><p class="mut peq" style="margin:0">${p.descartada_nombre ? "La descartó " + esc(p.descartada_nombre) : "Descartada sin registro de quién"}${p.descartada_at ? ", " + fecha(p.descartada_at) : ""}</p></div>` : ""}
@@ -1559,12 +1568,29 @@ async function detalle(id) {
       sel.onchange = () => { if (sel.value === "") return; const t = rs[Number(sel.value)].texto; tx.value = tx.value.trim() ? tx.value.trim() + " " + t : t; sel.value = ""; cnt(); tx.focus(); };
     });
     if ($("#pub", v)) $("#pub", v).onclick = async () => { if (!confirm("¿Publicar esta respuesta en MercadoLibre? Cada pregunta se responde una sola vez.")) return; const r = await seguro(() => api("enviar", { id, texto: tx.value })); if (r) { aviso("Respuesta publicada"); v.remove(); ir(S.tab); if (r.edicion?.sugerir) ofrecerAprender(id, r.edicion); } };
+    if ($("#regD", v)) $("#regD", v).onclick = () => revisarReglas(id, tx, $("#mejDres", v), $("#regD", v));
     if ($("#mejD", v)) $("#mejD", v).onclick = () => mejorarTexto(id, tx, $("#mejDres", v), $("#mejD", v));
     if ($("#rep", v)) $("#rep", v).onclick = async (e) => { e.target.disabled = true; e.target.textContent = "Generando…"; const r = await seguro(() => api("reprocesar", { id })); if (r) { aviso("Respuesta generada de nuevo"); v.remove(); detalle(id); } else { e.target.disabled = false; e.target.textContent = "Generar de nuevo"; } };
     $("#desc", v).onclick = async () => { if (await seguro(() => api("descartar", { id }))) { aviso("Pregunta descartada"); v.remove(); ir(S.tab); } };
   }
 }
 const espera = (f) => { const m = Math.round((Date.now() - new Date(f)) / 60000); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60 ? (m % 60) + " min" : ""}`.trim() : `${Math.floor(m / 1440)} d`; };
+// Revisar reglas: antes de publicar, controla lo que hace que MercadoLibre borre una respuesta (links, contacto, acortadores)
+async function revisarReglas(id, tx, caja, btn) {
+  const texto = tx.value;
+  if (!texto.trim()) return aviso("Escribí una respuesta primero");
+  btn.disabled = true; const t0 = btn.innerHTML; btn.innerHTML = "Revisando…";
+  const r = await seguro(() => api("revisar_reglas", { id, texto }));
+  btn.disabled = false; btn.innerHTML = t0;
+  if (!r) return;
+  const lista = (n) => r.problemas.filter((x) => x.nivel === n).map((x) => `<li>${esc(x.texto)}</li>`).join("");
+  caja.innerHTML = `<div class="mej-caja">
+    ${r.estado === "ok" ? `<div class="reg-ok"><b>Cumple las reglas de MercadoLibre.</b> No tiene links ajenos, acortadores ni datos de contacto.</div>` : ""}
+    ${lista("bloquea") ? `<div class="reg-mal"><b>MercadoLibre la borraría</b><ul>${lista("bloquea")}</ul></div>` : ""}
+    ${lista("riesgo") ? `<div class="mej-al"><b>Conviene revisarlo</b><ul>${lista("riesgo")}</ul></div>` : ""}
+    ${r.ia ? "" : `<p class="peq mut" style="margin:6px 0 0">Solo se hicieron los controles automáticos; la revisión con IA no respondió.</p>`}</div>`;
+  tx.addEventListener("input", () => { if (tx.value !== texto) caja.innerHTML = ""; }, { once: true });
+}
 // Mejorar redacción: corrige ortografía y tono; avisa si algo no coincide con la publicación. Se puede deshacer.
 async function mejorarTexto(id, tx, caja, btn) {
   const antes = tx.value;
