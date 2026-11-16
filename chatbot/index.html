@@ -705,7 +705,8 @@ VISTAS.equipo = async () => {
       return `<div class="miembro" data-id="${m.id}"><div class="av">${esc(iniciales(m.nombre || m.email))}</div>
         <div><b>${esc(m.nombre || m.email)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${esc(m.email ?? "")}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><span class="chip c-${ch}">${et}</span><span class="chip">${m.rol === "admin" ? "Administrador" : "Operador"}</span>${m.rol === "operador" && !m.puede_publicar ? `<span class="chip">No publica solo</span>` : ""}</div></div>
-        <div class="acc">${m.estado === "baja" ? `<button class="btn lin chico" data-a="reactivar">Volver a sumar</button>` : `
+        <div class="acc">${m.estado === "baja" ? `<button class="btn lin chico" data-a="reactivar">Volver a sumar</button><button class="btn pel chico" data-a="quitar">Quitar de la lista</button>` : `
+          <button class="btn lin chico" data-a="nombre">Cambiar nombre</button>
           ${m.estado === "invitado" || !m.vos ? `<button class="btn lin chico" data-a="codigo">${m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"}</button>` : ""}
           ${m.rol === "operador" ? `<button class="btn lin chico" data-a="publicar">${m.puede_publicar ? "Que no publique solo" : "Que publique solo"}</button>` : ""}
           ${!m.vos ? `<button class="btn lin chico" data-a="rol">${m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"}</button><button class="btn pel chico" data-a="baja">Dar de baja</button>` : ""}`}</div></div>`;
@@ -717,6 +718,12 @@ VISTAS.equipo = async () => {
     if (b.dataset.a === "baja") {
       if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de esta empresa. Lo que ya respondió queda en el historial.`)) return;
       if (await seguro(() => api("miembro_baja", { id: m.id }))) { aviso(`${quien} quedó dado de baja`); VISTAS.equipo(); }
+    } else if (b.dataset.a === "quitar") {
+      if (!confirm(`¿Quitar a ${quien} de la lista? Lo que haya respondido sigue en el historial con su nombre. Si más adelante querés sumarlo, lo invitás de nuevo.`)) return;
+      if (await seguro(() => api("miembro_quitar", { id: m.id }))) { aviso(`${quien} ya no figura en el equipo`); VISTAS.equipo(); }
+    } else if (b.dataset.a === "nombre") {
+      const nuevo = prompt(`Nombre de ${m.email}:`, m.nombre ?? ""); if (nuevo == null || !nuevo.trim() || nuevo.trim() === m.nombre) return;
+      if (await seguro(() => api("miembro_cambiar", { id: m.id, nombre: nuevo.trim() }))) { aviso("Nombre cambiado"); VISTAS.equipo(); }
     } else if (b.dataset.a === "reactivar") {
       if (await seguro(() => api("miembro_reactivar", { id: m.id }))) { aviso(`${quien} volvió al equipo`); VISTAS.equipo(); }
     } else if (b.dataset.a === "publicar") {
