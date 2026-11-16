@@ -105,6 +105,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .seg{display:inline-flex;background:var(--sup2);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
 .seg button{all:unset;cursor:pointer;padding:7px 13px;border-radius:8px;font-weight:500;color:var(--piz);font-size:14px}
 .seg button.on{background:var(--sup);color:var(--tinta);box-shadow:var(--sombra)}
+.seg .cuenta-n{display:inline-block;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}
 .seg button:focus-visible{outline:2px solid var(--cielo)}
 
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:2px 10px;font-size:12.5px;font-weight:600;background:var(--sup2);color:var(--piz);white-space:nowrap}
@@ -301,6 +302,45 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .conv .respuesta,.conv .acciones{grid-column:1/-1}
   .acciones{flex-wrap:wrap}
 }
+/* Asignaciones */
+.av-m{border-radius:50%;display:inline-grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.tabla-a{min-width:920px}
+.fila-a{display:grid;grid-template-columns:230px minmax(220px,1fr) 340px 90px;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--linea)}
+.fila-a.cab-a{font-size:13px;font-weight:600;color:var(--piz);padding:12px 20px}
+.fila-a .tit{font-weight:700;font-size:15px}
+.acc-a{text-align:right}
+.quienes{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.quien-b{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:14px;border-radius:8px;padding:2px 4px;margin:-2px -4px}
+.quien-b:hover{background:var(--sup2)}.quien-b:focus-visible{outline:2px solid var(--pino)}
+.nadie{color:var(--ladrillo);font-weight:600;font-size:14px}
+.sem{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.sem.cab span{text-align:center}
+.sem-movil{display:none;font-size:11px;color:var(--piz);margin-bottom:3px}
+@media (max-width:760px){.sem-movil{display:grid}}
+.dia-c{position:relative;height:32px;border-radius:7px;overflow:hidden;background:repeating-linear-gradient(135deg,var(--ladrillo-2) 0 3px,var(--sup) 3px 6px)}
+.dia-c i{position:absolute}
+.leyenda{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--piz)}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}.leyenda i{width:14px;height:8px;border-radius:4px;display:inline-block}
+.rayado{background:repeating-linear-gradient(135deg,var(--ladrillo-2) 0 3px,var(--sup) 3px 6px);border:1px solid var(--linea)}
+.mini-p{width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--linea);flex:none;display:inline-block}
+.item-t{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--linea)}
+.fecha-t{width:40px;text-align:center;line-height:1.1;flex:none}.fecha-t span{display:block;font-size:11px;color:var(--piz)}.fecha-t b{font-size:20px}
+.fs{border:0;margin:0 0 24px;padding:0}.fs legend{padding:0;margin-bottom:10px;font-size:17px;font-weight:700}
+.opts{display:flex;flex-wrap:wrap;gap:8px}.opts.tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.opts.dos{display:grid;grid-template-columns:1fr 1fr}.opts.siete{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:10px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--linea);background:var(--sup);font-weight:500;font-size:15px;color:var(--tinta);text-align:center}
+.opts:not(.tres):not(.dos):not(.siete) .opt{justify-content:flex-start}
+.opt.on{border:2px solid var(--pino);background:var(--pino-2);font-weight:700;padding:0 13px}
+.opt:focus-visible{outline:2px solid var(--pino);outline-offset:2px}
+.lista-c{border:1px solid var(--linea);border-radius:12px;overflow:auto;max-height:300px;margin-top:10px}
+.lista-c label{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 14px;border-bottom:1px solid var(--linea);cursor:pointer}
+.lista-c label:last-child{border-bottom:0}.lista-c label.on{background:var(--pino-2)}.lista-c label>span:first-of-type{flex:1}
+.lista-c input{width:20px;height:20px;flex:none}
+.atajos{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;margin-top:10px}
+.pie-a{position:sticky;bottom:-40px;background:var(--papel);margin:0 -28px -40px;padding:18px 28px 24px;border-top:1px solid var(--linea);display:flex;flex-direction:column;gap:14px}
+@media (max-width:760px){.opts.tres{grid-template-columns:1fr}
+  .tabla-a{min-width:0}.fila-a{grid-template-columns:minmax(0,1fr);gap:10px}.fila-a.cab-a{display:none}.acc-a{text-align:left}
+  .fila-a .sem::before{content:none}.fila-a>.sem{grid-template-columns:repeat(7,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -402,7 +442,7 @@ const ESTADOS = { respondida: "Respondida", borrador: "Para aprobar", pendiente_
 const MODOS = { simulacion: "Simulación", aprobacion: "Aprobación", automatico: "Automático" };
 const MODOS_D = { simulacion: "Prepara respuestas pero no publica nada.", aprobacion: "Prepara respuestas y vos las aprobás con un clic.", automatico: "Publica sola lo que sabe; lo dudoso te lo deja a vos." };
 // Costos de IA y tokens: solo los ve el dueño de la app
-const dueno = () => S.rol === "admin";
+const dueno = () => S.rol === "admin" && !S.soporte;
 const chip = (e) => `<span class="chip c-${esc(e)}">${esc(ESTADOS[e] ?? e)}</span>`;
 function aviso(t) { const d = document.createElement("div"); d.className = "toast"; d.setAttribute("role", "status"); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3600); }
 
@@ -644,7 +684,7 @@ async function recargar() {
   // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["turnos", "Turnos"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
+const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
 const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
@@ -689,6 +729,7 @@ const VISTAS = {};
 function ir(t) {
   clearTimeout(sondeo);
   $("#main").onclick = null;
+  if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t; document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
   VISTAS[t]();
@@ -777,7 +818,7 @@ function tarjetaConv(p) {
     </div>
     <div class="respuesta ${duda ? "duda" : ""}">
       ${multi && emp ? `<div class="como" style="background:${esc(emp.color)}">Respondés como <b>${esc(emp.nombre)}</b></div>` : ""}
-      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${p.asignada_nombre && !p.es_mia ? `<span class="chip">Asignada a ${esc(p.asignada_nombre)}</span>` : p.es_mia && S.rol !== "operador" ? `<span class="chip c-borrador">Asignada a vos</span>` : ""}</div>
+      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${S.rol !== "operador" && (p.asignados_nombres ?? []).length ? `<span class="chip">Para ${esc(p.es_mia ? "vos" : p.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</div>
       <textarea maxlength="2000" aria-label="Respuesta" placeholder="Escribí la respuesta…">${esc(p.respuesta_sugerida ?? "")}</textarea>
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
@@ -815,7 +856,8 @@ VISTAS.bandeja = async () => {
   ]);
   const todas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
   // El operador solo ve lo que le llega a él (o lo que todavía no tiene a nadie asignado); no ve horarios ni lo de los demás
-  const filas = todas.filter((f) => f.es_mia || !f.asignada_a);
+  const conAsig = new Set([...(pend?.con_asignaciones ?? []), ...(borr?.con_asignaciones ?? [])]);
+  const filas = todas.filter((f) => f.es_mia || (!(f.asignados ?? []).length && !conAsig.has(f.empresa_id)));
   S.pendOp = filas.length; armarNav();
   const n = filas.length, nombre = (S.yo?.usuario?.nombre ?? "").split(" ")[0];
   const emps = S.empresaId ? [empresaYo(S.empresaId)] : (S.yo?.empresas ?? []);
@@ -906,116 +948,225 @@ function sumarPersona(emp, libres) {
   };
 }
 
-// ================= TURNOS (administrador de la empresa) =================
+// ================= ASIGNACIONES (administrador de la empresa) =================
+// Quién atiende qué publicaciones y cuándo. Cada persona tiene un color y sus iniciales.
+const PALETA = ["#2E5BD0", "#A85A06", "#7A3EB1", "#0D7A64", "#B8336A", "#1F7A8C", "#6B6B10", "#C2410C"];
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const DIAS_C = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-const hm = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-const hTxt = (t) => t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
-// "Todo el día" se guarda como dos tramos: de 0 a 12 y de 12 a 0 (el segundo termina a la medianoche)
-const esTodoDia = (ts) => ts.length === 2 && ts.some((t) => t.desde === "00:00" && t.hasta === "12:00") && ts.some((t) => t.desde === "12:00" && t.hasta === "00:00");
-const fechaTxt = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
-// Franjas de un día que nadie cubre (para mostrar cuándo publica el bot solo)
-function huecos(turnosDia) {
-  const tramos = [];
-  for (const t of turnosDia) { const d = hm(t.desde), h = hm(t.hasta); if (d < h) tramos.push([d, h]); else { tramos.push([d, 1440]); tramos.push([0, h]); } }
-  tramos.sort((a, b) => a[0] - b[0]);
-  const out = []; let c = 0;
-  for (const [d, h] of tramos) { if (d > c) out.push([c, d]); c = Math.max(c, h); }
-  if (c < 1440) out.push([c, 1440]);
-  const f = (m) => m === 1440 ? "24" : `${Math.floor(m / 60)}${m % 60 ? ":" + String(m % 60).padStart(2, "0") : ""}`;
-  return out.map(([d, h]) => `${f(d)} a ${f(h)}`);
+const DIAS_L = ["L", "M", "M", "J", "V", "S", "D"];
+const hm = (t) => { const [h, m] = String(t).split(":").map(Number); return h * 60 + (m || 0); };
+const hTxt = (t) => t === "24:00" ? "24" : t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
+const fechaTxt = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "numeric" });
+const hoyISO = () => new Date().toLocaleDateString("en-CA");
+function diasTxt(d) {
+  const n = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]; d = [...(d ?? [])].sort((a, b) => a - b);
+  if (d.length === 7) return "todos los días";
+  if (d.length > 2 && d.every((x, i) => !i || x === d[i - 1] + 1)) return `${n[d[0] - 1]} a ${n[d[d.length - 1] - 1]}`;
+  return d.map((x) => n[x - 1]).join(", ").replace(/, ([^,]*)$/, " y $1");
 }
-VISTAS.turnos = async () => {
+function periodoTxt(a) {
+  return a.fecha_desde && a.fecha_hasta ? `del ${fechaTxt(a.fecha_desde)} al ${fechaTxt(a.fecha_hasta)}` : a.fecha_desde ? `desde el ${fechaTxt(a.fecha_desde)}` : a.fecha_hasta ? `hasta el ${fechaTxt(a.fecha_hasta)}` : "";
+}
+function cuandoTxt(a) {
+  const base = a.siempre ? "siempre" : `${diasTxt(a.dias)}, ${hTxt(a.desde)} a ${hTxt(a.hasta)}`;
+  const p = periodoTxt(a); return p ? `${base} · ${p}` : base;
+}
+// Vigente hoy por fechas (las que todavía no empezaron o ya terminaron no se dibujan en la semana)
+const vigenteHoy = (a) => (!a.fecha_desde || a.fecha_desde <= hoyISO()) && (!a.fecha_hasta || a.fecha_hasta >= hoyISO());
+// Tramos (en minutos) que una asignación cubre en un día de la semana
+function tramosDia(a, d) {
+  if (a.siempre) return [[0, 1440]];
+  const out = [], de = hm(a.desde), ha = hm(a.hasta), ayer = d === 1 ? 7 : d - 1;
+  if (de < ha) { if (a.dias.includes(d)) out.push([de, ha]); }
+  else { if (a.dias.includes(d)) out.push([de, 1440]); if (a.dias.includes(ayer)) out.push([0, ha]); }
+  return out;
+}
+const avatarM = (m, t = 26) => `<span class="av-m" style="width:${t}px;height:${t}px;background:${m.fondo};color:${m.color}" aria-hidden="true">${esc(m.ini)}</span>`;
+// Una semana: 7 casillas de 0 a 24 h, un carril por persona; lo rayado no lo cubre nadie
+function semana(entradas) {
+  const ms = [...new Map(entradas.map((e) => [e.m.id, e.m])).values()];
+  return `<div class="sem-c"><div class="sem cab sem-movil">${DIAS_L.map((d) => `<span>${d}</span>`).join("")}</div><div class="sem">${[1, 2, 3, 4, 5, 6, 7].map((d) => {
+    const titulo = ms.map((m) => { const t = entradas.filter((e) => e.m.id === m.id).flatMap((e) => tramosDia(e.a, d)); return t.length ? `${m.nombre}: ${t.map(([x, y]) => `${Math.floor(x / 60)} a ${Math.floor(y / 60)}`).join(", ")}` : ""; }).filter(Boolean).join(" · ") || "Sin nadie";
+    return `<div class="dia-c" title="${esc(DIAS[d - 1] + ": " + titulo)}">${ms.map((m, i) => entradas.filter((e) => e.m.id === m.id).flatMap((e) => tramosDia(e.a, d))
+      .map(([x, y]) => `<i style="left:${x / 14.4}%;width:${(y - x) / 14.4}%;top:${i / ms.length * 100}%;height:${100 / ms.length}%;background:${m.color}"></i>`).join("")).join("")}</div>`;
+  }).join("")}</div></div>`;
+}
+const cabSemana = `<div class="sem cab">${DIAS_C.map((d) => `<span>${d}</span>`).join("")}</div>`;
+
+async function datosAsignaciones(emp) {
+  const r = await seguro(() => api("asignaciones", { empresa_id: emp })); if (!r) return null;
+  r.miembros.forEach((m, i) => { m.color = PALETA[i % PALETA.length]; m.fondo = m.color + "22"; m.ini = iniciales(m.nombre).slice(0, 2); m.corto = m.vos ? "Yo" : m.nombre.split(" ")[0]; });
+  r.m = (id) => r.miembros.find((x) => x.id === Number(id));
+  r.catNom = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
+  r.pub = (id) => r.publicaciones.find((p) => p.id === id);
+  // Cada par persona-asignación
+  r.entradas = r.asignaciones.flatMap((a) => a.miembro_ids.map((id) => ({ m: r.m(id), a })).filter((e) => e.m));
+  return r;
+}
+
+VISTAS.asignaciones = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Turnos</h1><p>Elegí un cliente arriba a la izquierda para ver y armar sus turnos.</p></div></div>`; return; }
-  const r = await seguro(() => api("turnos", { empresa_id: emp })); if (!r) return;
-  const hay = r.miembros.some((m) => m.turnos.length);
-  const nomM = (id) => r.miembros.find((m) => m.id === id)?.nombre ?? "Persona dada de baja";
-  const nomCat = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
-  const celda = (m, d) => esTodoDia(m.turnos.filter((t) => t.dia === d)) ? "Todo el día" : m.turnos.filter((t) => t.dia === d).map((t) => `${hTxt(t.desde)} a ${hTxt(t.hasta)}`).join("<br>") || `<span class="mut">—</span>`;
-  const todos = r.miembros.flatMap((m) => m.turnos);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Turnos</h1><p>Cada pregunta que necesita a una persona se asigna a quien está de turno. Si no hay nadie de turno, el bot publica solo lo que sabe responder y el resto espera al próximo turno. Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div></div>
-    ${hay ? "" : `<div class="panel" style="border-color:var(--ambar);margin-bottom:16px"><b>Todavía no hay turnos cargados.</b><div class="mut peq">Mientras no cargues ninguno, todos ven todas las preguntas y el bot trabaja según el modo de cada cuenta. Empezá con "Editar horario" en cada persona.</div></div>`}
-    <div class="panel" style="overflow-x:auto"><table class="tabla" style="min-width:760px"><thead><tr><th>Persona</th>${DIAS_C.map((d) => `<th>${d}</th>`).join("")}<th></th></tr></thead><tbody>
-      ${r.miembros.map((m) => `<tr><td><b>${esc(m.nombre)}</b>${m.de_turno ? ` <span class="chip c-respondida">De turno ahora</span>` : ""}
-          <div class="mut peq">${m.estado === "invitado" ? "Todavía no entró · " : ""}${m.categorias.length ? "Atiende: " + m.categorias.map((c) => esc(nomCat(c))).join(", ") : "Atiende todas las categorías"}</div></td>
-        ${[1, 2, 3, 4, 5, 6, 7].map((d) => `<td class="peq">${celda(m, d)}</td>`).join("")}
-        <td><button class="btn lin chico" data-ed="${m.id}">Editar horario</button></td></tr>`).join("")}
-      ${hay ? `<tr><td><b>Sin nadie</b><div class="mut peq">Publica el bot</div></td>${[1, 2, 3, 4, 5, 6, 7].map((d) => `<td class="peq mut">${huecos(todos.filter((t) => t.dia === d)).join("<br>") || "Cubierto"}</td>`).join("")}<td></td></tr>` : ""}
-    </tbody></table></div>
-    <div class="cabecera" style="margin-top:28px"><div><h2>Vacaciones, francos y feriados</h2><p class="mut peq" style="margin:4px 0 0">En esos días la persona no recibe preguntas. Un feriado de toda la empresa deja el día sin nadie de turno.</p></div>
-      <div><button class="btn lin" id="excNueva">Agregar</button></div></div>
-    <div class="panel">${r.excepciones.length ? `<table class="tabla"><tbody>${r.excepciones.map((x) => `<tr><td><b>${x.miembro_id ? esc(nomM(x.miembro_id)) : "Toda la empresa"}</b><div class="mut peq">${esc(x.motivo ?? (x.miembro_id ? "Ausencia" : "Feriado"))}</div></td>
-      <td>${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</td><td style="text-align:right"><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></td></tr>`).join("")}</tbody></table>`
-      : `<div class="vacio"><b>No hay ausencias cargadas</b>Cargá vacaciones, francos o feriados para que en esos días no se asignen preguntas.</div>`}</div>`;
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>Elegí un cliente para ver sus asignaciones.</p></div></div>`; return; }
+  const r = await datosAsignaciones(emp); if (!r) return;
+  S.asigVista ??= "categoria";
+  const quienes = (ents) => ents.length ? ents.map((e) => `<button class="quien-b" data-asig="${e.a.id}" type="button">${avatarM(e.m, 24)}<span><b>${esc(e.m.corto)}</b> <span class="mut">${esc(cuandoTxt(e.a))}</span></span></button>`).join("") : `<span class="nadie">Nadie asignado</span>`;
+  const vig = (ents) => ents.filter((e) => vigenteHoy(e.a));
+  let cuerpo = "";
+  if (S.asigVista === "categoria") {
+    const filas = r.categorias.map((c) => {
+      const ents = r.entradas.filter((e) => e.a.alcance === "todo" || (e.a.alcance === "categorias" && (e.a.categorias ?? []).includes(c.id)));
+      return `<div class="fila-a"><div><b class="tit">${esc(c.nombre)}</b><div class="mut peq">${c.publicaciones} ${c.publicaciones === 1 ? "publicación" : "publicaciones"}</div></div>
+        <div class="quienes">${quienes(ents)}</div>${semana(vig(ents))}
+        <div class="acc-a"><button class="btn lin chico" data-nueva-cat="${esc(c.id)}">Asignar</button></div></div>`;
+    }).join("");
+    cuerpo = `<div class="tabla-a"><div class="fila-a cab-a"><div>Categoría</div><div>Quién la atiende</div>${cabSemana}<div></div></div>${filas || `<div class="vacio"><b>No hay publicaciones sincronizadas</b>Aparecen cuando la cuenta termine de leer sus publicaciones.</div>`}</div>`;
+  } else if (S.asigVista === "operador") {
+    const filas = r.miembros.map((m) => {
+      const ents = r.entradas.filter((e) => e.m.id === m.id);
+      const alc = (a) => a.alcance === "todo" ? "Toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} ${a.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
+      return `<div class="fila-a"><div style="display:flex;gap:10px;align-items:center">${avatarM(m, 34)}<div><b class="tit">${esc(m.nombre)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${m.rol === "admin" ? "Administrador" : "Operador"}${m.estado === "invitado" ? " · todavía no entró" : ""}</div></div></div>
+        <div class="quienes">${ents.length ? ents.map((e) => `<button class="quien-b" data-asig="${e.a.id}" type="button"><span><b>${esc(alc(e.a))}</b> <span class="mut">${esc(cuandoTxt(e.a))}</span></span></button>`).join("") : `<span class="mut">No tiene nada asignado</span>`}</div>
+        ${semana(vig(ents))}<div class="acc-a"><button class="btn lin chico" data-nueva-m="${m.id}">Asignar</button></div></div>`;
+    }).join("");
+    cuerpo = `<div class="tabla-a"><div class="fila-a cab-a"><div>Persona</div><div>Qué atiende</div>${cabSemana}<div></div></div>${filas}</div>`;
+  } else {
+    const pubs = [...new Set(r.asignaciones.filter((a) => a.alcance === "publicaciones").flatMap((a) => a.publicaciones))];
+    cuerpo = `<div class="tabla-a">${pubs.length ? `<div class="fila-a cab-a"><div>Publicación</div><div>Quién la atiende</div>${cabSemana}<div></div></div>` + pubs.map((id) => {
+      const p = r.pub(id), ents = r.entradas.filter((e) => e.a.alcance === "publicaciones" && e.a.publicaciones.includes(id));
+      return `<div class="fila-a"><div style="display:flex;gap:10px;align-items:center">${p?.thumbnail ? `<img src="${esc(p.thumbnail)}" alt="" class="mini-p">` : `<span class="mini-p"></span>`}<b class="tit" style="font-size:14px">${esc(p?.titulo ?? id)}</b></div>
+        <div class="quienes">${quienes(ents)}</div>${semana(vig(ents))}<div></div></div>`;
+    }).join("") : `<div class="vacio"><b>No hay publicaciones con asignación propia</b>Sirven para que una publicación puntual la atienda alguien distinto de su categoría: mandan sobre la categoría.</div>`}</div>`;
+  }
+  const temporales = r.asignaciones.filter((a) => a.fecha_desde || a.fecha_hasta);
+  const mes = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { month: "short" }).replace(".", "").toUpperCase();
+  const nomsA = (a) => a.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean).join(" y ");
+  const alcTxt = (a) => a.alcance === "todo" ? "toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} publicaciones`;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>Qué publicaciones atiende cada persona y en qué horario. Cuando nadie cubre una pregunta, el bot responde solo lo que sabe y lo demás te llega a vos. Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div>
+      <div><button class="btn pri" id="asNueva">+ Nueva asignación</button></div></div>
+    <div class="fila" style="margin-bottom:14px;flex-wrap:wrap;gap:12px"><div class="seg" id="asVista" role="tablist">${[["categoria", "Por categoría"], ["operador", "Por persona"], ["publicacion", "Por publicación"]].map(([k, t]) => `<button role="tab" aria-selected="${S.asigVista === k}" data-v="${k}" class="${S.asigVista === k ? "on" : ""}">${t}</button>`).join("")}</div>
+      <div class="leyenda">${r.miembros.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.corto)}</span>`).join("")}<span><i class="rayado"></i>Sin nadie</span></div></div>
+    <div class="panel" style="padding:0;overflow-x:auto">${cuerpo}<p class="mut peq" style="margin:0;padding:12px 20px">Cada casilla es un día de 0 a 24 h. Donde hay dos colores, la pregunta les llega a los dos y la responde el primero que la toma.</p></div>
+    <div class="g2" style="display:grid;gap:16px;margin-top:16px">
+      <div class="panel"><h2 style="margin:0">Por un tiempo</h2><p class="mut peq" style="margin:4px 0 8px">Reemplazos o refuerzos con fecha de inicio o de fin.</p>
+        ${temporales.length ? temporales.map((a) => `<div class="item-t"><div class="fecha-t"><span>${mes(a.fecha_desde ?? a.fecha_hasta)}</span><b>${Number((a.fecha_desde ?? a.fecha_hasta).slice(8))}</b></div>
+          <div style="flex:1;min-width:0"><b>${esc(nomsA(a))}</b> · ${esc(alcTxt(a))}<div class="mut peq">${esc(cuandoTxt(a))}</div></div><button class="btn lin chico" data-asig="${a.id}">Editar</button></div>`).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay asignaciones con fecha. Se cargan desde "Nueva asignación", con la opción "Solo por un tiempo".</p>`}</div>
+      <div class="panel"><div class="fila"><div><h2 style="margin:0">Ausencias y feriados</h2><p class="mut peq" style="margin:4px 0 8px">En esos días la persona no recibe preguntas. Un feriado deja el día sin nadie.</p></div><div class="n"><button class="btn lin chico" id="excNueva">Agregar</button></div></div>
+        ${r.excepciones.length ? r.excepciones.map((x) => { const m = x.miembro_id ? r.m(x.miembro_id) : null; return `<div class="item-t">${m ? avatarM(m, 32) : `<span class="av-m" style="width:32px;height:32px;background:var(--sup2);color:var(--piz)" aria-hidden="true">F</span>`}
+          <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Toda la empresa"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
+    </div>`;
   $("#main").onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.ed) editarTurno(emp, r, r.miembros.find((m) => m.id === Number(b.dataset.ed)));
-    else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { empresa_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.turnos(); } }
+    if (b.dataset.v) { S.asigVista = b.dataset.v; VISTAS.asignaciones(); }
+    else if (b.id === "asNueva") editarAsignacion(emp, r, null);
+    else if (b.dataset.asig) editarAsignacion(emp, r, r.asignaciones.find((a) => a.id === Number(b.dataset.asig)));
+    else if (b.dataset.nuevaCat) editarAsignacion(emp, r, null, { alcance: "categorias", categorias: [b.dataset.nuevaCat] });
+    else if (b.dataset.nuevaM) editarAsignacion(emp, r, null, { miembro_ids: [Number(b.dataset.nuevaM)] });
+    else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { empresa_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.asignaciones(); } }
     else if (b.id === "excNueva") nuevaAusencia(emp, r);
   };
 };
-function editarTurno(emp, r, m) {
-  const tr = (d) => m.turnos.filter((t) => t.dia === d);
-  const fila = (d) => { const todo = esTodoDia(tr(d)); const [a, b] = todo ? [] : tr(d); return `<div class="dia-t" data-dia="${d}" style="display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)">
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="tOn" ${a || todo ? "checked" : ""}> ${DIAS[d - 1]}</label>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center" class="peq">
-        <label style="display:flex;gap:6px;align-items:center;margin-right:6px"><input type="checkbox" class="t24" ${todo ? "checked" : ""}> Todo el día</label>
-        <span class="horas" style="display:${todo ? "none" : "contents"}">
-        <input type="time" class="t1d" value="${a?.desde ?? "09:00"}" style="width:auto"> a <input type="time" class="t1h" value="${a?.hasta ?? "18:00"}" style="width:auto">
-        <span class="mut">y de</span> <input type="time" class="t2d" value="${b?.desde ?? ""}" style="width:auto"> a <input type="time" class="t2h" value="${b?.hasta ?? ""}" style="width:auto"></span>
-      </div></div>`; };
-  const v = cajon(`<div class="cajon-cab"><div><h2>Horario de ${esc(m.nombre)}</h2><p class="mut peq" style="margin:4px 0 0">Marcá los días que trabaja. El segundo horario es opcional, para turnos cortados. Si termina después de medianoche, poné la hora de salida igual (por ejemplo, de 22 a 2).</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    <button class="btn lin chico" id="tSiempre" type="button" style="margin:10px 0 4px">De turno siempre: todos los días, todo el día</button>
-    ${[1, 2, 3, 4, 5, 6, 7].map(fila).join("")}
-    <div style="display:flex;flex-wrap:wrap;gap:4px 18px"><button class="enlace" id="tCopiar" type="button">Copiar el lunes de martes a viernes</button><button class="enlace" id="tCopiarTodos" type="button">Copiar el lunes a todos los días</button></div>
-    <h3 style="margin:20px 0 6px">Qué categorías atiende</h3>
-    <p class="mut peq" style="margin:0 0 8px">Sin ninguna marcada, atiende todas. Si marcás algunas, las preguntas de esas categorías van primero a esta persona.</p>
-    <div style="max-height:220px;overflow:auto;border:1px solid var(--linea);border-radius:10px;padding:6px 10px">${r.categorias.map((c) => `<label style="display:flex;gap:8px;align-items:center;padding:4px 0" class="peq"><input type="checkbox" class="tCat" value="${esc(c.id)}" ${m.categorias.includes(c.id) ? "checked" : ""}> ${esc(c.nombre)} <span class="mut">(${c.publicaciones})</span></label>`).join("") || `<span class="mut peq">No hay publicaciones sincronizadas todavía.</span>`}</div>
-    <button class="btn pri" style="margin-top:18px" id="tOk">Guardar horario</button>`);
-  const mostrarHoras = (x) => { x.querySelector(".horas").style.display = x.querySelector(".t24").checked ? "none" : "contents"; };
-  v.addEventListener("change", (e) => { if (e.target.classList.contains("t24")) { const x = e.target.closest(".dia-t"); if (e.target.checked) x.querySelector(".tOn").checked = true; mostrarHoras(x); } });
-  $("#tSiempre", v).onclick = () => { for (const x of v.querySelectorAll(".dia-t")) { x.querySelector(".tOn").checked = true; x.querySelector(".t24").checked = true; mostrarHoras(x); } };
-  const copiar = (dias) => {
-    const lun = v.querySelector('[data-dia="1"]');
-    for (const d of dias) { const x = v.querySelector(`[data-dia="${d}"]`); for (const k of ["tOn", "t24", "t1d", "t1h", "t2d", "t2h"]) { const o = lun.querySelector("." + k), n = x.querySelector("." + k); if (k === "tOn" || k === "t24") n.checked = o.checked; else n.value = o.value; } mostrarHoras(x); }
+
+// Panel lateral para crear o editar una asignación: ¿quién?, ¿qué publicaciones?, ¿cuándo?
+function editarAsignacion(emp, r, a, pre = {}) {
+  const st = a ? { ...a, dias: [...(a.dias ?? [1, 2, 3, 4, 5])], categorias: [...(a.categorias ?? [])], publicaciones: [...(a.publicaciones ?? [])], miembro_ids: [...a.miembro_ids] }
+    : { miembro_ids: [], alcance: "todo", categorias: [], publicaciones: [], siempre: true, dias: [1, 2, 3, 4, 5], desde: "09:00", hasta: "18:00", fecha_desde: null, fecha_hasta: null, ...pre };
+  st.porTiempo = !!(st.fecha_desde || st.fecha_hasta);
+  if (!st.desde) st.desde = "09:00"; if (!st.hasta) st.hasta = "18:00";
+  let busca = "";
+  const horas = Array.from({ length: 49 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
+  // Categorías que hoy no cubre nadie (sin contar esta asignación)
+  const otras = r.entradas.filter((e) => !a || e.a.id !== a.id);
+  const sinNadie = (c) => !otras.some((e) => e.a.alcance === "todo" || (e.a.alcance === "categorias" && e.a.categorias.includes(c)));
+  const v = cajon(`<div class="cajon-cab"><h2 style="margin:0">${a ? "Editar asignación" : "Nueva asignación"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div><div id="asForm"></div>`);
+  const resumen = () => {
+    const quien = st.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean);
+    const q = quien.length ? quien.join(", ").replace(/, ([^,]*)$/, " y $1") : "Nadie todavía";
+    const que = st.alcance === "todo" ? "toda la cuenta" : st.alcance === "categorias" ? (st.categorias.length ? st.categorias.map(r.catNom).join(", ") : "ninguna categoría todavía") : `${st.publicaciones.length} ${st.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
+    const cuando = st.siempre ? "siempre" : `${diasTxt(st.dias) || "ningún día"}, de ${hTxt(st.desde)} a ${hTxt(st.hasta)}`;
+    const per = st.porTiempo ? periodoTxt({ fecha_desde: st.fecha_desde, fecha_hasta: st.fecha_hasta }) : "";
+    return `<b>${esc(q)}</b> ${quien.length > 1 ? "van a atender" : "va a atender"} <b>${esc(que)}</b>, <b>${esc(cuando)}</b>${per ? `, <b>${esc(per)}</b>` : ""}.`;
   };
-  $("#tCopiar", v).onclick = () => copiar([2, 3, 4, 5]);
-  $("#tCopiarTodos", v).onclick = () => copiar([2, 3, 4, 5, 6, 7]);
-  $("#tOk", v).onclick = async () => {
-    const turnos = [];
-    for (const x of v.querySelectorAll(".dia-t")) {
-      if (!x.querySelector(".tOn").checked) continue;
-      const dia = Number(x.dataset.dia), q = (k) => x.querySelector("." + k).value;
-      if (x.querySelector(".t24").checked) { turnos.push({ dia, desde: "00:00", hasta: "12:00" }, { dia, desde: "12:00", hasta: "00:00" }); continue; }
-      if (!q("t1d") || !q("t1h")) return aviso(`Completá el horario del ${DIAS[dia - 1].toLowerCase()}`);
-      turnos.push({ dia, desde: q("t1d"), hasta: q("t1h") });
-      if (q("t2d") || q("t2h")) { if (!q("t2d") || !q("t2h")) return aviso(`Completá el segundo horario del ${DIAS[dia - 1].toLowerCase()}`); turnos.push({ dia, desde: q("t2d"), hasta: q("t2h") }); }
+  const pintar = () => {
+    const pubs = r.publicaciones.filter((p) => !busca || p.titulo.toLowerCase().includes(busca.toLowerCase()));
+    const elegidas = r.publicaciones.filter((p) => st.publicaciones.includes(p.id));
+    $("#asForm", v).innerHTML = `
+      <fieldset class="fs"><legend>¿Quién?</legend>
+        <div class="opts">${r.miembros.map((m) => `<button type="button" class="opt ${st.miembro_ids.includes(m.id) ? "on" : ""}" aria-pressed="${st.miembro_ids.includes(m.id)}" data-m="${m.id}">${avatarM(m)}${esc(m.vos ? "Yo" : m.nombre)}</button>`).join("")}</div>
+        <p class="mut peq" style="margin:8px 0 0">Podés elegir más de una persona: la pregunta les llega a todos y la responde el primero que la toma.</p></fieldset>
+      <fieldset class="fs"><legend>¿Qué publicaciones?</legend>
+        <div class="opts tres" role="radiogroup">${[["todo", "Toda la cuenta"], ["categorias", "Categorías"], ["publicaciones", "Publicaciones"]].map(([k, t]) => `<button type="button" role="radio" aria-checked="${st.alcance === k}" class="opt ${st.alcance === k ? "on" : ""}" data-alc="${k}">${t}</button>`).join("")}</div>
+        ${st.alcance === "categorias" ? `<div class="lista-c">${r.categorias.map((c) => `<label class="${st.categorias.includes(c.id) ? "on" : ""}"><input type="checkbox" data-cat="${esc(c.id)}" ${st.categorias.includes(c.id) ? "checked" : ""}><span>${esc(c.nombre)}</span>${sinNadie(c.id) ? `<span class="nadie peq">sin nadie · ${c.publicaciones}</span>` : `<span class="mut peq">${c.publicaciones}</span>`}</label>`).join("") || `<p class="mut peq" style="padding:12px">No hay publicaciones sincronizadas todavía.</p>`}</div>` : ""}
+        ${st.alcance === "publicaciones" ? `<input id="asBus" placeholder="Buscar publicación por nombre" value="${esc(busca)}" autocomplete="off">
+          ${elegidas.length ? `<div class="peq" style="margin:8px 0 4px"><b>${elegidas.length} ${elegidas.length === 1 ? "elegida" : "elegidas"}:</b> ${elegidas.map((p) => esc(p.titulo)).join(" · ")}</div>` : ""}
+          <div class="lista-c">${pubs.slice(0, 60).map((p) => `<label class="${st.publicaciones.includes(p.id) ? "on" : ""}"><input type="checkbox" data-pub="${esc(p.id)}" ${st.publicaciones.includes(p.id) ? "checked" : ""}>${p.thumbnail ? `<img src="${esc(p.thumbnail)}" alt="" class="mini-p" style="width:34px;height:34px">` : ""}<span>${esc(p.titulo)}</span></label>`).join("") || `<p class="mut peq" style="padding:12px">No encontré publicaciones con ese nombre.</p>`}</div>
+          ${pubs.length > 60 ? `<p class="mut peq" style="margin:6px 0 0">Hay ${pubs.length} resultados: escribí más para achicar la lista.</p>` : ""}
+          <p class="mut peq" style="margin:6px 0 0">Una asignación por publicación manda sobre la de su categoría.</p>` : ""}</fieldset>
+      <fieldset class="fs"><legend>¿Cuándo?</legend>
+        <div class="opts dos" role="radiogroup">${[[true, "Siempre"], [false, "En días y horarios"]].map(([k, t]) => `<button type="button" role="radio" aria-checked="${st.siempre === k}" class="opt ${st.siempre === k ? "on" : ""}" data-siempre="${k}">${t}</button>`).join("")}</div>
+        ${st.siempre ? "" : `<div class="opts siete" role="group" aria-label="Días">${DIAS_L.map((l, i) => `<button type="button" class="opt ${st.dias.includes(i + 1) ? "on" : ""}" aria-pressed="${st.dias.includes(i + 1)}" aria-label="${DIAS[i]}" data-dia="${i + 1}">${l}</button>`).join("")}</div>
+          <div class="atajos"><button type="button" class="enlace" data-dias="1,2,3,4,5">Lunes a viernes</button><button type="button" class="enlace" data-dias="6,7">Fin de semana</button><button type="button" class="enlace" data-dias="1,2,3,4,5,6,7">Todos los días</button></div>
+          <div class="g2" style="display:grid;gap:12px;margin-top:10px"><label><span class="et">Desde la hora</span><select id="asDe">${horas.slice(0, 48).map((h) => `<option ${h === st.desde ? "selected" : ""}>${h}</option>`).join("")}</select></label>
+            <label><span class="et">Hasta la hora</span><select id="asHa">${horas.slice(1).map((h) => `<option ${h === st.hasta ? "selected" : ""}>${h}</option>`).join("")}</select></label></div>
+          <p class="mut peq" style="margin:6px 0 0">Si termina después de medianoche, elegí una hora de fin menor (por ejemplo, de 22:00 a 02:00).</p>`}
+        <label class="chk"><input type="checkbox" id="asTiempo" ${st.porTiempo ? "checked" : ""}> <b>Solo por un tiempo</b></label>
+        ${st.porTiempo ? `<div class="g2" style="display:grid;gap:12px"><label><span class="et">Empieza</span><input type="date" id="asFd" value="${st.fecha_desde ?? ""}"></label><label><span class="et">Termina</span><input type="date" id="asFh" value="${st.fecha_hasta ?? ""}"></label></div>` : ""}</fieldset>
+      <div class="pie-a"><p style="margin:0">${resumen()}</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">${a ? `<button type="button" class="btn pel" id="asBorrar" style="margin-right:auto">Borrar</button>` : ""}<button type="button" class="btn lin" data-cerrar>Cancelar</button><button type="button" class="btn pri" id="asOk">Guardar asignación</button></div></div>`;
+    const bus = $("#asBus", v); if (bus) { bus.oninput = () => { busca = bus.value; const pos = bus.selectionStart; pintar(); const n = $("#asBus", v); n.focus(); n.setSelectionRange(pos, pos); }; }
+  };
+  v.addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.m) { const id = Number(b.dataset.m); st.miembro_ids = st.miembro_ids.includes(id) ? st.miembro_ids.filter((x) => x !== id) : [...st.miembro_ids, id]; pintar(); }
+    else if (b.dataset.alc) { st.alcance = b.dataset.alc; pintar(); }
+    else if (b.dataset.siempre) { st.siempre = b.dataset.siempre === "true"; pintar(); }
+    else if (b.dataset.dia) { const d = Number(b.dataset.dia); st.dias = st.dias.includes(d) ? st.dias.filter((x) => x !== d) : [...st.dias, d].sort(); pintar(); }
+    else if (b.dataset.dias) { st.dias = b.dataset.dias.split(",").map(Number); pintar(); }
+    else if (b.id === "asBorrar") {
+      if (!confirm("¿Borrar esta asignación? Las preguntas que ya tenían asignadas siguen en la bandeja de esas personas.")) return;
+      if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { v.remove(); aviso("Asignación borrada"); VISTAS.asignaciones(); }
+    } else if (b.id === "asOk") {
+      if (!st.miembro_ids.length) return aviso("Elegí al menos una persona");
+      const datos = { id: a?.id, miembro_ids: st.miembro_ids, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones, siempre: st.siempre, dias: st.dias, desde: st.desde, hasta: st.hasta,
+        fecha_desde: st.porTiempo ? st.fecha_desde || null : null, fecha_hasta: st.porTiempo ? st.fecha_hasta || null : null };
+      if (await seguro(() => api("asignacion_guardar", { empresa_id: emp, asignacion: datos }))) { v.remove(); aviso(a ? "Asignación actualizada" : "Asignación guardada"); VISTAS.asignaciones(); }
     }
-    const categorias = [...v.querySelectorAll(".tCat:checked")].map((c) => c.value);
-    if (await seguro(() => api("turno_guardar", { empresa_id: emp, miembro_id: m.id, turnos, categorias }))) { v.remove(); aviso(`Horario de ${m.nombre} guardado`); VISTAS.turnos(); }
-  };
+  });
+  v.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.cat) { st.categorias = t.checked ? [...st.categorias, t.dataset.cat] : st.categorias.filter((x) => x !== t.dataset.cat); pintar(); }
+    else if (t.dataset.pub) { st.publicaciones = t.checked ? [...st.publicaciones, t.dataset.pub] : st.publicaciones.filter((x) => x !== t.dataset.pub); pintar(); }
+    else if (t.id === "asDe") { st.desde = t.value; pintar(); }
+    else if (t.id === "asHa") { st.hasta = t.value; pintar(); }
+    else if (t.id === "asTiempo") { st.porTiempo = t.checked; if (t.checked && !st.fecha_desde) st.fecha_desde = hoyISO(); pintar(); }
+    else if (t.id === "asFd") { st.fecha_desde = t.value || null; pintar(); }
+    else if (t.id === "asFh") { st.fecha_hasta = t.value || null; pintar(); }
+  });
+  pintar();
 }
 function nuevaAusencia(emp, r) {
-  const hoy = new Date().toLocaleDateString("en-CA");
-  const v = cajon(`<div class="cajon-cab"><div><h2>Agregar ausencia</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+  const hoy = hoyISO();
+  const v = cajon(`<div class="cajon-cab"><div><h2>Agregar ausencia o feriado</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <label class="et" for="aQuien">Quién</label><select id="aQuien"><option value="">Toda la empresa (feriado)</option>${r.miembros.map((m) => `<option value="${m.id}">${esc(m.nombre)}</option>`).join("")}</select>
-    <label class="et" for="aDesde">Desde</label><input id="aDesde" type="date" value="${hoy}">
-    <label class="et" for="aHasta">Hasta</label><input id="aHasta" type="date" value="${hoy}">
+    <div class="g2" style="display:grid;gap:12px"><label><span class="et">Desde</span><input id="aDesde" type="date" value="${hoy}"></label><label><span class="et">Hasta</span><input id="aHasta" type="date" value="${hoy}"></label></div>
     <label class="et" for="aMot">Motivo (opcional)</label><input id="aMot" placeholder="Vacaciones, franco, feriado…" autocomplete="off">
     <button class="btn pri" style="margin-top:18px" id="aOk">Agregar</button>`, true);
   $("#aOk", v).onclick = async () => {
     const d = { empresa_id: emp, miembro_id: $("#aQuien", v).value || null, desde: $("#aDesde", v).value, hasta: $("#aHasta", v).value, motivo: $("#aMot", v).value };
-    if (await seguro(() => api("excepcion_guardar", d))) { v.remove(); aviso("Ausencia agregada"); VISTAS.turnos(); }
+    if (await seguro(() => api("excepcion_guardar", d))) { v.remove(); aviso("Ausencia agregada"); VISTAS.asignaciones(); }
   };
 }
 
 // ================= PREGUNTAS =================
 VISTAS.preguntas = async () => {
   const f = S.filtros;
-  const estados = [["", "Todas"], ["pendiente_revision", "Te necesitan"], ["borrador", "Para aprobar"], ["respondida", "Respondidas"], ["simulada", "Simuladas"], ["comparar", "A mano vs. bot"], ["error", "Con error"], ["prueba", "Pruebas"]];
+  // Cuántas esperan a una persona: se muestran en las solapas y, al entrar, se abre la que necesita atención
+  const base = { empresa_id: S.empSel || null, cuenta_id: f.cuenta_id, limite: 1 };
+  const [nTe, nAp] = await Promise.all(["pendiente_revision", "borrador"].map((e) => api("preguntas", { ...base, estado: e }).then((x) => x.total ?? 0).catch(() => 0)));
+  if (f.elegir) { f.elegir = false; f.desde = 0; f.estado = nTe ? "pendiente_revision" : nAp ? "borrador" : ""; }
+  const cant = { pendiente_revision: nTe, borrador: nAp };
+  const estados = [["pendiente_revision", "Te necesitan"], ["borrador", "Para aprobar"], ["", "Todas"], ["respondida", "Respondidas"], ["simulada", "Simuladas"], ["comparar", "A mano vs. bot"], ["error", "Con error"], ["prueba", "Pruebas"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Preguntas</h1><p>Todo lo que entró, con lo que respondió el bot o una persona.</p></div></div>
-    <div class="filtros"><div class="seg" id="fEst">${estados.map(([k, t]) => `<button data-e="${k}" class="${k === f.estado ? "on" : ""}">${t}</button>`).join("")}</div></div>
+    <div class="filtros"><div class="seg" id="fEst">${estados.map(([k, t]) => `<button data-e="${k}" class="${k === f.estado ? "on" : ""}">${t}${cant[k] ? ` <span class="cuenta-n" style="margin-left:4px">${cant[k]}</span>` : ""}</button>`).join("")}</div></div>
     <div class="filtros">${S.res.cuentas.length > 1 ? `<select id="fCta" style="width:auto">${optsCuentas(f.cuenta_id, "Todas las cuentas")}</select>` : ""}
       <input class="buscar" id="fBus" value="${esc(f.buscar)}" placeholder="Buscar en preguntas, respuestas o publicaciones (Enter)"></div>
     <div class="panel" style="padding:6px 16px" id="lista"><p class="mut">Cargando…</p></div>`;
@@ -1345,7 +1496,7 @@ VISTAS.config = async () => {
   };
   const grupos = cv.grupos.map(([g, t]) => { const ks = Object.keys(A).filter((k) => A[k].grupo === g && visibles(k)); return ks.length ? `<div class="panel"><h2>${t}</h2>${ks.map(fila).join("")}</div>` : ""; }).join("");
   const c = nivel === "cuenta" ? cuentaDe(id) : null, pp = c ? (r.stats[c.id]?.por_pregunta ?? {}) : null;
-  $("#cfCuerpo").innerHTML = `<div class="conf"><div>${grupos || `<div class="panel vacio"><b>Nada para configurar en este nivel</b></div>`}
+  $("#cfCuerpo").innerHTML = `<div class="conf" style="${c && dueno() ? "" : "grid-template-columns:1fr"}"><div>${grupos || `<div class="panel vacio"><b>Nada para configurar en este nivel</b></div>`}
       <div class="fila" style="margin-top:16px"><div class="n"><button class="btn pri" id="cfG">Guardar configuración</button></div>${c ? `<div class="n"><button class="btn lin" id="cfSync">Actualizar historial ahora</button></div>` : ""}</div></div>
     ${c && dueno() ? `<aside class="costo"><div class="mut peq">Costo de IA por pregunta</div><div class="grande" style="margin:6px 0 4px">${usd(pp.costo_usd)}</div>
       <div class="mut peq" style="margin-bottom:12px">${pp.muestras ? `Promedio de las últimas ${pp.muestras} preguntas de esta cuenta.` : "Todavía no hay preguntas procesadas en esta cuenta."}</div>
@@ -1353,7 +1504,7 @@ VISTAS.config = async () => {
       <div class="fila-t"><span>Tokens guardados en memoria</span><b>${num(pp.tokens_cache_escritura)}</b></div><div class="fila-t"><span>Tokens escritos</span><b>${num(pp.tokens_salida)}</b></div>
       <div class="fila-t"><span>Respuestas en el historial</span><b>${num(r.historial?.[c.id] ?? 0)}</b></div><div class="fila-t"><span>Publicaciones guardadas</span><b>${num(r.publicaciones?.[c.id] ?? 0)}</b></div>
       <p class="mut peq" style="margin:12px 0 0">Para comparar ajustes: cambiá uno, probá unas preguntas en Probar y volvé a mirar este número.</p></aside>`
-      : `<aside class="costo"><div class="mut peq">Cómo funciona la herencia</div><p style="margin:10px 0 0">Si un ajuste dice <b>Heredado</b>, toma el valor del nivel de arriba y cambia solo si cambia allá. Si lo modificás acá, queda como <b>valor propio</b> de este nivel y lo heredan los de abajo.</p></aside>`}</div>`;
+      : ""}</div>`;
   const cuerpo = $("#cfCuerpo");
   cuerpo.querySelectorAll('input[type=range][data-k]').forEach((x) => x.oninput = () => { x.nextElementSibling.textContent = fmt(x.dataset.k, Number(x.value)); cambios[x.dataset.k] = Number(x.value); });
   cuerpo.querySelectorAll('input[type=checkbox][data-k]').forEach((x) => x.onchange = () => cambios[x.dataset.k] = x.checked);
