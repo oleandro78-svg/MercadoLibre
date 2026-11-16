@@ -506,7 +506,7 @@ async function recargar() {
   // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
+const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["turnos", "Turnos"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
 const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
@@ -550,6 +550,7 @@ function pintarPerfil() {
 const VISTAS = {};
 function ir(t) {
   clearTimeout(sondeo);
+  $("#main").onclick = null;
   S.tab = t; document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
   VISTAS[t]();
@@ -637,7 +638,7 @@ function tarjetaConv(p) {
     </div>
     <div class="respuesta ${duda ? "duda" : ""}">
       ${multi && emp ? `<div class="como" style="background:${esc(emp.color)}">Respondés como <b>${esc(emp.nombre)}</b></div>` : ""}
-      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span></div>
+      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${p.asignada_nombre && !p.es_mia ? `<span class="chip">Asignada a ${esc(p.asignada_nombre)}</span>` : p.es_mia && S.rol !== "operador" ? `<span class="chip c-borrador">Asignada a vos</span>` : ""}</div>
       <textarea maxlength="2000" aria-label="Respuesta" placeholder="Escribí la respuesta…">${esc(p.respuesta_sugerida ?? "")}</textarea>
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
@@ -673,7 +674,11 @@ VISTAS.bandeja = async () => {
     seguro(() => api("preguntas", { estado: "pendiente_revision", limite: 100 })),
     seguro(() => api("preguntas", { estado: "borrador", limite: 100 })),
   ]);
-  const filas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
+  const todas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
+  // Las asignadas a otra persona del equipo (por turno) se pueden mirar, pero no son tuyas
+  const filas = todas.filter((f) => f.es_mia || !f.asignada_a), otras = todas.filter((f) => f.asignada_a && !f.es_mia);
+  const turno = await seguro(() => api("mi_turno")) ?? [];
+  const conTurnos = turno.filter((t) => t.hay_turnos), deTurno = conTurnos.filter((t) => t.de_turno);
   S.pendOp = filas.length; armarNav();
   const n = filas.length, nombre = (S.yo?.usuario?.nombre ?? "").split(" ")[0];
   const emps = S.empresaId ? [empresaYo(S.empresaId)] : (S.yo?.empresas ?? []);
@@ -681,11 +686,13 @@ VISTAS.bandeja = async () => {
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
-      <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
+      <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p>
+      ${conTurnos.length ? `<p style="margin-top:6px">${deTurno.length ? `<span class="chip c-respondida">Estás de turno</span>` : `<span class="chip">Estás fuera de turno</span> <span class="mut peq">Las preguntas nuevas van a quien está de turno.</span>`}</p>` : ""}</div>
     </div>
     ${emps.length > 1 ? `<div class="filtros">${emps.map((e) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--sup);border:1px solid var(--linea);border-radius:99px;padding:6px 12px">${etiquetaEmpresa(e.id)}<b style="font-size:13px">${filas.filter((f) => f.empresa_id === e.id).length}</b></span>`).join("")}</div>` : ""}
-    <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>`;
-  enlazarCola($("#cola"));
+    <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>
+    ${otras.length ? `<details style="margin-top:24px"><summary class="enlace">Ver ${otras.length === 1 ? "la pregunta asignada" : `las ${otras.length} preguntas asignadas`} a otras personas del equipo</summary><div id="cola2" style="margin-top:12px">${otras.map(tarjetaConv).join("")}</div></details>` : ""}`;
+  enlazarCola($("#cola")); if ($("#cola2")) enlazarCola($("#cola2"));
 };
 
 // ================= EQUIPO (administrador de la empresa) =================
@@ -760,6 +767,99 @@ function sumarPersona(emp, libres) {
     v.remove(); VISTAS.equipo();
     if (r.nuevo) mostrarCodigo(nombre || email, r.email, r.codigo, true);
     else aviso(`${nombre || email} ya tenía usuario: se le sumó esta empresa`);
+  };
+}
+
+// ================= TURNOS (administrador de la empresa) =================
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const DIAS_C = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const hm = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const hTxt = (t) => t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
+const fechaTxt = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+// Franjas de un día que nadie cubre (para mostrar cuándo publica el bot solo)
+function huecos(turnosDia) {
+  const tramos = [];
+  for (const t of turnosDia) { const d = hm(t.desde), h = hm(t.hasta); if (d < h) tramos.push([d, h]); else { tramos.push([d, 1440]); tramos.push([0, h]); } }
+  tramos.sort((a, b) => a[0] - b[0]);
+  const out = []; let c = 0;
+  for (const [d, h] of tramos) { if (d > c) out.push([c, d]); c = Math.max(c, h); }
+  if (c < 1440) out.push([c, 1440]);
+  const f = (m) => m === 1440 ? "24" : `${Math.floor(m / 60)}${m % 60 ? ":" + String(m % 60).padStart(2, "0") : ""}`;
+  return out.map(([d, h]) => `${f(d)} a ${f(h)}`);
+}
+VISTAS.turnos = async () => {
+  const emp = S.rol === "admin" ? S.empSel : null;
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Turnos</h1><p>Elegí un cliente arriba a la izquierda para ver y armar sus turnos.</p></div></div>`; return; }
+  const r = await seguro(() => api("turnos", { empresa_id: emp })); if (!r) return;
+  const hay = r.miembros.some((m) => m.turnos.length);
+  const nomM = (id) => r.miembros.find((m) => m.id === id)?.nombre ?? "Persona dada de baja";
+  const nomCat = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
+  const celda = (m, d) => m.turnos.filter((t) => t.dia === d).map((t) => `${hTxt(t.desde)} a ${hTxt(t.hasta)}`).join("<br>") || `<span class="mut">—</span>`;
+  const todos = r.miembros.flatMap((m) => m.turnos);
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Turnos</h1><p>Cada pregunta que necesita a una persona se asigna a quien está de turno. Si no hay nadie de turno, el bot publica solo lo que sabe responder y el resto espera al próximo turno. Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div></div>
+    ${hay ? "" : `<div class="panel" style="border-color:var(--ambar);margin-bottom:16px"><b>Todavía no hay turnos cargados.</b><div class="mut peq">Mientras no cargues ninguno, todos ven todas las preguntas y el bot trabaja según el modo de cada cuenta. Empezá con "Editar horario" en cada persona.</div></div>`}
+    <div class="panel" style="overflow-x:auto"><table class="tabla" style="min-width:760px"><thead><tr><th>Persona</th>${DIAS_C.map((d) => `<th>${d}</th>`).join("")}<th></th></tr></thead><tbody>
+      ${r.miembros.map((m) => `<tr><td><b>${esc(m.nombre)}</b>${m.de_turno ? ` <span class="chip c-respondida">De turno ahora</span>` : ""}
+          <div class="mut peq">${m.estado === "invitado" ? "Todavía no entró · " : ""}${m.categorias.length ? "Atiende: " + m.categorias.map((c) => esc(nomCat(c))).join(", ") : "Atiende todas las categorías"}</div></td>
+        ${[1, 2, 3, 4, 5, 6, 7].map((d) => `<td class="peq">${celda(m, d)}</td>`).join("")}
+        <td><button class="btn lin chico" data-ed="${m.id}">Editar horario</button></td></tr>`).join("")}
+      ${hay ? `<tr><td><b>Sin nadie</b><div class="mut peq">Publica el bot</div></td>${[1, 2, 3, 4, 5, 6, 7].map((d) => `<td class="peq mut">${huecos(todos.filter((t) => t.dia === d)).join("<br>") || "Cubierto"}</td>`).join("")}<td></td></tr>` : ""}
+    </tbody></table></div>
+    <div class="cabecera" style="margin-top:28px"><div><h2>Vacaciones, francos y feriados</h2><p class="mut peq" style="margin:4px 0 0">En esos días la persona no recibe preguntas. Un feriado de toda la empresa deja el día sin nadie de turno.</p></div>
+      <div><button class="btn lin" id="excNueva">Agregar</button></div></div>
+    <div class="panel">${r.excepciones.length ? `<table class="tabla"><tbody>${r.excepciones.map((x) => `<tr><td><b>${x.miembro_id ? esc(nomM(x.miembro_id)) : "Toda la empresa"}</b><div class="mut peq">${esc(x.motivo ?? (x.miembro_id ? "Ausencia" : "Feriado"))}</div></td>
+      <td>${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</td><td style="text-align:right"><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></td></tr>`).join("")}</tbody></table>`
+      : `<div class="vacio"><b>No hay ausencias cargadas</b>Cargá vacaciones, francos o feriados para que en esos días no se asignen preguntas.</div>`}</div>`;
+  $("#main").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.ed) editarTurno(emp, r, r.miembros.find((m) => m.id === Number(b.dataset.ed)));
+    else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { empresa_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.turnos(); } }
+    else if (b.id === "excNueva") nuevaAusencia(emp, r);
+  };
+};
+function editarTurno(emp, r, m) {
+  const tr = (d) => m.turnos.filter((t) => t.dia === d);
+  const fila = (d) => { const [a, b] = tr(d); return `<div class="dia-t" data-dia="${d}" style="display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)">
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="tOn" ${a ? "checked" : ""}> ${DIAS[d - 1]}</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center" class="peq">
+        <input type="time" class="t1d" value="${a?.desde ?? "09:00"}" style="width:auto"> a <input type="time" class="t1h" value="${a?.hasta ?? "18:00"}" style="width:auto">
+        <span class="mut">y de</span> <input type="time" class="t2d" value="${b?.desde ?? ""}" style="width:auto"> a <input type="time" class="t2h" value="${b?.hasta ?? ""}" style="width:auto">
+      </div></div>`; };
+  const v = cajon(`<div class="cajon-cab"><div><h2>Horario de ${esc(m.nombre)}</h2><p class="mut peq" style="margin:4px 0 0">Marcá los días que trabaja. El segundo horario es opcional, para turnos cortados. Si termina después de medianoche, poné la hora de salida igual (por ejemplo, de 22 a 2).</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    ${[1, 2, 3, 4, 5, 6, 7].map(fila).join("")}
+    <button class="enlace" id="tCopiar" type="button">Copiar el horario del lunes a martes, miércoles, jueves y viernes</button>
+    <h3 style="margin:20px 0 6px">Qué categorías atiende</h3>
+    <p class="mut peq" style="margin:0 0 8px">Sin ninguna marcada, atiende todas. Si marcás algunas, las preguntas de esas categorías van primero a esta persona.</p>
+    <div style="max-height:220px;overflow:auto;border:1px solid var(--linea);border-radius:10px;padding:6px 10px">${r.categorias.map((c) => `<label style="display:flex;gap:8px;align-items:center;padding:4px 0" class="peq"><input type="checkbox" class="tCat" value="${esc(c.id)}" ${m.categorias.includes(c.id) ? "checked" : ""}> ${esc(c.nombre)} <span class="mut">(${c.publicaciones})</span></label>`).join("") || `<span class="mut peq">No hay publicaciones sincronizadas todavía.</span>`}</div>
+    <button class="btn pri" style="margin-top:18px" id="tOk">Guardar horario</button>`);
+  $("#tCopiar", v).onclick = () => {
+    const lun = v.querySelector('[data-dia="1"]');
+    for (const d of [2, 3, 4, 5]) { const x = v.querySelector(`[data-dia="${d}"]`); for (const k of ["tOn", "t1d", "t1h", "t2d", "t2h"]) { const o = lun.querySelector("." + k), n = x.querySelector("." + k); if (k === "tOn") n.checked = o.checked; else n.value = o.value; } }
+  };
+  $("#tOk", v).onclick = async () => {
+    const turnos = [];
+    for (const x of v.querySelectorAll(".dia-t")) {
+      if (!x.querySelector(".tOn").checked) continue;
+      const dia = Number(x.dataset.dia), q = (k) => x.querySelector("." + k).value;
+      if (!q("t1d") || !q("t1h")) return aviso(`Completá el horario del ${DIAS[dia - 1].toLowerCase()}`);
+      turnos.push({ dia, desde: q("t1d"), hasta: q("t1h") });
+      if (q("t2d") || q("t2h")) { if (!q("t2d") || !q("t2h")) return aviso(`Completá el segundo horario del ${DIAS[dia - 1].toLowerCase()}`); turnos.push({ dia, desde: q("t2d"), hasta: q("t2h") }); }
+    }
+    const categorias = [...v.querySelectorAll(".tCat:checked")].map((c) => c.value);
+    if (await seguro(() => api("turno_guardar", { empresa_id: emp, miembro_id: m.id, turnos, categorias }))) { v.remove(); aviso(`Horario de ${m.nombre} guardado`); VISTAS.turnos(); }
+  };
+}
+function nuevaAusencia(emp, r) {
+  const hoy = new Date().toLocaleDateString("en-CA");
+  const v = cajon(`<div class="cajon-cab"><div><h2>Agregar ausencia</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <label class="et" for="aQuien">Quién</label><select id="aQuien"><option value="">Toda la empresa (feriado)</option>${r.miembros.map((m) => `<option value="${m.id}">${esc(m.nombre)}</option>`).join("")}</select>
+    <label class="et" for="aDesde">Desde</label><input id="aDesde" type="date" value="${hoy}">
+    <label class="et" for="aHasta">Hasta</label><input id="aHasta" type="date" value="${hoy}">
+    <label class="et" for="aMot">Motivo (opcional)</label><input id="aMot" placeholder="Vacaciones, franco, feriado…" autocomplete="off">
+    <button class="btn pri" style="margin-top:18px" id="aOk">Agregar</button>`, true);
+  $("#aOk", v).onclick = async () => {
+    const d = { empresa_id: emp, miembro_id: $("#aQuien", v).value || null, desde: $("#aDesde", v).value, hasta: $("#aHasta", v).value, motivo: $("#aMot", v).value };
+    if (await seguro(() => api("excepcion_guardar", d))) { v.remove(); aviso("Ausencia agregada"); VISTAS.turnos(); }
   };
 }
 
