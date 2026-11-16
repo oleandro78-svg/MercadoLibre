@@ -775,6 +775,8 @@ const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "
 const DIAS_C = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const hm = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const hTxt = (t) => t.endsWith(":00") ? String(Number(t.slice(0, 2))) : t.replace(/^0/, "");
+// "Todo el día" se guarda como dos tramos: de 0 a 12 y de 12 a 0 (el segundo termina a la medianoche)
+const esTodoDia = (ts) => ts.length === 2 && ts.some((t) => t.desde === "00:00" && t.hasta === "12:00") && ts.some((t) => t.desde === "12:00" && t.hasta === "00:00");
 const fechaTxt = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
 // Franjas de un día que nadie cubre (para mostrar cuándo publica el bot solo)
 function huecos(turnosDia) {
@@ -794,7 +796,7 @@ VISTAS.turnos = async () => {
   const hay = r.miembros.some((m) => m.turnos.length);
   const nomM = (id) => r.miembros.find((m) => m.id === id)?.nombre ?? "Persona dada de baja";
   const nomCat = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
-  const celda = (m, d) => m.turnos.filter((t) => t.dia === d).map((t) => `${hTxt(t.desde)} a ${hTxt(t.hasta)}`).join("<br>") || `<span class="mut">—</span>`;
+  const celda = (m, d) => esTodoDia(m.turnos.filter((t) => t.dia === d)) ? "Todo el día" : m.turnos.filter((t) => t.dia === d).map((t) => `${hTxt(t.desde)} a ${hTxt(t.hasta)}`).join("<br>") || `<span class="mut">—</span>`;
   const todos = r.miembros.flatMap((m) => m.turnos);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Turnos</h1><p>Cada pregunta que necesita a una persona se asigna a quien está de turno. Si no hay nadie de turno, el bot publica solo lo que sabe responder y el resto espera al próximo turno. Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div></div>
     ${hay ? "" : `<div class="panel" style="border-color:var(--ambar);margin-bottom:16px"><b>Todavía no hay turnos cargados.</b><div class="mut peq">Mientras no cargues ninguno, todos ven todas las preguntas y el bot trabaja según el modo de cada cuenta. Empezá con "Editar horario" en cada persona.</div></div>`}
@@ -819,28 +821,37 @@ VISTAS.turnos = async () => {
 };
 function editarTurno(emp, r, m) {
   const tr = (d) => m.turnos.filter((t) => t.dia === d);
-  const fila = (d) => { const [a, b] = tr(d); return `<div class="dia-t" data-dia="${d}" style="display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)">
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="tOn" ${a ? "checked" : ""}> ${DIAS[d - 1]}</label>
+  const fila = (d) => { const todo = esTodoDia(tr(d)); const [a, b] = todo ? [] : tr(d); return `<div class="dia-t" data-dia="${d}" style="display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)">
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="tOn" ${a || todo ? "checked" : ""}> ${DIAS[d - 1]}</label>
       <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center" class="peq">
+        <label style="display:flex;gap:6px;align-items:center;margin-right:6px"><input type="checkbox" class="t24" ${todo ? "checked" : ""}> Todo el día</label>
+        <span class="horas" style="display:${todo ? "none" : "contents"}">
         <input type="time" class="t1d" value="${a?.desde ?? "09:00"}" style="width:auto"> a <input type="time" class="t1h" value="${a?.hasta ?? "18:00"}" style="width:auto">
-        <span class="mut">y de</span> <input type="time" class="t2d" value="${b?.desde ?? ""}" style="width:auto"> a <input type="time" class="t2h" value="${b?.hasta ?? ""}" style="width:auto">
+        <span class="mut">y de</span> <input type="time" class="t2d" value="${b?.desde ?? ""}" style="width:auto"> a <input type="time" class="t2h" value="${b?.hasta ?? ""}" style="width:auto"></span>
       </div></div>`; };
   const v = cajon(`<div class="cajon-cab"><div><h2>Horario de ${esc(m.nombre)}</h2><p class="mut peq" style="margin:4px 0 0">Marcá los días que trabaja. El segundo horario es opcional, para turnos cortados. Si termina después de medianoche, poné la hora de salida igual (por ejemplo, de 22 a 2).</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <button class="btn lin chico" id="tSiempre" type="button" style="margin:10px 0 4px">De turno siempre: todos los días, todo el día</button>
     ${[1, 2, 3, 4, 5, 6, 7].map(fila).join("")}
-    <button class="enlace" id="tCopiar" type="button">Copiar el horario del lunes a martes, miércoles, jueves y viernes</button>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 18px"><button class="enlace" id="tCopiar" type="button">Copiar el lunes de martes a viernes</button><button class="enlace" id="tCopiarTodos" type="button">Copiar el lunes a todos los días</button></div>
     <h3 style="margin:20px 0 6px">Qué categorías atiende</h3>
     <p class="mut peq" style="margin:0 0 8px">Sin ninguna marcada, atiende todas. Si marcás algunas, las preguntas de esas categorías van primero a esta persona.</p>
     <div style="max-height:220px;overflow:auto;border:1px solid var(--linea);border-radius:10px;padding:6px 10px">${r.categorias.map((c) => `<label style="display:flex;gap:8px;align-items:center;padding:4px 0" class="peq"><input type="checkbox" class="tCat" value="${esc(c.id)}" ${m.categorias.includes(c.id) ? "checked" : ""}> ${esc(c.nombre)} <span class="mut">(${c.publicaciones})</span></label>`).join("") || `<span class="mut peq">No hay publicaciones sincronizadas todavía.</span>`}</div>
     <button class="btn pri" style="margin-top:18px" id="tOk">Guardar horario</button>`);
-  $("#tCopiar", v).onclick = () => {
+  const mostrarHoras = (x) => { x.querySelector(".horas").style.display = x.querySelector(".t24").checked ? "none" : "contents"; };
+  v.addEventListener("change", (e) => { if (e.target.classList.contains("t24")) { const x = e.target.closest(".dia-t"); if (e.target.checked) x.querySelector(".tOn").checked = true; mostrarHoras(x); } });
+  $("#tSiempre", v).onclick = () => { for (const x of v.querySelectorAll(".dia-t")) { x.querySelector(".tOn").checked = true; x.querySelector(".t24").checked = true; mostrarHoras(x); } };
+  const copiar = (dias) => {
     const lun = v.querySelector('[data-dia="1"]');
-    for (const d of [2, 3, 4, 5]) { const x = v.querySelector(`[data-dia="${d}"]`); for (const k of ["tOn", "t1d", "t1h", "t2d", "t2h"]) { const o = lun.querySelector("." + k), n = x.querySelector("." + k); if (k === "tOn") n.checked = o.checked; else n.value = o.value; } }
+    for (const d of dias) { const x = v.querySelector(`[data-dia="${d}"]`); for (const k of ["tOn", "t24", "t1d", "t1h", "t2d", "t2h"]) { const o = lun.querySelector("." + k), n = x.querySelector("." + k); if (k === "tOn" || k === "t24") n.checked = o.checked; else n.value = o.value; } mostrarHoras(x); }
   };
+  $("#tCopiar", v).onclick = () => copiar([2, 3, 4, 5]);
+  $("#tCopiarTodos", v).onclick = () => copiar([2, 3, 4, 5, 6, 7]);
   $("#tOk", v).onclick = async () => {
     const turnos = [];
     for (const x of v.querySelectorAll(".dia-t")) {
       if (!x.querySelector(".tOn").checked) continue;
       const dia = Number(x.dataset.dia), q = (k) => x.querySelector("." + k).value;
+      if (x.querySelector(".t24").checked) { turnos.push({ dia, desde: "00:00", hasta: "12:00" }, { dia, desde: "12:00", hasta: "00:00" }); continue; }
       if (!q("t1d") || !q("t1h")) return aviso(`Completá el horario del ${DIAS[dia - 1].toLowerCase()}`);
       turnos.push({ dia, desde: q("t1d"), hasta: q("t1h") });
       if (q("t2d") || q("t2h")) { if (!q("t2d") || !q("t2h")) return aviso(`Completá el segundo horario del ${DIAS[dia - 1].toLowerCase()}`); turnos.push({ dia, desde: q("t2d"), hasta: q("t2h") }); }
