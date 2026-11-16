@@ -311,7 +311,6 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
       <button class="btn osc" style="margin-top:16px;width:100%;justify-content:center" type="submit">Entrar</button>
       <p class="peq" id="uErr" style="color:var(--ladrillo);min-height:20px"></p>
       <div class="enlaces"><button type="button" class="enlace" data-modo="codigo">Tengo un código</button><button type="button" class="enlace" data-modo="olvido">Olvidé mi clave</button></div>
-      <button type="button" class="btn lin" style="margin-top:22px;width:100%;justify-content:center" data-modo="anterior">Todavía no tengo usuario: entrar con la clave de cliente</button>
     </form>
     <!-- Código de invitación o de clave nueva -->
     <form id="fCodigo" class="oculto" autocomplete="on">
@@ -336,18 +335,6 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
       <button class="btn osc" type="button" style="width:100%;justify-content:center" data-modo="codigo">Ya tengo el código</button>
       <div class="enlaces"><button type="button" class="enlace" data-modo="usuario">Volver</button></div>
     </div>
-    <!-- Entrada anterior: clave por cliente o clave general -->
-    <form id="fIngreso" class="oculto" autocomplete="on">
-      <h2>Entrar con la clave de cliente</h2>
-      <p class="mut peq" style="margin:6px 0 10px">Si sos el administrador general, dejá vacío el cliente.</p>
-      <label class="et" for="lgEmp">Cliente</label>
-      <input id="lgEmp" placeholder="ej.: tikvah" autocomplete="username">
-      <label class="et" for="lgClave">Clave</label>
-      <input id="lgClave" type="password" autocomplete="current-password">
-      <button class="btn osc" style="margin-top:16px;width:100%;justify-content:center" type="submit">Entrar</button>
-      <p class="peq" id="lgErr" style="color:var(--ladrillo);min-height:20px"></p>
-      <div class="enlaces"><button type="button" class="enlace" data-modo="usuario">Entrar con email</button></div>
-    </form>
   </div>
 </section>
 
@@ -402,14 +389,11 @@ function aviso(t) { const d = document.createElement("div"); d.className = "toas
 
 async function api(accion, datos = {}) {
   const h = { "content-type": "application/json" };
-  if (S.modo === "usuario") {
+  {
     const { data } = await sb.auth.getSession();
     if (!data?.session) { if (S.rol) { aviso("La sesión venció. Volvé a entrar."); salir(); } throw new Error("Tenés que entrar de nuevo"); }
     h.authorization = "Bearer " + data.session.access_token;
     if (S.empresaId) h["x-empresa-id"] = S.empresaId;
-  } else {
-    h["x-admin-clave"] = S.clave;
-    if (S.empresa) h["x-empresa"] = S.empresa;
   }
   const r = await fetch(API, { method: "POST", headers: h, body: JSON.stringify({ accion, ...datos }) });
   const j = await r.json().catch(() => ({ error: "El servidor devolvió una respuesta inválida" }));
@@ -427,7 +411,7 @@ $("#tema").onclick = () => {
 };
 
 // ---------- ingreso ----------
-const FORMS = { usuario: "#fUsuario", codigo: "#fCodigo", olvido: "#fOlvido", anterior: "#fIngreso" };
+const FORMS = { usuario: "#fUsuario", codigo: "#fCodigo", olvido: "#fOlvido" };
 function modoIngreso(m) {
   for (const [k, sel] of Object.entries(FORMS)) $(sel).classList.toggle("oculto", k !== m);
   if (m === "codigo" && $("#uEmail").value && !$("#cEmail").value) $("#cEmail").value = $("#uEmail").value;
@@ -497,23 +481,9 @@ function armarSelector() {
   sel.onchange = async () => { elegirEmpresa(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
 }
 
-try { $("#lgEmp").value = localStorage.getItem("mlbot_empresa") ?? ""; } catch {}
-$("#fIngreso").onsubmit = async (e) => {
-  e.preventDefault();
-  S.modo = "anterior"; S.yo = null; S.empresaId = "";
-  S.empresa = $("#lgEmp").value.trim().toLowerCase(); S.clave = $("#lgClave").value;
-  $("#lgErr").textContent = "";
-  try {
-    const s = await api("sesion"); S.rol = s.rol;
-    try { localStorage.setItem("mlbot_empresa", S.empresa); } catch {}
-    $("#ingreso").classList.add("oculto"); $("#app").classList.remove("oculto");
-    $("#quien").textContent = S.rol === "admin" ? "Administrador" : S.empresa;
-    await recargar(); armarNav(); ir(inicio());
-  } catch (err) { $("#lgErr").textContent = err.message; }
-};
 function salir() {
-  if (S.modo === "usuario") sb.auth.signOut();
-  S = { ...S, clave: "", rol: null, res: null, yo: null, empresaId: "", soporte: "", empSel: "", platEmp: "", plat: null }; $("#lgClave").value = "";
+  sb.auth.signOut();
+  S = { ...S, clave: "", rol: null, res: null, yo: null, empresaId: "", soporte: "", empSel: "", platEmp: "", plat: null };
   pintarSoporte();
   $("#selEmp").classList.add("oculto");
   $("#app").classList.add("oculto"); $("#ingreso").classList.remove("oculto"); modoIngreso("usuario");
@@ -758,13 +728,14 @@ VISTAS.equipo = async () => {
     }
   };
 };
+const URL_APP = "https://oleandro78-svg.github.io/MercadoLibre/chatbot/";
 function mostrarCodigo(quien, email, codigo, invitacion) {
   cajon(`<div class="cajon-cab"><h2>${invitacion ? "Invitación lista" : "Código para nueva clave"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <p>Pasale este código a <b>${esc(quien)}</b>. Vence en 1 hora y sirve una sola vez.</p>
     <div class="codigo-grande">${esc(String(codigo).replace(/(\d{4})(?=\d)/g, "$1 "))}</div>
     <p class="mut peq">En la pantalla de entrada tiene que tocar <b>Tengo un código</b>, escribir su email (${esc(email)}) y el código, y elegir su clave. Si vence, generá uno nuevo desde Equipo.</p>
     <button class="btn lin chico" id="copCod">Copiar instrucciones</button>`, true);
-  $("#copCod").onclick = () => navigator.clipboard?.writeText(`Para entrar al panel de respuestas: abrí el panel, tocá "Tengo un código", escribí tu email (${email}), el código ${codigo} y elegí tu clave. El código vence en 1 hora.`).then(() => aviso("Copiado"));
+  $("#copCod").onclick = () => navigator.clipboard?.writeText(`Para entrar al panel de respuestas: abrí ${URL_APP} , tocá "Tengo un código", escribí tu email (${email}), el código ${codigo} y elegí tu clave. El código vence en 1 hora.`).then(() => aviso("Copiado"));
 }
 function sumarPersona(emp, libres) {
   const v = cajon(`<div class="cajon-cab"><div><h2>Sumar persona</h2><p class="mut peq" style="margin:4px 0 0">${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`} para operadores.` : ""}</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
@@ -802,7 +773,7 @@ VISTAS.preguntas = async () => {
       ${p.item_thumbnail ? `<img src="${esc(p.item_thumbnail)}" alt="" loading="lazy">` : `<div class="sinfoto"></div>`}
       <div><div class="q">${esc(p.texto_pregunta)}</div><div class="a">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? p.error ?? "")}</div>
       <div class="peq mut" style="margin-top:4px">${esc(p.item_titulo ?? p.ml_item_id ?? "")}</div></div>
-      <div class="lado">${chip(p.estado)}<span>${hace(p.fecha_pregunta ?? p.created_at)}</span>${p.tiempo_respuesta_seg != null ? `<span>respondida en ${dur(p.tiempo_respuesta_seg)}</span>` : ""}${S.res.cuentas.length > 1 ? `<span>${esc(cuentaNom(p.cuenta_id))}</span>` : ""}</div></div>`).join("")}</div>
+      <div class="lado">${chip(p.estado)}${p.respondida_por === "bot" ? "<span>por el bot</span>" : p.respondida_nombre ? `<span>por ${esc(p.respondida_nombre)}</span>` : p.descartada_nombre ? `<span>descartó ${esc(p.descartada_nombre)}</span>` : ""}<span>${hace(p.fecha_pregunta ?? p.created_at)}</span>${p.tiempo_respuesta_seg != null ? `<span>respondida en ${dur(p.tiempo_respuesta_seg)}</span>` : ""}${S.res.cuentas.length > 1 ? `<span>${esc(cuentaNom(p.cuenta_id))}</span>` : ""}</div></div>`).join("")}</div>
     <div class="fila" style="padding:14px 0"><span class="mut peq">${num(r.total)} preguntas</span><div class="n"><button class="btn lin chico" id="ant" ${f.desde ? "" : "disabled"}>Anteriores</button> <button class="btn lin chico" id="sig" ${f.desde + 40 < r.total ? "" : "disabled"}>Siguientes</button></div></div>`
     : `<div class="vacio"><b>No hay preguntas con este filtro</b>Probá con otro estado${S.res.cuentas.length > 1 ? " o cuenta" : ""}.</div>`;
   if ($("#ant")) $("#ant").onclick = () => { f.desde = Math.max(0, f.desde - 40); VISTAS.preguntas(); };
@@ -821,13 +792,14 @@ async function detalle(id) {
       <button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <div class="conv" style="border:0;padding:0">${foto(p.item_thumbnail)}<div><div class="burbuja" style="margin-top:0">${esc(p.texto_pregunta)}</div>
       ${p.item_precio != null ? `<p class="peq mut" style="margin:8px 0 0">${esc(p.item_moneda)} ${Number(p.item_precio).toLocaleString("es-AR")}, stock ${p.item_stock ?? "—"}. ${esc(p.item_entrega ?? "")}</p>` : ""}</div></div>
-    ${p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta publicada</h3><p class="mut peq" style="margin:0 0 6px">${p.respondida_por === "bot" ? "La publicó el bot" : p.respondida_por === "panel" ? "Publicada desde el panel" : "Respondida directamente en MercadoLibre"}, ${fecha(p.respondida_at)}</p>
+    ${p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta publicada</h3><p class="mut peq" style="margin:0 0 6px">${p.respondida_por === "bot" ? "La publicó el bot" : p.respondida_por === "panel" ? (p.respondida_nombre ? "La publicó " + esc(p.respondida_nombre) + " desde el panel" : "Publicada desde el panel") : "Respondida directamente en MercadoLibre, fuera del panel"}, ${fecha(p.respondida_at)}</p>
       <div class="caja pre">${esc(p.respuesta_enviada)}</div><button class="btn lin chico" style="margin-top:8px" id="malR">Marcar como incorrecta</button></div>` : ""}
     ${p.respuesta_enviada && p.respuesta_sugerida && p.respondida_por === "mercadolibre" ? `<div class="bloque"><h3>Lo que había sugerido el bot</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : ""}
     ${editable ? `<div class="bloque"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
       <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><p class="peq mut" id="cnt"></p>
       <div class="fila">${S.rol !== "operador" || empresaYo(p.empresa_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.empresas.length ?? 0) > 1 && empresaYo(p.empresa_id) ? "Publicar como " + esc(empresaYo(p.empresa_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
       : (p.respuesta_sugerida && !p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta sugerida</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : "")}
+    ${p.estado === "descartada" ? `<div class="bloque"><h3>Descartada</h3><p class="mut peq" style="margin:0">${p.descartada_nombre ? "La descartó " + esc(p.descartada_nombre) : "Descartada sin registro de quién"}${p.descartada_at ? ", " + fecha(p.descartada_at) : ""}</p></div>` : ""}
     ${p.motivo ? `<div class="bloque"><h3>Por qué decidió así</h3><div class="caja pre peq">${esc(p.motivo)}</div></div>` : ""}
     ${p.error ? `<div class="bloque"><h3>Error</h3><div class="caja pre peq" style="color:var(--ladrillo)">${esc(p.error)}</div></div>` : ""}
     <div class="bloque"><h3>${dueno() ? "Tiempos y costo" : "Tiempos"}</h3><div class="datos">
@@ -1353,13 +1325,12 @@ const filaPlan = (n, v) => `<div class="plan-f" style="margin-top:10px;display:g
 VISTAS.clientes = async () => {
   const es = (await api("resumen")).empresas;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Empresas</h1><p>Alta, datos y estado de cada empresa cliente. Sus números están en Inicio.</p></div><button class="btn osc" id="eW">Dar de alta una empresa</button></div>
-    <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th>Clave del panel</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td>${e.tiene_clave ? "Asignada" : `<span class="mut">Sin clave</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button> <button class="btn lin chico" data-cl="${e.id}">Cambiar clave</button></td></tr>`).join("")}</table></div>`;
+    <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button></td></tr>`).join("")}</table></div>`;
   $("#eW").onclick = () => altaGuiada();
   $("#main").onclick = async (ev) => {
     const d = ev.target.dataset;
     if (d.num) { S.platEmp = d.num; S.platFil = null; ir("plataforma"); return; }
     if (d.ed) editarEmp(es.find((e) => e.id === d.ed));
-    if (d.cl) { const c = prompt("Nueva clave del panel para este cliente (mínimo 10 caracteres):"); if (c && await seguro(() => api("empresa_clave", { empresa_id: d.cl, clave: c }))) { aviso("Clave cambiada"); VISTAS.clientes(); } }
   };
 };
 function editarEmp(e) {
@@ -1405,13 +1376,16 @@ function altaGuiada() {
   const v = cajon(`<div class="cajon-cab"><div><h2>Dar de alta un cliente</h2><p class="mut peq" style="margin:4px 0 0" id="wP"></p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div><div class="pasos" id="wBar"></div><div id="wB"></div>`);
   const pasos = ["Datos del cliente", "Primera cuenta", "Conectar con MercadoLibre", "Base de conocimiento", "Probar", "Elegir cómo arranca"];
   const pinta = (html) => { $("#wP", v).textContent = `Paso ${st.paso} de ${pasos.length}: ${pasos[st.paso - 1]}`; $("#wBar", v).innerHTML = pasos.map((_, i) => `<i class="${i < st.paso ? "hecho" : ""}"></i>`).join(""); $("#wB", v).innerHTML = html; };
-  const p1 = () => { pinta(`<label class="et" for="w1n">Nombre del cliente</label><input id="w1n"><label class="et" for="w1s">Identificador para entrar al panel</label><input id="w1s" placeholder="ej.: mitienda">
+  const p1 = () => { pinta(`<label class="et" for="w1n">Nombre del cliente</label><input id="w1n"><label class="et" for="w1s">Identificador interno (sin espacios)</label><input id="w1s" placeholder="ej.: mitienda">
       <div class="fila"><div><label class="et" for="w1e">Email de contacto</label><input id="w1e"></div><div><label class="et" for="w1p">Plan</label><input id="w1p"></div></div>
-      <label class="et" for="w1c">Clave del panel (mínimo 10 caracteres; podés asignarla después)</label><input id="w1c" type="password" autocomplete="new-password">
+      <div class="fila"><div><label class="et" for="w1an">Nombre de quien la administra</label><input id="w1an" autocomplete="off"></div><div><label class="et" for="w1ae">Su email (con eso entra al panel)</label><input id="w1ae" type="email" autocomplete="off"></div></div>
+      <p class="mut peq">Se le crea un usuario propio como administrador de la empresa. No hay claves compartidas: cada persona entra con su email y su clave.</p>
       <button class="btn pri" style="margin-top:16px" id="w1g">Crear cliente y seguir</button>`);
     $("#w1g", v).onclick = async () => {
       const x = await seguro(() => api("empresa_guardar", { campos: { nombre: $("#w1n", v).value, slug: $("#w1s", v).value, contacto_email: $("#w1e", v).value || null, plan: $("#w1p", v).value || null, activa: true } })); if (!x) return;
-      st.emp = x.id; if ($("#w1c", v).value) await seguro(() => api("empresa_clave", { empresa_id: st.emp, clave: $("#w1c", v).value }));
+      st.emp = x.id;
+      const ae = $("#w1ae", v).value.trim(), an = $("#w1an", v).value.trim();
+      if (ae) { const r = await seguro(() => api("miembro_invitar", { empresa_id: st.emp, email: ae, nombre: an, rol: "admin", puede_publicar: true })); if (r?.nuevo) mostrarCodigo(an || ae, r.email, r.codigo, true); }
       st.paso = 2; p2();
     };
   };
