@@ -283,6 +283,24 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .item-p{grid-template-columns:40px 1fr}.item-p .lado{grid-column:2;flex-direction:row;flex-wrap:wrap;align-items:center;text-align:left}
   .item-p img,.item-p .sinfoto{width:40px;height:40px}
 }
+/* Ancho: el contenido nunca empuja la página más allá de la pantalla (textos largos, links y palabras sin espacios se cortan) */
+.app{grid-template-columns:248px minmax(0,1fr)}
+.contenido,.conv>*,.portada>*,.cabecera>*,.fila>*{min-width:0}
+.contenido{overflow-wrap:anywhere}
+.conv{grid-template-columns:64px minmax(0,1fr)}
+.portada{grid-template-columns:auto minmax(0,1fr)}
+.conv textarea{width:100%;max-width:100%}
+.contenido img,.contenido video{max-width:100%}
+@media (max-width:960px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .portada{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .conv{grid-template-columns:44px minmax(0,1fr);padding:14px}
+  .conv .foto{width:44px;height:44px}
+  .conv .respuesta,.conv .acciones{grid-column:1/-1}
+  .acciones{flex-wrap:wrap}
+}
 </style>
 </head>
 <body>
