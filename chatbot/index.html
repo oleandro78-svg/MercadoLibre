@@ -242,6 +242,12 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .emp-f b{font-size:12.5px;background:var(--sup2);border-radius:99px;padding:0 8px;line-height:20px}
 .emp-f.on{border-color:var(--emp,var(--tinta));box-shadow:inset 0 0 0 1px var(--emp,var(--tinta))}
 .emp-f.on b{background:var(--emp,var(--tinta));color:#fff}
+/* Mejorar redacción y aprender */
+.mej-fila{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.mej-caja{margin-top:8px;padding:10px 12px;border-radius:var(--r-m);background:var(--cielo-2);color:var(--tinta)}
+.mej-al{background:var(--ambar-2);color:var(--ambar-t);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px}.mej-al ul{margin:4px 0 0;padding-left:18px}
+.aprender-r{background:var(--pino-2);color:var(--pino-t);border-radius:var(--r-m);padding:10px 14px;font-weight:600;margin-top:8px}
+.caja.tachada{color:var(--piz);text-decoration:line-through;text-decoration-color:rgba(191,63,42,.5)}
 /* Rendimiento */
 .graf{margin-top:10px}.graf-cab{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .barras{display:flex;align-items:flex-end;gap:3px;height:170px;border-bottom:1px solid var(--linea);padding-top:4px}
@@ -257,6 +263,23 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .repreg .rp-q{font-weight:600;margin-top:4px}
 .repreg .rp-a{border-left:3px solid var(--linea);padding-left:10px;margin-top:6px;color:var(--piz);font-size:14px}
 .repreg .rp-n{border-left:3px solid var(--ambar);padding-left:10px;margin-top:6px;font-size:14px}
+.aviso-n{background:var(--ambar-2);color:var(--ambar-t);border-radius:var(--r-m);padding:10px 14px;font-size:14px;margin:0 0 10px}
+.tabla.au{min-width:760px}
+.au-bar{position:relative;overflow:visible}.au-bar i{border-radius:99px}.au-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tinta);opacity:.5}
+/* Dudas frecuentes */
+.dudas-l{display:grid;gap:12px}
+.dudas-p{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-l);padding:16px 18px}
+.dp-cab{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center}
+.dp-cab .foto{width:56px;height:56px;border-radius:10px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.dp-cab .foto.sin{display:grid;place-items:center;font-size:11px;color:var(--piz)}
+.dp-det{margin-top:12px;border-top:1px solid var(--linea);padding-top:12px}.dp-det summary{cursor:pointer;font-weight:600}
+.dp-n{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:99px;background:var(--ambar);color:#2B1D02;font-size:13px;margin-right:4px}
+.dp-cuerpo{margin-top:10px}
+.dp-duda{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px dashed var(--linea)}
+.dp-duda .dp-v{font-weight:800;font-size:17px;color:var(--ambar-t)}.dp-duda.ok .dp-v{color:var(--piz)}.dp-duda.ok b{color:var(--piz)}
+.dp-texto .caja{background:var(--sup)}
+.dp-texto{margin-top:12px;background:var(--papel);border-radius:var(--r-m);padding:12px 14px}.dp-texto h3{margin:0}
+@media (max-width:640px){.dp-cab{grid-template-columns:44px minmax(0,1fr)}.dp-cab .foto{width:44px;height:44px}.dp-cab .btn{grid-column:1/-1;justify-self:start}}
 /* Equipo */
 .eq-res{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
 .eq-res .panel+.panel{margin-top:0}
@@ -755,7 +778,7 @@ async function recargar() {
   // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
+const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"], ["dudas", "Dudas frecuentes"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
 const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
@@ -889,8 +912,9 @@ function tarjetaConv(p) {
     </div>
     <div class="respuesta ${duda ? "duda" : ""}">
       ${multi && emp ? `<div class="como" style="background:${esc(emp.color)}">Respondés como <b>${esc(emp.nombre)}</b></div>` : ""}
-      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${S.rol !== "operador" && (p.asignados_nombres ?? []).length ? `<span class="chip">Para ${esc(p.es_mia ? "vos" : p.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</div>
+      <div class="quien">${chip(p.estado)}<span>${duda ? "El bot dejó este borrador y necesita que lo revises" : "Borrador listo para aprobar"}</span>${p.escalada_at ? `<span class="chip c-error">Esperando hace ${esc(espera(p.fecha_pregunta ?? p.created_at))}</span>` : ""}${p.repregunta_de ? `<span class="chip c-borrador">Volvió a preguntar</span>` : ""}${S.rol !== "operador" && (p.asignados_nombres ?? []).length ? `<span class="chip">Para ${esc(p.es_mia ? "vos" : p.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</div>
       <textarea maxlength="2000" aria-label="Respuesta" placeholder="Escribí la respuesta…">${esc(p.respuesta_sugerida ?? "")}</textarea>
+      <div class="mej-fila"><span></span><button class="btn lin chico" type="button" data-mej="${p.id}">${ICONO.varita}Mejorar redacción</button></div><div class="mej-res"></div>
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
     <div class="acciones">
@@ -904,6 +928,7 @@ function tarjetaConv(p) {
 function enlazarCola(cont) {
   cont.onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.mej) { const c = b.closest(".conv"); return mejorarTexto(Number(b.dataset.mej), c.querySelector("textarea"), c.querySelector(".mej-res"), b); }
     const card = b.closest(".conv"); const id = Number(b.dataset.pub || b.dataset.det || b.dataset.desc);
     if (b.dataset.det) return detalle(id);
     if (b.dataset.desc) { if (await seguro(() => api("descartar", { id }))) { aviso("Pregunta descartada"); card.remove(); refrescarNav(); } return; }
@@ -912,7 +937,8 @@ function enlazarCola(cont) {
       if (!texto) return aviso("Escribí una respuesta antes de publicar");
       if (!confirm("¿Publicar esta respuesta en MercadoLibre? Cada pregunta se responde una sola vez.")) return;
       b.disabled = true; b.textContent = "Publicando…";
-      if (await seguro(() => api("enviar", { id, texto }))) { aviso("Respuesta publicada"); card.remove(); refrescarNav(); }
+      const r = await seguro(() => api("enviar", { id, texto }));
+      if (r) { aviso("Respuesta publicada"); card.remove(); refrescarNav(); if (r.edicion?.sugerir) ofrecerAprender(id, r.edicion); }
       else { b.disabled = false; b.textContent = "Publicar respuesta"; }
     }
   };
@@ -936,7 +962,7 @@ VISTAS.bandeja = async () => {
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
-      <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
+      <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
     ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por empresa"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
@@ -952,6 +978,7 @@ const ICONO = {
   pc: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>`,
   celular: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
   tablet: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
+  varita: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 20 10-10M14 4v2M19 9h2M17.5 5.5 19 4M12 10l2 2"/></svg>`,
   campana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>`,
   sinCampana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 4.4A6 6 0 0 1 18 9c0 3 .6 4.9 1.3 6M6.3 6.3A6 6 0 0 0 6 9c0 6-2.5 7.5-2.5 7.5H16"/><path d="M10 20a2.2 2.2 0 0 0 4 0M3 3l18 18"/></svg>`,
 };
@@ -1104,7 +1131,7 @@ VISTAS.rendimiento = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
   const { desde, hasta } = rangoPer();
-  const d = await seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta }));
+  const [d, au] = await Promise.all([seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta })), seguro(() => api("autonomia", { empresa_id: emp }))]);
   if (!d || S.tab !== "rendimiento") return;
   const t = d.totales;
   let k = 0; for (const p of d.personas) p.color = p.estado === "baja" ? "#8A96A3" : PALETA[k++ % PALETA.length];
@@ -1134,10 +1161,73 @@ VISTAS.rendimiento = async () => {
       ${t.mercadolibre.respondidas ? fila(avI("ML", "#9AA6B2"), "Desde MercadoLibre", "respondidas fuera de este panel", t.mercadolibre, { color: "#9AA6B2" }) : ""}
       </table></div>
       ${t.descartadas ? `<p class="mut peq" style="margin:10px 0 0">${num(t.descartadas)} ${t.descartadas === 1 ? "pregunta se descartó" : "preguntas se descartaron"} sin responder en el período.</p>` : ""}</div>
+    ${au ? `<div class="panel" id="auto">${autonomiaHTML(au)}</div>` : ""}
     <div class="panel"><h2>Respuestas que quedaron incompletas</h2><p class="mut peq" style="margin:0 0 8px">Las últimas en las que el comprador volvió a preguntar. Sirven para corregir el criterio del equipo o las instrucciones del bot.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, false)}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
+  if ($("#auto")) $("#auto").onclick = async (ev) => {
+    const b = ev.target.closest("[data-auto]"); if (!b) return;
+    const activar = b.dataset.on === "1", c = au.categorias.find((x) => x.id === b.dataset.auto);
+    if (activar && !confirm(`¿Que el bot publique solo las respuestas de "${c.nombre}" sin esperar aprobación? Lo que no sepa lo sigue dejando para revisar.`)) return;
+    if (await seguro(() => api("auto_categoria", { empresa_id: emp, categoria: c.id, activar }))) { aviso(activar ? `El bot publica solo en ${c.nombre}` : `En ${c.nombre} vuelve a pedir aprobación`); VISTAS.rendimiento(); }
+  };
 };
+
+// Autonomía por categoría: cuántos borradores se aprueban sin cambios de contenido, y dónde el bot ya publica solo
+function autonomiaHTML(a) {
+  const enAprob = a.cuentas.filter((c) => c.modo === "aprobacion");
+  const cats = a.categorias.filter((c) => c.revisadas || c.auto);
+  const nota = !enAprob.length ? `<p class="aviso-n">Ninguna cuenta está en modo Aprobación${a.cuentas.length ? ` (${a.cuentas.map((c) => esc(c.nombre) + ": " + esc(MODOS[c.modo] ?? c.modo)).join(", ")})` : ""}. Lo que habilites acá se aplica cuando una cuenta esté en ese modo.</p>` : "";
+  return `<h2>Qué tan listo está el bot para publicar solo</h2>
+    <p class="mut peq" style="margin:0 0 10px">Por categoría, últimos 90 días: de los borradores del bot que el equipo revisó y publicó, cuántos salieron sin cambios de contenido (corregir solo la redacción no cuenta como error). Con ${a.umbral}% o más sobre al menos ${a.minimo} respuestas, conviene dejarlo publicar solo en esa categoría.</p>${nota}
+    ${cats.length ? `<div class="tabla-scroll"><table class="tabla rd au"><tr><th>Categoría</th><th>Revisadas</th><th>Aprobadas sin cambios</th><th>Cambiaron el contenido</th><th>El bot publicó solo</th><th></th></tr>
+    ${cats.map((c) => `<tr><td><b>${esc(c.nombre)}</b>${c.auto ? `<div><span class="chip c-respondida">Publica solo</span></div>` : c.lista ? `<div><span class="chip c-simulada">Lista para publicar sola</span></div>` : ""}</td>
+      <td>${num(c.revisadas)}</td>
+      <td><div class="rd-n"><b>${c.aprobadas_pct == null ? "—" : pctTxt(c.aprobadas_pct)}</b><span class="rd-bar au-bar"><i style="width:${c.aprobadas_pct ?? 0}%;background:${(c.aprobadas_pct ?? 0) >= a.umbral ? "var(--pino)" : "var(--ambar)"}"></i><em style="left:${a.umbral}%"></em></span></div>${c.revisadas && c.revisadas < a.minimo ? `<div class="peq mut">faltan ${a.minimo - c.revisadas} para decidir</div>` : ""}</td>
+      <td>${num(c.contenido)}</td><td>${num(c.bot)}</td>
+      <td style="text-align:right">${c.auto ? `<button class="btn lin chico" data-auto="${esc(c.id)}" data-on="0">Volver a pedir aprobación</button>` : `<button class="btn ${c.lista ? "pri" : "lin"} chico" data-auto="${esc(c.id)}" data-on="1">Que publique solo</button>`}</td></tr>`).join("")}</table></div>`
+      : `<p class="mut" style="margin:6px 0 0">Todavía no hay borradores revisados en los últimos 90 días. Aparecen a medida que el equipo aprueba respuestas del bot.</p>`}`;
+}
+
+// ================= DUDAS FRECUENTES (administrador) =================
+VISTAS.dudas = async () => {
+  const emp = S.rol === "admin" ? S.empSel : null;
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Dudas frecuentes</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
+  const d = await seguro(() => api("dudas_lista", { empresa_id: emp }));
+  if (!d || S.tab !== "dudas") return;
+  S.dudas = d.publicaciones;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Dudas frecuentes</h1><p>Lo que los compradores preguntan una y otra vez en cada publicación. Si la publicación lo aclara sola, llegan menos preguntas y se pierden menos ventas.</p></div></div>
+    ${d.publicaciones.length ? `<div class="dudas-l">${d.publicaciones.map(tarjetaDudas).join("")}</div>`
+      : `<div class="panel vacio"><b>Todavía no hay publicaciones con preguntas repetidas</b>Aparecen las que tuvieron 3 preguntas o más en los últimos 90 días.</div>`}`;
+  $("#main").onclick = async (ev) => {
+    const b = ev.target.closest("button"); if (!b) return;
+    if (b.dataset.anal) {
+      b.disabled = true; b.textContent = "Analizando las preguntas…";
+      const r = await seguro(() => api("dudas_analizar", { item_id: b.dataset.anal }));
+      const p = S.dudas.find((x) => x.id === b.dataset.anal);
+      if (r) { p.dudas = r; p.dudas_at = r.dudas_at; p.abierta = true; }
+      b.closest(".dudas-p").outerHTML = tarjetaDudas(p);
+    } else if (b.dataset.copiar) {
+      const p = S.dudas.find((x) => x.id === b.dataset.copiar);
+      navigator.clipboard?.writeText(p.dudas.texto_sugerido).then(() => aviso("Texto copiado: pegalo en la descripción de la publicación"));
+    }
+  };
+};
+function tarjetaDudas(p) {
+  const a = p.dudas;
+  const faltan = a ? a.dudas.filter((x) => !x.en_publicacion) : [];
+  return `<article class="dudas-p">
+    <div class="dp-cab">${foto(p.thumbnail)}<div style="min-width:0"><b>${esc(p.titulo)}</b>
+      <div class="peq mut">${num(p.preguntas_90d)} preguntas en los últimos 90 días${a ? ` · analizada ${hace(p.dudas_at)}` : ""}${p.permalink ? ` · <a href="${esc(p.permalink)}" target="_blank" rel="noopener">Ver publicación</a>` : ""}</div></div>
+      <button class="btn ${a ? "lin" : "pri"} chico" type="button" data-anal="${esc(p.id)}">${a ? "Analizar de nuevo" : "Analizar"}</button></div>
+    ${a ? `<details class="dp-det" ${p.abierta ? "open" : ""}><summary>${faltan.length ? `<b class="dp-n">${faltan.length}</b> ${faltan.length === 1 ? "duda que la publicación no aclara" : "dudas que la publicación no aclara"}` : "La publicación ya aclara las dudas que se repiten"}${a.dudas.length > faltan.length ? `<span class="mut"> · ${a.dudas.length - faltan.length} ya ${a.dudas.length - faltan.length === 1 ? "está aclarada" : "están aclaradas"}</span>` : ""}</summary>
+      <div class="dp-cuerpo">
+        ${a.dudas.map((x) => `<div class="dp-duda ${x.en_publicacion ? "ok" : ""}"><span class="dp-v">${num(x.veces)}×</span><div><b>${esc(x.tema)}</b>${x.en_publicacion ? ` <span class="mut peq">(ya está en la publicación)</span>` : ""}<div class="peq mut">“${esc(x.ejemplo)}”</div><div class="peq">Respondieron: ${esc(x.respuesta)}</div></div></div>`).join("")}
+        ${a.texto_sugerido ? `<div class="dp-texto"><div class="fila" style="align-items:center"><h3>Texto para sumar a la descripción</h3><div class="n"><button class="btn pri chico" type="button" data-copiar="${esc(p.id)}">Copiar texto</button></div></div><div class="caja pre">${esc(a.texto_sugerido)}</div></div>` : ""}
+        ${a.ficha?.length ? `<p class="peq" style="margin:10px 0 0"><b>Completá en la ficha técnica:</b> ${a.ficha.map(esc).join(", ")}.</p>` : ""}
+      </div></details>` : ""}
+  </article>`;
+}
 
 VISTAS.numeros = async () => {
   const { desde, hasta } = rangoPer();
@@ -1439,7 +1529,7 @@ async function detalle(id) {
       <div class="caja pre">${esc(p.respuesta_enviada)}</div><button class="btn lin chico" style="margin-top:8px" id="malR">Marcar como incorrecta</button></div>` : ""}
     ${p.respuesta_enviada && p.respuesta_sugerida && p.respondida_por === "mercadolibre" ? `<div class="bloque"><h3>Lo que había sugerido el bot</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : ""}
     ${editable ? `<div class="bloque"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
-      <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><p class="peq mut" id="cnt"></p>
+      <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><div class="mej-fila"><p class="peq mut" id="cnt" style="margin:0"></p><button class="btn lin chico" type="button" id="mejD">${ICONO.varita}Mejorar redacción</button></div><div id="mejDres"></div>
       <div class="fila">${S.rol !== "operador" || empresaYo(p.empresa_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.empresas.length ?? 0) > 1 && empresaYo(p.empresa_id) ? "Publicar como " + esc(empresaYo(p.empresa_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
       : (p.respuesta_sugerida && !p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta sugerida</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : "")}
     ${p.estado === "descartada" ? `<div class="bloque"><h3>Descartada</h3><p class="mut peq" style="margin:0">${p.descartada_nombre ? "La descartó " + esc(p.descartada_nombre) : "Descartada sin registro de quién"}${p.descartada_at ? ", " + fecha(p.descartada_at) : ""}</p></div>` : ""}
@@ -1468,10 +1558,41 @@ async function detalle(id) {
       sel.innerHTML += rs.map((r, i) => `<option value="${i}">${esc(r.titulo)}</option>`).join("");
       sel.onchange = () => { if (sel.value === "") return; const t = rs[Number(sel.value)].texto; tx.value = tx.value.trim() ? tx.value.trim() + " " + t : t; sel.value = ""; cnt(); tx.focus(); };
     });
-    if ($("#pub", v)) $("#pub", v).onclick = async () => { if (!confirm("¿Publicar esta respuesta en MercadoLibre? Cada pregunta se responde una sola vez.")) return; if (await seguro(() => api("enviar", { id, texto: tx.value }))) { aviso("Respuesta publicada"); v.remove(); ir(S.tab); } };
+    if ($("#pub", v)) $("#pub", v).onclick = async () => { if (!confirm("¿Publicar esta respuesta en MercadoLibre? Cada pregunta se responde una sola vez.")) return; const r = await seguro(() => api("enviar", { id, texto: tx.value })); if (r) { aviso("Respuesta publicada"); v.remove(); ir(S.tab); if (r.edicion?.sugerir) ofrecerAprender(id, r.edicion); } };
+    if ($("#mejD", v)) $("#mejD", v).onclick = () => mejorarTexto(id, tx, $("#mejDres", v), $("#mejD", v));
     if ($("#rep", v)) $("#rep", v).onclick = async (e) => { e.target.disabled = true; e.target.textContent = "Generando…"; const r = await seguro(() => api("reprocesar", { id })); if (r) { aviso("Respuesta generada de nuevo"); v.remove(); detalle(id); } else { e.target.disabled = false; e.target.textContent = "Generar de nuevo"; } };
     $("#desc", v).onclick = async () => { if (await seguro(() => api("descartar", { id }))) { aviso("Pregunta descartada"); v.remove(); ir(S.tab); } };
   }
+}
+const espera = (f) => { const m = Math.round((Date.now() - new Date(f)) / 60000); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60 ? (m % 60) + " min" : ""}`.trim() : `${Math.floor(m / 1440)} d`; };
+// Mejorar redacción: corrige ortografía y tono; avisa si algo no coincide con la publicación. Se puede deshacer.
+async function mejorarTexto(id, tx, caja, btn) {
+  const antes = tx.value;
+  if (!antes.trim()) return aviso("Escribí una respuesta primero");
+  btn.disabled = true; const t0 = btn.innerHTML; btn.innerHTML = "Mejorando…";
+  const r = await seguro(() => api("mejorar", { id, texto: antes }));
+  btn.disabled = false; btn.innerHTML = t0;
+  if (!r) return;
+  tx.value = r.texto; tx.dispatchEvent(new Event("input"));
+  caja.innerHTML = `<div class="mej-caja">
+    ${r.alertas.length ? `<div class="mej-al"><b>Revisá antes de publicar</b><ul>${r.alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul></div>` : ""}
+    ${r.cambios.length ? `<div class="peq"><b>Qué cambió:</b> ${r.cambios.map(esc).join("; ")}.</div>` : `<div class="peq">No hacía falta cambiar nada.</div>`}
+    <button class="btn lin chico" type="button" style="margin-top:8px">Volver a mi versión</button></div>`;
+  caja.querySelector("button").onclick = () => { tx.value = antes; tx.dispatchEvent(new Event("input")); caja.innerHTML = ""; };
+}
+// Aprender de cada edición: si la persona cambió el contenido del borrador, se ofrece guardarlo como corrección
+function ofrecerAprender(id, e) {
+  const v = cajon(`<div class="cajon-cab"><div><h2>¿El bot tiene que aprender esto?</h2><p class="mut peq" style="margin:4px 0 0">${e.tipo === "nueva" ? "El bot no tenía respuesta para esta pregunta." : "Cambiaste el contenido de lo que había propuesto el bot."} Si lo guardás como corrección, la próxima vez responde así en todas las cuentas de la empresa.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    ${e.resumen && e.tipo !== "nueva" ? `<div class="aprender-r">${esc(e.resumen)}</div>` : ""}
+    <label class="et">Pregunta del comprador</label><div class="caja pre">${esc(e.pregunta)}</div>
+    ${e.sugerida ? `<label class="et">Lo que propuso el bot</label><div class="caja pre tachada">${esc(e.sugerida)}</div>` : ""}
+    <label class="et" for="apC">Lo que publicaste (podés ajustarlo para que sirva para otras preguntas parecidas)</label><textarea id="apC" maxlength="2000">${esc(e.publicada)}</textarea>
+    <label class="et" for="apM">La regla, en una frase (opcional)</label><input id="apM" value="${esc(e.tipo === "nueva" ? "" : e.resumen ?? "")}" placeholder="Ej.: la bacha no incluye la grifería">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn pri" id="apSi">Guardar como corrección</button><button class="btn lin" data-cerrar>No, fue un caso puntual</button></div>`, true);
+  $("#apSi", v).onclick = async () => {
+    const ok = await seguro(() => api("correccion_guardar", { correccion: { pregunta_id: id, ml_item_id: e.ml_item_id, texto_pregunta: e.pregunta, respuesta_incorrecta: e.sugerida ?? null, respuesta_correcta: $("#apC", v).value, motivo: $("#apM", v).value } }));
+    if (ok) { aviso("Listo: el bot lo va a tener en cuenta"); v.remove(); }
+  };
 }
 function histPlano(h) {
   if (!h) return [];
