@@ -365,6 +365,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
     <div id="soporte" class="soporte oculto" role="status"></div>
     <nav class="nav" id="nav"></nav>
     <div class="riel-pie">
+      <button class="btn pri chico oculto" id="avisosBtn" type="button">Activar avisos</button>
       <button class="btn pri chico oculto" id="instalar" type="button">Instalar la app</button>
       <button class="btn lin chico" id="tema" type="button">Cambiar tema</button>
       <button class="btn lin chico" id="salir" type="button">Salir</button>
@@ -473,6 +474,7 @@ async function entrarUsuario() {
   $("#quien").textContent = S.yo.usuario?.nombre || S.yo.usuario?.email || "";
   armarSelector();
   await recargar(); armarNav(); ir(inicio());
+  iniciarAvisos();
 }
 // "*" = todas mis empresas (bandeja unificada)
 function elegirEmpresa(id) {
@@ -499,7 +501,13 @@ function armarSelector() {
   sel.onchange = async () => { elegirEmpresa(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
 }
 
-function salir() {
+let saliendo = false;
+async function salir() {
+  if (saliendo) return; saliendo = true;
+  // Este dispositivo deja de recibir los avisos de la persona que sale
+  pararAvisos();
+  try { const s = await suscripcionActual(); if (s) { await api("push_baja", { endpoint: s.endpoint }).catch(() => {}); await s.unsubscribe(); } } catch {}
+  saliendo = false;
   sb.auth.signOut();
   S = { ...S, clave: "", rol: null, res: null, yo: null, empresaId: "", soporte: "", empSel: "", platEmp: "", plat: null };
   pintarSoporte();
@@ -508,6 +516,118 @@ function salir() {
 }
 $("#salir").onclick = salir;
 $("#abrirRiel").onclick = () => $("#riel").classList.toggle("abierto");
+// ================= AVISOS DE PREGUNTAS NUEVAS =================
+// Con el panel abierto: cada 30 segundos revisa si llegó algo para esta persona (sonido, número en el ícono y en la pestaña).
+// Con el panel cerrado: notificaciones push al dispositivo, si la persona las activó.
+const AV = { vistos: null, timer: null, audio: null };
+const pushPosible = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && location.protocol === "https:";
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+const instalada = () => navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+document.addEventListener("click", () => { try { AV.audio ??= new (window.AudioContext || window.webkitAudioContext)(); AV.audio.resume?.(); } catch {} });
+function sonar() {
+  try {
+    const c = AV.audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    for (const [f, t] of [[880, 0], [1320, 0.16]]) {
+      const o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, c.currentTime + t); g.gain.exponentialRampToValueAtTime(0.3, c.currentTime + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t + 0.3);
+      o.connect(g).connect(c.destination); o.start(c.currentTime + t); o.stop(c.currentTime + t + 0.32);
+    }
+  } catch {}
+}
+function ponerContador(n) {
+  document.title = n ? `(${n}) Mostrador` : "Mostrador";
+  try { n ? navigator.setAppBadge?.(n) : navigator.clearAppBadge?.(); } catch {}
+  if (S.rol === "operador" && S.pendOp !== n) { S.pendOp = n; armarNav(); }
+}
+async function notificarLocal(p, n) {
+  if (!("Notification" in window) || Notification.permission !== "granted" || !document.hidden) return;
+  const titulo = n > 1 ? `${n} preguntas para responder` : "Pregunta para responder", cuerpo = `${p.item_titulo ? p.item_titulo.slice(0, 60) + ": " : ""}${String(p.texto_pregunta ?? "").slice(0, 140)}`;
+  try { const r = await navigator.serviceWorker?.getRegistration(); if (r) return r.showNotification(titulo, { body: cuerpo, tag: `preg-${p.id}`, icon: "icono-192.png" }); } catch {}
+  try { new Notification(titulo, { body: cuerpo, tag: `preg-${p.id}` }); } catch {}
+}
+// Si la persona está mirando la bandeja y no está escribiendo una respuesta, la lista se actualiza sola
+function refrescarSiSePuede() {
+  if (!["bandeja", "hoy"].includes(S.tab)) return;
+  const escribiendo = [...document.querySelectorAll("#cola textarea")].some((t) => t.value !== t.defaultValue || t === document.activeElement);
+  if (!escribiendo && !document.querySelector(".velo")) VISTAS[S.tab]();
+}
+async function revisarAvisos() {
+  if (!S.rol || S.rol === "admin") return;
+  let r; try { r = await api("avisos"); } catch { return; }
+  if (AV.vistos) {
+    const nuevas = r.nuevas.filter((x) => !AV.vistos.has(x.id));
+    if (nuevas.length) {
+      sonar(); notificarLocal(nuevas[0], nuevas.length);
+      aviso(nuevas.length === 1 ? "Llegó una pregunta para responder" : `Llegaron ${nuevas.length} preguntas para responder`);
+      refrescarSiSePuede();
+    }
+  }
+  AV.vistos = new Set([...(AV.vistos ?? []), ...r.nuevas.map((x) => x.id)]);
+  ponerContador(r.pendientes);
+}
+function iniciarAvisos() {
+  clearInterval(AV.timer); AV.vistos = null;
+  revisarAvisos(); AV.timer = setInterval(revisarAvisos, 30000);
+  pintarAvisosBtn(); renovarSuscripcion();
+}
+function pararAvisos() { clearInterval(AV.timer); AV.vistos = null; ponerContador(0); }
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.rol) revisarAvisos(); });
+
+// ----- notificaciones push -----
+const b64aBytes = (s) => { const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, (c) => c.charCodeAt(0)); };
+async function suscripcionActual() { if (!pushPosible()) return null; const r = await navigator.serviceWorker.getRegistration(); return r ? r.pushManager.getSubscription() : null; }
+// Al entrar, la suscripción de este dispositivo queda asociada a la persona que entró
+async function renovarSuscripcion() {
+  try { const s = await suscripcionActual(); if (s && Notification.permission === "granted") await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent }); } catch {}
+}
+async function activarAvisos() {
+  if (!pushPosible()) return explicarAvisos();
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") { pintarAvisosBtn(); return explicarAvisos(); }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const { clave } = await api("push_clave");
+    let s = await reg.pushManager.getSubscription();
+    if (!s) s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(clave) });
+    await api("push_alta", { suscripcion: s.toJSON(), dispositivo: navigator.userAgent });
+    aviso("Listo: en este dispositivo te va a llegar un aviso con cada pregunta para responder");
+  } catch (e) { aviso("No se pudieron activar los avisos en este dispositivo: " + e.message); }
+  pintarAvisosBtn();
+}
+async function desactivarAvisos() {
+  try { const s = await suscripcionActual(); if (s) { await api("push_baja", { endpoint: s.endpoint }).catch(() => {}); await s.unsubscribe(); } } catch {}
+  aviso("Avisos desactivados en este dispositivo"); pintarAvisosBtn();
+}
+function explicarAvisos() {
+  let txt;
+  if (esIOS() && !instalada()) txt = `<p>En iPhone los avisos llegan solo si la app está instalada. En Safari tocá el botón <b>Compartir</b> y elegí <b>Agregar a inicio</b>. Después abrí Mostrador desde el ícono nuevo y tocá <b>Activar avisos</b>.</p>`;
+  else if (!pushPosible()) txt = `<p>Este navegador no permite avisos. Probá con Chrome, Edge o Safari actualizados.</p>`;
+  else if (Notification.permission === "denied") txt = `<p>Los avisos están bloqueados para esta página. Para habilitarlos, tocá el candado o el ícono que está a la izquierda de la dirección, buscá <b>Notificaciones</b> y elegí <b>Permitir</b>. Después volvé a tocar <b>Activar avisos</b>.</p>`;
+  else txt = `<p>Para avisarte hace falta que le des permiso al navegador. Tocá <b>Activar avisos</b> y elegí <b>Permitir</b>.</p>`;
+  cajon(`<div class="cajon-cab"><div><h2>Avisos de preguntas</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>${txt}`, true);
+}
+async function pintarAvisosBtn() {
+  const b = $("#avisosBtn"); if (!b) return;
+  if (S.rol === "admin") { b.classList.add("oculto"); return; }
+  b.classList.remove("oculto");
+  const s = await suscripcionActual().catch(() => null);
+  const activos = !!s && Notification.permission === "granted";
+  b.textContent = activos ? "Avisos activados" : "Activar avisos";
+  b.classList.toggle("pri", !activos); b.classList.toggle("lin", activos);
+  b.onclick = activos ? () => {
+    const v = cajon(`<div class="cajon-cab"><div><h2>Avisos de preguntas</h2><p class="mut peq" style="margin:4px 0 0">En este dispositivo te llega un aviso cada vez que hay una pregunta para que respondas, aunque el panel esté cerrado.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn pri" id="avProbar">Mandarme un aviso de prueba</button><button class="btn pel" id="avBaja">Desactivar en este dispositivo</button></div>`, true);
+    $("#avProbar", v).onclick = async () => { if (await seguro(() => api("push_prueba"))) aviso("Aviso de prueba enviado"); };
+    $("#avBaja", v).onclick = async () => { v.remove(); await desactivarAvisos(); };
+  } : activarAvisos;
+}
+// Cartel en la bandeja para quien todavía no activó los avisos
+function cartelAvisos() {
+  const pedir = pushPosible() && Notification.permission === "default" || (esIOS() && !instalada());
+  return pedir ? `<div class="panel" style="border-color:var(--pino);margin-bottom:16px"><div class="fila"><div><b>Activá los avisos</b><div class="mut peq">Te llega un aviso al celular o a la computadora cada vez que hay una pregunta para vos, aunque no tengas el panel abierto.</div></div><div class="n"><button class="btn pri chico" data-activar-avisos>Activar avisos</button></div></div></div>` : "";
+}
+document.addEventListener("click", (e) => { if (e.target.closest("[data-activar-avisos]")) { const c = e.target.closest(".panel"); activarAvisos().then(() => { if (Notification.permission !== "default") c?.remove(); }); } });
+
 // Si ya había una sesión abierta en este navegador, entra directo
 sb.auth.getSession().then(({ data }) => { if (data?.session) entrarUsuario().catch(() => sb.auth.signOut()); });
 
@@ -612,6 +732,7 @@ VISTAS.hoy = async () => {
       <p>${n ? "El bot no se animó a responderlas solo o están esperando tu aprobación. Revisá el borrador, corregilo si hace falta y publicalo." : "Todo lo que entró ya está respondido o en manos del bot."}</p></div>
     </div>
     ${sinConectar.length ? `<div class="panel" style="border-color:var(--ambar);margin-bottom:16px"><div class="fila"><div><b>${sinConectar.length === 1 ? "Una cuenta no está conectada" : sinConectar.length + " cuentas no están conectadas"}</b><div class="mut peq">${sinConectar.map((c) => esc(c.nombre)).join(", ")}. Mientras tanto no recibe preguntas.</div></div><div class="n"><button class="btn chico osc" id="irCuentas">Conectar</button></div></div></div>` : ""}
+    ${cartelAvisos()}
     <div id="cola">${filas.map(tarjetaConv).join("")}</div>
     <h2 style="margin:34px 0 12px">Últimos 30 días</h2>
     <div class="medidas">
@@ -705,6 +826,7 @@ VISTAS.bandeja = async () => {
       <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
     ${emps.length > 1 ? `<div class="filtros">${emps.map((e) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--sup);border:1px solid var(--linea);border-radius:99px;padding:6px 12px">${etiquetaEmpresa(e.id)}<b style="font-size:13px">${filas.filter((f) => f.empresa_id === e.id).length}</b></span>`).join("")}</div>` : ""}
+    ${cartelAvisos()}
     <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>`;
   enlazarCola($("#cola"));
 };
