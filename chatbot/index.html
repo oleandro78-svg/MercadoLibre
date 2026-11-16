@@ -608,7 +608,20 @@ async function revisarAvisos() {
 function iniciarAvisos() {
   clearInterval(AV.timer); AV.vistos = null;
   revisarAvisos(); AV.timer = setInterval(revisarAvisos, 30000);
-  pintarAvisosBtn(); renovarSuscripcion();
+  pintarAvisosBtn(); renovarSuscripcion().then(avisosPorDefecto);
+}
+// Los avisos vienen activados: si el permiso ya está dado, se suscribe solo; si falta, se pide al entrar
+// (el navegador exige que la persona toque un botón para dar el permiso, por eso se muestra el cartel).
+async function avisosPorDefecto() {
+  try {
+    if (!pushPosible()) { if (esIOS() && !instalada() && !sessionStorage.getItem("avIOS")) { sessionStorage.setItem("avIOS", "1"); explicarAvisos(); } return; }
+    if (Notification.permission === "granted") { if (!(await suscripcionActual())) await activarAvisos(); return; }
+    if (Notification.permission !== "default" || document.querySelector(".velo")) return;
+    const v = cajon(`<div class="cajon-cab"><div><h2>Avisos de preguntas</h2></div></div>
+      <p>Cada vez que haya una pregunta para responder te va a llegar un aviso a este dispositivo, aunque no tengas el panel abierto. Tocá <b>Activar avisos</b> y después elegí <b>Permitir</b>.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn pri" id="avSi">Activar avisos</button><button class="btn lin" data-cerrar>Ahora no</button></div>`, true);
+    $("#avSi", v).onclick = async () => { v.remove(); await activarAvisos(); };
+  } catch {}
 }
 function pararAvisos() { clearInterval(AV.timer); AV.vistos = null; ponerContador(0); }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.rol) revisarAvisos(); });
@@ -648,7 +661,6 @@ function explicarAvisos() {
 }
 async function pintarAvisosBtn() {
   const b = $("#avisosBtn"); if (!b) return;
-  if (S.rol === "admin") { b.classList.add("oculto"); return; }
   b.classList.remove("oculto");
   const s = await suscripcionActual().catch(() => null);
   const activos = !!s && Notification.permission === "granted";
@@ -881,7 +893,7 @@ VISTAS.equipo = async () => {
   const r = await seguro(() => api("equipo", { empresa_id: emp })); if (!r) return;
   const libres = Math.max(0, r.limite - r.usados);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de esta empresa y qué puede hacer cada uno.</p></div>
-      <div><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn lin" id="eqPrueba">Mandar aviso de prueba</button><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
     <div class="panel"><div class="fila"><div><b style="font-size:22px">${r.usados} de ${r.limite}</b> <span class="mut">operadores${r.plan ? " del plan " + esc(r.plan) : ""}</span>
       <div class="medidor" style="grid-template-columns:repeat(${Math.max(r.limite, 1)},minmax(0,1fr))">${Array.from({ length: Math.max(r.limite, 1) }, (_, i) => `<i class="${i < r.usados ? "usado" : ""}"></i>`).join("")}</div>
       <p class="mut peq" style="margin:8px 0 0">Los administradores no ocupan lugar. ${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`}.` : "No te quedan lugares: para sumar a alguien, dá de baja a otro operador o ampliá el plan."}</p></div></div></div>
@@ -889,7 +901,7 @@ VISTAS.equipo = async () => {
       const [et, ch] = ESTADO_M[m.estado] ?? [m.estado, ""];
       return `<div class="miembro" data-id="${m.id}"><div class="av">${esc(iniciales(m.nombre || m.email))}</div>
         <div><b>${esc(m.nombre || m.email)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${esc(m.email ?? "")}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><span class="chip c-${ch}">${et}</span><span class="chip">${m.rol === "admin" ? "Administrador" : "Operador"}</span>${m.rol === "operador" && !m.puede_publicar ? `<span class="chip">No publica solo</span>` : ""}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><span class="chip c-${ch}">${et}</span><span class="chip">${m.rol === "admin" ? "Administrador" : "Operador"}</span>${m.rol === "operador" && !m.puede_publicar ? `<span class="chip">No publica solo</span>` : ""}${m.estado === "activo" ? (m.dispositivos ? `<span class="chip c-simulada">Avisos activados${m.dispositivos > 1 ? ` en ${m.dispositivos} dispositivos` : ""}</span>` : `<span class="chip">Sin avisos</span>`) : ""}</div></div>
         <div class="acc">${m.estado === "baja" ? `<button class="btn lin chico" data-a="reactivar">Volver a sumar</button><button class="btn pel chico" data-a="quitar">Quitar de la lista</button>` : `
           <button class="btn lin chico" data-a="nombre">Cambiar nombre</button>
           ${m.estado === "invitado" || !m.vos ? `<button class="btn lin chico" data-a="codigo">${m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"}</button>` : ""}
@@ -897,6 +909,13 @@ VISTAS.equipo = async () => {
           ${!m.vos ? `<button class="btn lin chico" data-a="rol">${m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"}</button><button class="btn pel chico" data-a="baja">Dar de baja</button>` : ""}`}</div></div>`;
     }).join("") : `<div class="vacio"><b>Todavía no sumaste a nadie</b>Invitá a la primera persona con el botón de arriba.</div>`}</div>`;
   $("#eqSumar").onclick = () => sumarPersona(emp, libres);
+  $("#eqPrueba").onclick = async () => {
+    const x = await seguro(() => api("push_prueba_equipo", { empresa_id: emp })); if (!x) return;
+    const lista = (a) => a.map(esc).join(", ");
+    cajon(`<div class="cajon-cab"><div><h2>Aviso de prueba</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+      ${x.recibieron.length ? `<p><b>Se les mandó a:</b> ${lista(x.recibieron)}.</p>` : `<p>No se le pudo mandar a nadie.</p>`}
+      ${x.sin_avisos.length ? `<p><b>Todavía no activaron los avisos:</b> ${lista(x.sin_avisos)}.</p><p class="mut peq">Cada persona tiene que entrar al panel desde su celular o su computadora y tocar <b>Activar avisos</b>, abajo en el menú. En iPhone, antes tiene que agregar la página a la pantalla de inicio y abrirla desde ahí.</p>` : ""}`, true);
+  };
   $("#main").querySelector(".panel:last-child").onclick = async (e) => {
     const b = e.target.closest("button[data-a]"); if (!b) return;
     const fila = b.closest(".miembro"); const m = r.miembros.find((x) => x.id === Number(fila.dataset.id)); const quien = m.nombre || m.email;
