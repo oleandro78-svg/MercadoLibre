@@ -238,6 +238,65 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .emp-tag i{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:#fff;font-style:normal;font-size:10px}
 .como{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;color:#fff;font-size:14px;margin-bottom:10px}
 .codigo-grande{font-size:34px;font-weight:800;letter-spacing:.12em;background:var(--papel);border:1px dashed var(--linea);border-radius:12px;padding:14px;text-align:center;margin:10px 0}
+.emp-f{display:inline-flex;align-items:center;gap:8px;background:var(--sup);border:1px solid var(--linea);border-radius:99px;padding:6px 8px 6px 12px;cursor:pointer;font-weight:600}
+.emp-f b{font-size:12.5px;background:var(--sup2);border-radius:99px;padding:0 8px;line-height:20px}
+.emp-f.on{border-color:var(--emp,var(--tinta));box-shadow:inset 0 0 0 1px var(--emp,var(--tinta))}
+.emp-f.on b{background:var(--emp,var(--tinta));color:#fff}
+/* Rendimiento */
+.graf{margin-top:10px}.graf-cab{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.barras{display:flex;align-items:flex-end;gap:3px;height:170px;border-bottom:1px solid var(--linea);padding-top:4px}
+.barras .b{flex:1;min-width:2px;height:100%;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden}
+.barras .b i{display:block;min-height:2px}
+.ejes{display:flex;justify-content:space-between;font-size:12.5px;color:var(--piz);margin-top:6px}
+.tabla-scroll{overflow-x:auto}
+.tabla.rd{min-width:820px}.tabla.rd td{vertical-align:middle}
+.rd-p{display:flex;gap:10px;align-items:center}
+.rd-n{display:flex;align-items:center;gap:10px}.rd-n b{min-width:34px}
+.rd-bar{flex:1;min-width:60px;max-width:140px;height:8px;border-radius:99px;background:var(--sup2);overflow:hidden}.rd-bar i{display:block;height:100%;border-radius:99px}
+.repreg{border-top:1px solid var(--linea);padding:12px 0}
+.repreg .rp-q{font-weight:600;margin-top:4px}
+.repreg .rp-a{border-left:3px solid var(--linea);padding-left:10px;margin-top:6px;color:var(--piz);font-size:14px}
+.repreg .rp-n{border-left:3px solid var(--ambar);padding-left:10px;margin-top:6px;font-size:14px}
+/* Equipo */
+.eq-res{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+.eq-res .panel+.panel{margin-top:0}
+.eq-n{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.eq-n b{font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em}.eq-n span{color:var(--piz)}
+.eq-h{font-size:17px;margin:28px 0 12px}.eq-h .mut{font-weight:500;margin-left:4px}
+.eq-bajas{margin-top:28px}.eq-bajas .eq-h{margin:0}.eq-bajas summary{cursor:pointer;list-style:none}.eq-bajas summary::-webkit-details-marker{display:none}
+.eq-bajas summary::after{content:"Mostrar";font-size:13px;color:var(--cielo);margin-left:10px}.eq-bajas[open] summary::after{content:"Ocultar"}
+.personas{display:grid;gap:12px}
+.persona{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-l);padding:18px 20px;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:0 16px;align-items:start}
+.persona.de-baja{background:transparent;border-style:dashed}
+.p-nom{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.p-nom b{font-size:16.5px}
+.p-mail{margin-top:1px}
+.p-chips{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.rol-t{font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--sup2);color:var(--piz)}
+.rol-t.admin{background:var(--tinta);color:var(--papel)}
+.menu-p{position:relative}.menu-p summary{list-style:none}.menu-p summary::-webkit-details-marker{display:none}
+.menu-l{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);box-shadow:0 10px 30px rgba(22,32,42,.16);padding:6px;min-width:250px;display:flex;flex-direction:column}
+.menu-l button{all:unset;cursor:pointer;padding:9px 12px;border-radius:8px;font-size:14px}
+.menu-l button:hover,.menu-l button:focus-visible{background:var(--sup2)}
+.menu-l button.pel{color:var(--ladrillo);border-top:1px solid var(--linea);margin-top:4px;border-radius:0 0 8px 8px}
+.avisos-p{grid-column:2/-1;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
+.av-t{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;font-weight:600}
+.av-t span{flex:1;min-width:200px}
+.av-t.ok{color:var(--pino-t)}.av-t.no{color:var(--ambar-t)}.av-t.pend{color:var(--piz);font-weight:500}
+.av-t.no span,.av-t.pend span{font-weight:500}
+.av-t .btn{flex:none}
+.aparatos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.aparato{display:flex;align-items:center;gap:10px;border:1px solid var(--linea);background:var(--papel);border-radius:12px;padding:8px 6px 8px 12px;color:var(--piz)}
+.aparato b{color:var(--tinta);font-size:14px}.aparato span{display:block;font-size:12.5px}
+.aparato.este{border-color:var(--pino);background:var(--pino-2)}
+.aparato .este-t{display:inline;font-size:11.5px;font-weight:700;color:var(--pino-t);background:var(--sup);border-radius:5px;padding:0 6px;margin-left:4px}
+.aparato .x{all:unset;cursor:pointer;width:28px;height:28px;display:grid;place-items:center;border-radius:8px;font-size:18px;color:var(--piz)}
+.aparato .x:hover{background:var(--ladrillo-2);color:var(--ladrillo)}.aparato .x:focus-visible{outline:2px solid var(--cielo)}
+@media (max-width:760px){
+  .eq-res{grid-template-columns:minmax(0,1fr)}
+  .persona{grid-template-columns:40px minmax(0,1fr) auto;padding:14px}
+  .persona>.av-m{width:40px!important;height:40px!important;font-size:13px!important}
+  .avisos-p{grid-column:1/-1}
+  .aparato{flex:1 1 100%}
+}
 .miembro{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--linea)}
 .miembro .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--pino-2);color:var(--pino-t)}
 .miembro .acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -696,8 +755,8 @@ async function recargar() {
   // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
-const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"]];
+const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
+const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -879,65 +938,225 @@ VISTAS.bandeja = async () => {
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
       <p>${n === 0 ? "No tenés preguntas esperando." : n === 1 ? "Tenés una pregunta para responder." : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
-    ${emps.length > 1 ? `<div class="filtros">${emps.map((e) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--sup);border:1px solid var(--linea);border-radius:99px;padding:6px 12px">${etiquetaEmpresa(e.id)}<b style="font-size:13px">${filas.filter((f) => f.empresa_id === e.id).length}</b></span>`).join("")}</div>` : ""}
+    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por empresa"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
-    <div id="cola">${filas.map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>Cuando entre una pregunta para vos, aparece acá.</div>`}</div>`;
+    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de esta empresa." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
+  $("#main").querySelectorAll("[data-be]").forEach((x) => { x.onclick = () => { S.bandEmp = x.dataset.be; VISTAS.bandeja(); }; });
   enlazarCola($("#cola"));
 };
 
 // ================= EQUIPO (administrador de la empresa) =================
 const ESTADO_M = { activo: ["Activo", "respondida"], invitado: ["Invitado, todavía no entró", "borrador"], baja: ["Dado de baja", "descartada"] };
+// Íconos de aparatos (trazo, heredan el color del texto)
+const ICONO = {
+  pc: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>`,
+  celular: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
+  tablet: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>`,
+  campana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>`,
+  sinCampana: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 4.4A6 6 0 0 1 18 9c0 3 .6 4.9 1.3 6M6.3 6.3A6 6 0 0 0 6 9c0 6-2.5 7.5-2.5 7.5H16"/><path d="M10 20a2.2 2.2 0 0 0 4 0M3 3l18 18"/></svg>`,
+};
+const TIPO_AP = { pc: "Computadora", celular: "Celular", tablet: "Tablet" };
+const fechaCorta = (f) => f ? new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : "";
+function aparatoHTML(d, propio, esEste) {
+  return `<div class="aparato ${esEste ? "este" : ""}">${ICONO[d.tipo] ?? ICONO.pc}
+    <div><b>${TIPO_AP[d.tipo] ?? "Dispositivo"} ${esc(d.sistema)}</b>${esEste ? ` <span class="este-t">este</span>` : ""}
+    <span>${esc(d.navegador)} · ${d.ultimo_aviso ? "último aviso " + hace(d.ultimo_aviso) : "activado el " + fechaCorta(d.desde)}</span></div>
+    <button class="x" type="button" data-a="quitarDisp" data-disp="${d.id}" aria-label="Quitar ${TIPO_AP[d.tipo] ?? "dispositivo"} ${esc(d.sistema)}${propio ? "" : " de esta persona"}" title="Quitar">×</button></div>`;
+}
+
 VISTAS.equipo = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Elegí un cliente arriba a la izquierda para ver y sumar a su equipo.</p></div></div>`; return; }
-  const r = await seguro(() => api("equipo", { empresa_id: emp })); if (!r) return;
+  const [r, sub] = await Promise.all([seguro(() => api("equipo", { empresa_id: emp })), suscripcionActual().catch(() => null)]);
+  if (!r || S.tab !== "equipo") return;
+  const miFin = sub?.endpoint ? sub.endpoint.slice(-24) : "";
   const libres = Math.max(0, r.limite - r.usados);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de esta empresa y qué puede hacer cada uno.</p></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn lin" id="eqPrueba">Mandar aviso de prueba</button><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
-    <div class="panel"><div class="fila"><div><b style="font-size:22px">${r.usados} de ${r.limite}</b> <span class="mut">operadores${r.plan ? " del plan " + esc(r.plan) : ""}</span>
-      <div class="medidor" style="grid-template-columns:repeat(${Math.max(r.limite, 1)},minmax(0,1fr))">${Array.from({ length: Math.max(r.limite, 1) }, (_, i) => `<i class="${i < r.usados ? "usado" : ""}"></i>`).join("")}</div>
-      <p class="mut peq" style="margin:8px 0 0">Los administradores no ocupan lugar. ${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`}.` : "No te quedan lugares: para sumar a alguien, dá de baja a otro operador o ampliá el plan."}</p></div></div></div>
-    <div class="panel" style="margin-top:16px;padding-top:4px">${r.miembros.length ? r.miembros.map((m) => {
-      const [et, ch] = ESTADO_M[m.estado] ?? [m.estado, ""];
-      return `<div class="miembro" data-id="${m.id}"><div class="av">${esc(iniciales(m.nombre || m.email))}</div>
-        <div><b>${esc(m.nombre || m.email)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${esc(m.email ?? "")}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><span class="chip c-${ch}">${et}</span><span class="chip">${m.rol === "admin" ? "Administrador" : "Operador"}</span>${m.rol === "operador" && !m.puede_publicar ? `<span class="chip">No publica solo</span>` : ""}${m.estado === "activo" ? (m.dispositivos ? `<span class="chip c-simulada">Avisos activados${m.dispositivos > 1 ? ` en ${m.dispositivos} dispositivos` : ""}</span>` : `<span class="chip">Sin avisos</span>`) : ""}</div></div>
-        <div class="acc">${m.estado === "baja" ? `<button class="btn lin chico" data-a="reactivar">Volver a sumar</button><button class="btn pel chico" data-a="quitar">Quitar de la lista</button>` : `
-          <button class="btn lin chico" data-a="nombre">Cambiar nombre</button>
-          ${m.estado === "invitado" || !m.vos ? `<button class="btn lin chico" data-a="codigo">${m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"}</button>` : ""}
-          ${m.rol === "operador" ? `<button class="btn lin chico" data-a="publicar">${m.puede_publicar ? "Que no publique solo" : "Que publique solo"}</button>` : ""}
-          ${!m.vos ? `<button class="btn lin chico" data-a="rol">${m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"}</button><button class="btn pel chico" data-a="baja">Dar de baja</button>` : ""}`}</div></div>`;
-    }).join("") : `<div class="vacio"><b>Todavía no sumaste a nadie</b>Invitá a la primera persona con el botón de arriba.</div>`}</div>`;
-  $("#eqSumar").onclick = () => sumarPersona(emp, libres);
-  $("#eqPrueba").onclick = async () => {
-    const x = await seguro(() => api("push_prueba_equipo", { empresa_id: emp })); if (!x) return;
-    const lista = (a) => a.map(esc).join(", ");
-    cajon(`<div class="cajon-cab"><div><h2>Aviso de prueba</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-      ${x.recibieron.length ? `<p><b>Se les mandó a:</b> ${lista(x.recibieron)}.</p>` : `<p>No se le pudo mandar a nadie.</p>`}
-      ${x.sin_avisos.length ? `<p><b>Todavía no activaron los avisos:</b> ${lista(x.sin_avisos)}.</p><p class="mut peq">Cada persona tiene que entrar al panel desde su celular o su computadora y tocar <b>Activar avisos</b>, abajo en el menú. En iPhone, antes tiene que agregar la página a la pantalla de inicio y abrirla desde ahí.</p>` : ""}`, true);
+  // Mismo color que en Asignaciones: por orden de alta entre los que no están de baja
+  let k = 0; for (const m of r.miembros) { m.color = m.estado === "baja" ? "#8A96A3" : PALETA[k++ % PALETA.length]; }
+  const vivos = r.miembros.filter((m) => m.estado !== "baja"), activos = vivos.filter((m) => m.estado === "activo");
+  const conAv = activos.filter((m) => m.dispositivos.length), sinAv = activos.filter((m) => !m.dispositivos.length);
+  const invit = vivos.filter((m) => m.estado === "invitado"), bajas = r.miembros.filter((m) => m.estado === "baja");
+  const nomC = (m) => esc(m.vos ? "vos" : (m.nombre || m.email).split(" ")[0]);
+  const lista = (xs) => xs.map(nomC).join(", ").replace(/, ([^,]*)$/, " y $1");
+
+  const tarjeta = (m) => {
+    const nombre = m.nombre || m.email, baja = m.estado === "baja";
+    const opciones = baja ? [["reactivar", "Volver a sumar"], ["quitar", "Quitar de la lista", "pel"]] : [
+      ["nombre", "Cambiar nombre"],
+      ...(m.estado === "invitado" || !m.vos ? [["codigo", m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"]] : []),
+      ...(m.rol === "operador" ? [["publicar", m.puede_publicar ? "Que sus respuestas las apruebe un administrador" : "Que publique sin aprobación"]] : []),
+      ...(!m.vos ? [["rol", m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"], ["baja", "Dar de baja", "pel"]] : []),
+    ];
+    let avisos = "";
+    if (m.estado === "activo") {
+      avisos = m.dispositivos.length
+        ? `<div class="avisos-p"><div class="av-t ok">${ICONO.campana}<span>Recibe avisos en ${m.dispositivos.length === 1 ? "1 dispositivo" : m.dispositivos.length + " dispositivos"}</span>
+            <button class="btn lin chico" type="button" data-a="probar">Mandarle un aviso de prueba</button></div>
+            <div class="aparatos">${m.dispositivos.map((d) => aparatoHTML(d, m.vos, m.vos && d.fin === miFin)).join("")}</div>
+            ${m.vos && !m.dispositivos.some((d) => d.fin === miFin) ? `<button class="btn lin chico" type="button" data-a="activarAqui" style="margin-top:10px">Activar también en este dispositivo</button>` : ""}</div>`
+        : `<div class="avisos-p"><div class="av-t no">${ICONO.sinCampana}<span>${m.vos ? "No tenés avisos en ningún dispositivo" : "Sin avisos en ningún dispositivo"}. ${m.vos ? "No te enterás" : "No se entera"} de las preguntas si no ${m.vos ? "tenés" : "tiene"} el panel abierto.</span>
+            ${m.vos ? `<button class="btn pri chico" type="button" data-a="activarAqui">Activar en este dispositivo</button>` : ""}</div></div>`;
+    } else if (m.estado === "invitado") {
+      avisos = `<div class="avisos-p"><div class="av-t pend">${ICONO.sinCampana}<span>Todavía no entró. Cuando entre por primera vez, el panel le va a pedir activar los avisos.</span></div></div>`;
+    }
+    return `<article class="persona ${baja ? "de-baja" : ""}" data-id="${m.id}">
+      <span class="av-m" style="width:48px;height:48px;font-size:15px;background:${m.color}22;color:${m.color};box-shadow:inset 0 0 0 2px ${m.color}" aria-hidden="true">${esc(iniciales(nombre))}</span>
+      <div class="p-datos"><div class="p-nom"><b>${esc(nombre)}</b>${m.vos ? `<span class="mut">(vos)</span>` : ""}</div>
+        <div class="mut peq p-mail">${esc(m.email ?? "")}</div>
+        <div class="p-chips"><span class="rol-t ${m.rol}">${m.rol === "admin" ? "Administrador" : "Operador"}</span>
+          ${m.estado === "invitado" ? `<span class="chip c-borrador">Invitado, todavía no entró</span>` : baja ? `<span class="chip">Dado de baja${m.baja_at ? " el " + fechaCorta(m.baja_at) : ""}</span>` : ""}
+          ${m.rol === "operador" && !baja ? `<span class="mut peq">${m.puede_publicar ? "Publica sin aprobación" : "Sus respuestas las aprueba un administrador"}</span>` : ""}</div></div>
+      <details class="menu-p"><summary class="btn lin chico" aria-label="Opciones de ${esc(nombre)}">Opciones</summary>
+        <div class="menu-l" role="menu">${opciones.map(([a, t, c]) => `<button type="button" role="menuitem" data-a="${a}" class="${c ?? ""}">${t}</button>`).join("")}</div></details>
+      ${avisos}
+    </article>`;
   };
-  $("#main").querySelector(".panel:last-child").onclick = async (e) => {
+
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de esta empresa, qué puede hacer cada uno y dónde le llegan los avisos.</p></div>
+      <div><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
+    <div class="eq-res">
+      <div class="panel"><div class="eq-n"><b>${r.usados}</b><span>de ${r.limite} operadores${r.plan ? " del plan " + esc(r.plan) : ""}</span></div>
+        <div class="medidor" style="grid-template-columns:repeat(${Math.max(r.limite, 1)},minmax(0,1fr))">${Array.from({ length: Math.max(r.limite, 1) }, (_, i) => `<i class="${i < r.usados ? "usado" : ""}"></i>`).join("")}</div>
+        <p class="mut peq" style="margin:10px 0 0">${libres ? `${libres === 1 ? "Queda 1 lugar" : `Quedan ${libres} lugares`}. ` : "No quedan lugares. "}Los administradores no ocupan lugar.</p></div>
+      <div class="panel"><div class="eq-n"><b style="color:${sinAv.length ? "var(--ambar-t)" : "var(--pino-t)"}">${conAv.length}</b><span>de ${activos.length} ${activos.length === 1 ? "persona recibe" : "personas reciben"} avisos</span></div>
+        <p class="peq" style="margin:10px 0 12px">${sinAv.length ? `<b>Sin avisos:</b> ${lista(sinAv)}.` : "Todo el equipo recibe avisos."}${invit.length ? ` <span class="mut">Falta que ${invit.length === 1 ? "entre" : "entren"} ${lista(invit)}.</span>` : ""}</p>
+        <button class="btn lin chico" id="eqPrueba" ${conAv.length ? "" : "disabled"}>Mandar aviso de prueba a todos</button></div>
+    </div>
+    <h2 class="eq-h">Personas <span class="mut">${vivos.length}</span></h2>
+    <div class="personas">${vivos.length ? vivos.map(tarjeta).join("") : `<div class="panel vacio"><b>Todavía no sumaste a nadie</b>Invitá a la primera persona con el botón de arriba.</div>`}</div>
+    ${bajas.length ? `<details class="eq-bajas"><summary><h2 class="eq-h" style="display:inline">Dados de baja <span class="mut">${bajas.length}</span></h2></summary><div class="personas" style="margin-top:12px">${bajas.map(tarjeta).join("")}</div></details>` : ""}`;
+
+  $("#eqSumar").onclick = () => sumarPersona(emp, libres);
+  $("#eqPrueba").onclick = () => probarAvisos(emp, null);
+  // Un solo menú de opciones abierto a la vez
+  $("#main").querySelectorAll(".menu-p").forEach((d) => d.addEventListener("toggle", () => { if (d.open) $("#main").querySelectorAll(".menu-p[open]").forEach((o) => { if (o !== d) o.open = false; }); }));
+  $("#main").onclick = async (e) => {
+    if (!e.target.closest(".menu-p")) $("#main").querySelectorAll(".menu-p[open]").forEach((o) => { o.open = false; });
     const b = e.target.closest("button[data-a]"); if (!b) return;
-    const fila = b.closest(".miembro"); const m = r.miembros.find((x) => x.id === Number(fila.dataset.id)); const quien = m.nombre || m.email;
-    if (b.dataset.a === "baja") {
+    const fila = b.closest(".persona"); const m = r.miembros.find((x) => x.id === Number(fila.dataset.id)); const quien = m.nombre || m.email;
+    b.closest(".menu-p")?.removeAttribute("open");
+    const a = b.dataset.a;
+    if (a === "baja") {
       if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de esta empresa. Lo que ya respondió queda en el historial.`)) return;
       if (await seguro(() => api("miembro_baja", { id: m.id }))) { aviso(`${quien} quedó dado de baja`); VISTAS.equipo(); }
-    } else if (b.dataset.a === "quitar") {
+    } else if (a === "quitar") {
       if (!confirm(`¿Quitar a ${quien} de la lista? Lo que haya respondido sigue en el historial con su nombre. Si más adelante querés sumarlo, lo invitás de nuevo.`)) return;
       if (await seguro(() => api("miembro_quitar", { id: m.id }))) { aviso(`${quien} ya no figura en el equipo`); VISTAS.equipo(); }
-    } else if (b.dataset.a === "nombre") {
+    } else if (a === "nombre") {
       const nuevo = prompt(`Nombre de ${m.email}:`, m.nombre ?? ""); if (nuevo == null || !nuevo.trim() || nuevo.trim() === m.nombre) return;
       if (await seguro(() => api("miembro_cambiar", { id: m.id, nombre: nuevo.trim() }))) { aviso("Nombre cambiado"); VISTAS.equipo(); }
-    } else if (b.dataset.a === "reactivar") {
+    } else if (a === "reactivar") {
       if (await seguro(() => api("miembro_reactivar", { id: m.id }))) { aviso(`${quien} volvió al equipo`); VISTAS.equipo(); }
-    } else if (b.dataset.a === "publicar") {
+    } else if (a === "publicar") {
       if (await seguro(() => api("miembro_cambiar", { id: m.id, puede_publicar: !m.puede_publicar }))) VISTAS.equipo();
-    } else if (b.dataset.a === "rol") {
+    } else if (a === "rol") {
       if (await seguro(() => api("miembro_cambiar", { id: m.id, rol: m.rol === "admin" ? "operador" : "admin" }))) VISTAS.equipo();
-    } else if (b.dataset.a === "codigo") {
+    } else if (a === "codigo") {
       const c = await seguro(() => api("miembro_codigo", { id: m.id })); if (c) mostrarCodigo(quien, c.email, c.codigo, m.estado === "invitado");
+    } else if (a === "probar") {
+      probarAvisos(emp, m);
+    } else if (a === "activarAqui") {
+      await activarAvisos(); VISTAS.equipo();
+    } else if (a === "quitarDisp") {
+      const d = m.dispositivos.find((x) => x.id === Number(b.dataset.disp));
+      if (!confirm(`¿Quitar los avisos de ${m.vos ? "tu" : "la"} ${(TIPO_AP[d?.tipo] ?? "dispositivo").toLowerCase()} ${d?.sistema ?? ""}${m.vos ? "" : " de " + quien}? Deja de recibir avisos ahí hasta que los vuelva a activar.`)) return;
+      if (m.vos && d?.fin === miFin) { await desactivarAvisos(); VISTAS.equipo(); return; }
+      if (await seguro(() => api("push_quitar", { id: d.id, empresa_id: emp }))) { aviso("Dispositivo quitado"); VISTAS.equipo(); }
     }
   };
+};
+async function probarAvisos(emp, m) {
+  const x = await seguro(() => api("push_prueba_equipo", { empresa_id: emp, miembro_id: m?.id ?? null })); if (!x) return;
+  const lista = (a) => a.map(esc).join(", ").replace(/, ([^,]*)$/, " y $1");
+  if (m) return aviso(x.recibieron.length ? `Aviso de prueba enviado a ${m.nombre || m.email}` : `${m.nombre || m.email} no tiene avisos activados`);
+  cajon(`<div class="cajon-cab"><div><h2>Aviso de prueba</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    ${x.recibieron.length ? `<p><b>Se les mandó a:</b> ${lista(x.recibieron)}. Les tiene que aparecer en unos segundos en cada dispositivo donde los activaron.</p>` : `<p>No se le pudo mandar a nadie.</p>`}
+    ${x.sin_avisos.length ? `<p><b>Todavía no activaron los avisos:</b> ${lista(x.sin_avisos)}.</p><p class="mut peq">Al entrar al panel les aparece un cartel para activarlos. En iPhone, antes tienen que agregar la página a la pantalla de inicio y abrirla desde ahí.</p>` : ""}`, true);
+}
+
+// ================= RENDIMIENTO (administrador) y MIS NÚMEROS (cada persona) =================
+const SERIES = { bot: ["El bot", "var(--pino)"], equipo: ["El equipo", "var(--cielo)"], ml: ["Desde MercadoLibre", "#9AA6B2"], yo: ["Vos", "var(--cielo)"] };
+const diaTxt = (d) => new Date(d + "T12:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+// Barras apiladas por día, en HTML para que se adapten al ancho
+function grafDias(serie, claves) {
+  if (serie.length < 2) return "";
+  const tot = (x) => claves.reduce((a, k) => a + (x[k] ?? 0), 0);
+  const max = Math.max(1, ...serie.map(tot));
+  const suma = claves.map((k) => [k, serie.reduce((a, x) => a + (x[k] ?? 0), 0)]);
+  const marcas = [0, Math.floor((serie.length - 1) / 2), serie.length - 1];
+  return `<div class="graf"><div class="graf-cab"><div class="leyenda">${claves.map((k) => `<span><i style="background:${SERIES[k][1]}"></i>${SERIES[k][0]}</span>`).join("")}</div><span class="mut peq">máximo ${num(max)} por día</span></div>
+    <div class="barras" role="img" aria-label="Respuestas por día: ${suma.map(([k, n]) => `${SERIES[k][0]} ${n}`).join(", ")}">
+      ${serie.map((x) => `<div class="b" title="${esc(diaTxt(x.dia))}: ${claves.map((k) => `${SERIES[k][0]} ${x[k] ?? 0}`).join(", ")}">${claves.map((k) => x[k] ? `<i style="height:${(x[k] / max) * 100}%;background:${SERIES[k][1]}"></i>` : "").join("")}</div>`).join("")}
+    </div>
+    <div class="ejes">${marcas.map((i) => `<span>${esc(diaTxt(serie[i].dia))}</span>`).join("")}</div></div>`;
+}
+const pctTxt = (x) => x == null ? "—" : String(x).replace(".", ",") + "%";
+function listaRepreguntas(xs, h, propias) {
+  if (!xs.length) return `<p class="mut" style="margin:6px 0 0">Ninguna en este período: ${propias ? "nadie volvió a preguntarte" : "ningún comprador volvió a preguntar"} dentro de las ${h} horas siguientes a una respuesta.</p>`;
+  return xs.map((x) => `<div class="repreg">
+    <div class="peq mut">${esc(x.publicacion ?? "")}${propias ? "" : ` · respondió ${esc(x.quien)}`} · ${hace(x.cuando)}</div>
+    <div class="rp-q">${esc(x.pregunta ?? "")}</div>
+    <div class="rp-a">${esc(x.respuesta ?? "")}</div>
+    <div class="rp-n"><b>Volvió a preguntar:</b> ${esc(x.repregunta ?? "")}</div></div>`).join("");
+}
+
+VISTAS.rendimiento = async () => {
+  const emp = S.rol === "admin" ? S.empSel : null;
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
+  const { desde, hasta } = rangoPer();
+  const d = await seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta }));
+  if (!d || S.tab !== "rendimiento") return;
+  const t = d.totales;
+  let k = 0; for (const p of d.personas) p.color = p.estado === "baja" ? "#8A96A3" : PALETA[k++ % PALETA.length];
+  const gente = d.personas.filter((p) => p.estado !== "baja" || p.respondidas || p.descartadas);
+  const maxR = Math.max(1, ...gente.map((p) => p.respondidas), t.bot.respondidas, t.mercadolibre.respondidas);
+  const fila = (av, nombre, sub, x, extra = {}) => `<tr>
+    <td><div class="rd-p">${av}<div><b>${nombre}</b>${sub ? `<div class="peq mut">${sub}</div>` : ""}</div></div></td>
+    <td><div class="rd-n"><b>${num(x.respondidas)}</b><span class="rd-bar"><i style="width:${(x.respondidas / maxR) * 100}%;background:${extra.color ?? "var(--cielo)"}"></i></span></div></td>
+    <td>${dur(x.tiempo_mediana_seg)}<div class="peq mut">promedio ${dur(x.tiempo_prom_seg)}</div></td>
+    <td><b style="color:${x.repreguntas_pct > 15 ? "var(--ladrillo)" : "inherit"}">${pctTxt(x.repreguntas_pct)}</b><div class="peq mut">${num(x.repreguntas)} de ${num(x.respondidas)}</div></td>
+    <td>${extra.descartadas ?? "—"}</td><td>${extra.asignadas ?? "—"}</td><td class="peq mut">${extra.ultima ? hace(extra.ultima) : "—"}</td></tr>`;
+  const avP = (p) => `<span class="av-m" style="width:34px;height:34px;background:${p.color}22;color:${p.color};box-shadow:inset 0 0 0 2px ${p.color}" aria-hidden="true">${esc(iniciales(p.nombre))}</span>`;
+  const avI = (txt, c) => `<span class="av-m" style="width:34px;height:34px;background:${c};color:#fff" aria-hidden="true">${txt}</span>`;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Cómo se respondieron las preguntas. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
+    <div class="medidas">
+      <div class="medida"><b>${num(t.recibidas)}</b><span>preguntas recibidas${t.pendientes_ahora ? `; ${num(t.pendientes_ahora)} esperando ahora` : ""}</span></div>
+      <div class="medida"><b style="color:var(--pino-t)">${t.respondidas ? Math.round(t.bot.respondidas / t.respondidas * 100) + "%" : "—"}</b><span>las respondió el bot solo (${num(t.bot.respondidas)} de ${num(t.respondidas)})</span></div>
+      <div class="medida"><b>${dur(t.equipo.tiempo_mediana_seg)}</b><span>tarda el equipo en responder, en general (${num(t.equipo.respondidas)} respuestas)</span></div>
+      <div class="medida"><b style="color:${t.repreguntas_pct > 15 ? "var(--ladrillo)" : "inherit"}">${pctTxt(t.repreguntas_pct)}</b><span>de las respuestas tuvieron repregunta (${num(t.repreguntas)})</span></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Respuestas por día</h2>${grafDias(d.serie, ["bot", "equipo", "ml"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
+    <div class="panel" style="padding:16px 18px"><h2>Por persona</h2>
+      <p class="mut peq" style="margin:0 0 6px">El tiempo va desde que el comprador preguntó hasta que salió la respuesta; se muestra el típico (la mitad de las respuestas tardó menos) y el promedio. Hay repregunta cuando el mismo comprador vuelve a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas: suele indicar que la respuesta quedó incompleta.</p>
+      <div class="tabla-scroll"><table class="tabla rd"><tr><th>Quién</th><th>Respondió</th><th>Tiempo típico</th><th>Repreguntas</th><th>Descartó</th><th>Le llegaron</th><th>Última respuesta</th></tr>
+      ${gente.map((p) => fila(avP(p), esc(p.nombre) + (p.vos ? ` <span class="mut">(vos)</span>` : ""), [p.rol === "admin" ? "Administrador" : "Operador", p.estado === "baja" ? "dado de baja" : p.estado === "invitado" ? "todavía no entró" : ""].filter(Boolean).join(", "), p, { color: p.color, descartadas: num(p.descartadas), asignadas: num(p.asignadas), ultima: p.ultima })).join("")}
+      ${t.bot.respondidas ? fila(avI("IA", "var(--pino)"), "El bot", "respondió solo", t.bot, { color: "var(--pino)" }) : ""}
+      ${t.mercadolibre.respondidas ? fila(avI("ML", "#9AA6B2"), "Desde MercadoLibre", "respondidas fuera de este panel", t.mercadolibre, { color: "#9AA6B2" }) : ""}
+      </table></div>
+      ${t.descartadas ? `<p class="mut peq" style="margin:10px 0 0">${num(t.descartadas)} ${t.descartadas === 1 ? "pregunta se descartó" : "preguntas se descartaron"} sin responder en el período.</p>` : ""}</div>
+    <div class="panel"><h2>Respuestas que quedaron incompletas</h2><p class="mut peq" style="margin:0 0 8px">Las últimas en las que el comprador volvió a preguntar. Sirven para corregir el criterio del equipo o las instrucciones del bot.</p>
+      ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, false)}</div>`;
+  enlazarPeriodo(VISTAS.rendimiento);
+};
+
+VISTAS.numeros = async () => {
+  const { desde, hasta } = rangoPer();
+  const d = await seguro(() => api("mis_numeros", { desde, hasta }));
+  if (!d || S.tab !== "numeros") return;
+  const y = d.yo, multi = d.por_empresa.length > 1;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} empresas` : ""}.</p></div>${selPeriodo()}</div>
+    <div class="medidas">
+      <div class="medida"><b>${num(y.respondidas)}</b><span>${y.respondidas === 1 ? "pregunta respondida" : "preguntas respondidas"}${y.asignadas ? ` de ${num(y.asignadas)} que te llegaron` : ""}</span></div>
+      <div class="medida"><b>${dur(y.tiempo_mediana_seg)}</b><span>tardás en responder, en general (promedio ${dur(y.tiempo_prom_seg)})</span></div>
+      <div class="medida"><b style="color:${y.repreguntas_pct > 15 ? "var(--ladrillo)" : "inherit"}">${pctTxt(y.repreguntas_pct)}</b><span>de tus respuestas tuvieron repregunta (${num(y.repreguntas)})</span></div>
+      <div class="medida"><b>${num(y.descartadas)}</b><span>${y.descartadas === 1 ? "pregunta descartada" : "preguntas descartadas"}</span></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Tus respuestas por día</h2>${grafDias(d.serie, ["yo"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
+    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por empresa</h2><div class="tabla-scroll"><table class="tabla"><tr><th>Empresa</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
+      ${d.por_empresa.map((e) => `<tr><td>${etiquetaEmpresa(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
+    <div class="panel"><h2>Respuestas tuyas con repregunta</h2><p class="mut peq" style="margin:0 0 8px">El comprador volvió a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas. Mirá qué le faltaba a la respuesta.</p>
+      ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, true)}</div>`;
+  enlazarPeriodo(VISTAS.numeros);
 };
 const URL_APP = "https://oleandro78-svg.github.io/MercadoLibre/chatbot/";
 function mostrarCodigo(quien, email, codigo, invitacion) {
