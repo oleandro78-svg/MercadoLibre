@@ -446,6 +446,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .m-cab h1{font-size:24px;margin:0}
 .m-bus{width:100%;margin-top:12px}
 .m-fil{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.m-fil.fil-preg{margin:0 0 14px;gap:8px}.fil-preg button{font-size:14px;padding:6px 13px}
 .m-fil button{all:unset;cursor:pointer;font-size:13px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--sup2);color:var(--piz)}
 .m-fil button.on{background:var(--tinta);color:var(--papel)}
 .m-fil button:focus-visible{outline:2px solid var(--cielo)}
@@ -1663,7 +1664,7 @@ VISTAS.preguntas = async () => {
   const cant = { pendiente_revision: nTe, borrador: nAp };
   const estados = [["pendiente_revision", "Te necesitan"], ["borrador", "Para aprobar"], ["", "Todas"], ["respondida", "Respondidas"], ["simulada", "Simuladas"], ["comparar", "A mano vs. bot"], ["error", "Con error"], ["prueba", "Pruebas"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Preguntas</h1><p>Todo lo que entró, con lo que respondió el bot o una persona.</p></div></div>
-    <div class="filtros"><div class="seg" id="fEst">${estados.map(([k, t]) => `<button data-e="${k}" class="${k === f.estado ? "on" : ""}">${t}${cant[k] ? ` <span class="cuenta-n" style="margin-left:4px">${cant[k]}</span>` : ""}</button>`).join("")}</div></div>
+    <div class="m-fil fil-preg" id="fEst" role="group" aria-label="Estado">${estados.map(([k, t]) => `<button type="button" data-e="${k}" aria-pressed="${k === f.estado}" class="${k === f.estado ? "on" : ""}">${t}${cant[k] ? ` · ${cant[k]}` : ""}</button>`).join("")}</div>
     <div class="filtros">${S.res.cuentas.length > 1 ? `<select id="fCta" style="width:auto">${optsCuentas(f.cuenta_id, "Todas las cuentas")}</select>` : ""}
       <input class="buscar" id="fBus" value="${esc(f.buscar)}" placeholder="Buscar en preguntas, respuestas o publicaciones (Enter)"></div>
     <div class="panel" style="padding:6px 16px" id="lista"><p class="mut">Cargando…</p></div>`;
@@ -2182,26 +2183,6 @@ function pintarRanking() {
   $("#rkP").onchange = () => { S.rankPl = $("#rkP").value; pintarRanking(); };
 }
 
-// Listas del detalle de una empresa (dueño de la app)
-function listaPreguntasPlat(d, filtradas, verN) {
-  return (filtradas.length ? filtradas.slice(0, verN).map((p) => { const q = quienResp(p); return `<details class="preg-d"><summary><span><span class="peq mut">${esc(p.item_titulo ?? "")}</span><br>${esc(p.texto_pregunta)}</span><span class="peq mut" style="text-align:right">${hace(p.fecha_pregunta ?? p.created_at)}<br>${q ? esc(q) : chip(p.estado)}</span></summary>
-        <div class="r">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? "Sin respuesta todavía")}</div>
-        <p class="peq mut" style="margin:8px 0 0">${p.tiempo_respuesta_seg != null ? `Respondida en ${dur(p.tiempo_respuesta_seg)}. ` : ""}${p.costo_usd != null ? `Costo de IA: ${usd(p.costo_usd)}.` : ""}</p></details>`; }).join("")
-        + (filtradas.length > verN ? `<button class="btn lin" id="verMas" style="margin-top:12px">Ver ${Math.min(30, filtradas.length - verN)} más</button>` : "")
-        : `<div class="vacio"><b>No hay preguntas en este período</b>Probá con un período más largo.</div>`)
-    + (d.preguntas.length >= 300 ? `<p class="mut peq">Se muestran las 300 más recientes del período.</p>` : "");
-}
-function listaMensajesPlat(d, f, verN) {
-  const todos = d.mensajes?.lista ?? [];
-  const ms = todos.filter((x) => !f || f.tipo !== "op" || x.usuario_id === f.id);
-  return (ms.length ? ms.slice(0, verN).map((x) => `<details class="preg-d"><summary><span><span class="peq mut">${esc(x.producto ?? "")}${x.comprador ? " · " + esc(x.comprador) : ""}</span><br>${esc(x.texto ?? (x.adjuntos ? "(archivo adjunto)" : ""))}</span><span class="peq mut" style="text-align:right">${hace(x.fecha)}<br>${esc(x.usuario ?? "Desde MercadoLibre")}</span></summary>
-        ${x.pregunta ? `<div class="r"><span class="peq mut">Le respondía al comprador:</span><br>${esc(x.pregunta)}</div>` : ""}
-        <p class="peq mut" style="margin:8px 0 0">${x.tiempo_seg != null ? `Respondido en ${dur(x.tiempo_seg)}.` : x.opcion ? "Lo inició el vendedor, con un motivo." : "Lo inició el vendedor."}${x.adjuntos ? ` Con ${x.adjuntos.length} archivo${x.adjuntos.length > 1 ? "s" : ""}.` : ""}</p></details>`).join("")
-        + (ms.length > verN ? `<button class="btn lin" id="verMas" style="margin-top:12px">Ver ${Math.min(30, ms.length - verN)} más</button>` : "")
-        : `<div class="vacio"><b>No hay mensajes enviados en este período</b>Probá con un período más largo.</div>`)
-    + (todos.length >= 300 ? `<p class="mut peq">Se muestran los 300 más recientes del período.</p>` : "");
-}
-
 async function vistaEmpresa(nuevos = true) {
   let d = S.platDet;
   if (nuevos || !d || d.empresa.id !== S.platEmp) {
@@ -2212,11 +2193,9 @@ async function vistaEmpresa(nuevos = true) {
   }
   if (S.tab !== "plataforma") return;
   const e = d.empresa, t = d.totales, f = S.platFil;
-  const filtradas = d.preguntas.filter((p) => !f || (f.tipo === "cuenta" ? p.cuenta_id === f.id : p.respondida_usuario === f.id));
   const cta = f?.tipo === "cuenta" ? d.cuentas.find((c) => c.id === f.id) : null;
   const verN = S.platVer ?? 30;
   const conMsj = !!d.mensajes, m = d.mensajes ?? {};
-  const lista = conMsj && S.platLista === "mensajes" ? "mensajes" : "preguntas";
   $("#main").innerHTML = `<button class="btn lin chico" id="volverPlat" style="margin-bottom:16px">Volver a toda la plataforma</button>
     <div class="cabecera"><div style="display:flex;gap:14px;align-items:center">${avEmp(e, "g")}<div><h1>${esc(e.nombre)}</h1><p style="margin-top:2px">${e.plan ? "Plan " + esc(e.plan) : "Sin plan"}, cliente desde el ${new Date(e.created_at).toLocaleDateString("es-AR")}${e.activa ? "" : ". Está pausada"}</p></div></div>${selPeriodo()}</div>
     <div class="medidas">
@@ -2226,24 +2205,18 @@ async function vistaEmpresa(nuevos = true) {
       <div class="medida"><b>${usd(t.costo_usd, 2)}</b><span>de IA, con ${num(t.publicaciones)} publicaciones activas</span></div>
       ${conMsj ? `<div class="medida"><b>${num(m.enviados)}</b><span>mensajes enviados a compradores en ${num(m.conversaciones)} ventas; tiempo promedio ${dur(m.tiempo_seg)}</span></div>` : ""}
     </div>
-    <div class="panel" style="margin-top:16px;padding:16px 18px;overflow-x:auto"><h2>Cuentas de MercadoLibre</h2><p class="mut peq" style="margin:0 0 6px">Tocá una cuenta para ver sus franjas y sus preguntas.</p>
+    <div class="panel" style="margin-top:16px;padding:16px 18px;overflow-x:auto"><h2>Cuentas de MercadoLibre</h2><p class="mut peq" style="margin:0 0 6px">Tocá una cuenta para ver sus franjas horarias.</p>
       <table class="tabla"><tr><th>Cuenta</th><th>Modo</th><th>Preguntas</th><th>Bot solo</th><th>Según ML</th><th>Publicaciones</th></tr>
       ${d.cuentas.map((c) => `<tr class="fila-click ${f?.id === c.id ? "on" : ""}" data-fil="cuenta" data-id="${c.id}" tabindex="0"><td><b>${esc(c.nombre)}</b>${c.conectada ? "" : ` <span class="chip c-error">Desconectada</span>`}</td><td>${esc(MODOS[c.modo] ?? c.modo)}</td><td>${num(c.preguntas)}</td><td>${pct(c.bot_pct)}</td><td>${durML(c.tiempo_ml?.total?.response_time)}</td><td>${num(c.publicaciones)}</td></tr>`).join("")}</table>
       ${cta?.tiempo_ml ? bloqueTiempoML(cta) : ""}</div>
     <div class="panel" style="padding:16px 18px;overflow-x:auto"><h2>Equipo</h2>
-      ${d.operadores.length ? `<p class="mut peq" style="margin:0 0 6px">Tocá una persona para ver lo que respondió.</p><table class="tabla"><tr><th>Persona</th><th>Rol</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Ventas</th><th>Tiempo</th>" : ""}</tr>
-      ${d.operadores.map((o) => `<tr class="fila-click ${f?.id === o.usuario_id ? "on" : ""}" data-fil="op" data-id="${o.usuario_id}" tabindex="0"><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}</td><td>${o.rol === "admin" ? "Administrador" : "Operador"}</td><td>${num(o.respondidas)}</td><td>${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td>${num(o.mensajes)}</td><td>${num(o.conversaciones)}</td><td>${dur(o.tiempo_mensajes_seg)}</td>` : ""}</tr>`).join("")}
+      ${d.operadores.length ? `<table class="tabla"><tr><th>Persona</th><th>Rol</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Ventas</th><th>Tiempo</th>" : ""}</tr>
+      ${d.operadores.map((o) => `<tr><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}</td><td>${o.rol === "admin" ? "Administrador" : "Operador"}</td><td>${num(o.respondidas)}</td><td>${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td>${num(o.mensajes)}</td><td>${num(o.conversaciones)}</td><td>${dur(o.tiempo_mensajes_seg)}</td>` : ""}</tr>`).join("")}
       ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td></td><td>${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
       : `<p class="mut" style="margin:6px 0 0">Esta empresa todavía no tiene usuarios.</p>`}</div>
-    <div class="panel" style="padding:16px 18px">
-      ${conMsj ? `<div class="pestanas" id="plLista" role="tablist"><button type="button" role="tab" data-l="preguntas" class="${lista === "preguntas" ? "on" : ""}" aria-selected="${lista === "preguntas"}">Preguntas</button><button type="button" role="tab" data-l="mensajes" class="${lista === "mensajes" ? "on" : ""}" aria-selected="${lista === "mensajes"}">Mensajes</button></div>` : ""}
-      <div class="fila" style="align-items:center"><h2>${lista === "mensajes" ? "Mensajes enviados" : "Preguntas"}${f ? " de " + esc(f.tipo === "cuenta" ? cta?.nombre : d.operadores.find((o) => o.usuario_id === f.id)?.nombre) : ""}</h2>
-      ${f ? `<button class="btn lin chico n" id="sinFil">Ver todas</button>` : ""}</div>
-      ${lista === "mensajes" ? listaMensajesPlat(d, f, verN) : listaPreguntasPlat(d, filtradas, verN)}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
     <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su empresa.</p>`;
   enlazarPeriodo(vistaEmpresa);
-  if ($("#plLista")) $("#plLista").onclick = (ev) => { const b = ev.target.closest("[data-l]"); if (b) { S.platLista = b.dataset.l; S.platVer = 30; vistaEmpresa(false); } };
   $("#volverPlat").onclick = () => { S.platEmp = ""; S.platFil = null; S.platVer = 30; ir("plataforma"); };
   if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaEmpresa(false); };
   if ($("#verMas")) $("#verMas").onclick = () => { S.platVer = verN + 30; vistaEmpresa(false); };
@@ -2511,7 +2484,8 @@ function estadoVenta(c) {
   if (c.envio_estado) return ENVIO_E[c.envio_estado] ?? "Sin entregar";
   return c.envio_id ? "Sin entregar" : "Sin envío de MercadoLibre";
 }
-const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
+// Nombre y apellido (o razón social) del comprador, con su usuario de MercadoLibre entre paréntesis
+const nombreComp = (c) => c.comprador_nombre ? (c.comprador_nick ? `${c.comprador_nombre} (${c.comprador_nick})` : c.comprador_nombre) : c.comprador_nick || "Comprador";
 
 VISTAS.mensajes = async () => {
   const emp = empMsj();
@@ -2598,6 +2572,14 @@ async function cargarHilos(emp, mas = false) {
     $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
   }
   S.msjCargadas += r.filas.length;
+  if (r.completando_nombres && !mas) {
+    clearTimeout(S.msjNombres);
+    S.msjNombres = setTimeout(async () => {
+      if (S.tab !== "mensajes") return;
+      const x = await api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde: 0, limite: POR_PAGINA }).catch(() => null);
+      for (const c of x?.filas ?? []) { const b = $(`#mHilos .hilo[data-c="${c.id}"] .h-nom b`); if (b) b.textContent = nombreComp(c); }
+    }, 12000);
+  }
   const pie = $("#mHilos .m-pie"); if (pie) pie.remove();
   $("#mHilos").insertAdjacentHTML("beforeend", r.filas.map(hiloHTML).join(""));
   pieHilos(emp, r);
@@ -2647,7 +2629,7 @@ function pintarChat(d) {
   const env = c.envio ?? {};
   $("#mChat").innerHTML = `
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
-      ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${c.comprador_nick && c.comprador_nombre ? esc(c.comprador_nick) + " · " : ""}${esc(c.item_titulo ?? "")}</span></div>
+      ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
       <div class="venta-cab"><b>${plata(c.total, c.moneda)}</b><span class="peq">${esc(LOGISTICA[c.envio_logistica] ?? (c.envio_id ? "Envío" : "Sin envío"))}${c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
