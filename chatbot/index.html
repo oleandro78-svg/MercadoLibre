@@ -822,8 +822,10 @@ async function notificarLocal(p, n) {
 }
 // Si la persona está mirando la bandeja y no está escribiendo una respuesta, la lista se actualiza sola
 function refrescarSiSePuede() {
-  if (!["bandeja", "hoy"].includes(S.tab)) return;
-  const escribiendo = [...document.querySelectorAll("#cola textarea")].some((t) => t.value !== t.defaultValue || t === document.activeElement);
+  if (!["bandeja", "hoy", "preguntas"].includes(S.tab)) return;
+  const bus = $("#fBus");
+  const escribiendo = [...document.querySelectorAll("#cola textarea")].some((t) => t.value !== t.defaultValue || t === document.activeElement)
+    || (bus && (bus === document.activeElement || bus.value !== (S.filtros?.buscar ?? "")));
   if (!escribiendo && !document.querySelector(".velo")) VISTAS[S.tab]();
 }
 async function revisarAvisos() {
@@ -835,14 +837,15 @@ async function revisarAvisos() {
       sonar(); notificarLocal(nuevas[0], nuevas.length);
       aviso(nuevas.length === 1 ? "Llegó una pregunta para responder" : `Llegaron ${nuevas.length} preguntas para responder`);
       refrescarSiSePuede();
-    }
+    } else if (AV.pend != null && r.pendientes !== AV.pend) refrescarSiSePuede(); // alguien más respondió o descartó
   }
+  AV.pend = r.pendientes;
   AV.vistos = new Set([...(AV.vistos ?? []), ...r.nuevas.map((x) => x.id)]);
   avisosMensajes(r.mensajes);
   ponerContador(r.pendientes + (r.mensajes?.pendientes ?? 0));
 }
 function iniciarAvisos() {
-  clearInterval(AV.timer); AV.vistos = null; AV.vistosM = null;
+  clearInterval(AV.timer); AV.vistos = null; AV.vistosM = null; AV.pend = null; AV.pendM = null;
   revisarAvisos(); AV.timer = setInterval(revisarAvisos, 30000);
   pintarAvisosBtn(); renovarSuscripcion().then(avisosPorDefecto);
 }
@@ -941,7 +944,7 @@ const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["m
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
-  mensajes: [["mensajes", "Bandeja"], ["material", "Material para enviar"]],
+  mensajes: [["mensajes", "Bandeja"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
 };
@@ -2510,7 +2513,7 @@ function estadoVenta(c) {
   return c.envio_id ? "Sin entregar" : "Sin envío de MercadoLibre";
 }
 // Nombre y apellido (o razón social) del comprador, con su usuario de MercadoLibre entre paréntesis
-const nombreComp = (c) => c.comprador_nombre ? (c.comprador_nick ? `${c.comprador_nombre} (${c.comprador_nick})` : c.comprador_nombre) : c.comprador_nick || "Comprador";
+const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
 
 VISTAS.mensajes = async () => {
   const emp = empMsj();
@@ -2624,6 +2627,18 @@ async function abrirConv(id) {
   pintarChat(d); pintarVenta(d);
   const h = $(`#mHilos .hilo[data-c="${id}"] .punto`); if (h) h.remove();
 }
+// Llegó un mensaje en la conversación abierta: se agrega sin borrar lo que la persona está escribiendo
+async function refrescarConv(id) {
+  const tx = $("#mTx");
+  const escribiendo = tx && (tx === document.activeElement || tx.value !== tx.defaultValue);
+  const d = await api("mensajes_conversacion", { id }).catch(() => null);
+  if (!d || S.msjId !== id || S.tab !== "mensajes") return;
+  S.msjConv = d;
+  if (!escribiendo) { pintarChat(d); pintarVenta(d); return; }
+  const bur = $("#mBur"); if (!bur) return;
+  bur.innerHTML = burbujas(d.mensajes); bur.scrollTop = bur.scrollHeight;
+  aviso("El comprador escribió de nuevo. Lo que estabas escribiendo quedó como estaba.");
+}
 function volverLista() {
   S.msjId = null; try { history.replaceState(null, "", location.pathname + location.search + "#mensajes"); } catch {}
   const caja = $(".msj"); if (caja) { caja.classList.remove("ver-chat"); caja.classList.add("ver-lista"); }
@@ -2688,7 +2703,7 @@ function redactarLibre(d) {
   const sueltos = [];
   $("#mRed").innerHTML = `
     ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span>${c.borrador_motivo ? `<span class="mut">· ${esc(c.borrador_motivo)}</span>` : ""}</div>` : ""}
-    ${mat.length ? `<div class="mat"><span class="mat-t">Material de esta publicación:</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
+    ${mat.length ? `<div class="mat"><span class="mat-t">Documentación de esta publicación:</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
     <div class="mat" id="mSue"></div>
     <label class="oculto-v" for="mTx">Mensaje para el comprador</label>
     <textarea id="mTx" placeholder="Escribí el mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
@@ -2710,7 +2725,7 @@ function redactarLibre(d) {
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
       if (!/\.(jpe?g|png|pdf|txt)$/i.test(f.name)) { aviso(`${f.name}: MercadoLibre acepta solo JPG, PNG, PDF o TXT`); continue; }
-      if (f.size > 8 * 1048576) { aviso(`${f.name}: para enviarlo desde acá tiene que pesar menos de 8 MB. Si es un manual, cargalo en Material para enviar.`); continue; }
+      if (f.size > 8 * 1048576) { aviso(`${f.name}: para enviarlo desde acá tiene que pesar menos de 8 MB. Si es un manual, cargalo en Documentación para enviar.`); continue; }
       sueltos.push({ nombre: f.name, mime: f.type, bytes: f.size, datos: await leerB64(f) });
     }
     $("#mArch").value = ""; pintarSueltos();
@@ -2794,7 +2809,7 @@ function pintarVenta(d) {
     ${c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
     ${S.rol !== "operador" ? `<h3>Quién la atiende</h3><p class="peq" style="margin:0">${c.asignados_nombres?.length ? esc(c.asignados_nombres.join(", ")) : `<span class="mut">${S.msjLista?.con_asignaciones ? "Nadie la cubre ahora: te llega a vos" : "Todo el equipo"}</span>`}</p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
-    ${d.material?.length ? `<h3>Material de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
+    ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
 }
 
 async function buscarVenta(emp, inicial = "") {
@@ -2823,19 +2838,19 @@ function leerB64(f) { return new Promise((ok, mal) => { const r = new FileReader
 // ================= MATERIAL PARA ENVIAR =================
 VISTAS.material = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Material para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const r = await seguro(() => api("material_lista", { empresa_id: emp })); if (!r || S.tab !== "material") return;
   S.matPubs = r.publicaciones;
   if (!S.matPub || !r.publicaciones.some((p) => p.id === S.matPub)) S.matPub = (r.publicaciones.find((p) => p.archivos + p.enlaces) ?? r.publicaciones[0])?.id ?? null;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Material para enviar</h1><p>Manuales, guías de instalación, garantías y links de cada publicación, listos para mandarlos en la conversación con un clic. El bot también los propone cuando corresponde.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Manuales, guías de instalación, garantías y links de cada publicación, listos para mandarlos en la conversación con un clic. El bot también los propone cuando corresponde.</p></div></div>
     <div class="mat-grid"><div class="panel mat-pubs"><input type="search" id="mpBus" placeholder="Buscar publicación" aria-label="Buscar publicación" style="width:100%">
-      <label class="peq" style="display:flex;gap:6px;align-items:center;margin:10px 0 4px"><input type="checkbox" id="mpCon" ${S.matCon ? "checked" : ""}> Solo las que tienen material</label>
+      <label class="peq" style="display:flex;gap:6px;align-items:center;margin:10px 0 4px"><input type="checkbox" id="mpCon" ${S.matCon ? "checked" : ""}> Solo las que tienen documentación</label>
       <div id="mpLista"></div></div>
     <div id="mpDet"></div></div>`;
   const lista = () => {
     const t = ($("#mpBus").value ?? "").toLowerCase();
     const fil = S.matPubs.filter((p) => (!t || p.titulo.toLowerCase().includes(t) || p.id.toLowerCase().includes(t)) && (!S.matCon || p.archivos + p.enlaces));
-    $("#mpLista").innerHTML = fil.slice(0, 200).map((p) => `<button type="button" class="pub-m ${p.id === S.matPub ? "on" : ""}" data-p="${esc(p.id)}">${foto(p.thumbnail)}<span><b>${esc(p.titulo)}</b><span class="peq mut">${p.archivos + p.enlaces ? `${p.archivos ? `${p.archivos} archivo${p.archivos > 1 ? "s" : ""}` : ""}${p.archivos && p.enlaces ? " · " : ""}${p.enlaces ? `${p.enlaces} link${p.enlaces > 1 ? "s" : ""}` : ""}` : "Sin material"}</span></span></button>`).join("") || `<p class="mut peq">No hay publicaciones con eso.</p>`;
+    $("#mpLista").innerHTML = fil.slice(0, 200).map((p) => `<button type="button" class="pub-m ${p.id === S.matPub ? "on" : ""}" data-p="${esc(p.id)}">${foto(p.thumbnail)}<span><b>${esc(p.titulo)}</b><span class="peq mut">${p.archivos + p.enlaces ? `${p.archivos ? `${p.archivos} archivo${p.archivos > 1 ? "s" : ""}` : ""}${p.archivos && p.enlaces ? " · " : ""}${p.enlaces ? `${p.enlaces} link${p.enlaces > 1 ? "s" : ""}` : ""}` : "Sin documentación"}</span></span></button>`).join("") || `<p class="mut peq">No hay publicaciones con eso.</p>`;
   };
   $("#mpBus").oninput = lista;
   $("#mpCon").onchange = () => { S.matCon = $("#mpCon").checked; lista(); };
@@ -2852,7 +2867,7 @@ async function detalleMaterial(emp) {
     ${r.material.map((m) => `<div class="mat-it">${m.tipo === "enlace" ? ICONO_M.link.replace(/15/g, "20") : ICONO_M.doc}
       <div><b>${esc(m.titulo)}</b><div class="peq mut">${m.tipo === "enlace" ? esc(m.url) : `${esc(m.archivo_nombre)} · ${pesoTxt(m.bytes)}`}</div>
         <div class="peq">${m.cuando === "entrega" ? `<span class="chip c-ok">El bot lo propone al entregarse</span>` : `<span class="chip">Solo a mano</span>`}${m.tambien ? ` <span class="chip">También lo usan ${m.tambien} publicación${m.tambien > 1 ? "es" : ""}</span>` : ""}</div></div>
-      <div class="acc"><button class="btn lin chico" data-ver="${m.id}">Ver</button><button class="btn lin chico" data-cop="${m.id}">Copiar a otras</button><button class="btn pel chico" data-bor="${m.id}">Quitar</button></div></div>`).join("") || `<div class="vacio" style="margin:0 0 12px"><b>Esta publicación no tiene material</b>Sumá el manual, la guía de instalación o un link útil.</div>`}
+      <div class="acc"><button class="btn lin chico" data-ver="${m.id}">Ver</button><button class="btn lin chico" data-cop="${m.id}">Copiar a otras</button><button class="btn pel chico" data-bor="${m.id}">Quitar</button></div></div>`).join("") || `<div class="vacio" style="margin:0 0 12px"><b>Esta publicación no tiene documentación</b>Sumá el manual, la guía de instalación o un link útil.</div>`}
     <h3 style="margin:20px 0 10px">Agregar</h3>
     <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
     <div class="grilla g2" style="margin-top:12px;gap:12px">
@@ -2889,12 +2904,12 @@ async function detalleMaterial(emp) {
     const b = $("#maG"); b.disabled = true; b.textContent = "Guardando…";
     const ok = await seguro(() => api("material_guardar", { empresa_id: emp, material: m }));
     b.disabled = false; b.textContent = "Guardar";
-    if (ok) { aviso("Material guardado"); const p = S.matPubs.find((x) => x.id === S.matPub); if (p) tipo === "archivo" ? p.archivos++ : p.enlaces++; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); }
+    if (ok) { aviso("Documento guardado"); const p = S.matPubs.find((x) => x.id === S.matPub); if (p) tipo === "archivo" ? p.archivos++ : p.enlaces++; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); }
   };
   $("#mpDet").onclick = async (e) => {
     const ver = e.target.closest("[data-ver]"), cop = e.target.closest("[data-cop]"), bor = e.target.closest("[data-bor]");
     if (ver) { const x = await seguro(() => api("material_link", { empresa_id: emp, id: Number(ver.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); }
-    if (bor && confirm("¿Quitar este material de esta publicación?")) { if (await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(bor.dataset.bor) }))) { const m = r.material.find((x) => x.id === Number(bor.dataset.bor)); const p = S.matPubs.find((x) => x.id === S.matPub); if (p && m) m.tipo === "archivo" ? p.archivos-- : p.enlaces--; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); } }
+    if (bor && confirm("¿Quitar este documento de esta publicación?")) { if (await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(bor.dataset.bor) }))) { const m = r.material.find((x) => x.id === Number(bor.dataset.bor)); const p = S.matPubs.find((x) => x.id === S.matPub); if (p && m) m.tipo === "archivo" ? p.archivos-- : p.enlaces--; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); } }
     if (cop) copiarMaterial(emp, r.material.find((x) => x.id === Number(cop.dataset.cop)));
   };
 }
@@ -2972,14 +2987,19 @@ async function panelModulos(res) {
 // Avisos de mensajes nuevos (se suma al sondeo de preguntas)
 function avisosMensajes(m) {
   if (!m) return;
+  const clave = (x) => `${x.id}:${x.ultimo_msj_at}`;
   if (AV.vistosM) {
-    const nuevas = (m.nuevas ?? []).filter((x) => !AV.vistosM.has(x.id));
+    const nuevas = (m.nuevas ?? []).filter((x) => !AV.vistosM.has(clave(x)));
     if (nuevas.length) {
       sonar(); aviso(nuevas.length === 1 ? "Llegó un mensaje de un comprador" : `Llegaron ${nuevas.length} mensajes de compradores`);
-      if (S.tab === "mensajes" && !$("#mTx:focus")) cargarHilos(empMsj());
-    }
+      if (S.tab === "mensajes") {
+        cargarHilos(empMsj());
+        if (S.msjId && nuevas.some((x) => x.id === S.msjId)) refrescarConv(S.msjId);
+      }
+    } else if (AV.pendM != null && m.pendientes !== AV.pendM && S.tab === "mensajes") cargarHilos(empMsj()); // alguien más respondió
   }
-  AV.vistosM = new Set([...(AV.vistosM ?? []), ...(m.nuevas ?? []).map((x) => x.id)]);
+  AV.pendM = m.pendientes;
+  AV.vistosM = new Set([...(AV.vistosM ?? []), ...(m.nuevas ?? []).map(clave)]);
   if (S.pendMsj !== m.pendientes) { S.pendMsj = m.pendientes; armarNav(); }
 }
 // Al tocar el aviso de un mensaje, se abre esa conversación
