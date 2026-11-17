@@ -565,6 +565,12 @@ input[type=file]{max-width:100%}
 .sug-it>svg{flex:0 0 auto;margin-top:2px}.sug-t{flex:1;min-width:0}.sug-t b{overflow-wrap:anywhere}
 .sug-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sug-una summary{cursor:pointer;padding:10px 0 4px}
 .rev-doc{background:var(--papel);border-radius:8px;padding:8px 10px;margin:0 0 6px}
+.sug-pubs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:8px}
+.sug-pub{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--linea);border-radius:10px;min-width:0}
+.sug-pub>span{display:flex;flex-direction:column;min-width:0}.sug-pub b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sug-pub.on{border-color:var(--tinta);background:var(--papel)}
+.pm-it{border-top:1px solid var(--linea);padding:12px 0}.pm-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.pm-g .pre{margin:4px 0 0}
+@media (max-width:720px){.pm-g{grid-template-columns:minmax(0,1fr)}}.sug-pub:focus-visible{outline:2px solid var(--tinta)}
 @media (max-width:720px){.sug-it{flex-wrap:wrap}.sug-b{width:100%;justify-content:flex-start;padding-left:32px}}
 .mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 .mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
@@ -1917,14 +1923,35 @@ async function conCorrecciones() {
 async function conRapidas() {
   const emp = empresaActual();
   const rs = await seguro(() => api("rapidas", { empresa_id: emp })); if (!rs) return;
-  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;min-width:min(280px,100%)">Textos para insertar con un clic cuando respondés a mano.</p><div class="n"><button class="btn osc" id="rN">Nueva respuesta rápida</button></div></div>
-    <div class="grilla g2">${rs.map((r) => `<div class="panel" style="margin:0"><div class="fila" style="align-items:center"><h3>${esc(r.titulo)}</h3><div class="n"><button class="btn lin chico" data-ed="${r.id}">Editar</button> <button class="btn pel chico" data-del="${r.id}">Borrar</button></div></div><p class="pre peq" style="margin:8px 0 0">${esc(r.texto)}</p></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay respuestas rápidas</b>Guardá las que más repetís: envíos, garantía, factura.</div>`}</div>`;
+  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;min-width:min(280px,100%)">Textos para insertar con un clic cuando respondés a mano. Las marcadas como <b>fijas</b> las usa el bot solo, sin gastar en el modelo grande, cuando la pregunta es exactamente eso.</p><div class="n"><button class="btn osc" id="rN">Nueva respuesta rápida</button></div></div>
+    <div class="grilla g2">${rs.map((r) => `<div class="panel" style="margin:0"><div class="fila" style="align-items:center"><h3>${esc(r.titulo)}${r.fija ? ` <span class="chip c-ok">Fija · ${r.publicaciones?.length ? `${r.publicaciones.length} publicación${r.publicaciones.length > 1 ? "es" : ""}` : "todas"}</span>` : ""}</h3><div class="n"><button class="btn lin chico" data-ed="${r.id}">Editar</button> <button class="btn pel chico" data-del="${r.id}">Borrar</button></div></div><p class="pre peq" style="margin:8px 0 0">${esc(r.texto)}</p></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay respuestas rápidas</b>Guardá las que más repetís: envíos, garantía, factura.</div>`}</div>`;
   const editar = (r) => {
     const v = cajon(`<div class="cajon-cab"><h2>${r.id ? "Editar respuesta rápida" : "Nueva respuesta rápida"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
       <label class="et" for="qT">Título</label><input id="qT" value="${esc(r.titulo ?? "")}" placeholder="Ej.: Envíos a todo el país">
       <label class="et" for="qX">Texto</label><textarea id="qX" maxlength="2000">${esc(r.texto ?? "")}</textarea>
+      <label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin-top:14px"><input type="checkbox" id="qF" ${r.fija ? "checked" : ""}> <span><b>Fija:</b> el bot la publica tal cual cuando la pregunta es exactamente esto, sin usar el modelo grande. No puede tener precio, stock, cuotas ni plazos.</span></label>
+      <div id="qPubs" style="${r.fija ? "" : "display:none"}">
+        <div class="et" style="margin-top:12px">Para qué publicaciones</div>
+        <p class="peq mut" style="margin:0 0 6px">Sin ninguna marcada, vale para todas.</p>
+        <input type="search" id="qPB" placeholder="Buscar publicación" style="width:100%">
+        <div id="qPL" class="peq" style="max-height:220px;overflow:auto;margin-top:6px"><p class="mut">Cargando…</p></div>
+      </div>
       <button class="btn pri" style="margin-top:14px" id="qG">Guardar respuesta rápida</button>`, true);
-    $("#qG", v).onclick = async () => { if (await seguro(() => api("rapida_guardar", { rapida: { id: r.id, empresa_id: emp, titulo: $("#qT", v).value, texto: $("#qX", v).value } }))) { aviso("Respuesta rápida guardada"); v.remove(); VISTAS.conocimiento(); } };
+    const marcadas = new Set(r.publicaciones ?? []);
+    let pubs = null;
+    const pintarPubs = () => {
+      if (!pubs) return;
+      const t = ($("#qPB", v).value ?? "").toLowerCase();
+      const lista = pubs.filter((p) => !t || p.titulo.toLowerCase().includes(t) || p.id.toLowerCase().includes(t))
+        .sort((a, b) => Number(marcadas.has(b.id)) - Number(marcadas.has(a.id))).slice(0, 150);
+      $("#qPL", v).innerHTML = lista.map((p) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:5px 0"><input type="checkbox" value="${esc(p.id)}" ${marcadas.has(p.id) ? "checked" : ""}> <span>${esc(p.titulo)}</span></label>`).join("") || `<p class="mut">No hay publicaciones con ese texto.</p>`;
+    };
+    const cargarPubs = async () => { if (pubs) return; pubs = (await seguro(() => api("rapidas_publicaciones", { empresa_id: emp }))) ?? []; pintarPubs(); };
+    if (r.fija) cargarPubs();
+    $("#qF", v).onchange = () => { $("#qPubs", v).style.display = $("#qF", v).checked ? "" : "none"; if ($("#qF", v).checked) cargarPubs(); };
+    $("#qPB", v).oninput = pintarPubs;
+    $("#qPL", v).onchange = (e) => { const x = e.target; if (x.type === "checkbox") x.checked ? marcadas.add(x.value) : marcadas.delete(x.value); };
+    $("#qG", v).onclick = async () => { if (await seguro(() => api("rapida_guardar", { rapida: { id: r.id, empresa_id: emp, titulo: $("#qT", v).value, texto: $("#qX", v).value, fija: $("#qF", v).checked, publicaciones: [...marcadas] } }))) { aviso("Respuesta rápida guardada"); v.remove(); VISTAS.conocimiento(); } };
   };
   $("#rN").onclick = () => editar({});
   $("#cCuerpo").onclick = async (e) => {
@@ -2424,6 +2451,40 @@ VISTAS.motor = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Reglas generales</h1><p>Valen para todos los clientes, antes de sus propias instrucciones. Cambialas con cuidado.</p></div><button class="btn pri" id="mG">Guardar reglas</button></div>
     <div class="panel"><textarea id="mT" class="grande" style="min-height:560px">${esc(r.prompt)}</textarea></div>`;
   $("#mG").onclick = async () => { if (await seguro(() => api("motor", { prompt: $("#mT").value }))) aviso("Reglas guardadas"); };
+  // Prueba de modelos: compara Sonnet con Haiku sobre preguntas reales ya respondidas, sin publicar nada
+  const emps = S.res?.empresas ?? [];
+  $("#main").insertAdjacentHTML("beforeend", `<div class="panel" id="pmP" style="margin-top:20px">
+    <h3 style="margin:0 0 4px">Probar un modelo más barato</h3>
+    <p class="peq mut" style="margin:0 0 10px">Toma preguntas reales que ya se respondieron y genera la respuesta con Sonnet y con Haiku, sin publicar nada, para comparar. Haiku cuesta unas 20 veces menos. La prueba cuesta alrededor de US$ 0,05 por pregunta.</p>
+    <div class="filtros" style="margin:0"><select id="pmE" style="width:auto">${emps.map((e) => `<option value="${esc(e.id)}" ${e.id === S.empSel ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>
+      <select id="pmN" style="width:auto"><option value="10">10 preguntas</option><option value="20" selected>20 preguntas</option><option value="40">40 preguntas</option></select>
+      <button class="btn pri" type="button" id="pmG">Comparar</button></div>
+    <div id="pmR" style="margin-top:12px"></div></div>`);
+  const verPrueba = async () => {
+    clearTimeout(S.pmTimer);
+    const r = await api("prueba_modelos_ver", { empresa_id: $("#pmE").value }).catch(() => null);
+    if (!r || S.tab !== "motor" || !$("#pmR")) return;
+    if (!r.tanda) { $("#pmR").innerHTML = `<p class="peq mut">Todavía no hay pruebas de este cliente.</p>`; return; }
+    const f = r.filas, listas = f.filter((x) => x.haiku_respuesta != null || x.error), err = f.filter((x) => x.error).length;
+    const suma = (k) => f.reduce((n, x) => n + Number(x[k] ?? 0), 0);
+    const dec = (d) => d ? `<span class="chip ${d === "responder" ? "c-ok" : ""}">${d === "responder" ? "Responde" : d === "revision" ? "Pide revisión" : "Ignora"}</span>` : "";
+    $("#pmR").innerHTML = `<p class="peq" style="margin:0 0 10px"><b>Prueba del ${fecha(r.tanda)}:</b> ${listas.length} de ${f.length} listas${err ? ` (${err} con error)` : ""}. Costo: Sonnet US$ ${suma("sonnet_costo").toFixed(3).replace(".", ",")} · Haiku US$ ${suma("haiku_costo").toFixed(3).replace(".", ",")}.
+      Responden solas: Sonnet ${f.filter((x) => x.sonnet_decision === "responder").length}, Haiku ${f.filter((x) => x.haiku_decision === "responder").length}.</p>
+      ${f.map((x) => `<div class="pm-it"><div class="peq mut">${esc(x.item_titulo ?? x.ml_item_id ?? "")}</div><div class="q" style="font-weight:600;margin:2px 0 8px">${esc(x.pregunta)}</div>
+        <div class="pm-g"><div><div class="et">Respuesta publicada</div><p class="pre peq">${esc(x.respuesta_humana ?? "")}</p></div>
+          <div><div class="et">Sonnet ${dec(x.sonnet_decision)}</div><p class="pre peq">${x.sonnet_respuesta != null ? esc(x.sonnet_respuesta) : x.error ? "" : "Generando…"}</p></div>
+          <div><div class="et">Haiku ${dec(x.haiku_decision)}</div><p class="pre peq">${x.haiku_respuesta != null ? esc(x.haiku_respuesta) : x.error ? `<span class="mut">Error: ${esc(x.error)}</span>` : "Generando…"}</p></div></div></div>`).join("")}`;
+    if (listas.length < f.length) S.pmTimer = setTimeout(verPrueba, 10000);
+  };
+  $("#pmE").onchange = verPrueba;
+  $("#pmG").onclick = async () => {
+    if (!confirm(`Se van a generar ${$("#pmN").value} respuestas con cada modelo (cuesta alrededor de US$ ${(0.05 * Number($("#pmN").value)).toFixed(2).replace(".", ",")}). ¿Seguir?`)) return;
+    $("#pmG").disabled = true;
+    const r = await seguro(() => api("prueba_modelos_iniciar", { empresa_id: $("#pmE").value, cantidad: Number($("#pmN").value) }));
+    $("#pmG").disabled = false;
+    if (r) { aviso(`Comparando ${r.preguntas} preguntas`); verPrueba(); }
+  };
+  if (emps.length) verPrueba();
 };
 
 // Solapas de la sección (solo administrador de la empresa o dueño en modo soporte)
@@ -2865,7 +2926,7 @@ VISTAS.material = async () => {
   if ($("#mpSug")) pintarSugeridos(emp);
 };
 
-// ---------- Encontrado en envíos anteriores: archivos que ya se mandaron a compradores ----------
+// ---------- Encontrado en envíos anteriores: documentación que ya se mandó a compradores de cada publicación ----------
 function abrirArchivoB64(r) {
   const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
   const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
@@ -2874,56 +2935,86 @@ function abrirArchivoB64(r) {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 const mesAnio = (f) => f ? new Date(f).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "";
-function textoRevision(rv) {
+const fechaLarga = (f) => f ? new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }) : "";
+// Fecha escrita en el documento: puede venir como año, año y mes, o fecha completa
+const fechaDoc = (f) => !f ? "" : /^\d{4}$/.test(f) ? f : /^\d{4}-\d{2}$/.test(f) ? mesAnio(f + "-15T12:00:00") : fechaLarga(f + "T12:00:00");
+const TIPO_DOC = { manual: "Manual", guia_instalacion: "Guía de instalación", medidas: "Medidas", ficha_tecnica: "Ficha técnica", garantia: "Garantía", certificado: "Certificado", catalogo: "Catálogo", imagen_producto: "Imagen del producto", otro: "Documento" };
+function textoRevision(rv, porLeer) {
   const enCurso = rv.filter((x) => x.fase === "ventas" || x.fase === "reclamos" || x.fase === "pendiente");
-  if (!enCurso.length) return "";
-  const x = enCurso[0], ini = x.modo !== "diaria";
-  if (x.fase === "pendiente") return "En un minuto empieza la revisión de lo que se mandó a compradores en el último año.";
-  if (x.fase === "ventas") return `${ini ? "Revisando lo que se mandó a compradores en el último año" : "Repasando los envíos de los últimos días"}: ${x.por ? `vamos por ${mesAnio(x.por)}` : "empezando"} (${num(x.ventas)} ventas revisadas).`;
-  return `${ini ? "Revisando el último año" : "Repasando los últimos días"}: ventas listas, ahora los reclamos (${num(x.reclamos)} revisados).`;
+  if (enCurso.length) {
+    const x = enCurso[0], ini = x.modo !== "diaria";
+    if (x.fase === "pendiente") return "En unos minutos empieza la revisión de lo que se mandó a compradores en el último año.";
+    if (x.fase === "ventas") return `${ini ? "Revisando lo que se mandó a compradores en el último año" : "Repasando los envíos de los últimos días"}: ${x.por ? `vamos por ${mesAnio(x.por)}` : "empezando"} (${num(x.ventas)} ventas revisadas).`;
+    return `${ini ? "Revisando el último año" : "Repasando los últimos días"}: ventas listas, ahora los reclamos (${num(x.reclamos)} revisados).`;
+  }
+  if (porLeer) return `Leyendo ${porLeer} archivo${porLeer > 1 ? "s" : ""} para saber qué ${porLeer > 1 ? "son" : "es"} (las facturas y todo lo que tenga datos de una persona no se muestra).`;
+  return "";
 }
 async function pintarSugeridos(emp) {
   const caja = $("#mpSug"); if (!caja) return;
   const r = await api("docs_sugeridos", { empresa_id: emp }).catch(() => null);
   if (!r || S.tab !== "material" || !$("#mpSug")) return;
-  const rev = textoRevision(r.revision ?? []);
-  const tarjeta = (d) => `<div class="sug-it" data-k="${esc(d.clave)}">${d.mime === "application/pdf" || d.mime === "text/plain" ? ICONO_M.doc : ICONO_M.clip}
-      <div class="sug-t"><b>${esc(d.nombre)}</b>
-        <div class="peq mut">${d.compradores > 1 ? `Enviado a ${d.compradores} compradores` : "Enviado una vez"}${d.ultima ? ` · última vez ${new Date(d.ultima).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}` : ""} · ${pesoTxt(d.bytes)}${d.origenes.includes("reclamo") ? (d.origenes.length > 1 ? " · en mensajes y reclamos" : " · en reclamos") : ""}</div>
-        ${d.publicaciones.length ? `<div class="peq" style="margin-top:4px">${d.publicaciones.slice(0, 3).map((p) => `<span class="chip">${esc(p.titulo ?? p.id)}</span>`).join(" ")}${d.publicaciones.length > 3 ? ` <span class="mut">y ${d.publicaciones.length - 3} más</span>` : ""}</div>` : ""}</div>
-      <div class="sug-b"><button class="btn lin chico" type="button" data-ver>Ver</button><button class="btn pri chico" type="button" data-agr>Agregar</button><button class="btn lin chico" type="button" data-des>No sirve</button></div></div>`;
-  const sug = r.sugeridos ?? [], una = r.una_vez ?? [];
-  if (!sug.length && !una.length && !rev) { caja.innerHTML = ""; return; }
-  caja.innerHTML = `<div class="panel sug">
+  S.docsSug = r;
+  const activas = new Map((S.matPubs ?? []).map((p) => [p.id, p]));
+  const pubs = (r.publicaciones ?? []).filter((p) => activas.has(p.id));
+  const rev = textoRevision(r.revision ?? [], r.por_leer ?? 0);
+  if (!pubs.length && !rev) { caja.innerHTML = ""; }
+  else caja.innerHTML = `<div class="panel sug">
       <h3 style="margin:0 0 4px">Encontrado en envíos anteriores</h3>
-      <p class="peq mut" style="margin:0 0 10px">Archivos que ya mandaron a compradores por mensaje o en reclamos. Agregalos y quedan listos para la próxima venta; nada entra sin que lo confirmes.</p>
+      <p class="peq mut" style="margin:0 0 10px">Manuales, guías y medidas que ya mandaron a compradores de cada publicación, por mensaje o en reclamos. Las facturas y todo lo que tenga datos de una persona no aparecen. Nada se agrega sin que lo confirmes.</p>
       ${rev ? `<p class="peq rev-doc">${esc(rev)}</p>` : ""}
-      ${sug.map(tarjeta).join("") || (rev ? "" : `<p class="peq mut" style="margin:0">No hay archivos enviados a más de un comprador.</p>`)}
-      ${una.length ? `<details class="sug-una"><summary class="peq">PDF enviados una sola vez (${una.length})</summary>${una.map(tarjeta).join("")}</details>` : ""}
+      ${pubs.length ? `<div class="sug-pubs">${pubs.map((p) => `<button type="button" class="sug-pub ${p.id === S.matPub ? "on" : ""}" data-sp="${esc(p.id)}">${foto(activas.get(p.id)?.thumbnail)}<span><b>${esc(activas.get(p.id)?.titulo ?? p.titulo ?? p.id)}</b><span class="peq mut">${p.docs.length} documento${p.docs.length > 1 ? "s" : ""}</span></span></button>`).join("")}</div>`
+        : (rev ? "" : `<p class="peq mut" style="margin:0">No encontramos documentación para volver a usar.</p>`)}
     </div>`;
-  const todos = new Map([...sug, ...una].map((d) => [d.clave, d]));
-  caja.onclick = async (e) => {
-    const it = e.target.closest("[data-k]"); if (!it) return;
-    const d = todos.get(it.dataset.k); if (!d) return;
-    const bt = e.target.closest("button"); if (!bt) return;
-    if (bt.hasAttribute("data-ver")) { bt.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: d.clave })); bt.disabled = false; if (x) abrirArchivoB64(x); }
-    else if (bt.hasAttribute("data-des")) { if (await seguro(() => api("docs_descartar", { empresa_id: emp, clave: d.clave }))) { aviso("Listo: no se vuelve a sugerir"); pintarSugeridos(emp); } }
-    else if (bt.hasAttribute("data-agr")) agregarSugerido(emp, d);
+  caja.onclick = (e) => {
+    const b = e.target.closest("[data-sp]"); if (!b) return;
+    S.matPub = b.dataset.sp;
+    caja.querySelectorAll(".sug-pub").forEach((x) => x.classList.toggle("on", x === b));
+    $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp);
+    if (anchoMovil()) setTimeout(() => $("#mpDet")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
   };
-  // Mientras la revisión sigue, la lista se actualiza sola
+  if ($("#mpSugPub")) pintarSugPub(emp);
+  // Mientras la revisión sigue, se actualiza sola
   clearTimeout(S.sugTimer);
   if (rev) S.sugTimer = setTimeout(() => { if (S.tab === "material" && !document.querySelector(".velo")) pintarSugeridos(emp); }, 30000);
 }
-function agregarSugerido(emp, d) {
-  const pubs = d.publicaciones.length ? d.publicaciones : (S.matPub ? [{ id: S.matPub, titulo: S.matPubs?.find((p) => p.id === S.matPub)?.titulo ?? S.matPub }] : []);
-  const base = d.nombre.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_-]+/g, " ").trim();
+function pintarSugPub(emp) {
+  const caja = $("#mpSugPub"); if (!caja || !S.docsSug) return;
+  const p = (S.docsSug.publicaciones ?? []).find((x) => x.id === S.matPub);
+  if (!p?.docs?.length) { caja.innerHTML = ""; return; }
+  const tarjeta = (d) => {
+    const doc = [d.version ? `versión ${esc(d.version)}` : "", d.fecha_doc ? `del ${esc(fechaDoc(d.fecha_doc))}` : ""].filter(Boolean).join(", ");
+    return `<div class="sug-it" data-k="${esc(d.clave)}">${d.mime === "application/pdf" || d.mime === "text/plain" ? ICONO_M.doc : ICONO_M.clip}
+      <div class="sug-t"><b>${esc(d.titulo || d.nombre)}</b>
+        <div class="peq" style="margin:3px 0"><span class="chip">${esc(TIPO_DOC[d.tipo] ?? "Documento")}</span>${d.versiones > 1 ? (d.reciente ? ` <span class="chip c-ok">Versión más reciente</span>` : ` <span class="chip">Versión anterior</span>`) : ""}</div>
+        ${doc ? `<div class="peq">Según el documento: ${doc}</div>` : ""}
+        ${d.fecha_archivo ? `<div class="peq mut">Archivo creado o modificado: ${fechaLarga(d.fecha_archivo)}</div>` : ""}
+        <div class="peq mut">${esc(d.nombre)} · ${pesoTxt(d.bytes)}</div>
+        <div class="peq mut">${d.compradores > 1 ? `Enviado a ${d.compradores} compradores` : "Enviado una vez"}, el último el ${fechaLarga(d.ultima)}${d.origenes.includes("reclamo") ? (d.origenes.length > 1 ? ", en mensajes y reclamos" : ", en un reclamo") : ""}${d.tambien?.length ? `. También se mandó en ${d.tambien.length} publicación${d.tambien.length > 1 ? "es" : ""} más` : ""}.</div></div>
+      <div class="sug-b"><button class="btn lin chico" type="button" data-ver>Ver</button><button class="btn pri chico" type="button" data-agr>Agregar</button><button class="btn lin chico" type="button" data-des>No sirve</button></div></div>`;
+  };
+  caja.innerHTML = `<div class="sug-pub-det"><h3 style="margin:20px 0 4px">Encontrado en envíos de esta publicación</h3>
+    <p class="peq mut" style="margin:0 0 6px">Lo que ya le mandaron a compradores de esta publicación.${p.docs.some((d) => d.versiones > 1) ? " Hay más de una versión: la más reciente está primero." : ""}</p>
+    ${p.docs.map(tarjeta).join("")}</div>`;
+  caja.onclick = async (e) => {
+    const it = e.target.closest("[data-k]"); const bt = e.target.closest("button"); if (!it || !bt) return;
+    const d = p.docs.find((x) => x.clave === it.dataset.k); if (!d) return;
+    if (bt.hasAttribute("data-ver")) { bt.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: d.clave })); bt.disabled = false; if (x) abrirArchivoB64(x); }
+    else if (bt.hasAttribute("data-des")) { if (await seguro(() => api("docs_descartar", { empresa_id: emp, clave: d.clave }))) { aviso("Listo: no se vuelve a sugerir"); VISTAS.material(); } }
+    else if (bt.hasAttribute("data-agr")) agregarSugerido(emp, d, p);
+  };
+}
+function agregarSugerido(emp, d, pub) {
+  const nombrePub = (id) => (S.matPubs ?? []).find((x) => x.id === id)?.titulo ?? (S.docsSug?.publicaciones ?? []).find((x) => x.id === id)?.titulo ?? id;
+  const ids = [pub.id, ...(d.tambien ?? []).filter((x) => (S.matPubs ?? []).some((p) => p.id === x))];
+  const base = d.titulo || d.nombre.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_-]+/g, " ").trim();
   const v = cajon(`<div class="cajon-cab"><div><h2>Agregar a la documentación</h2><p class="mut peq" style="margin:4px 0 0">${esc(d.nombre)} · ${pesoTxt(d.bytes)}</p></div></div>
     <label class="et" for="sgTit">Nombre (es lo que ve quien envía)</label><input id="sgTit" value="${esc(base.slice(0, 120))}" maxlength="120">
     <div class="et" style="margin-top:12px">Publicaciones</div>
-    ${pubs.length ? pubs.map((p) => `<label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="checkbox" value="${esc(p.id)}" checked> <span>${esc(p.titulo ?? p.id)}${p.veces ? ` <span class="mut">(enviado ${p.veces} ${p.veces > 1 ? "veces" : "vez"})</span>` : ""}</span></label>`).join("") : `<p class="peq mut">No sabemos de qué publicación era: elegí una en la lista de publicaciones y volvé a tocar Agregar.</p>`}
+    ${ids.map((id, i) => `<label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="checkbox" value="${esc(id)}" checked> <span>${esc(nombrePub(id))}${i ? ` <span class="mut">(también se mandó acá)</span>` : ""}</span></label>`).join("")}
     <label class="et" for="sgCua" style="margin-top:12px">Cuándo</label>
     <select id="sgCua"><option value="mano">Solo a mano</option><option value="entrega">El bot lo propone al entregarse</option></select>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn pri" type="button" id="sgOk" ${pubs.length ? "" : "disabled"}>Agregar</button><button class="btn lin" type="button" data-cerrar>Cancelar</button></div>`, true);
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn pri" type="button" id="sgOk">Agregar</button><button class="btn lin" type="button" data-cerrar>Cancelar</button></div>`, true);
   $("#sgOk", v).onclick = async () => {
     const elegidas = [...v.querySelectorAll("input[type=checkbox]:checked")].map((x) => x.value);
     if (!elegidas.length) { aviso("Elegí al menos una publicación"); return; }
@@ -2946,6 +3037,7 @@ async function detalleMaterial(emp) {
       <div><b>${esc(m.titulo)}</b><div class="peq mut">${m.tipo === "enlace" ? esc(m.url) : `${esc(m.archivo_nombre)} · ${pesoTxt(m.bytes)}`}</div>
         <div class="peq">${m.cuando === "entrega" ? `<span class="chip c-ok">El bot lo propone al entregarse</span>` : `<span class="chip">Solo a mano</span>`}${m.tambien ? ` <span class="chip">También lo usan ${m.tambien} publicación${m.tambien > 1 ? "es" : ""}</span>` : ""}</div></div>
       <div class="acc"><button class="btn lin chico" data-ver="${m.id}">Ver</button><button class="btn lin chico" data-cop="${m.id}">Copiar a otras</button><button class="btn pel chico" data-bor="${m.id}">Quitar</button></div></div>`).join("") || `<div class="vacio" style="margin:0 0 12px"><b>Esta publicación no tiene documentación</b>Sumá el manual, la guía de instalación o un link útil.</div>`}
+    ${S.rol !== "operador" ? `<div id="mpSugPub"></div>` : ""}
     <h3 style="margin:20px 0 10px">Agregar</h3>
     <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
     <div class="grilla g2" style="margin-top:12px;gap:12px">
@@ -2956,6 +3048,7 @@ async function detalleMaterial(emp) {
       <label class="mat-op"><input type="radio" name="maCu" value="mano" checked> <span><b>Solo a mano</b><span class="peq mut">Aparece para elegirlo cuando escribís.</span></span></label>
       <label class="mat-op"><input type="radio" name="maCu" value="entrega"> <span><b>Proponerlo al entregarse</b><span class="peq mut">Cuando el envío figura entregado, el bot lo suma al borrador. Lo envía una persona.</span></span></label></div>
     <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="maG">Guardar</button></div></div>`;
+  if ($("#mpSugPub")) pintarSugPub(emp);
   let tipo = "archivo";
   $("#maTipo").onclick = (e) => {
     const b = e.target.closest("[data-t]"); if (!b) return; tipo = b.dataset.t;
