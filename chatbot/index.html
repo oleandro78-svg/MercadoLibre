@@ -452,7 +452,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .hilos{overflow:auto;flex:1;min-height:0}
 .hilo{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:2px 12px;padding:13px 18px;border-bottom:1px solid var(--linea);cursor:pointer;align-items:start}
 .hilo:hover{background:var(--sup2)}.hilo.on{background:var(--cielo-2)}.hilo:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}
-.hilo .foto{width:44px;height:44px;border-radius:10px;grid-row:span 4;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.hilo .foto{width:44px;height:44px;border-radius:10px;grid-row:span 5;object-fit:contain;background:#fff;border:1px solid var(--linea)}
 .msj .foto.sin,.mat-grid .foto.sin{display:grid;place-items:center;font-size:0;background:var(--sup2);border:1px solid var(--linea)}
 .msj .foto.sin::after,.mat-grid .foto.sin::after{content:"";width:40%;height:40%;border:2px solid var(--linea);border-radius:4px}
 .hilo .h-nom{display:flex;align-items:center;min-width:0}.hilo .h-nom b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -537,6 +537,13 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .acc-cab{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:960px){.venta-cab{padding-left:0}}
 .m-pie{display:grid;gap:6px;justify-items:center;text-align:center;padding:16px 18px 22px}
+.hilo .h-venta{grid-column:2/-1;font-size:12.5px;color:var(--piz)}
+.hilo .h-venta .cancel{color:var(--ladrillo)}
+.c-esp{background:var(--cielo-2);color:var(--cielo)}
+.puntos i{font-style:normal;display:inline-block;animation:puntos 1.2s infinite ease-in-out;opacity:.15}
+.puntos i:nth-child(2){animation-delay:.2s}.puntos i:nth-child(3){animation-delay:.4s}
+@keyframes puntos{0%,80%,100%{opacity:.15;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){.puntos i{animation:none;opacity:1}}
 /* ---------- material para enviar ---------- */
 .mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 .mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
@@ -2175,6 +2182,26 @@ function pintarRanking() {
   $("#rkP").onchange = () => { S.rankPl = $("#rkP").value; pintarRanking(); };
 }
 
+// Listas del detalle de una empresa (dueño de la app)
+function listaPreguntasPlat(d, filtradas, verN) {
+  return (filtradas.length ? filtradas.slice(0, verN).map((p) => { const q = quienResp(p); return `<details class="preg-d"><summary><span><span class="peq mut">${esc(p.item_titulo ?? "")}</span><br>${esc(p.texto_pregunta)}</span><span class="peq mut" style="text-align:right">${hace(p.fecha_pregunta ?? p.created_at)}<br>${q ? esc(q) : chip(p.estado)}</span></summary>
+        <div class="r">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? "Sin respuesta todavía")}</div>
+        <p class="peq mut" style="margin:8px 0 0">${p.tiempo_respuesta_seg != null ? `Respondida en ${dur(p.tiempo_respuesta_seg)}. ` : ""}${p.costo_usd != null ? `Costo de IA: ${usd(p.costo_usd)}.` : ""}</p></details>`; }).join("")
+        + (filtradas.length > verN ? `<button class="btn lin" id="verMas" style="margin-top:12px">Ver ${Math.min(30, filtradas.length - verN)} más</button>` : "")
+        : `<div class="vacio"><b>No hay preguntas en este período</b>Probá con un período más largo.</div>`)
+    + (d.preguntas.length >= 300 ? `<p class="mut peq">Se muestran las 300 más recientes del período.</p>` : "");
+}
+function listaMensajesPlat(d, f, verN) {
+  const todos = d.mensajes?.lista ?? [];
+  const ms = todos.filter((x) => !f || f.tipo !== "op" || x.usuario_id === f.id);
+  return (ms.length ? ms.slice(0, verN).map((x) => `<details class="preg-d"><summary><span><span class="peq mut">${esc(x.producto ?? "")}${x.comprador ? " · " + esc(x.comprador) : ""}</span><br>${esc(x.texto ?? (x.adjuntos ? "(archivo adjunto)" : ""))}</span><span class="peq mut" style="text-align:right">${hace(x.fecha)}<br>${esc(x.usuario ?? "Desde MercadoLibre")}</span></summary>
+        ${x.pregunta ? `<div class="r"><span class="peq mut">Le respondía al comprador:</span><br>${esc(x.pregunta)}</div>` : ""}
+        <p class="peq mut" style="margin:8px 0 0">${x.tiempo_seg != null ? `Respondido en ${dur(x.tiempo_seg)}.` : x.opcion ? "Lo inició el vendedor, con un motivo." : "Lo inició el vendedor."}${x.adjuntos ? ` Con ${x.adjuntos.length} archivo${x.adjuntos.length > 1 ? "s" : ""}.` : ""}</p></details>`).join("")
+        + (ms.length > verN ? `<button class="btn lin" id="verMas" style="margin-top:12px">Ver ${Math.min(30, ms.length - verN)} más</button>` : "")
+        : `<div class="vacio"><b>No hay mensajes enviados en este período</b>Probá con un período más largo.</div>`)
+    + (todos.length >= 300 ? `<p class="mut peq">Se muestran los 300 más recientes del período.</p>` : "");
+}
+
 async function vistaEmpresa(nuevos = true) {
   let d = S.platDet;
   if (nuevos || !d || d.empresa.id !== S.platEmp) {
@@ -2188,6 +2215,8 @@ async function vistaEmpresa(nuevos = true) {
   const filtradas = d.preguntas.filter((p) => !f || (f.tipo === "cuenta" ? p.cuenta_id === f.id : p.respondida_usuario === f.id));
   const cta = f?.tipo === "cuenta" ? d.cuentas.find((c) => c.id === f.id) : null;
   const verN = S.platVer ?? 30;
+  const conMsj = !!d.mensajes, m = d.mensajes ?? {};
+  const lista = conMsj && S.platLista === "mensajes" ? "mensajes" : "preguntas";
   $("#main").innerHTML = `<button class="btn lin chico" id="volverPlat" style="margin-bottom:16px">Volver a toda la plataforma</button>
     <div class="cabecera"><div style="display:flex;gap:14px;align-items:center">${avEmp(e, "g")}<div><h1>${esc(e.nombre)}</h1><p style="margin-top:2px">${e.plan ? "Plan " + esc(e.plan) : "Sin plan"}, cliente desde el ${new Date(e.created_at).toLocaleDateString("es-AR")}${e.activa ? "" : ". Está pausada"}</p></div></div>${selPeriodo()}</div>
     <div class="medidas">
@@ -2195,26 +2224,26 @@ async function vistaEmpresa(nuevos = true) {
       <div class="medida"><b style="color:${t.tiempo_ml_min > 60 ? "var(--ladrillo)" : "inherit"}">${durML(t.tiempo_ml_min)}</b><span>de respuesta según MercadoLibre (14 días). En el período: ${dur(t.tiempo_nuestro_seg)}</span></div>
       <div class="medida"><b>${pct(t.bot_pct)}</b><span>respondió el bot solo (${num(t.bot)} de ${num(t.respondidas)})</span></div>
       <div class="medida"><b>${usd(t.costo_usd, 2)}</b><span>de IA, con ${num(t.publicaciones)} publicaciones activas</span></div>
+      ${conMsj ? `<div class="medida"><b>${num(m.enviados)}</b><span>mensajes enviados a compradores en ${num(m.conversaciones)} ventas; tiempo promedio ${dur(m.tiempo_seg)}</span></div>` : ""}
     </div>
     <div class="panel" style="margin-top:16px;padding:16px 18px;overflow-x:auto"><h2>Cuentas de MercadoLibre</h2><p class="mut peq" style="margin:0 0 6px">Tocá una cuenta para ver sus franjas y sus preguntas.</p>
       <table class="tabla"><tr><th>Cuenta</th><th>Modo</th><th>Preguntas</th><th>Bot solo</th><th>Según ML</th><th>Publicaciones</th></tr>
       ${d.cuentas.map((c) => `<tr class="fila-click ${f?.id === c.id ? "on" : ""}" data-fil="cuenta" data-id="${c.id}" tabindex="0"><td><b>${esc(c.nombre)}</b>${c.conectada ? "" : ` <span class="chip c-error">Desconectada</span>`}</td><td>${esc(MODOS[c.modo] ?? c.modo)}</td><td>${num(c.preguntas)}</td><td>${pct(c.bot_pct)}</td><td>${durML(c.tiempo_ml?.total?.response_time)}</td><td>${num(c.publicaciones)}</td></tr>`).join("")}</table>
       ${cta?.tiempo_ml ? bloqueTiempoML(cta) : ""}</div>
-    <div class="panel" style="padding:16px 18px;overflow-x:auto"><h2>Operadores</h2>
-      ${d.operadores.length ? `<p class="mut peq" style="margin:0 0 6px">Tocá una persona para ver las preguntas que respondió.</p><table class="tabla"><tr><th>Persona</th><th>Rol</th><th>Respondió</th><th>Tiempo de respuesta</th></tr>
-      ${d.operadores.map((o) => `<tr class="fila-click ${f?.id === o.usuario_id ? "on" : ""}" data-fil="op" data-id="${o.usuario_id}" tabindex="0"><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}</td><td>${o.rol === "admin" ? "Administrador" : "Operador"}</td><td>${num(o.respondidas)}</td><td>${dur(o.tiempo_nuestro_seg)}</td></tr>`).join("")}</table>`
+    <div class="panel" style="padding:16px 18px;overflow-x:auto"><h2>Equipo</h2>
+      ${d.operadores.length ? `<p class="mut peq" style="margin:0 0 6px">Tocá una persona para ver lo que respondió.</p><table class="tabla"><tr><th>Persona</th><th>Rol</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Ventas</th><th>Tiempo</th>" : ""}</tr>
+      ${d.operadores.map((o) => `<tr class="fila-click ${f?.id === o.usuario_id ? "on" : ""}" data-fil="op" data-id="${o.usuario_id}" tabindex="0"><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}</td><td>${o.rol === "admin" ? "Administrador" : "Operador"}</td><td>${num(o.respondidas)}</td><td>${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td>${num(o.mensajes)}</td><td>${num(o.conversaciones)}</td><td>${dur(o.tiempo_mensajes_seg)}</td>` : ""}</tr>`).join("")}
+      ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td></td><td>${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
       : `<p class="mut" style="margin:6px 0 0">Esta empresa todavía no tiene usuarios.</p>`}</div>
-    <div class="panel" style="padding:16px 18px"><div class="fila" style="align-items:center"><h2>${f ? "Preguntas de " + esc(f.tipo === "cuenta" ? cta?.nombre : d.operadores.find((o) => o.usuario_id === f.id)?.nombre) : "Preguntas"}</h2>
+    <div class="panel" style="padding:16px 18px">
+      ${conMsj ? `<div class="pestanas" id="plLista" role="tablist"><button type="button" role="tab" data-l="preguntas" class="${lista === "preguntas" ? "on" : ""}" aria-selected="${lista === "preguntas"}">Preguntas</button><button type="button" role="tab" data-l="mensajes" class="${lista === "mensajes" ? "on" : ""}" aria-selected="${lista === "mensajes"}">Mensajes</button></div>` : ""}
+      <div class="fila" style="align-items:center"><h2>${lista === "mensajes" ? "Mensajes enviados" : "Preguntas"}${f ? " de " + esc(f.tipo === "cuenta" ? cta?.nombre : d.operadores.find((o) => o.usuario_id === f.id)?.nombre) : ""}</h2>
       ${f ? `<button class="btn lin chico n" id="sinFil">Ver todas</button>` : ""}</div>
-      ${filtradas.length ? filtradas.slice(0, verN).map((p) => { const q = quienResp(p); return `<details class="preg-d"><summary><span><span class="peq mut">${esc(p.item_titulo ?? "")}</span><br>${esc(p.texto_pregunta)}</span><span class="peq mut" style="text-align:right">${hace(p.fecha_pregunta ?? p.created_at)}<br>${q ? esc(q) : chip(p.estado)}</span></summary>
-        <div class="r">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? "Sin respuesta todavía")}</div>
-        <p class="peq mut" style="margin:8px 0 0">${p.tiempo_respuesta_seg != null ? `Respondida en ${dur(p.tiempo_respuesta_seg)}. ` : ""}${p.costo_usd != null ? `Costo de IA: ${usd(p.costo_usd)}.` : ""}</p></details>`; }).join("")
-        + (filtradas.length > verN ? `<button class="btn lin" id="verMas" style="margin-top:12px">Ver ${Math.min(30, filtradas.length - verN)} más</button>` : "")
-        : `<div class="vacio"><b>No hay preguntas en este período</b>Probá con un período más largo.</div>`}
-      ${d.preguntas.length >= 300 ? `<p class="mut peq">Se muestran las 300 más recientes del período.</p>` : ""}</div>
+      ${lista === "mensajes" ? listaMensajesPlat(d, f, verN) : listaPreguntasPlat(d, filtradas, verN)}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
     <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su empresa.</p>`;
   enlazarPeriodo(vistaEmpresa);
+  if ($("#plLista")) $("#plLista").onclick = (ev) => { const b = ev.target.closest("[data-l]"); if (b) { S.platLista = b.dataset.l; S.platVer = 30; vistaEmpresa(false); } };
   $("#volverPlat").onclick = () => { S.platEmp = ""; S.platFil = null; S.platVer = 30; ir("plataforma"); };
   if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaEmpresa(false); };
   if ($("#verMas")) $("#verMas").onclick = () => { S.platVer = verN + 30; vistaEmpresa(false); };
@@ -2468,11 +2497,19 @@ function empMsj() {
   return S.msjEmp || null;
 }
 function estadoConv(c) {
+  if (!c.conv_estado) return null;
   if (c.conv_estado === "active") return ["c-ok", "Podés escribir"];
   if (/initiated_by_seller/.test(c.conv_subestado ?? "")) return ["c-mot", "Solo con motivo"];
   if (c.conv_subestado === "blocked_by_fulfillment") return ["c-blo", "Hasta la entrega"];
   if (c.conv_estado === "blocked") return ["c-blo", "Bloqueada"];
-  return ["c-blo", "Sin datos"];
+  return null;
+}
+// Estado de la venta para la lista: cancelada, entregada o en camino
+function estadoVenta(c) {
+  if (c.estado_orden === "cancelled") return "Cancelada";
+  if (c.entregada || c.envio_estado === "delivered") return "Entregada";
+  if (c.envio_estado) return ENVIO_E[c.envio_estado] ?? "Sin entregar";
+  return c.envio_id ? "Sin entregar" : "Sin envío de MercadoLibre";
 }
 const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
 
@@ -2480,19 +2517,18 @@ VISTAS.mensajes = async () => {
   const emp = empMsj();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Elegí un cliente para ver sus conversaciones.</p></div></div>`; return; }
   if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Ninguna de tus empresas tiene el módulo Mensajes.</p></div></div>`; return; }
-  S.msjFil ??= "pendientes";
+  S.msjFil ??= "todas";
   $("#main").classList.add("lleno");
   const movil = anchoMovil();
   $("#main").innerHTML = `<div class="msj ${S.msjId ? "ver-chat" : "ver-lista"}">
-    <section class="m-lista" aria-label="Conversaciones"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Mensajes</h1><div class="n"><button class="btn lin chico" id="mVenta">Escribir por una venta</button></div></div>
-      <p class="mut peq" style="margin:4px 0 0">Conversaciones con quienes ya compraron.</p>
+    <section class="m-lista" aria-label="Conversaciones"><div class="m-cab"><h1>Mensajes</h1>
+      <p class="mut peq" style="margin:4px 0 0">Tus ventas, para hablar con cada comprador.</p>
       ${S.rol === "operador" && !S.empresaId && empresasMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${empresasMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
       <input type="search" id="mBus" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.msjBus ?? "")}" aria-label="Buscar">
       <div class="m-fil" id="mFil" role="group" aria-label="Filtro"></div></div>
       <div class="hilos" id="mHilos"><p class="mut" style="padding:18px">Cargando…</p></div></section>
     <section class="m-chat" id="mChat" aria-label="Conversación">${movil ? "" : `<div class="m-vacio"><b>Elegí una conversación</b><span>Las que esperan respuesta van primero.</span></div>`}</section>
     <aside class="m-venta" id="mVen" aria-label="Datos de la venta"></aside></div>`;
-  $("#mVenta").onclick = () => buscarVenta(emp);
   let t; $("#mBus").oninput = () => { clearTimeout(t); t = setTimeout(() => { S.msjBus = $("#mBus").value.trim(); cargarHilos(emp); }, 350); };
   $("#main").querySelectorAll("[data-me]").forEach((b) => b.onclick = () => { S.msjEmp = b.dataset.me; S.msjId = null; VISTAS.mensajes(); });
   const r = await cargarHilos(emp);
@@ -2504,22 +2540,28 @@ VISTAS.mensajes = async () => {
 const POR_PAGINA = 40;
 function hiloHTML(c) {
   const admin = S.rol !== "operador";
-  const [ce, te] = estadoConv(c);
-  return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""}" data-c="${c.id}">
+  const ec = estadoConv(c);
+  return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${foto(c.item_thumbnail)}
-      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultimo_msj_at || c.fecha_venta))}</span>
+      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta))}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
-      <span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto ?? "Todavía no hay mensajes")}</span>
-      <span class="tags">${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}<span class="chip ${ce}">${te}</span>${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+      <span class="h-venta">${plata(c.total, c.moneda)}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
+      ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
+      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
+// "Buscando" con tres puntos que se mueven
+const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
 // Pie de la lista: carga la página siguiente al llegar abajo y, al final, permite buscar conversaciones en ventas anteriores
 function pieHilos(emp, r) {
   const admin = S.rol !== "operador";
   const quedan = S.msjCargadas < (r.total ?? 0);
   const hasta = r.revisadas_hasta ? new Date(r.revisadas_hasta).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" }) : null;
-  const pie = quedan ? `<div class="m-pie" id="mMas"><span class="mut peq">Cargando más…</span></div>`
-    : admin && (["todas", "bloqueadas"].includes(S.msjFil) || !r.cargadas) && !S.msjBus ? `<div class="m-pie"><button class="btn lin chico" id="mCargar" type="button">${hasta ? "Buscar en ventas anteriores" : "Traer conversaciones de ventas recientes"}</button>
-        <span class="mut peq">${hasta ? `Ya se revisaron las ventas hasta el ${esc(hasta)}.` : "Busca en tus últimas ventas las que tienen mensajes."} Tarda unos minutos.</span></div>` : "";
+  let pie = "";
+  if (quedan) pie = `<div class="m-pie" id="mMas"><span class="mut peq">${buscandoTxt("Cargando más")}</span></div>`;
+  else if (r.importando || S.msjBuscando) pie = `<div class="m-pie"><span class="mut peq">${buscandoTxt(r.importando ? "Trayendo tus ventas de los últimos 30 días" : "Buscando en ventas anteriores")}</span></div>`;
+  else if (admin && ["todas", "con_mensajes"].includes(S.msjFil) && !S.msjBus) pie = `<div class="m-pie"><button class="btn lin chico" id="mCargar" type="button">Buscar en ventas anteriores</button>
+        <span class="mut peq">${hasta ? `La lista llega hasta las ventas del ${esc(hasta)}.` : "Trae ventas más viejas."} Tarda unos minutos.</span></div>`;
+  else if (S.msjBus && !r.total) pie = `<div class="m-pie"><button class="btn lin chico" id="mEnML" type="button">Buscar “${esc(S.msjBus)}” en MercadoLibre</button></div>`;
   const viejo = $("#mHilos .m-pie"); if (viejo) viejo.remove();
   $("#mHilos").insertAdjacentHTML("beforeend", pie);
   if (quedan) {
@@ -2527,11 +2569,14 @@ function pieHilos(emp, r) {
     S.msjObs = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { S.msjObs.disconnect(); cargarHilos(emp, true); } });
     S.msjObs.observe($("#mMas"));
   }
+  if ((r.importando || S.msjBuscando) && !quedan) { clearTimeout(S.msjEspera); S.msjEspera = setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), r.importando ? 8000 : 20000); }
+  if ($("#mEnML")) $("#mEnML").onclick = () => buscarVenta(emp, S.msjBus);
   if ($("#mCargar")) $("#mCargar").onclick = async () => {
-    const b = $("#mCargar"); b.disabled = true; b.textContent = "Buscando…";
+    const b = $("#mCargar"); b.disabled = true; b.innerHTML = buscandoTxt();
     if (await seguro(() => api("mensajes_cargar", { empresa_id: emp }))) {
-      aviso("Buscando conversaciones en ventas anteriores. En unos minutos aparecen en la lista.");
-      setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), 60000);
+      S.msjBuscando = true;
+      setTimeout(() => { S.msjBuscando = false; }, 90000);
+      pieHilos(emp, r);
     } else { b.disabled = false; b.textContent = "Buscar en ventas anteriores"; }
   };
 }
@@ -2546,13 +2591,11 @@ async function cargarHilos(emp, mas = false) {
   S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
   if (!mas) {
     S.msjCargadas = 0;
-    const fil = [["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["todas", "Todas"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : []), ["bloqueadas", "Bloqueadas"]];
+    const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["con_mensajes", "Con mensajes"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
     $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("");
     $("#mFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); } };
     $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
-    $("#mHilos").innerHTML = r.filas.length ? "" : (r.cargadas || S.rol === "operador"
-      ? `<div class="vacio" style="margin:18px"><b>${S.msjFil === "pendientes" ? "Todo respondido" : "No hay conversaciones"}</b>${S.msjFil === "pendientes" ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "Probá con otra búsqueda." : "Probá con otro filtro."}</div>`
-      : `<div class="vacio" style="margin:18px"><b>Todavía no hay conversaciones</b>Desde ahora entran solas. Para ver las de ventas anteriores, buscalas en MercadoLibre.</div>`);
+    $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
   }
   S.msjCargadas += r.filas.length;
   const pie = $("#mHilos .m-pie"); if (pie) pie.remove();
@@ -2747,10 +2790,10 @@ function pintarVenta(d) {
     ${d.material?.length ? `<h3>Material de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
 }
 
-async function buscarVenta(emp) {
-  const v = cajon(`<div class="cajon-cab"><h2>Escribir por una venta</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+async function buscarVenta(emp, inicial = "") {
+  const v = cajon(`<div class="cajon-cab"><h2>Buscar una venta en MercadoLibre</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <p class="mut peq">Elegí una venta para abrir su conversación. Si el comprador todavía no escribió, MercadoLibre pide elegir un motivo.</p>
-    <input type="search" id="vBus" placeholder="Número de venta o usuario del comprador" style="width:100%">
+    <input type="search" id="vBus" placeholder="Número de venta o usuario del comprador" style="width:100%" value="${esc(inicial)}">
     <div id="vRes" style="margin-top:12px"><p class="mut">Cargando ventas recientes…</p></div>`);
   const cargar = async () => {
     const r = await seguro(() => api("mensajes_ventas", { empresa_id: emp, buscar: $("#vBus", v).value.trim() }));
