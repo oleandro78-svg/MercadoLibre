@@ -336,7 +336,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .alerta{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;border-radius:var(--r-m);padding:10px 14px;margin-top:8px;cursor:pointer;font-size:14px}
 .alerta.alto{background:var(--ladrillo-2);color:var(--ladrillo)}.alerta.medio{background:var(--ambar-2);color:var(--ambar-t)}
 .alerta:focus-visible{outline:2px solid var(--cielo)}.alerta::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
-.frase{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:16px;margin:10px 0 6px}.frase select{width:auto;font-weight:600}
+.frase{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:16px;margin:10px 0 6px}.frase select{width:auto;max-width:100%;font-weight:600}
 .rank{all:unset;box-sizing:border-box;display:grid;grid-template-columns:24px 36px 1fr auto 12px;gap:12px;align-items:center;width:100%;padding:12px 6px;border-top:1px solid var(--linea);cursor:pointer}
 .rank:hover{background:var(--papel)}.rank:focus-visible{outline:2px solid var(--cielo)}
 .rank .pos{color:var(--piz);text-align:right;font-weight:600;font-size:13px}.rank .v{font-weight:700;font-size:16px;text-align:right}
@@ -548,6 +548,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 /* Tablas que en el celular se muestran como tarjetas: cada dato con su título arriba */
 .tabla.apilable th{white-space:nowrap}
 @media (max-width:720px){
+.pestanas{flex-wrap:wrap;overflow-x:visible;row-gap:0}.pestanas button{padding:10px 10px}
   .tabla.apilable,.tabla.apilable tbody{display:block;min-width:0!important}
   .tabla.apilable td:not([data-et]):not(:first-child){grid-column:1/-1}
   .tabla.apilable tr:has(th){display:none}
