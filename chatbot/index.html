@@ -210,7 +210,8 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .pestanas button.on{color:var(--tinta);border-bottom-color:var(--tinta)}
 
 /* ---------- cuentas ---------- */
-.cuentas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+input[type=file]{max-width:100%}
+.cuentas{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
 .cta{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-l);padding:18px 20px;display:flex;flex-direction:column;gap:10px}
 .cta .nom{font-size:18px;font-weight:700}
 .cta .estado{display:flex;gap:8px;flex-wrap:wrap}
@@ -356,7 +357,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .riel.abierto{transform:none}
   .barra-movil{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--sup);border-bottom:1px solid var(--linea);position:sticky;top:0;z-index:30}
   .contenido{padding:20px 16px 60px}
-  .conf{grid-template-columns:1fr}.costo{position:static}
+  .conf{grid-template-columns:minmax(0,1fr)}.conf>*{min-width:0}.costo{position:static}
   .medidas{grid-template-columns:1fr 1fr}.medida:nth-child(2){border-right:0}.medida:nth-child(-n+2){border-bottom:1px solid var(--linea)}
   .g2,.g3,.g-planes{grid-template-columns:minmax(0,1fr)}
   .ingreso{grid-template-columns:1fr}.ingreso .lado-a{padding:32px 24px}.ingreso .lado-a h1{font-size:34px}
