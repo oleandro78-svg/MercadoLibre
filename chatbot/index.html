@@ -2574,6 +2574,8 @@ function estadoConv(c) {
 // Estado de la venta para la lista: cancelada, entregada o en camino
 // Fecha de recepción: la de entrega que marca MercadoLibre
 const recibida = (c) => c.envio_entregado_at ?? c.envio?.entregado ?? null;
+// Lo que pagó el comprador; si la venta se canceló y se le devolvió todo, se muestra lo devuelto
+const pagoTxt = (c) => Number(c.pagado) === 0 && Number(c.devuelto) > 0 ? `Devuelto ${plata(c.devuelto, c.moneda)}` : `Pagó ${plata(c.pagado ?? c.total, c.moneda)}`;
 // Día y mes; el año solo si no es el actual
 const diaMes = (f) => { if (!f) return ""; const d = new Date(f); return d.toLocaleDateString("es-AR", d.getFullYear() === new Date().getFullYear() ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" }); };
 function estadoVenta(c) {
@@ -2618,7 +2620,7 @@ function hiloHTML(c) {
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta))}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
-      <span class="h-venta">Pagó ${plata(c.pagado ?? c.total, c.moneda)}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
+      <span class="h-venta">${pagoTxt(c)}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
       <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
@@ -2741,7 +2743,7 @@ function pintarChat(d) {
   $("#mChat").innerHTML = `
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
-      <div class="venta-cab"><b>Pagó ${plata(c.pagado ?? c.total, c.moneda)}</b><span class="peq">${esc(LOGISTICA[c.envio_logistica] ?? (c.envio_id ? "Envío" : "Sin envío"))}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
+      <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${esc(LOGISTICA[c.envio_logistica] ?? (c.envio_id ? "Envío" : "Sin envío"))}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
