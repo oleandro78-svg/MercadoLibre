@@ -1,5 +1,5 @@
 // Mostrador: guarda la pantalla del panel para que abra rápido. Los datos siempre se piden al servidor.
-const VERSION = "mostrador-v13";
+const VERSION = "mostrador-v14";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icono-192.png", "icono-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
@@ -39,9 +39,15 @@ self.addEventListener("push", (e) => {
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   e.waitUntil((async () => {
+    const url = e.notification.data?.url || "./";
     const ventanas = await clients.matchAll({ type: "window", includeUncontrolled: true });
     const abierta = ventanas.find((v) => "focus" in v);
-    if (abierta) return abierta.focus();
-    return clients.openWindow(e.notification.data?.url || "./");
+    if (abierta) {
+      // La app ya estaba abierta: se le pide que muestre la pregunta o la conversación del aviso
+      await abierta.focus();
+      abierta.postMessage({ abrir: url });
+      return;
+    }
+    return clients.openWindow(url);
   })());
 });

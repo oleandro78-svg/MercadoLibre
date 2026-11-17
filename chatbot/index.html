@@ -94,7 +94,7 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .btn.chico{padding:5px 10px;font-size:13px}
 .btn:disabled{opacity:.5;cursor:default}
 label.et{display:block;font-size:13px;color:var(--piz);margin:12px 0 5px;font-weight:500}
-input[type=text],input[type=password],input[type=email],input[type=number],input[type=time],input:not([type]),select,textarea{width:100%;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-s);padding:9px 11px}
+input[type=text],input[type=password],input[type=email],input[type=number],input[type=time],input[type=search],input[type=url],input:not([type]),select,textarea{width:100%;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-s);padding:9px 11px}
 textarea{min-height:110px;resize:vertical;line-height:1.5}
 textarea.grande{min-height:440px;font-size:13.5px}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--pino)}
@@ -426,6 +426,126 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 @media (max-width:760px){.opts.tres{grid-template-columns:1fr}
   .tabla-a{min-width:0}.fila-a{grid-template-columns:minmax(0,1fr);gap:10px}.fila-a.cab-a{display:none}.acc-a{text-align:left}
   .fila-a .sem::before{content:none}.fila-a>.sem{grid-template-columns:repeat(7,minmax(0,1fr))}}
+
+.subnav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.subnav button{all:unset;cursor:pointer;font-size:13.5px;font-weight:600;padding:6px 12px;border-radius:20px;background:var(--sup2);color:var(--piz)}
+.subnav button.on{background:var(--tinta);color:var(--papel)}
+.subnav button:focus-visible{outline:2px solid var(--cielo)}
+.m-cab .subnav{margin-bottom:12px}
+.nav button .no-inc{font-style:normal;font-size:11px;font-weight:700;margin-left:auto;padding:1px 7px;border-radius:20px;background:var(--sup2);color:var(--piz)}
+/* ---------- menú agrupado por módulo ---------- */
+.nav .nav-g{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--piz);padding:12px 10px 3px;letter-spacing:.01em}
+.nav .nav-g i{font-style:normal;font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--sup2);color:var(--piz)}
+.nav button.off{opacity:.5}
+.p-dueno .nav .nav-g{color:#7E93A6}
+/* ---------- módulo Mensajes ---------- */
+.contenido.lleno{padding:0;max-width:none}
+.msj{display:grid;grid-template-columns:330px minmax(0,1fr) 290px;height:100vh;min-width:0}
+.m-lista{border-right:1px solid var(--linea);background:var(--sup);display:flex;flex-direction:column;min-width:0;min-height:0}
+.m-cab{padding:20px 18px 12px;border-bottom:1px solid var(--linea)}
+.m-cab h1{font-size:24px;margin:0}
+.m-bus{width:100%;margin-top:12px}
+.m-fil{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.m-fil button{all:unset;cursor:pointer;font-size:13px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--sup2);color:var(--piz)}
+.m-fil button.on{background:var(--tinta);color:var(--papel)}
+.m-fil button:focus-visible{outline:2px solid var(--cielo)}
+.hilos{overflow:auto;flex:1;min-height:0}
+.hilo{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:2px 12px;padding:13px 18px;border-bottom:1px solid var(--linea);cursor:pointer;align-items:start}
+.hilo:hover{background:var(--sup2)}.hilo.on{background:var(--cielo-2)}.hilo:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}
+.hilo .foto{width:44px;height:44px;border-radius:10px;grid-row:span 4;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.msj .foto.sin,.mat-grid .foto.sin{display:grid;place-items:center;font-size:0;background:var(--sup2);border:1px solid var(--linea)}
+.msj .foto.sin::after,.mat-grid .foto.sin::after{content:"";width:40%;height:40%;border:2px solid var(--linea);border-radius:4px}
+.hilo .h-nom{display:flex;align-items:center;min-width:0}.hilo .h-nom b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hilo .hora{font-size:12px;color:var(--piz);white-space:nowrap}
+.hilo .h-prod,.hilo .ult{grid-column:2/-1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--piz)}
+.hilo .h-prod{font-size:12px}
+.hilo .ult.nl{color:var(--tinta);font-weight:600}
+.hilo .tags{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.punto{width:9px;height:9px;border-radius:50%;background:var(--cielo);display:inline-block;margin-left:6px;flex:none}
+.c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
+.m-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
+.m-vacio{margin:auto;text-align:center;color:var(--piz);display:grid;gap:4px}
+.chat-cab{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--sup);border-bottom:1px solid var(--linea)}
+.chat-cab .foto{width:40px;height:40px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.chat-cab .t{min-width:0;flex:1}.chat-cab .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-cab .t span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.estado svg{flex:none;margin-top:2px}
+.e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
+.burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
+.dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
+.b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
+.b small{display:block;font-size:11.5px;color:var(--piz);margin-top:4px}
+.b-comp{align-self:flex-start;background:var(--sup);border-bottom-left-radius:4px}
+.b-vend{align-self:flex-end;background:var(--pino-2);border-bottom-right-radius:4px}.b-vend small{text-align:right}
+.b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
+.adj{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid var(--linea);background:var(--sup);border-radius:10px;padding:6px 10px;margin-top:8px;font-size:13px;font-weight:600;color:var(--tinta)}
+.adj:focus-visible{outline:2px solid var(--cielo)}
+.mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
+.redactar{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px 16px}
+.redactar textarea{width:100%;min-height:96px;resize:vertical}
+.ia{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cielo);margin-bottom:8px;flex-wrap:wrap}.ia .mut{font-weight:400}
+.redactar .acciones{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.redactar .acciones .der{margin-left:auto;display:flex;gap:10px;align-items:center}
+.cont{font-size:12.5px;color:var(--piz)}.cont.pasado{color:var(--ladrillo);font-weight:700}
+.mat{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}.mat:empty{display:none}
+.mat-t{font-size:12.5px;color:var(--piz);font-weight:600;margin-right:4px;white-space:nowrap;flex:none}
+.mat-b{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--linea);background:var(--sup);color:var(--tinta)}
+.mat-b.on{background:var(--pino-2);border-color:var(--pino);color:var(--pino-t)}.mat-b .mut{font-weight:500}
+.mat-b:focus-visible{outline:2px solid var(--cielo)}
+.x-s{all:unset;cursor:pointer;font-weight:700;padding:0 4px}
+.oculto-v{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.motivos{display:grid;gap:8px;margin-bottom:12px}
+.motivo{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:start;border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 12px;background:var(--sup)}
+.motivo.on{border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset}.motivo[disabled]{opacity:.55;cursor:default}
+.motivo:focus-visible{outline:2px solid var(--cielo)}
+.motivo .r{width:16px;height:16px;border-radius:50%;border:2px solid var(--linea);margin-top:3px;box-sizing:border-box}.motivo.on .r{border:5px solid var(--pino)}
+.motivo b{font-size:14px}.motivo .peq{display:block}
+.cupo{font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--pino-2);color:var(--pino-t);white-space:nowrap}.cupo.cero{background:var(--sup2);color:var(--piz)}.cupo:empty{display:none}
+.fijo{border:1px dashed var(--linea);border-radius:var(--r-m);padding:10px 12px;font-size:14px;background:var(--sup2);color:var(--piz)}
+.m-venta{border-left:1px solid var(--linea);background:var(--sup);padding:20px 18px;overflow:auto;min-height:0}
+.m-venta h3{font-size:13px;color:var(--piz);font-weight:600;margin:18px 0 8px}.m-venta h3:first-child{margin-top:0}
+.prod{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
+.prod .foto{width:56px;height:56px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.dv{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--linea)}.dv span:first-child{color:var(--piz)}
+.linea-t{position:relative;padding-left:18px;font-size:13.5px}
+.linea-t div{position:relative;padding:0 0 12px}
+.linea-t div::before{content:"";position:absolute;left:-18px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--linea)}
+.linea-t div.si::before{background:var(--pino)}
+.linea-t::before{content:"";position:absolute;left:4px;top:8px;bottom:14px;width:1px;background:var(--linea)}
+.resumen-movil{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:10px 14px 0;padding:8px 12px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);font-size:13px}
+.venta-f{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;gap:2px;padding:10px 12px;border:1px solid var(--linea);border-radius:var(--r-m);margin-bottom:8px}
+.venta-f:hover{background:var(--sup2)}.venta-f .chip{justify-self:start;margin-top:4px}.venta-f:focus-visible{outline:2px solid var(--cielo)}
+@media (max-width:960px){
+  .msj{grid-template-columns:minmax(0,1fr);height:auto;min-height:calc(100dvh - 57px)}
+  .m-chat,.m-lista{min-height:calc(100dvh - 57px)}
+  .burbujas{flex:none;overflow:visible}
+  .estado.e-ok{display:none}
+  .redactar textarea{min-height:80px}
+  .mat{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.mat-b{white-space:nowrap}
+  .m-venta{display:none}
+  .msj.ver-lista .m-chat{display:none}.msj.ver-chat .m-lista{display:none}
+  .b{max-width:85%}
+  .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .n{width:100%}
+  .estado{margin:10px 14px 0}
+  .redactar .acciones .der{margin-left:0;width:100%;justify-content:flex-end}
+}
+/* ---------- material para enviar ---------- */
+.mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+.mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
+#mpLista{overflow:auto;min-height:0;flex:1}
+.pub-m{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:center;padding:8px;border-radius:var(--r-m)}
+.pub-m:hover{background:var(--sup2)}.pub-m.on{background:var(--cielo-2)}.pub-m:focus-visible{outline:2px solid var(--cielo)}
+.pub-m .foto{width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.pub-m b{display:block;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pub-m .peq{display:block}
+.mat-it{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--linea)}
+.mat-it .peq{margin-top:4px}.mat-it .acc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mat-ops{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mat-op{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 12px;cursor:pointer}
+.mat-op:has(input:checked){border-color:var(--pino);background:var(--pino-2)}
+.mat-op .peq{display:block;margin-top:2px}
+.cp-l{max-height:50vh;overflow:auto;margin-top:10px}.cp-f{display:flex;gap:8px;align-items:flex-start;padding:7px 4px;border-bottom:1px solid var(--linea);font-size:14px}
+@media (max-width:960px){.mat-grid{grid-template-columns:minmax(0,1fr)}.mat-pubs{max-height:360px}.mat-ops{grid-template-columns:1fr}.mat-it{grid-template-columns:24px minmax(0,1fr)}.mat-it .acc{grid-column:1/-1;justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -491,8 +611,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
     <nav class="nav" id="nav"></nav>
     <div class="riel-pie">
       <button class="btn pri chico oculto" id="avisosBtn" type="button">Activar avisos</button>
-      <button class="btn pri chico oculto" id="instalar" type="button">Instalar la app</button>
-      <button class="btn lin chico" id="tema" type="button">Cambiar tema</button>
+      <button class="btn pri chico oculto" id="instalar" type="button">Instalar la app</button><button class="btn lin chico" id="tema" type="button">Cambiar tema</button>
       <button class="btn lin chico" id="salir" type="button">Salir</button>
     </div>
   </aside>
@@ -598,7 +717,8 @@ async function entrarUsuario() {
   $("#ingreso").classList.add("oculto"); $("#app").classList.remove("oculto");
   $("#quien").textContent = S.yo.usuario?.nombre || S.yo.usuario?.email || "";
   armarSelector();
-  await recargar(); armarNav(); ir(inicio());
+  await recargar(); armarNav();
+  if (!abrirDesdeEnlace(location.hash)) ir(inicio());
   iniciarAvisos();
 }
 // "*" = todas mis empresas (bandeja unificada)
@@ -608,7 +728,7 @@ function elegirEmpresa(id) {
   S.rol = m?.rol === "admin" ? "empresa" : "operador";
   try { localStorage.setItem("mostrador_empresa_sel", id); } catch {}
 }
-const inicio = () => S.rol === "operador" ? "bandeja" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
+const inicio = () => S.rol === "operador" ? (modsActuales().has("preguntas") ? "bandeja" : "mensajes") : S.rol === "empresa" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
 const empresaYo = (id) => S.yo?.empresas.find((x) => x.id === id);
 const iniciales = (n) => { const w = String(n ?? "").replace(/\bS\.?R\.?L\.?|\bS\.?A\.?(?=\s|$)/gi, "").trim().split(/\s+/).filter(Boolean); return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "").slice(0, 2)).toUpperCase(); };
 function etiquetaEmpresa(id) {
@@ -688,10 +808,11 @@ async function revisarAvisos() {
     }
   }
   AV.vistos = new Set([...(AV.vistos ?? []), ...r.nuevas.map((x) => x.id)]);
-  ponerContador(r.pendientes);
+  avisosMensajes(r.mensajes);
+  ponerContador(r.pendientes + (r.mensajes?.pendientes ?? 0));
 }
 function iniciarAvisos() {
-  clearInterval(AV.timer); AV.vistos = null;
+  clearInterval(AV.timer); AV.vistos = null; AV.vistosM = null;
   revisarAvisos(); AV.timer = setInterval(revisarAvisos, 30000);
   pintarAvisosBtn(); renovarSuscripcion().then(avisosPorDefecto);
 }
@@ -785,16 +906,29 @@ async function recargar() {
   // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-const TABS = [["hoy", "Hoy"], ["preguntas", "Preguntas"], ["probar", "Probar"], ["conocimiento", "Conocimiento"], ["cuentas", "Cuentas"], ["equipo", "Equipo"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"], ["dudas", "Dudas frecuentes"], ["config", "Configuración"], ["-"], ["uso", "Uso"], ["clientes", "Clientes", 1], ["motor", "Reglas generales", 1]];
-const TABS_OP = [["bandeja", "Mi bandeja"], ["preguntas", "Preguntas"], ["numeros", "Mis números"]];
-const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
+// Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"],
+  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
+const SUBTABS = {
+  preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
+  mensajes: [["mensajes", "Bandeja"], ["material", "Material para enviar"]],
+  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
+};
+const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["numeros", "Mis números"]];
+const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
-  const p = pendientesTotal();
-  const tabs = S.rol === "operador" ? TABS_OP : S.rol === "admin" && !S.soporte ? TABS_APP : TABS.filter((t) => !t[2]);
-  $("#nav").innerHTML = tabs.map((t) => t[0] === "-" ? `<div class="sep"></div>` :
-    `<button data-t="${t[0]}" class="${t[0] === S.tab ? "on" : ""}">${t[1]}${(t[0] === "hoy" || t[0] === "bandeja") && p ? `<span class="cuenta-n">${p}</span>` : ""}</button>`).join("");
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
+  const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : 0;
+  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
+  let html;
+  if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
+  else if (S.rol === "operador") html = TABS_OP.filter((t) => !t[3] || mods.has(t[3])).map((t) => boton(t)).join("");
+  else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
+  $("#nav").innerHTML = html;
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
 }
 // Deja claro quién está mirando: dueño de la app, administrador de una empresa, operador o soporte
@@ -829,9 +963,12 @@ function pintarPerfil() {
 const VISTAS = {};
 function ir(t) {
   clearTimeout(sondeo);
-  $("#main").onclick = null;
+  $("#main").onclick = null; $("#main").classList.remove("lleno");
+  if (t !== "mensajes") { S.msjId = null; if (/^#mensajes/.test(location.hash)) try { history.replaceState(null, "", location.pathname + location.search); } catch {} }
   if (t === "preguntas") S.filtros.elegir = true;
-  S.tab = t; document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
+  S.tab = t;
+  const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
+  document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", t === "no_incluido" ? b.dataset.mod === S.noMod && b.dataset.t === "no_incluido" : b.dataset.t === t || (secciones && b.dataset.t === seccionDe(t))));
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
   VISTAS[t]();
 }
@@ -974,8 +1111,10 @@ VISTAS.bandeja = async () => {
     </div>
     ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por empresa"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
+    <div style="margin:-4px 0 14px"><button class="btn lin chico" type="button" id="verHist">Ver todas las preguntas</button></div>
     <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de esta empresa." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
   $("#main").querySelectorAll("[data-be]").forEach((x) => { x.onclick = () => { S.bandEmp = x.dataset.be; VISTAS.bandeja(); }; });
+  $("#verHist").onclick = () => ir("preguntas");
   enlazarCola($("#cola"));
 };
 
@@ -1139,6 +1278,8 @@ function listaRepreguntas(xs, h, propias) {
 VISTAS.rendimiento = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
+  S.rendMod ??= modsActuales().has("preguntas") ? "preguntas" : "mensajes";
+  if (S.rendMod === "mensajes") return rendimientoMensajes(emp);
   const { desde, hasta } = rangoPer();
   const [d, au] = await Promise.all([seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta })), seguro(() => api("autonomia", { empresa_id: emp }))]);
   if (!d || S.tab !== "rendimiento") return;
@@ -1174,6 +1315,7 @@ VISTAS.rendimiento = async () => {
     <div class="panel"><h2>Respuestas que quedaron incompletas</h2><p class="mut peq" style="margin:0 0 8px">Las últimas en las que el comprador volvió a preguntar. Sirven para corregir el criterio del equipo o las instrucciones del bot.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, false)}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
+  pestModulo("rendMod", VISTAS.rendimiento);
   if ($("#auto")) $("#auto").onclick = async (ev) => {
     const b = ev.target.closest("[data-auto]"); if (!b) return;
     const activar = b.dataset.on === "1", c = au.categorias.find((x) => x.id === b.dataset.auto);
@@ -1331,7 +1473,8 @@ function semana(entradas) {
 const cabSemana = `<div class="sem cab">${DIAS_C.map((d) => `<span>${d}</span>`).join("")}</div>`;
 
 async function datosAsignaciones(emp) {
-  const r = await seguro(() => api("asignaciones", { empresa_id: emp })); if (!r) return null;
+  S.asigMod ??= modsActuales().has("preguntas") ? "preguntas" : "mensajes";
+  const r = await seguro(() => api("asignaciones", { empresa_id: emp, modulo: S.asigMod })); if (!r) return null;
   r.miembros.forEach((m, i) => { m.color = PALETA[i % PALETA.length]; m.fondo = m.color + "22"; m.ini = iniciales(m.nombre).slice(0, 2); m.corto = m.vos ? "Yo" : m.nombre.split(" ")[0]; });
   r.m = (id) => r.miembros.find((x) => x.id === Number(id));
   r.catNom = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
@@ -1378,7 +1521,7 @@ VISTAS.asignaciones = async () => {
   const mes = (f) => new Date(f + "T12:00:00").toLocaleDateString("es-AR", { month: "short" }).replace(".", "").toUpperCase();
   const nomsA = (a) => a.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean).join(" y ");
   const alcTxt = (a) => a.alcance === "todo" ? "toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} publicaciones`;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>Qué publicaciones atiende cada persona y en qué horario. Cuando nadie cubre una pregunta, el bot responde solo lo que sabe y lo demás te llega a vos. Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>${S.asigMod === "mensajes" ? "Qué conversaciones de quienes ya compraron atiende cada persona, según la publicación, y en qué horario. Cuando nadie cubre un mensaje, te llega a vos." : "Qué publicaciones atiende cada persona y en qué horario. Cuando nadie cubre una pregunta, el bot responde solo lo que sabe y lo demás te llega a vos."} Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div>
       <div><button class="btn pri" id="asNueva">+ Nueva asignación</button></div></div>
     <div class="fila" style="margin-bottom:14px;flex-wrap:wrap;gap:12px"><div class="seg" id="asVista" role="tablist">${[["categoria", "Por categoría"], ["operador", "Por persona"], ["publicacion", "Por publicación"]].map(([k, t]) => `<button role="tab" aria-selected="${S.asigVista === k}" data-v="${k}" class="${S.asigVista === k ? "on" : ""}">${t}</button>`).join("")}</div>
       <div class="leyenda">${r.miembros.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.corto)}</span>`).join("")}<span><i class="rayado"></i>Sin nadie</span></div></div>
@@ -1391,6 +1534,7 @@ VISTAS.asignaciones = async () => {
         ${r.excepciones.length ? r.excepciones.map((x) => { const m = x.miembro_id ? r.m(x.miembro_id) : null; return `<div class="item-t">${m ? avatarM(m, 32) : `<span class="av-m" style="width:32px;height:32px;background:var(--sup2);color:var(--piz)" aria-hidden="true">F</span>`}
           <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Toda la empresa"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
     </div>`;
+  pestModulo("asigMod", VISTAS.asignaciones);
   $("#main").onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.v) { S.asigVista = b.dataset.v; VISTAS.asignaciones(); }
@@ -1465,7 +1609,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
       if (!st.miembro_ids.length) return aviso("Elegí al menos una persona");
       const datos = { id: a?.id, miembro_ids: st.miembro_ids, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones, siempre: st.siempre, dias: st.dias, desde: st.desde, hasta: st.hasta,
         fecha_desde: st.porTiempo ? st.fecha_desde || null : null, fecha_hasta: st.porTiempo ? st.fecha_hasta || null : null };
-      if (await seguro(() => api("asignacion_guardar", { empresa_id: emp, asignacion: datos }))) { v.remove(); aviso(a ? "Asignación actualizada" : "Asignación guardada"); VISTAS.asignaciones(); }
+      if (await seguro(() => api("asignacion_guardar", { empresa_id: emp, modulo: S.asigMod, asignacion: { ...datos, modulo: S.asigMod } }))) { v.remove(); aviso(a ? "Asignación actualizada" : "Asignación guardada"); VISTAS.asignaciones(); }
     }
   });
   v.addEventListener("change", (e) => {
@@ -1576,11 +1720,11 @@ async function detalle(id) {
 }
 const espera = (f) => { const m = Math.round((Date.now() - new Date(f)) / 60000); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60 ? (m % 60) + " min" : ""}`.trim() : `${Math.floor(m / 1440)} d`; };
 // Revisar reglas: antes de publicar, controla lo que hace que MercadoLibre borre una respuesta (links, contacto, acortadores)
-async function revisarReglas(id, tx, caja, btn) {
+async function revisarReglas(id, tx, caja, btn, acc = "revisar_reglas") {
   const texto = tx.value;
   if (!texto.trim()) return aviso("Escribí una respuesta primero");
   btn.disabled = true; const t0 = btn.innerHTML; btn.innerHTML = "Revisando…";
-  const r = await seguro(() => api("revisar_reglas", { id, texto }));
+  const r = await seguro(() => api(acc, { id, texto }));
   btn.disabled = false; btn.innerHTML = t0;
   if (!r) return;
   const lista = (n) => r.problemas.filter((x) => x.nivel === n).map((x) => `<li>${esc(x.texto)}</li>`).join("");
@@ -1592,11 +1736,11 @@ async function revisarReglas(id, tx, caja, btn) {
   tx.addEventListener("input", () => { if (tx.value !== texto) caja.innerHTML = ""; }, { once: true });
 }
 // Mejorar redacción: corrige ortografía y tono; avisa si algo no coincide con la publicación. Se puede deshacer.
-async function mejorarTexto(id, tx, caja, btn) {
+async function mejorarTexto(id, tx, caja, btn, acc = "mejorar") {
   const antes = tx.value;
   if (!antes.trim()) return aviso("Escribí una respuesta primero");
   btn.disabled = true; const t0 = btn.innerHTML; btn.innerHTML = "Mejorando…";
-  const r = await seguro(() => api("mejorar", { id, texto: antes }));
+  const r = await seguro(() => api(acc, { id, texto: antes }));
   btn.disabled = false; btn.innerHTML = t0;
   if (!r) return;
   tx.value = r.texto; tx.dispatchEvent(new Event("input"));
@@ -1914,9 +2058,13 @@ VISTAS.config = async () => {
 // ================= USO =================
 VISTAS.uso = async () => {
   const u = await seguro(() => api("uso", { empresa_id: S.empSel || null })); if (!u) return;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>${dueno() ? "Uso y costos" : "Uso"}</h1><p>${dueno() ? "Mes a mes, por cliente. Sirve para facturar el servicio." : "Preguntas de cada mes."}</p></div></div>
-    <div class="panel" style="padding:6px 18px;overflow-x:auto">${u.length ? `<table class="tabla"><tr><th>Mes</th><th>Cliente</th><th>Preguntas</th><th>Respondidas por el bot</th><th>Fueron a revisión</th><th>Tiempo del bot</th>${dueno() ? "<th>Costo de IA</th>" : ""}</tr>
-    ${u.map((x) => `<tr><td>${esc(new Date(x.mes).toLocaleDateString("es-AR", { month: "long", year: "numeric", timeZone: "UTC" }))}</td><td>${esc(x.empresa ?? empNom(x.empresa_id))}</td><td>${num(x.preguntas)}</td><td>${num(x.respondidas_por_bot)}</td><td>${num(x.en_revision)}</td><td>${dur(x.tiempo_bot_promedio_seg)}</td>${dueno() ? `<td>${usd(x.costo_ia_usd, 2)}</td>` : ""}</tr>`).join("")}</table>` : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando el bot procese preguntas.</div>`}</div>`;
+  const conMsj = u.some((x) => x.conversaciones || x.mensajes_enviados) || modsActuales().has("mensajes") && S.rol !== "admin";
+  const emp = S.rol === "empresa" || S.soporte ? S.res?.empresas?.[0] : null;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${dueno() ? "Uso y costos" : "Plan y uso"}</h1><p>${dueno() ? "Mes a mes, por cliente. Sirve para facturar el servicio." : "Lo que incluye tu plan y lo que se usó cada mes."}</p></div></div>
+    ${emp ? `<div class="panel" style="margin-bottom:16px"><div class="fila" style="align-items:center;flex-wrap:wrap;gap:12px"><div><b>Plan ${esc(emp.plan ?? "sin plan")}</b><div class="mut peq">Módulos contratados</div></div>
+      <div class="n" style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<span class="chip ${(emp.modulos_efectivos ?? []).includes(k) ? "c-ok" : ""}">${t}${(emp.modulos_efectivos ?? []).includes(k) ? "" : ": no incluido"}</span>`).join("")}</div></div></div>` : ""}
+    <div class="panel" style="padding:6px 18px;overflow-x:auto">${u.length ? `<table class="tabla"><tr><th>Mes</th><th>Cliente</th><th>Preguntas</th><th>Respondidas por el bot</th><th>Fueron a revisión</th><th>Tiempo del bot</th>${conMsj ? "<th>Conversaciones</th><th>Mensajes enviados</th>" : ""}${dueno() ? `<th>IA preguntas</th>${conMsj ? "<th>IA mensajes</th>" : ""}` : ""}</tr>
+    ${u.map((x) => `<tr><td>${esc(new Date(x.mes).toLocaleDateString("es-AR", { month: "long", year: "numeric", timeZone: "UTC" }))}</td><td>${esc(x.empresa ?? empNom(x.empresa_id))}</td><td>${num(x.preguntas)}</td><td>${num(x.respondidas_por_bot)}</td><td>${num(x.en_revision)}</td><td>${dur(x.tiempo_bot_promedio_seg)}</td>${conMsj ? `<td>${num(x.conversaciones)}</td><td>${num(x.mensajes_enviados)}</td>` : ""}${dueno() ? `<td>${usd(x.costo_ia_usd, 2)}</td>${conMsj ? `<td>${usd(x.costo_mensajes_usd, 2)}</td>` : ""}` : ""}</tr>`).join("")}</table>` : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando el bot procese preguntas.</div>`}</div>`;
 };
 
 // ================= DUEÑO DE LA APP: toda la plataforma =================
@@ -2088,7 +2236,7 @@ VISTAS.planes = async () => {
   if (!planes || !res) return;
   S.planes = planes;
   const nombres = Object.keys(planes);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Planes</h1><p>Cuántos operadores puede sumar cada empresa según su plan.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Planes y módulos</h1><p>Cuántos operadores puede sumar cada empresa y qué módulos tiene. Cada módulo se cobra aparte.</p></div></div>
     <div class="grilla g2 g-planes" style="align-items:start">
     <div class="panel"><h2>Operadores incluidos</h2><p class="mut peq" style="margin:0 0 6px">El administrador de la empresa no cuenta como operador.</p>
       <div id="plFilas">${nombres.map((n) => filaPlan(n, planes[n])).join("")}</div>
@@ -2108,6 +2256,7 @@ VISTAS.planes = async () => {
     const tr = b.closest("tr");
     if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.e, plan: $(".ePl", tr).value, limite_operadores: $(".eLi", tr).value }))) aviso("Plan de la empresa guardado");
   });
+  panelModulos(res);
 };
 const filaPlan = (n, v) => `<div class="plan-f" style="margin-top:10px;display:grid;grid-template-columns:1fr 70px auto auto;gap:10px;align-items:center"><input class="pN" aria-label="Nombre del plan" placeholder="Nombre del plan" value="${esc(n)}"><input type="number" min="0" class="pV" aria-label="Operadores" value="${v}"><span class="n mut peq">operadores</span><button class="btn pel chico n" data-quitar>Quitar</button></div>`;
 
@@ -2240,6 +2389,515 @@ VISTAS.motor = async () => {
     <div class="panel"><textarea id="mT" class="grande" style="min-height:560px">${esc(r.prompt)}</textarea></div>`;
   $("#mG").onclick = async () => { if (await seguro(() => api("motor", { prompt: $("#mT").value }))) aviso("Reglas guardadas"); };
 };
+
+// Solapas de la sección (solo administrador de la empresa o dueño en modo soporte)
+function ponerSubtabs() {
+  if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
+  const sec = SUBTABS[seccionDe(S.tab)]; if (!sec || $("#main .subnav")) return;
+  const html = `<nav class="subnav" aria-label="Pantallas de esta sección">${sec.map(([k, t]) => `<button type="button" data-st="${k}" class="${k === S.tab ? "on" : ""}" ${k === S.tab ? 'aria-current="page"' : ""}>${t}</button>`).join("")}</nav>`;
+  const mcab = $("#main .m-cab"), cab = $("#main .cabecera");
+  if (mcab) mcab.insertAdjacentHTML("afterbegin", html); else if (cab) cab.insertAdjacentHTML("beforebegin", html); else return;
+  $("#main .subnav").onclick = (e) => { const b = e.target.closest("[data-st]"); if (b && b.dataset.st !== S.tab) ir(b.dataset.st); };
+}
+new MutationObserver(() => ponerSubtabs()).observe(document.getElementById("main"), { childList: true });
+
+// ================= MÓDULOS =================
+// Cada empresa tiene los módulos de su plan (Preguntas, Mensajes) o los que le asignó el dueño de la app.
+const MODULOS = { preguntas: "Preguntas", mensajes: "Mensajes" };
+const MOD_TXT = {
+  preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
+  mensajes: "Conversa con quienes ya compraron: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
+};
+function modsActuales() {
+  if (S.rol === "operador") {
+    const es = S.empresaId ? [empresaYo(S.empresaId)].filter(Boolean) : (S.yo?.empresas ?? []);
+    return new Set(es.flatMap((e) => e.modulos ?? ["preguntas"]));
+  }
+  if (S.rol === "empresa" || S.soporte) return new Set(S.res?.empresas?.[0]?.modulos_efectivos ?? ["preguntas"]);
+  return new Set(Object.keys(MODULOS));
+}
+// Pestañas Preguntas / Mensajes arriba de Asignaciones y Rendimiento (solo si la empresa tiene los dos)
+function pestModulo(clave, volver) {
+  const m = modsActuales();
+  if (!(m.has("preguntas") && m.has("mensajes"))) { S[clave] = m.has("mensajes") && !m.has("preguntas") ? "mensajes" : "preguntas"; return; }
+  const cab = $("#main .cabecera"); if (!cab) return;
+  cab.insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist" aria-label="Módulo">${Object.entries(MODULOS).map(([k, t]) => `<button role="tab" type="button" data-mod="${k}" aria-selected="${S[clave] === k}" class="${S[clave] === k ? "on" : ""}">${t}</button>`).join("")}</div>`);
+  $("#main .pestanas").onclick = (e) => { const b = e.target.closest("[data-mod]"); if (b && S[clave] !== b.dataset.mod) { S[clave] = b.dataset.mod; volver(); } };
+}
+VISTAS.no_incluido = () => {
+  const k = S.noMod || "mensajes";
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${MODULOS[k]}</h1><p>Tu empresa no tiene contratado este módulo.</p></div></div>
+    <div class="panel" style="max-width:640px"><h2>Qué hace</h2><p>${MOD_TXT[k]}</p>
+    <p class="mut">Se contrata aparte. Para sumarlo, pedíselo a quien te da el servicio de Mostrador; cuando lo activen aparece en este menú sin que tengas que hacer nada.</p></div>`;
+};
+
+// ================= MENSAJES (posventa) =================
+const LIM_MSJ = 350;
+const LOGISTICA = { fulfillment: "Full", self_service: "Flex", cross_docking: "Colecta", drop_off: "Despacho en correo", xd_drop_off: "Despacho en punto", default: "Acordar con el comprador", custom: "Envío propio", not_specified: "Sin envío" };
+const ENVIO_E = { pending: "Pendiente", handling: "Preparando", ready_to_ship: "Listo para despachar", shipped: "En camino", delivered: "Entregado", not_delivered: "No entregado", cancelled: "Cancelado" };
+const ORDEN_E = { paid: "Pagada", confirmed: "Confirmada", payment_required: "Falta el pago", payment_in_process: "Pago en proceso", partially_paid: "Pago parcial", cancelled: "Cancelada", invalid: "Inválida" };
+const ICONO_M = {
+  clip: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.3 3.3 0 0 1 4.7 4.7L10.2 17a1.7 1.7 0 0 1-2.4-2.4L15.5 7"/></svg>`,
+  link: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>`,
+  doc: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>`,
+  ok: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>`,
+  alto: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8"/></svg>`,
+  info: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>`,
+  atras: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>`,
+};
+const pesoTxt = (b) => b == null ? "" : b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toFixed(1).replace(".", ",") + " MB";
+const plata = (n, m) => n == null ? "—" : (m === "ARS" || !m ? "$ " : m + " ") + Number(n).toLocaleString("es-AR", { maximumFractionDigits: 2 });
+const anchoMovil = () => matchMedia("(max-width:960px)").matches;
+function empresasMsj() { return (S.yo?.empresas ?? []).filter((e) => (e.modulos ?? []).includes("mensajes")); }
+function empMsj() {
+  if (S.rol !== "operador") return S.empSel || null;
+  if (S.empresaId) return S.empresaId;
+  const es = empresasMsj();
+  if (!es.some((e) => e.id === S.msjEmp)) S.msjEmp = es[0]?.id ?? "";
+  return S.msjEmp || null;
+}
+function estadoConv(c) {
+  if (c.conv_estado === "active") return ["c-ok", "Podés escribir"];
+  if (/initiated_by_seller/.test(c.conv_subestado ?? "")) return ["c-mot", "Solo con motivo"];
+  if (c.conv_subestado === "blocked_by_fulfillment") return ["c-blo", "Hasta la entrega"];
+  if (c.conv_estado === "blocked") return ["c-blo", "Bloqueada"];
+  return ["c-blo", "Sin datos"];
+}
+const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
+
+VISTAS.mensajes = async () => {
+  const emp = empMsj();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Elegí un cliente para ver sus conversaciones.</p></div></div>`; return; }
+  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Ninguna de tus empresas tiene el módulo Mensajes.</p></div></div>`; return; }
+  S.msjFil ??= "pendientes";
+  $("#main").classList.add("lleno");
+  const movil = anchoMovil();
+  $("#main").innerHTML = `<div class="msj ${S.msjId ? "ver-chat" : "ver-lista"}">
+    <section class="m-lista" aria-label="Conversaciones"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Mensajes</h1><div class="n"><button class="btn lin chico" id="mVenta">Escribir por una venta</button></div></div>
+      <p class="mut peq" style="margin:4px 0 0">Conversaciones con quienes ya compraron.</p>
+      ${S.rol === "operador" && !S.empresaId && empresasMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${empresasMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
+      <input type="search" id="mBus" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.msjBus ?? "")}" aria-label="Buscar">
+      <div class="m-fil" id="mFil" role="group" aria-label="Filtro"></div></div>
+      <div class="hilos" id="mHilos"><p class="mut" style="padding:18px">Cargando…</p></div></section>
+    <section class="m-chat" id="mChat" aria-label="Conversación">${movil ? "" : `<div class="m-vacio"><b>Elegí una conversación</b><span>Las que esperan respuesta van primero.</span></div>`}</section>
+    <aside class="m-venta" id="mVen" aria-label="Datos de la venta"></aside></div>`;
+  $("#mVenta").onclick = () => buscarVenta(emp);
+  let t; $("#mBus").oninput = () => { clearTimeout(t); t = setTimeout(() => { S.msjBus = $("#mBus").value.trim(); cargarHilos(emp); }, 350); };
+  $("#main").querySelectorAll("[data-me]").forEach((b) => b.onclick = () => { S.msjEmp = b.dataset.me; S.msjId = null; VISTAS.mensajes(); });
+  const r = await cargarHilos(emp);
+  if (S.tab !== "mensajes") return;
+  if (S.msjId) abrirConv(S.msjId);
+  else if (!movil && r?.filas?.length) abrirConv(r.filas[0].id);
+};
+
+async function cargarHilos(emp) {
+  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "" }));
+  if (!r || S.tab !== "mensajes") return null;
+  S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
+  const fil = [["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["todas", "Todas"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : []), ["bloqueadas", "Bloqueadas"]];
+  $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("");
+  $("#mFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); } };
+  const admin = S.rol !== "operador";
+  $("#mHilos").innerHTML = r.filas.map((c) => {
+    const [ce, te] = estadoConv(c);
+    return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""}" data-c="${c.id}">
+      ${foto(c.item_thumbnail)}
+      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultimo_msj_at || c.fecha_venta))}</span>
+      <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
+      <span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto ?? "Todavía no hay mensajes")}</span>
+      <span class="tags">${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}<span class="chip ${ce}">${te}</span>${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+  }).join("") || (r.cargadas ? `<div class="vacio" style="margin:18px"><b>${S.msjFil === "pendientes" ? "Todo respondido" : "No hay conversaciones"}</b>${S.msjFil === "pendientes" ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : "Probá con otro filtro."}</div>`
+    : `<div class="vacio" style="margin:18px"><b>Todavía no hay conversaciones</b>${admin ? `Desde ahora entran solas. Para ver las de tus ventas recientes, traelas de MercadoLibre.<div style="margin-top:12px"><button class="btn pri chico" id="mCargar">Traer conversaciones recientes</button></div>` : "Cuando un comprador escriba, aparece acá."}</div>`);
+  $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
+  if ($("#mCargar")) $("#mCargar").onclick = async () => {
+    if (await seguro(() => api("mensajes_cargar", { empresa_id: emp }))) { aviso("Buscando conversaciones en las últimas ventas; tarda unos minutos"); $("#mCargar").disabled = true; setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), 45000); }
+  };
+  return r;
+}
+
+async function abrirConv(id) {
+  S.msjId = id;
+  try { history.replaceState(null, "", "#mensajes/" + id); } catch {}
+  const caja = $(".msj"); if (!caja) return;
+  caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
+  document.querySelectorAll("#mHilos .hilo").forEach((h) => h.classList.toggle("on", Number(h.dataset.c) === id));
+  $("#mChat").innerHTML = `<p class="mut" style="padding:22px">Cargando la conversación…</p>`; $("#mVen").innerHTML = "";
+  const d = await seguro(() => api("mensajes_conversacion", { id }));
+  if (!d || S.msjId !== id || S.tab !== "mensajes") return;
+  S.msjConv = d;
+  pintarChat(d); pintarVenta(d);
+  const h = $(`#mHilos .hilo[data-c="${id}"] .punto`); if (h) h.remove();
+}
+function volverLista() {
+  S.msjId = null; try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+  const caja = $(".msj"); if (caja) { caja.classList.remove("ver-chat"); caja.classList.add("ver-lista"); }
+  cargarHilos(empMsj());
+}
+
+function burbujas(ms) {
+  let dia = "";
+  return ms.map((m) => {
+    const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const sep = d !== dia ? `<div class="dia">${esc(d)}</div>` : ""; dia = d;
+    const hora = new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+    const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj" data-adj="${esc(a.id)}">${ICONO_M.clip}<span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</button>`).join("");
+    const mod = m.moderacion && m.moderacion !== "clean" ? `<div class="mod-x">${m.moderacion === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}${m.moderacion_motivo ? ` (${esc(m.moderacion_motivo)})` : ""}</div>` : "";
+    const quien = m.de === "vendedor" ? (m.enviado_nombre ? `${esc(m.enviado_nombre)} · ` : m.opcion ? "Con motivo · " : "") : "";
+    return `${sep}<div class="b ${m.de === "comprador" ? "b-comp" : "b-vend"}">${m.texto ? esc(m.texto).replace(/\n/g, "<br>") : ""}${adj}${mod}<small>${quien}${hora}${m.de === "vendedor" && m.leido_at ? " · leído" : ""}</small></div>`;
+  }).join("");
+}
+
+function pintarChat(d) {
+  const c = d.conversacion, movil = anchoMovil();
+  let estado;
+  if (c.conv_estado === "active") estado = `<div class="estado e-ok">${ICONO_M.ok}<span>Podés escribir. Hasta ${LIM_MSJ} caracteres por mensaje; podés adjuntar JPG, PNG, PDF o TXT.</span></div>`;
+  else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
+  else estado = `<div class="estado e-blo">${ICONO_M.alto}<span>No se puede escribir: ${esc(c.bloqueo ?? "MercadoLibre no la habilita")}.${c.conv_subestado === "blocked_by_fulfillment" ? " Cuando el envío figure entregado se habilita sola." : ""}</span></div>`;
+  const urg = c.urgente ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>Atención:</b> ${esc(c.urgente_motivo ?? "posible reclamo")}. Respondé cuanto antes.</span></div>` : "";
+  const avisos = (d.avisos ?? []).map((a) => `<div class="estado e-mot">${ICONO_M.info}<span>${esc(a)}</span></div>`).join("");
+  const env = c.envio ?? {};
+  $("#mChat").innerHTML = `
+    <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
+      ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${c.comprador_nick && c.comprador_nombre ? esc(c.comprador_nick) + " · " : ""}${esc(c.item_titulo ?? "")}</span></div>
+      <div class="n" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
+        ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
+    ${movil ? `<div class="resumen-movil"><b>${plata(c.total, c.moneda)}</b><span>· ${esc(LOGISTICA[c.envio_logistica] ?? "Envío")}: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado ?? "—")}</span>${env.estimada && c.envio_estado !== "delivered" ? `<span class="mut">· llega ${fechaCorta(env.estimada)}</span>` : ""}</div>` : ""}
+    ${estado}${urg}${avisos}
+    <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
+    <div class="redactar" id="mRed"></div>`;
+  const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
+  if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
+  if ($(".m-atras")) $(".m-atras").onclick = volverLista;
+  $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
+  if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
+  bur.onclick = async (e) => {
+    const b = e.target.closest("[data-adj]"); if (!b) return;
+    b.disabled = true; const r = await seguro(() => api("mensaje_adjunto", { id: c.id, archivo: b.dataset.adj })); b.disabled = false;
+    if (!r) return;
+    const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
+    const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener";
+    if (!/^image\/|pdf|text\/plain/.test(r.tipo)) a.download = r.nombre;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+  if (c.conv_estado === "active") redactarLibre(d);
+  else if (c.con_motivo) redactarMotivo(d);
+  else $("#mRed").remove();
+}
+
+function redactarLibre(d) {
+  const c = d.conversacion, mat = d.material ?? [];
+  const elegidos = new Set((c.borrador_material ?? []).map(Number));
+  const sueltos = [];
+  $("#mRed").innerHTML = `
+    ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span>${c.borrador_motivo ? `<span class="mut">· ${esc(c.borrador_motivo)}</span>` : ""}</div>` : ""}
+    ${mat.length ? `<div class="mat"><span class="mat-t">Material de esta publicación:</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
+    <div class="mat" id="mSue"></div>
+    <label class="oculto-v" for="mTx">Mensaje para el comprador</label>
+    <textarea id="mTx" placeholder="Escribí el mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
+    <div id="mRes"></div>
+    <div class="acciones">
+      <label class="btn lin chico" style="cursor:pointer">${ICONO_M.clip} Adjuntar<input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v"></label>
+      <button class="btn lin chico" type="button" id="mReg">${ICONO.escudo} Revisar reglas</button>
+      <button class="btn lin chico" type="button" id="mMej">${ICONO.varita} Mejorar redacción</button>
+      <button class="btn lin chico" type="button" id="mOtro" title="El bot vuelve a leer la conversación y propone otro texto">Otro borrador</button>
+      <div class="der"><span class="cont" id="mCont"></span>
+        ${c.puede_enviar ? `<button class="btn pri" type="button" id="mEnv">Enviar</button>` : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div></div>
+    ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en esta empresa: guardá el borrador y lo envía el administrador.</p>`}`;
+  const tx = $("#mTx");
+  const extra = () => mat.filter((m) => elegidos.has(m.id) && m.tipo === "enlace" && !tx.value.includes(m.url)).reduce((n, m) => n + m.url.length + 1, 0);
+  const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = `${n} / ${LIM_MSJ}`; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
+  tx.oninput = contar; contar();
+  const pintarSueltos = () => { $("#mSue").innerHTML = sueltos.map((f, i) => `<span class="mat-b on">${ICONO_M.clip} ${esc(f.nombre)} <span class="mut">${pesoTxt(f.bytes)}</span> <button type="button" class="x-s" data-q="${i}" aria-label="Quitar ${esc(f.nombre)}">×</button></span>`).join(""); };
+  $("#mSue").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); } };
+  $("#mArch").onchange = async () => {
+    for (const f of $("#mArch").files) {
+      if (!/\.(jpe?g|png|pdf|txt)$/i.test(f.name)) { aviso(`${f.name}: MercadoLibre acepta solo JPG, PNG, PDF o TXT`); continue; }
+      if (f.size > 8 * 1048576) { aviso(`${f.name}: para enviarlo desde acá tiene que pesar menos de 8 MB. Si es un manual, cargalo en Material para enviar.`); continue; }
+      sueltos.push({ nombre: f.name, mime: f.type, bytes: f.size, datos: await leerB64(f) });
+    }
+    $("#mArch").value = ""; pintarSueltos();
+  };
+  const matBox = $("#mRed .mat:not(#mSue)");
+  if (matBox) matBox.onclick = (e) => {
+    const b = e.target.closest("[data-m]"); if (!b) return;
+    const id = Number(b.dataset.m); elegidos.has(id) ? elegidos.delete(id) : elegidos.add(id);
+    b.classList.toggle("on", elegidos.has(id)); b.setAttribute("aria-pressed", elegidos.has(id)); contar();
+  };
+  $("#mReg").onclick = () => revisarReglas(c.id, tx, $("#mRes"), $("#mReg"), "mensaje_revisar");
+  $("#mMej").onclick = () => mejorarTexto(c.id, tx, $("#mRes"), $("#mMej"), "mensaje_mejorar");
+  $("#mOtro").onclick = async () => {
+    $("#mOtro").disabled = true; $("#mOtro").textContent = "Redactando…";
+    const r = await seguro(() => api("mensaje_borrador", { id: c.id }));
+    $("#mOtro").disabled = false; $("#mOtro").textContent = "Otro borrador";
+    if (r) { tx.value = r.texto ?? ""; contar(); if (r.nota) aviso(r.nota); }
+  };
+  if ($("#mGuar")) $("#mGuar").onclick = async () => { if (await seguro(() => api("mensaje_borrador", { id: c.id, texto: tx.value }))) aviso("Borrador guardado"); };
+  if ($("#mEnv")) $("#mEnv").onclick = async () => {
+    const n = tx.value.length + extra();
+    if (n > LIM_MSJ) return aviso(`El mensaje tiene ${n} caracteres: MercadoLibre acepta hasta ${LIM_MSJ}`);
+    if (!tx.value.trim() && !elegidos.size && !sueltos.length) return aviso("Escribí un mensaje o elegí un archivo");
+    const b = $("#mEnv"); b.disabled = true; b.textContent = "Enviando…";
+    const r = await seguro(() => api("mensaje_enviar", { id: c.id, texto: tx.value, material_ids: [...elegidos], adjuntos: sueltos }));
+    b.disabled = false; b.textContent = "Enviar";
+    if (r) { aviso("Mensaje enviado"); abrirConv(c.id); cargarHilos(empMsj()); }
+  };
+}
+
+async function redactarMotivo(d) {
+  const c = d.conversacion;
+  $("#mRed").innerHTML = `<p class="mut">Consultando los motivos que habilita MercadoLibre…</p>`;
+  const r = await seguro(() => api("mensaje_opciones", { id: c.id }));
+  if (!r || S.msjId !== c.id) return;
+  const ops = r.opciones ?? [];
+  if (!ops.length) { $("#mRed").innerHTML = `<p class="mut">MercadoLibre no habilita ningún motivo para esta venta. Vas a poder escribir cuando el comprador mande un mensaje.</p>`; return; }
+  let sel = ops.find((o) => o.habilitada && o.cupo !== 0) ?? null;
+  const pintar = () => {
+    const pl = sel?.plantillas?.[0];
+    $("#mRed").innerHTML = `<div class="motivos" role="radiogroup" aria-label="Motivo">${ops.map((o) => {
+      const sin = !o.habilitada || o.cupo === 0;
+      return `<button type="button" role="radio" aria-checked="${sel?.id === o.id}" class="motivo ${sel?.id === o.id ? "on" : ""}" data-o="${esc(o.id)}" ${sin ? "disabled" : ""}><span class="r"></span><span><b>${esc(o.nombre)}</b><span class="peq mut">${o.plantillas?.length ? "Texto fijo de MercadoLibre" : `Texto libre, hasta ${o.limite ?? LIM_MSJ} caracteres`}</span></span><span class="cupo ${sin ? "cero" : ""}">${o.cupo == null ? "" : o.cupo === 0 ? "Sin cupo" : `Quedan ${o.cupo}`}</span></button>`;
+    }).join("")}</div>
+      ${sel ? pl ? `<div class="fijo">${esc(pl.texto)}</div>` : `<textarea id="mTx" maxlength="${sel.limite ?? LIM_MSJ}" placeholder="Escribí el mensaje"></textarea>` : ""}
+      <div class="acciones"><span class="peq mut">Con un motivo solo se manda texto. Los archivos van cuando el comprador conteste.</span>
+        <div class="der">${sel && !pl ? `<span class="cont" id="mCont">0 / ${sel.limite ?? LIM_MSJ}</span>` : ""}${c.puede_enviar ? `<button class="btn pri" type="button" id="mEnvM" ${sel ? "" : "disabled"}>Enviar con este motivo</button>` : ""}</div></div>`;
+    $("#mRed").querySelector(".motivos").onclick = (e) => { const b = e.target.closest("[data-o]"); if (b && !b.disabled) { sel = ops.find((o) => o.id === b.dataset.o); pintar(); } };
+    if ($("#mTx")) $("#mTx").oninput = () => { $("#mCont").textContent = `${$("#mTx").value.length} / ${sel.limite ?? LIM_MSJ}`; };
+    if ($("#mEnvM")) $("#mEnvM").onclick = async () => {
+      const texto = $("#mTx")?.value ?? "";
+      if (!pl && !texto.trim()) return aviso("Escribí el mensaje");
+      const b = $("#mEnvM"); b.disabled = true; b.textContent = "Enviando…";
+      const x = await seguro(() => api("mensaje_enviar", { id: c.id, opcion: sel.id, plantilla: pl?.id ?? null, texto }));
+      b.disabled = false; b.textContent = "Enviar con este motivo";
+      if (x) { aviso("Mensaje enviado"); abrirConv(c.id); cargarHilos(empMsj()); }
+    };
+  };
+  pintar();
+}
+
+function pintarVenta(d) {
+  const c = d.conversacion, env = c.envio ?? {};
+  const paso = (si, t, f) => `<div class="${si ? "si" : ""}"><b>${t}</b>${f ? `<span class="mut"> · ${fecha(f)}</span>` : ""}</div>`;
+  $("#mVen").innerHTML = `
+    <h3>Producto</h3><div class="prod">${foto(c.item_thumbnail)}<div><b>${esc(c.item_titulo ?? "—")}</b>${c.item_variacion ? `<div class="peq mut">${esc(c.item_variacion)}</div>` : ""}</div></div>
+    <h3>Venta</h3>
+    <div class="dv"><span>Número</span><span>${esc((c.orden_ids ?? [c.pack_id])[0])}</span></div>
+    <div class="dv"><span>Fecha</span><span>${fecha(c.fecha_venta)}</span></div>
+    <div class="dv"><span>Cantidad</span><span>${num(c.cantidad)}</span></div>
+    <div class="dv"><span>Total</span><b>${plata(c.total, c.moneda)}</b></div>
+    <div class="dv"><span>Estado</span><span>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden ?? "—")}</span></div>
+    <h3>Envío · ${esc(LOGISTICA[c.envio_logistica] ?? c.envio_logistica ?? "—")}</h3>
+    ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!env.entregado, c.envio_estado === "not_delivered" ? "No entregado" : "Entregado", env.entregado)}</div>
+      ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
+      ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
+    ${c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
+    ${S.rol !== "operador" ? `<h3>Quién la atiende</h3><p class="peq" style="margin:0">${c.asignados_nombres?.length ? esc(c.asignados_nombres.join(", ")) : `<span class="mut">${S.msjLista?.con_asignaciones ? "Nadie la cubre ahora: te llega a vos" : "Todo el equipo"}</span>`}</p>` : ""}
+    ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
+    ${d.material?.length ? `<h3>Material de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
+}
+
+async function buscarVenta(emp) {
+  const v = cajon(`<div class="cajon-cab"><h2>Escribir por una venta</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p class="mut peq">Elegí una venta para abrir su conversación. Si el comprador todavía no escribió, MercadoLibre pide elegir un motivo.</p>
+    <input type="search" id="vBus" placeholder="Número de venta o usuario del comprador" style="width:100%">
+    <div id="vRes" style="margin-top:12px"><p class="mut">Cargando ventas recientes…</p></div>`);
+  const cargar = async () => {
+    const r = await seguro(() => api("mensajes_ventas", { empresa_id: emp, buscar: $("#vBus", v).value.trim() }));
+    if (!r) return;
+    $("#vRes", v).innerHTML = r.ventas.map((x, i) => `<button type="button" class="venta-f" data-i="${i}"><b>${esc(x.titulo ?? "Venta")}</b><span class="mut peq">${esc(x.comprador ?? "")} · ${fecha(x.fecha)} · ${plata(x.total, x.moneda)}${x.estado === "cancelled" ? " · cancelada" : ""}</span>${x.conversacion_id ? `<span class="chip c-ok">Abierta</span>` : ""}</button>`).join("") || `<p class="mut">No encontré ventas con eso.</p>`;
+    $("#vRes", v).onclick = async (e) => {
+      const b = e.target.closest("[data-i]"); if (!b) return;
+      const x = r.ventas[Number(b.dataset.i)];
+      b.disabled = true;
+      const id = x.conversacion_id ?? (await seguro(() => api("mensajes_abrir", { empresa_id: emp, cuenta_id: x.cuenta_id, pack_id: x.pack_id })))?.id;
+      if (!id) { b.disabled = false; return; }
+      v.remove(); S.msjFil = "todas"; await cargarHilos(emp); abrirConv(id);
+    };
+  };
+  let t; $("#vBus", v).oninput = () => { clearTimeout(t); t = setTimeout(cargar, 450); };
+  cargar();
+}
+function leerB64(f) { return new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1] ?? ""); r.onerror = () => mal(r.error); r.readAsDataURL(f); }); }
+
+// ================= MATERIAL PARA ENVIAR =================
+VISTAS.material = async () => {
+  const emp = S.rol === "admin" ? S.empSel : null;
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Material para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  const r = await seguro(() => api("material_lista", { empresa_id: emp })); if (!r || S.tab !== "material") return;
+  S.matPubs = r.publicaciones;
+  if (!S.matPub || !r.publicaciones.some((p) => p.id === S.matPub)) S.matPub = (r.publicaciones.find((p) => p.archivos + p.enlaces) ?? r.publicaciones[0])?.id ?? null;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Material para enviar</h1><p>Manuales, guías de instalación, garantías y links de cada publicación, listos para mandarlos en la conversación con un clic. El bot también los propone cuando corresponde.</p></div></div>
+    <div class="mat-grid"><div class="panel mat-pubs"><input type="search" id="mpBus" placeholder="Buscar publicación" aria-label="Buscar publicación" style="width:100%">
+      <label class="peq" style="display:flex;gap:6px;align-items:center;margin:10px 0 4px"><input type="checkbox" id="mpCon" ${S.matCon ? "checked" : ""}> Solo las que tienen material</label>
+      <div id="mpLista"></div></div>
+    <div id="mpDet"></div></div>`;
+  const lista = () => {
+    const t = ($("#mpBus").value ?? "").toLowerCase();
+    const fil = S.matPubs.filter((p) => (!t || p.titulo.toLowerCase().includes(t) || p.id.toLowerCase().includes(t)) && (!S.matCon || p.archivos + p.enlaces));
+    $("#mpLista").innerHTML = fil.slice(0, 200).map((p) => `<button type="button" class="pub-m ${p.id === S.matPub ? "on" : ""}" data-p="${esc(p.id)}">${foto(p.thumbnail)}<span><b>${esc(p.titulo)}</b><span class="peq mut">${p.archivos + p.enlaces ? `${p.archivos ? `${p.archivos} archivo${p.archivos > 1 ? "s" : ""}` : ""}${p.archivos && p.enlaces ? " · " : ""}${p.enlaces ? `${p.enlaces} link${p.enlaces > 1 ? "s" : ""}` : ""}` : "Sin material"}</span></span></button>`).join("") || `<p class="mut peq">No hay publicaciones con eso.</p>`;
+  };
+  $("#mpBus").oninput = lista;
+  $("#mpCon").onchange = () => { S.matCon = $("#mpCon").checked; lista(); };
+  $("#mpLista").onclick = (e) => { const b = e.target.closest("[data-p]"); if (b) { S.matPub = b.dataset.p; lista(); detalleMaterial(emp); } };
+  lista(); detalleMaterial(emp);
+};
+
+async function detalleMaterial(emp) {
+  if (!S.matPub) { $("#mpDet").innerHTML = `<div class="panel vacio"><b>No hay publicaciones activas</b>Aparecen cuando la cuenta termine de leerlas.</div>`; return; }
+  const r = await seguro(() => api("material_lista", { empresa_id: emp, item_id: S.matPub })); if (!r) return;
+  const p = r.publicacion ?? { titulo: S.matPub };
+  $("#mpDet").innerHTML = `<div class="panel">
+    <div class="prod" style="margin-bottom:14px">${foto(p.thumbnail)}<div><b>${esc(p.titulo)}</b><div class="peq mut">${esc(S.matPub)}${p.permalink ? ` · <a href="${esc(p.permalink)}" target="_blank" rel="noopener">Ver en MercadoLibre</a>` : ""}</div></div></div>
+    ${r.material.map((m) => `<div class="mat-it">${m.tipo === "enlace" ? ICONO_M.link.replace(/15/g, "20") : ICONO_M.doc}
+      <div><b>${esc(m.titulo)}</b><div class="peq mut">${m.tipo === "enlace" ? esc(m.url) : `${esc(m.archivo_nombre)} · ${pesoTxt(m.bytes)}`}</div>
+        <div class="peq">${m.cuando === "entrega" ? `<span class="chip c-ok">El bot lo propone al entregarse</span>` : `<span class="chip">Solo a mano</span>`}${m.tambien ? ` <span class="chip">También lo usan ${m.tambien} publicación${m.tambien > 1 ? "es" : ""}</span>` : ""}</div></div>
+      <div class="acc"><button class="btn lin chico" data-ver="${m.id}">Ver</button><button class="btn lin chico" data-cop="${m.id}">Copiar a otras</button><button class="btn pel chico" data-bor="${m.id}">Quitar</button></div></div>`).join("") || `<div class="vacio" style="margin:0 0 12px"><b>Esta publicación no tiene material</b>Sumá el manual, la guía de instalación o un link útil.</div>`}
+    <h3 style="margin:20px 0 10px">Agregar</h3>
+    <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
+    <div class="grilla g2" style="margin-top:12px;gap:12px">
+      <div><label class="et" for="maTit">Nombre</label><input id="maTit" placeholder="Por ejemplo: Manual de instalación" maxlength="120" style="width:100%"></div>
+      <div id="maCampo"><label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt"></div></div>
+    <div id="maAviso"></div>
+    <div class="mat-ops" role="radiogroup" aria-label="Cuándo se usa">
+      <label class="mat-op"><input type="radio" name="maCu" value="mano" checked> <span><b>Solo a mano</b><span class="peq mut">Aparece para elegirlo cuando escribís.</span></span></label>
+      <label class="mat-op"><input type="radio" name="maCu" value="entrega"> <span><b>Proponerlo al entregarse</b><span class="peq mut">Cuando el envío figura entregado, el bot lo suma al borrador. Lo envía una persona.</span></span></label></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="maG">Guardar</button></div></div>`;
+  let tipo = "archivo";
+  $("#maTipo").onclick = (e) => {
+    const b = e.target.closest("[data-t]"); if (!b) return; tipo = b.dataset.t;
+    $("#maTipo").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    $("#maCampo").innerHTML = tipo === "archivo" ? `<label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt">`
+      : `<label class="et" for="maUrl">Link</label><input id="maUrl" type="url" placeholder="https://" style="width:100%">`;
+    $("#maAviso").innerHTML = "";
+    if ($("#maUrl")) $("#maUrl").oninput = () => {
+      const u = $("#maUrl").value.trim(); let h = ""; try { h = new URL(u).hostname; } catch {}
+      $("#maAviso").innerHTML = !h ? "" : /(meli\.la|bit\.ly|tinyurl|goo\.gl|cutt\.ly|wa\.me|linktr)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es un link acortado: MercadoLibre los modera. Pegá el link completo.</div>`
+        : /(facebook|instagram|tiktok|whatsapp|youtube|youtu\.be|telegram|twitter|x\.com)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es de una red social: MercadoLibre modera esos links en los mensajes.</div>`
+        : !/mercadoli(b|v)re\./i.test(h) ? `<div class="mej-al" style="margin-top:10px">Lleva fuera de MercadoLibre (${esc(h)}). Puede ser moderado: si es un manual, conviene subir el archivo.</div>` : "";
+    };
+  };
+  $("#maG").onclick = async () => {
+    const titulo = $("#maTit").value.trim(); if (!titulo) return aviso("Poné un nombre");
+    const cuando = document.querySelector("input[name=maCu]:checked").value;
+    const m = { publicacion_id: S.matPub, titulo, cuando, tipo };
+    if (tipo === "archivo") {
+      const f = $("#maArch").files[0]; if (!f) return aviso("Elegí el archivo");
+      if (f.size > 25 * 1048576) return aviso("El archivo pesa más de 25 MB");
+      m.archivo = { nombre: f.name, mime: f.type, datos: await leerB64(f) };
+    } else m.url = $("#maUrl").value.trim();
+    const b = $("#maG"); b.disabled = true; b.textContent = "Guardando…";
+    const ok = await seguro(() => api("material_guardar", { empresa_id: emp, material: m }));
+    b.disabled = false; b.textContent = "Guardar";
+    if (ok) { aviso("Material guardado"); const p = S.matPubs.find((x) => x.id === S.matPub); if (p) tipo === "archivo" ? p.archivos++ : p.enlaces++; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); }
+  };
+  $("#mpDet").onclick = async (e) => {
+    const ver = e.target.closest("[data-ver]"), cop = e.target.closest("[data-cop]"), bor = e.target.closest("[data-bor]");
+    if (ver) { const x = await seguro(() => api("material_link", { empresa_id: emp, id: Number(ver.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); }
+    if (bor && confirm("¿Quitar este material de esta publicación?")) { if (await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(bor.dataset.bor) }))) { const m = r.material.find((x) => x.id === Number(bor.dataset.bor)); const p = S.matPubs.find((x) => x.id === S.matPub); if (p && m) m.tipo === "archivo" ? p.archivos-- : p.enlaces--; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); } }
+    if (cop) copiarMaterial(emp, r.material.find((x) => x.id === Number(cop.dataset.cop)));
+  };
+}
+
+function copiarMaterial(emp, m) {
+  const elegidas = new Set();
+  const v = cajon(`<div class="cajon-cab"><h2>Copiar “${esc(m.titulo)}”</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p class="mut peq">Elegí las publicaciones que también lo usan. No se vuelve a subir el archivo.</p>
+    <input type="search" id="cpBus" placeholder="Buscar publicación" style="width:100%"><div id="cpL" class="cp-l"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;align-items:center"><span class="peq mut" id="cpN">Ninguna elegida</span><button class="btn pri" id="cpG" style="margin-left:auto">Copiar</button></div>`);
+  const pintar = () => {
+    const t = $("#cpBus", v).value.toLowerCase();
+    $("#cpL", v).innerHTML = S.matPubs.filter((p) => p.id !== S.matPub && (!t || p.titulo.toLowerCase().includes(t))).slice(0, 150)
+      .map((p) => `<label class="cp-f"><input type="checkbox" value="${esc(p.id)}" ${elegidas.has(p.id) ? "checked" : ""}><span>${esc(p.titulo)}</span></label>`).join("");
+  };
+  $("#cpL", v).onchange = (e) => { const x = e.target; x.checked ? elegidas.add(x.value) : elegidas.delete(x.value); $("#cpN", v).textContent = elegidas.size ? `${elegidas.size} elegida${elegidas.size > 1 ? "s" : ""}` : "Ninguna elegida"; };
+  $("#cpBus", v).oninput = pintar; pintar();
+  $("#cpG", v).onclick = async () => {
+    if (!elegidas.size) return aviso("Elegí al menos una publicación");
+    const r = await seguro(() => api("material_copiar", { empresa_id: emp, id: m.id, publicaciones: [...elegidas] }));
+    if (r) { v.remove(); aviso(`Copiado a ${r.copiadas} publicación${r.copiadas === 1 ? "" : "es"}`); VISTAS.material(); }
+  };
+}
+
+// ================= RENDIMIENTO DE MENSAJES =================
+async function rendimientoMensajes(emp) {
+  const { desde, hasta } = rangoPer();
+  const d = await seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta, modulo: "mensajes" }));
+  if (!d || S.tab !== "rendimiento") return;
+  const t = d.totales;
+  const gente = d.personas.filter((p) => p.estado !== "baja" || p.enviados);
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Cómo se atendieron los mensajes de quienes ya compraron. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
+    <div class="medidas">
+      <div class="medida"><b>${num(t.recibidos)}</b><span>mensajes de compradores</span></div>
+      <div class="medida"><b>${num(t.enviados)}</b><span>mensajes enviados (${num(t.conversaciones)} conversaciones)</span></div>
+      <div class="medida"><b>${dur(t.tiempo_mediana_seg)}</b><span>tiempo típico de respuesta</span></div>
+      <div class="medida"><b>${num(t.pendientes_ahora)}</b><span>esperando respuesta ahora${t.urgentes_ahora ? `, ${num(t.urgentes_ahora)} urgentes` : ""}</span></div></div>
+    <div class="panel" style="margin-top:18px;overflow-x:auto"><table class="tabla"><tr><th>Persona</th><th>Mensajes enviados</th><th>Conversaciones</th><th>Tiempo típico</th><th>Promedio</th></tr>
+      ${gente.map((p) => `<tr><td><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td>${num(p.enviados)}</td><td>${num(p.conversaciones)}</td><td>${dur(p.tiempo_mediana_seg)}</td><td>${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
+      ${t.desde_mercadolibre.enviados ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Respondidos fuera de Mostrador</div></td><td>${num(t.desde_mercadolibre.enviados)}</td><td>${num(t.desde_mercadolibre.conversaciones)}</td><td>${dur(t.desde_mercadolibre.tiempo_mediana_seg)}</td><td>${dur(t.desde_mercadolibre.tiempo_prom_seg)}</td></tr>` : ""}</table></div>`;
+  enlazarPeriodo(VISTAS.rendimiento);
+  pestModulo("rendMod", VISTAS.rendimiento);
+}
+
+// ================= PLANES Y MÓDULOS (dueño) =================
+async function panelModulos(res) {
+  const pm = await seguro(() => api("planes_modulos")); if (!pm) return;
+  const planes = [...new Set([...Object.keys(S.planes ?? {}), ...Object.keys(pm)])];
+  const box = document.createElement("div"); box.className = "grilla g2 g-planes"; box.style.cssText = "align-items:start;margin-top:18px";
+  box.innerHTML = `<div class="panel"><h2>Módulos de cada plan</h2><p class="mut peq" style="margin:0 0 6px">Cada módulo se cobra aparte. Si un plan no tiene nada marcado, incluye solo Preguntas.</p>
+      <table class="tabla"><tr><th>Plan</th>${Object.values(MODULOS).map((t) => `<th>${t}</th>`).join("")}</tr>
+      ${planes.map((p) => `<tr data-pl="${esc(p)}"><td><b>${esc(p)}</b></td>${Object.keys(MODULOS).map((k) => `<td><input type="checkbox" aria-label="${esc(p)}: ${MODULOS[k]}" data-k="${k}" ${(pm[p] ?? ["preguntas"]).includes(k) ? "checked" : ""}></td>`).join("")}</tr>`).join("") || `<tr><td colspan="3" class="mut">Primero creá los planes.</td></tr>`}</table>
+      <button class="btn pri" id="pmG" style="margin-top:12px">Guardar módulos de los planes</button></div>
+    <div class="panel" style="overflow-x:auto"><h2>Módulos de cada empresa</h2><p class="mut peq" style="margin:0 0 6px">Por defecto, los de su plan. Elegí “Propios” para venderle un módulo aparte.</p>
+      <table class="tabla"><tr><th>Empresa</th><th>Módulos</th><th></th></tr>
+      ${res.empresas.map((e) => { const propios = Array.isArray(e.modulos); const act = new Set(e.modulos_efectivos ?? []); return `<tr data-me="${e.id}"><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.plan ?? "Sin plan")}</div></td>
+        <td><select class="meM" aria-label="Origen de los módulos"><option value="plan" ${propios ? "" : "selected"}>Los del plan</option><option value="propios" ${propios ? "selected" : ""}>Propios</option></select>
+          <div class="meK" style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<label class="peq"><input type="checkbox" data-k="${k}" ${act.has(k) ? "checked" : ""} ${propios ? "" : "disabled"}> ${t}</label>`).join("")}</div></td>
+        <td><button class="btn lin chico meG">Guardar</button></td></tr>`; }).join("")}</table></div>`;
+  $("#main").appendChild(box);
+  $("#pmG").onclick = async () => {
+    const nuevo = {};
+    box.querySelectorAll("tr[data-pl]").forEach((tr) => { nuevo[tr.dataset.pl] = [...tr.querySelectorAll("input:checked")].map((x) => x.dataset.k); });
+    if (await seguro(() => api("planes_modulos", { planes: nuevo }))) aviso("Módulos de los planes guardados");
+  };
+  box.querySelectorAll("tr[data-me]").forEach((tr) => {
+    $(".meM", tr).onchange = () => tr.querySelectorAll(".meK input").forEach((x) => x.disabled = $(".meM", tr).value !== "propios");
+    $(".meG", tr).onclick = async () => {
+      const modulos = $(".meM", tr).value === "propios" ? [...tr.querySelectorAll(".meK input:checked")].map((x) => x.dataset.k) : null;
+      if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.me, modulos }))) aviso("Módulos de la empresa guardados");
+    };
+  });
+}
+
+// Avisos de mensajes nuevos (se suma al sondeo de preguntas)
+function avisosMensajes(m) {
+  if (!m) return;
+  if (AV.vistosM) {
+    const nuevas = (m.nuevas ?? []).filter((x) => !AV.vistosM.has(x.id));
+    if (nuevas.length) {
+      sonar(); aviso(nuevas.length === 1 ? "Llegó un mensaje de un comprador" : `Llegaron ${nuevas.length} mensajes de compradores`);
+      if (S.tab === "mensajes" && !$("#mTx:focus")) cargarHilos(empMsj());
+    }
+  }
+  AV.vistosM = new Set([...(AV.vistosM ?? []), ...(m.nuevas ?? []).map((x) => x.id)]);
+  if (S.pendMsj !== m.pendientes) { S.pendMsj = m.pendientes; armarNav(); }
+}
+// Al tocar el aviso de un mensaje, se abre esa conversación
+// Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
+function abrirDesdeEnlace(h) {
+  const t = String(h || "");
+  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/);
+  if (!S.rol || (!mm && !mp)) return false;
+  if (mm) {
+    if (!modsActuales().has("mensajes")) return false;
+    S.msjId = Number(mm[1]); ir("mensajes"); return true;
+  }
+  try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+  ir(inicio());
+  detalle(Number(mp[1]));
+  return true;
+}
+navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
 </script>
 <script>
 // App instalable (PWA): guarda la pantalla para que abra rápido y permite instalarla
