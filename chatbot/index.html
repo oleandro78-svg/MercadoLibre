@@ -119,7 +119,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .panel+.panel{margin-top:16px}.grilla>.panel+.panel{margin-top:0}
 .panel h2{margin-bottom:4px}
 .grilla{display:grid;gap:16px}
-.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g-planes{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g-planes{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
 .tabla{width:100%;border-collapse:collapse}
 .tabla th,.tabla td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--linea);vertical-align:top}
 .tabla th{font-size:13px;color:var(--piz);font-weight:500}
@@ -358,7 +358,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .contenido{padding:20px 16px 60px}
   .conf{grid-template-columns:1fr}.costo{position:static}
   .medidas{grid-template-columns:1fr 1fr}.medida:nth-child(2){border-right:0}.medida:nth-child(-n+2){border-bottom:1px solid var(--linea)}
-  .g2,.g3{grid-template-columns:1fr}
+  .g2,.g3,.g-planes{grid-template-columns:minmax(0,1fr)}
   .ingreso{grid-template-columns:1fr}.ingreso .lado-a{padding:32px 24px}.ingreso .lado-a h1{font-size:34px}
   .portada{grid-template-columns:1fr;gap:8px}.contador{font-size:64px}
   .ajuste{grid-template-columns:1fr}
@@ -472,13 +472,13 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .chat-cab .t span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-cab .t{flex:1 1 calc(100% - 60px)}
 .acc-cab{margin-left:auto}
-.estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
-.estado svg{flex:none;margin-top:2px}
+.m-chat .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.m-chat .estado svg{flex:none;margin-top:2px}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
 .dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
-.b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
-.b small{display:block;font-size:11.5px;color:var(--piz);margin-top:4px}
+.burbujas .b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
+.burbujas .b small{display:block;font-size:11.5px;color:var(--piz);margin-top:4px}
 .b-comp{align-self:flex-start;background:var(--sup);border-bottom-left-radius:4px}
 .b-vend{align-self:flex-end;background:var(--pino-2);border-bottom-right-radius:4px}.b-vend small{text-align:right}
 .b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
@@ -487,7 +487,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
 .redactar{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px 16px}
 .redactar textarea{width:100%;min-height:96px;resize:vertical}
-.ia{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cielo);margin-bottom:8px;flex-wrap:wrap}.ia .mut{font-weight:400}
+.redactar .ia{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cielo);margin-bottom:8px;flex-wrap:wrap}.redactar .ia .mut{font-weight:400}
 .redactar .acciones{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .redactar .acciones .der{margin-left:auto;display:flex;gap:10px;align-items:center}
 .cont{font-size:12.5px;color:var(--piz)}.cont.pasado{color:var(--ladrillo);font-weight:700}
@@ -499,11 +499,11 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .x-s{all:unset;cursor:pointer;font-weight:700;padding:0 4px}
 .oculto-v{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .motivos{display:grid;gap:8px;margin-bottom:12px}
-.motivo{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:start;border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 12px;background:var(--sup)}
-.motivo.on{border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset}.motivo[disabled]{opacity:.55;cursor:default}
-.motivo:focus-visible{outline:2px solid var(--cielo)}
-.motivo .r{width:16px;height:16px;border-radius:50%;border:2px solid var(--linea);margin-top:3px;box-sizing:border-box}.motivo.on .r{border:5px solid var(--pino)}
-.motivo b{font-size:14px}.motivo .peq{display:block}
+.motivos .motivo{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:start;border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 12px;background:var(--sup)}
+.motivos .motivo.on{border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset}.motivos .motivo[disabled]{opacity:.55;cursor:default}
+.motivos .motivo:focus-visible{outline:2px solid var(--cielo)}
+.motivos .motivo .r{width:16px;height:16px;border-radius:50%;border:2px solid var(--linea);margin-top:3px;box-sizing:border-box}.motivos .motivo.on .r{border:5px solid var(--pino)}
+.motivos .motivo b{font-size:14px}.motivos .motivo .peq{display:block}
 .cupo{font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--pino-2);color:var(--pino-t);white-space:nowrap}.cupo.cero{background:var(--sup2);color:var(--piz)}.cupo:empty{display:none}
 .fijo{border:1px dashed var(--linea);border-radius:var(--r-m);padding:10px 12px;font-size:14px;background:var(--sup2);color:var(--piz)}
 .m-venta{border-left:1px solid var(--linea);background:var(--sup);padding:20px 18px;overflow:auto;min-height:0}
@@ -523,14 +523,14 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .msj{grid-template-columns:minmax(0,1fr);height:auto;min-height:calc(100dvh - 57px)}
   .m-chat,.m-lista{min-height:calc(100dvh - 57px)}
   .burbujas{flex:none;overflow:visible}
-  .estado.e-ok{display:none}
+  .m-chat .estado.e-ok{display:none}
   .redactar textarea{min-height:80px}
   .mat{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.mat-b{white-space:nowrap}
   .m-venta{display:none}
   .msj.ver-lista .m-chat{display:none}.msj.ver-chat .m-lista{display:none}
-  .b{max-width:85%}
+  .burbujas .b{max-width:85%}
   .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .t{flex:1 1 calc(100% - 110px)}
-  .estado{margin:10px 14px 0}
+  .m-chat .estado{margin:10px 14px 0}
   .redactar .acciones .der{margin-left:0;width:100%;justify-content:flex-end}
 }
 .venta-cab{display:grid;line-height:1.3;padding-left:52px}
@@ -548,7 +548,8 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 /* Tablas que en el celular se muestran como tarjetas: cada dato con su título arriba */
 .tabla.apilable th{white-space:nowrap}
 @media (max-width:720px){
-  .tabla.apilable,.tabla.apilable tbody{display:block}
+  .tabla.apilable,.tabla.apilable tbody{display:block;min-width:0!important}
+  .tabla.apilable td:not([data-et]):not(:first-child){grid-column:1/-1}
   .tabla.apilable tr:has(th){display:none}
   .tabla.apilable tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 4px;border-bottom:1px solid var(--linea)}
   .tabla.apilable td{display:block;padding:0;border:0;min-width:0}
@@ -1334,7 +1335,7 @@ VISTAS.rendimiento = async () => {
     <div class="panel" style="margin-top:16px"><h2>Respuestas por día</h2>${grafDias(d.serie, ["bot", "equipo", "ml"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
     <div class="panel" style="padding:16px 18px"><h2>Por persona</h2>
       <p class="mut peq" style="margin:0 0 6px">El tiempo va desde que el comprador preguntó hasta que salió la respuesta; se muestra el típico (la mitad de las respuestas tardó menos) y el promedio. Hay repregunta cuando el mismo comprador vuelve a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas: suele indicar que la respuesta quedó incompleta.</p>
-      <div class="tabla-scroll"><table class="tabla rd"><tr><th>Quién</th><th>Respondió</th><th>Tiempo típico</th><th>Repreguntas</th><th>Descartó</th><th>Le llegaron</th><th>Última respuesta</th></tr>
+      <div class="tabla-scroll"><table class="tabla apilable rd"><tr><th>Quién</th><th>Respondió</th><th>Tiempo típico</th><th>Repreguntas</th><th>Descartó</th><th>Le llegaron</th><th>Última respuesta</th></tr>
       ${gente.map((p) => fila(avP(p), esc(p.nombre) + (p.vos ? ` <span class="mut">(vos)</span>` : ""), [p.rol === "admin" ? "Administrador" : "Operador", p.estado === "baja" ? "dado de baja" : p.estado === "invitado" ? "todavía no entró" : ""].filter(Boolean).join(", "), p, { color: p.color, descartadas: num(p.descartadas), asignadas: num(p.asignadas), ultima: p.ultima })).join("")}
       ${t.bot.respondidas ? fila(avI("IA", "var(--pino)"), "El bot", "respondió solo", t.bot, { color: "var(--pino)" }) : ""}
       ${t.mercadolibre.respondidas ? fila(avI("ML", "#9AA6B2"), "Desde MercadoLibre", "respondidas fuera de este panel", t.mercadolibre, { color: "#9AA6B2" }) : ""}
@@ -1360,7 +1361,7 @@ function autonomiaHTML(a) {
   const nota = !enAprob.length ? `<p class="aviso-n">Ninguna cuenta está en modo Aprobación${a.cuentas.length ? ` (${a.cuentas.map((c) => esc(c.nombre) + ": " + esc(MODOS[c.modo] ?? c.modo)).join(", ")})` : ""}. Lo que habilites acá se aplica cuando una cuenta esté en ese modo.</p>` : "";
   return `<h2>Qué tan listo está el bot para publicar solo</h2>
     <p class="mut peq" style="margin:0 0 10px">Por categoría, últimos 90 días: de los borradores del bot que el equipo revisó y publicó, cuántos salieron sin cambios de contenido (corregir solo la redacción no cuenta como error). Con ${a.umbral}% o más sobre al menos ${a.minimo} respuestas, conviene dejarlo publicar solo en esa categoría.</p>${nota}
-    ${cats.length ? `<div class="tabla-scroll"><table class="tabla rd au"><tr><th>Categoría</th><th>Revisadas</th><th>Aprobadas sin cambios</th><th>Cambiaron el contenido</th><th>El bot publicó solo</th><th></th></tr>
+    ${cats.length ? `<div class="tabla-scroll"><table class="tabla apilable rd au"><tr><th>Categoría</th><th>Revisadas</th><th>Aprobadas sin cambios</th><th>Cambiaron el contenido</th><th>El bot publicó solo</th><th></th></tr>
     ${cats.map((c) => `<tr><td><b>${esc(c.nombre)}</b>${c.auto ? `<div><span class="chip c-respondida">Publica solo</span></div>` : c.lista ? `<div><span class="chip c-simulada">Lista para publicar sola</span></div>` : ""}</td>
       <td>${num(c.revisadas)}</td>
       <td><div class="rd-n"><b>${c.aprobadas_pct == null ? "—" : pctTxt(c.aprobadas_pct)}</b><span class="rd-bar au-bar"><i style="width:${c.aprobadas_pct ?? 0}%;background:${(c.aprobadas_pct ?? 0) >= a.umbral ? "var(--pino)" : "var(--ambar)"}"></i><em style="left:${a.umbral}%"></em></span></div>${c.revisadas && c.revisadas < a.minimo ? `<div class="peq mut">faltan ${a.minimo - c.revisadas} para decidir</div>` : ""}</td>
@@ -1422,7 +1423,7 @@ VISTAS.numeros = async () => {
       <div class="medida"><b>${num(y.descartadas)}</b><span>${y.descartadas === 1 ? "pregunta descartada" : "preguntas descartadas"}</span></div>
     </div>
     <div class="panel" style="margin-top:16px"><h2>Tus respuestas por día</h2>${grafDias(d.serie, ["yo"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
-    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por empresa</h2><div class="tabla-scroll"><table class="tabla"><tr><th>Empresa</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
+    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por empresa</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Empresa</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
       ${d.por_empresa.map((e) => `<tr><td>${etiquetaEmpresa(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
     <div class="panel"><h2>Respuestas tuyas con repregunta</h2><p class="mut peq" style="margin:0 0 8px">El comprador volvió a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas. Mirá qué le faltaba a la respuesta.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, true)}</div>`;
@@ -2094,7 +2095,7 @@ VISTAS.uso = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>${dueno() ? "Uso y costos" : "Plan y uso"}</h1><p>${dueno() ? "Mes a mes, por cliente. Sirve para facturar el servicio." : "Lo que incluye tu plan y lo que se usó cada mes."}</p></div></div>
     ${emp ? `<div class="panel" style="margin-bottom:16px"><div class="fila" style="align-items:center;flex-wrap:wrap;gap:12px"><div><b>Plan ${esc(emp.plan ?? "sin plan")}</b><div class="mut peq">Módulos contratados</div></div>
       <div class="n" style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<span class="chip ${(emp.modulos_efectivos ?? []).includes(k) ? "c-ok" : ""}">${t}${(emp.modulos_efectivos ?? []).includes(k) ? "" : ": no incluido"}</span>`).join("")}</div></div></div>` : ""}
-    <div class="panel" style="padding:6px 18px;overflow-x:auto">${u.length ? `<table class="tabla"><tr><th>Mes</th><th>Cliente</th><th>Preguntas</th><th>Respondidas por el bot</th><th>Fueron a revisión</th><th>Tiempo del bot</th>${conMsj ? "<th>Conversaciones</th><th>Mensajes enviados</th>" : ""}${dueno() ? `<th>IA preguntas</th>${conMsj ? "<th>IA mensajes</th>" : ""}` : ""}</tr>
+    <div class="panel" style="padding:6px 18px;overflow-x:auto">${u.length ? `<table class="tabla apilable"><tr><th>Mes</th><th>Cliente</th><th>Preguntas</th><th>Respondidas por el bot</th><th>Fueron a revisión</th><th>Tiempo del bot</th>${conMsj ? "<th>Conversaciones</th><th>Mensajes enviados</th>" : ""}${dueno() ? `<th>IA preguntas</th>${conMsj ? "<th>IA mensajes</th>" : ""}` : ""}</tr>
     ${u.map((x) => `<tr><td>${esc(new Date(x.mes).toLocaleDateString("es-AR", { month: "long", year: "numeric", timeZone: "UTC" }))}</td><td>${esc(x.empresa ?? empNom(x.empresa_id))}</td><td>${num(x.preguntas)}</td><td>${num(x.respondidas_por_bot)}</td><td>${num(x.en_revision)}</td><td>${dur(x.tiempo_bot_promedio_seg)}</td>${conMsj ? `<td>${num(x.conversaciones)}</td><td>${num(x.mensajes_enviados)}</td>` : ""}${dueno() ? `<td>${usd(x.costo_ia_usd, 2)}</td>${conMsj ? `<td>${usd(x.costo_mensajes_usd, 2)}</td>` : ""}` : ""}</tr>`).join("")}</table>` : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando el bot procese preguntas.</div>`}</div>`;
 };
 
@@ -2267,7 +2268,7 @@ VISTAS.planes = async () => {
       <div id="plFilas">${nombres.map((n) => filaPlan(n, planes[n])).join("")}</div>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn lin" id="plMas">Agregar un plan</button><button class="btn pri" id="plG">Guardar planes</button></div></div>
     <div class="panel" style="overflow-x:auto"><h2>Plan de cada empresa</h2><p class="mut peq" style="margin:0 0 6px">Si una empresa necesita más operadores que su plan, poné un límite propio.</p>
-      <table class="tabla"><tr><th>Empresa</th><th>Plan</th><th>Límite propio</th><th></th></tr>
+      <table class="tabla apilable"><tr><th>Empresa</th><th>Plan</th><th>Límite propio</th><th></th></tr>
       ${res.empresas.map((e) => `<tr data-e="${e.id}"><td><b>${esc(e.nombre)}</b></td><td><select class="ePl" style="min-width:130px"><option value="">Sin plan</option>${[...new Set([...nombres, e.plan].filter(Boolean))].map((n) => `<option ${n === e.plan ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></td>
         <td><input type="number" min="0" class="eLi" placeholder="Del plan" value="${e.limite_operadores ?? ""}" style="width:110px"></td><td><button class="btn lin chico eG">Guardar</button></td></tr>`).join("")}</table></div></div>`;
   $("#plMas").onclick = () => { $("#plFilas").insertAdjacentHTML("beforeend", filaPlan("", 1)); $("#plFilas .plan-f:last-child input").focus(); };
@@ -2289,7 +2290,7 @@ const filaPlan = (n, v) => `<div class="plan-f" style="margin-top:10px;display:g
 VISTAS.clientes = async () => {
   const es = (await api("resumen")).empresas;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Empresas</h1><p>Alta, datos y estado de cada empresa cliente. Sus números están en Inicio.</p></div><button class="btn osc" id="eW">Dar de alta una empresa</button></div>
-    <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button></td></tr>`).join("")}</table></div>`;
+    <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button></td></tr>`).join("")}</table></div>`;
   $("#eW").onclick = () => altaGuiada();
   $("#main").onclick = async (ev) => {
     const d = ev.target.dataset;
@@ -2425,6 +2426,16 @@ function ponerSubtabs() {
   $("#main .subnav").onclick = (e) => { const b = e.target.closest("[data-st]"); if (b && b.dataset.st !== S.tab) ir(b.dataset.st); };
 }
 new MutationObserver(() => ponerSubtabs()).observe(document.getElementById("main"), { childList: true });
+// Tablas que en el celular pasan a tarjetas: cada celda toma como título el de su columna
+function titularTablas() {
+  for (const t of document.querySelectorAll("#main table.apilable:not([data-tit]), .velo table.apilable:not([data-tit])")) {
+    const filas = [...t.rows]; if (!filas.length) continue;
+    const tit = [...filas[0].cells].map((c) => c.textContent.trim());
+    for (const f of filas.slice(1)) [...f.cells].forEach((c, i) => { if (i > 0 && !c.hasAttribute("data-et") && tit[i]) c.setAttribute("data-et", tit[i]); });
+    t.setAttribute("data-tit", "1");
+  }
+}
+new MutationObserver(() => titularTablas()).observe(document.body, { childList: true, subtree: true });
 
 // ================= MÓDULOS =================
 // Cada empresa tiene los módulos de su plan (Preguntas, Mensajes) o los que le asignó el dueño de la app.
@@ -2932,11 +2943,11 @@ async function panelModulos(res) {
   const planes = [...new Set([...Object.keys(S.planes ?? {}), ...Object.keys(pm)])];
   const box = document.createElement("div"); box.className = "grilla g2 g-planes"; box.style.cssText = "align-items:start;margin-top:18px";
   box.innerHTML = `<div class="panel"><h2>Módulos de cada plan</h2><p class="mut peq" style="margin:0 0 6px">Cada módulo se cobra aparte. Si un plan no tiene nada marcado, incluye solo Preguntas.</p>
-      <table class="tabla"><tr><th>Plan</th>${Object.values(MODULOS).map((t) => `<th>${t}</th>`).join("")}</tr>
+      <table class="tabla apilable"><tr><th>Plan</th>${Object.values(MODULOS).map((t) => `<th>${t}</th>`).join("")}</tr>
       ${planes.map((p) => `<tr data-pl="${esc(p)}"><td><b>${esc(p)}</b></td>${Object.keys(MODULOS).map((k) => `<td><input type="checkbox" aria-label="${esc(p)}: ${MODULOS[k]}" data-k="${k}" ${(pm[p] ?? ["preguntas"]).includes(k) ? "checked" : ""}></td>`).join("")}</tr>`).join("") || `<tr><td colspan="3" class="mut">Primero creá los planes.</td></tr>`}</table>
       <button class="btn pri" id="pmG" style="margin-top:12px">Guardar módulos de los planes</button></div>
     <div class="panel" style="overflow-x:auto"><h2>Módulos de cada empresa</h2><p class="mut peq" style="margin:0 0 6px">Por defecto, los de su plan. Elegí “Propios” para venderle un módulo aparte.</p>
-      <table class="tabla"><tr><th>Empresa</th><th>Módulos</th><th></th></tr>
+      <table class="tabla apilable"><tr><th>Empresa</th><th>Módulos</th><th></th></tr>
       ${res.empresas.map((e) => { const propios = Array.isArray(e.modulos); const act = new Set(e.modulos_efectivos ?? []); return `<tr data-me="${e.id}"><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.plan ?? "Sin plan")}</div></td>
         <td><select class="meM" aria-label="Origen de los módulos"><option value="plan" ${propios ? "" : "selected"}>Los del plan</option><option value="propios" ${propios ? "selected" : ""}>Propios</option></select>
           <div class="meK" style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<label class="peq"><input type="checkbox" data-k="${k}" ${act.has(k) ? "checked" : ""} ${propios ? "" : "disabled"}> ${t}</label>`).join("")}</div></td>
