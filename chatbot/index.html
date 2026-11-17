@@ -1847,7 +1847,7 @@ VISTAS.conocimiento = async () => {
 async function conDocumentos() {
   const emp = empresaActual();
   const ds = await seguro(() => api("documentos", { empresa_id: emp })); if (!ds) return;
-  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch">Las instrucciones dicen cómo responder; el catálogo, lo que las publicaciones no dicen. Precio, stock, envío, retiro, garantía y facturación llegan en vivo de MercadoLibre: no los cargues acá. Cada cambio guarda una versión.</p><div class="n"><button class="btn osc" id="dN">Nuevo documento</button></div></div>
+  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch;min-width:min(280px,100%)">Las instrucciones dicen cómo responder; el catálogo, lo que las publicaciones no dicen. Precio, stock, envío, retiro, garantía y facturación llegan en vivo de MercadoLibre: no los cargues acá. Cada cambio guarda una versión.</p><div class="n"><button class="btn osc" id="dN">Nuevo documento</button></div></div>
     <div class="grilla g2">${ds.map((d) => `<button class="panel" style="text-align:left;cursor:pointer;display:block;width:100%;margin:0" data-id="${d.id}">
       <div class="fila" style="align-items:center"><h3>${esc(d.titulo)}</h3><div class="n">${d.activo ? `<span class="chip c-respondida">${d.tipo === "instrucciones" ? "Instrucciones" : "Catálogo"}</span>` : `<span class="chip">Inactivo</span>`}</div></div>
       <p class="mut peq" style="margin:6px 0 0">${num(d.contenido.length)} caracteres${d.cuenta_id ? ", solo para " + esc(cuentaNom(d.cuenta_id)) : ""}</p>
@@ -1880,7 +1880,7 @@ function editarDoc(d) {
 async function conCorrecciones() {
   const emp = empresaActual();
   const cs = await seguro(() => api("correcciones", { empresa_id: emp || null })); if (!cs) return;
-  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch">Respuestas validadas por vos. El bot las sigue antes que cualquier respuesta vieja y deja de usar las que marcaste como incorrectas. Para encontrar errores, filtrá Preguntas por "A mano vs. bot".</p><div class="n"><button class="btn osc" id="kN">Nueva corrección</button></div></div>
+  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch;min-width:min(280px,100%)">Respuestas validadas por vos. El bot las sigue antes que cualquier respuesta vieja y deja de usar las que marcaste como incorrectas. Para encontrar errores, filtrá Preguntas por "A mano vs. bot".</p><div class="n"><button class="btn osc" id="kN">Nueva corrección</button></div></div>
     <div class="panel" style="padding:4px 18px">${cs.length ? cs.map((c) => `<div class="ref" style="padding:14px 0"><div class="fila" style="align-items:flex-start"><b>${esc(c.texto_pregunta)}</b><div class="n">${c.activa ? "" : `<span class="chip">Inactiva</span> `}<button class="btn lin chico" data-ed="${c.id}">Editar</button> <button class="btn pel chico" data-del="${c.id}">Borrar</button></div></div>
       ${c.respuesta_incorrecta ? `<div class="peq mut" style="text-decoration:line-through;margin-top:4px">${esc(c.respuesta_incorrecta)}</div>` : ""}
       <div style="margin-top:4px">${c.respuesta_correcta ? esc(c.respuesta_correcta) : `<span class="mut">Solo excluida: no tiene respuesta correcta cargada.</span>`}</div>
@@ -1908,7 +1908,7 @@ async function conCorrecciones() {
 async function conRapidas() {
   const emp = empresaActual();
   const rs = await seguro(() => api("rapidas", { empresa_id: emp })); if (!rs) return;
-  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0">Textos para insertar con un clic cuando respondés a mano.</p><div class="n"><button class="btn osc" id="rN">Nueva respuesta rápida</button></div></div>
+  $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;min-width:min(280px,100%)">Textos para insertar con un clic cuando respondés a mano.</p><div class="n"><button class="btn osc" id="rN">Nueva respuesta rápida</button></div></div>
     <div class="grilla g2">${rs.map((r) => `<div class="panel" style="margin:0"><div class="fila" style="align-items:center"><h3>${esc(r.titulo)}</h3><div class="n"><button class="btn lin chico" data-ed="${r.id}">Editar</button> <button class="btn pel chico" data-del="${r.id}">Borrar</button></div></div><p class="pre peq" style="margin:8px 0 0">${esc(r.texto)}</p></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay respuestas rápidas</b>Guardá las que más repetís: envíos, garantía, factura.</div>`}</div>`;
   const editar = (r) => {
     const v = cajon(`<div class="cajon-cab"><h2>${r.id ? "Editar respuesta rápida" : "Nueva respuesta rápida"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
