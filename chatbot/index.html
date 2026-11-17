@@ -574,10 +574,33 @@ h3 .te{font-size:13px;margin-left:4px}
   .tabla.apilable tr.fila-click.on{background:var(--cielo-2);border-radius:var(--r-m)}
 }
 /* ---------- material para enviar ---------- */
+.dpubs{display:grid;gap:10px}
+.dpub{all:unset;box-sizing:border-box;cursor:pointer;display:block;background:var(--sup);border:1px solid var(--linea);border-radius:14px;padding:12px 14px;min-width:0}
+.dpub:hover{border-color:var(--piz)}.dpub:focus-visible{outline:2px solid var(--cielo)}
+.dpub-c{display:flex;gap:10px;align-items:center;min-width:0}.dpub-c .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.dpub-c b{font-size:15px;line-height:1.25;min-width:0}
+.dchs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dch{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;border:1px solid var(--linea);background:var(--sup);border-radius:8px;padding:3px 8px;max-width:100%;white-space:nowrap;min-width:0}
+.dch .tt{overflow:hidden;text-overflow:ellipsis;min-width:0}.dch .v{flex:none}
+.dch.s{border:1.5px dashed var(--ambar);background:var(--ambar-2);color:var(--ambar-t)}.dch .v{font-weight:500;opacity:.85}.dch.mas{color:var(--piz)}
+.dsec{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--piz);margin:18px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--linea)}
+.drow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--linea)}
+.drow input[type=checkbox]{width:20px;height:20px;margin-top:2px;flex:none}.dsug{cursor:pointer}
+.dic{font-size:20px;line-height:1;flex:none;width:24px;text-align:center;margin-top:2px}
+.dtx{display:flex;flex-direction:column;min-width:0;flex:1}.dtx b{overflow-wrap:anywhere}
+.dacc{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}.enlace.rojo{color:var(--ladrillo)}.enlace.mut{color:var(--piz)}
+.dpie{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:14px}
+.hoja-asa{display:none}
+@media (max-width:720px){
+  .velo.hoja{align-items:flex-end;justify-content:stretch}
+  .cajon.hoja{margin:0;width:100%;max-height:88vh;border-radius:18px 18px 0 0;padding:10px 16px 28px;animation:sube .2s ease-out}
+  .hoja-asa{display:block;width:40px;height:4px;border-radius:4px;background:var(--linea);margin:0 auto 10px}
+}
+@keyframes sube{from{transform:translateY(30px);opacity:.6}}
 .sug{margin-bottom:16px}.sug-it{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--linea)}
 .sug-it>svg{flex:0 0 auto;margin-top:2px}.sug-t{flex:1;min-width:0}.sug-t b{overflow-wrap:anywhere}
 .sug-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sug-una summary{cursor:pointer;padding:10px 0 4px}
-.rev-doc{background:var(--papel);border-radius:8px;padding:8px 10px;margin:0 0 6px}
+.rev-doc{background:var(--sup);border:1px solid var(--linea);border-radius:10px;padding:8px 12px;margin:0 0 6px}
 .sug-pubs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:8px}
 .sug-pub{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--linea);border-radius:10px;min-width:0}
 .sug-pub>span{display:flex;flex-direction:column;min-width:0}.sug-pub b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2842,7 +2865,7 @@ function redactarLibre(d) {
   const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = `${n} / ${LIM_MSJ}`; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
   tx.oninput = contar; contar();
   const pintarSueltos = () => { $("#mSue").innerHTML = sueltos.map((f, i) => `<span class="mat-b on">${ICONO_M.clip} ${esc(f.nombre)} <span class="mut">${pesoTxt(f.bytes)}</span> <button type="button" class="x-s" data-q="${i}" aria-label="Quitar ${esc(f.nombre)}">×</button></span>`).join(""); };
-  if ($("#mIrDoc")) $("#mIrDoc").onclick = () => { S.matPub = c.item_id; ir("material"); };
+  if ($("#mIrDoc")) $("#mIrDoc").onclick = () => { S.matAbrir = c.item_id; ir("material"); };
   $("#mSue").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); } };
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
@@ -2961,31 +2984,159 @@ async function buscarVenta(emp, inicial = "") {
 function leerB64(f) { return new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1] ?? ""); r.onerror = () => mal(r.error); r.readAsDataURL(f); }); }
 
 // ================= MATERIAL PARA ENVIAR =================
+// ---------- Documentación para enviar (diseño C): cada producto con sus archivos a la vista ----------
+// Etiquetas llenas = lo cargado, listo para mandar. Punteadas = lo encontrado en ventas anteriores, que espera el OK.
+// Al tocar un producto se abre una hoja: ahí se marcan los encontrados que sirven y se agregan todos juntos.
+const ICONO_TIPO = (m) => m.tipo === "enlace" ? "🔗" : /^image\//.test(m.mime ?? "") ? "🖼" : "📄";
 VISTAS.material = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("material_lista", { empresa_id: emp })); if (!r || S.tab !== "material") return;
-  S.matPubs = r.publicaciones;
-  if (!S.matPub || !r.publicaciones.some((p) => p.id === S.matPub)) S.matPub = (r.publicaciones.find((p) => p.archivos + p.enlaces) ?? r.publicaciones[0])?.id ?? null;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Manuales, guías de instalación, garantías y links de cada publicación, listos para mandarlos en la conversación con un clic. El bot también los propone cuando corresponde.</p></div></div>
-    ${S.rol !== "operador" ? `<div id="mpSug"></div>` : ""}
-    <div class="mat-grid"><div class="panel mat-pubs"><input type="search" id="mpBus" placeholder="Buscar publicación" aria-label="Buscar publicación" style="width:100%">
-      <label class="peq" style="display:flex;gap:6px;align-items:center;margin:10px 0 4px"><input type="checkbox" id="mpCon" ${S.matCon ? "checked" : ""}> Solo las que tienen documentación</label>
-      <div id="mpLista"></div></div>
-    <div id="mpDet"></div></div>`;
-  const lista = () => {
-    const t = ($("#mpBus").value ?? "").toLowerCase();
-    const fil = S.matPubs.filter((p) => (!t || p.titulo.toLowerCase().includes(t) || p.id.toLowerCase().includes(t)) && (!S.matCon || p.archivos + p.enlaces));
-    $("#mpLista").innerHTML = fil.slice(0, 200).map((p) => `<button type="button" class="pub-m ${p.id === S.matPub ? "on" : ""}" data-p="${esc(p.id)}">${foto(p.thumbnail)}<span><b>${esc(p.titulo)}</b><span class="peq mut">${p.archivos + p.enlaces ? `${p.archivos ? `${p.archivos} archivo${p.archivos > 1 ? "s" : ""}` : ""}${p.archivos && p.enlaces ? " · " : ""}${p.enlaces ? `${p.enlaces} link${p.enlaces > 1 ? "s" : ""}` : ""}` : "Sin documentación"}</span></span></button>`).join("") || `<p class="mut peq">No hay publicaciones con eso.</p>`;
+  const admin = S.rol !== "operador";
+  const [r, sg] = await Promise.all([
+    seguro(() => api("material_lista", { empresa_id: emp })),
+    admin ? api("docs_sugeridos", { empresa_id: emp }).catch(() => null) : Promise.resolve(null),
+  ]);
+  if (!r || S.tab !== "material") return;
+  S.matPubs = r.publicaciones; S.docsSug = sg;
+  const cargados = new Map(); for (const m of r.materiales ?? []) cargados.set(m.publicacion_id, [...(cargados.get(m.publicacion_id) ?? []), m]);
+  const sugeridos = new Map(((sg?.publicaciones) ?? []).map((p) => [p.id, p.docs]));
+  S.matCargados = cargados; S.matSugeridos = sugeridos;
+  const rev = admin && sg ? textoRevision(sg.revision ?? [], sg.por_leer ?? 0) : "";
+  // Primero los que tienen algo para revisar, después los que ya tienen documentación, después el resto
+  const orden = (p) => (sugeridos.get(p.id)?.length ? 0 : cargados.get(p.id)?.length ? 1 : 2);
+  const pubs = [...r.publicaciones].sort((a, b) => orden(a) - orden(b));
+  const nSug = [...sugeridos.keys()].filter((k) => r.publicaciones.some((p) => p.id === k)).length;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1>
+      <p>Cada producto con sus archivos, listos para mandarlos en la conversación con un toque.${admin ? ` Los <span class="dch s">punteados</span> se encontraron en ventas anteriores y esperan tu OK.` : ""}</p></div></div>
+    ${rev ? `<p class="peq rev-doc" style="margin:0 0 12px">${esc(rev)}</p>` : ""}
+    <div class="filtros" style="margin:0 0 12px"><input type="search" class="buscar" id="mpBus" placeholder="Buscar producto" aria-label="Buscar producto" style="width:100%">
+      ${admin && nSug ? `<div class="m-fil" id="mpFil" role="group" aria-label="Mostrar"><button type="button" data-f="" class="${!S.matFil ? "on" : ""}">Todos</button><button type="button" data-f="rev" class="${S.matFil === "rev" ? "on" : ""}">Para revisar · ${nSug}</button></div>` : ""}</div>
+    <div id="mpLista" class="dpubs"></div>`;
+  const chipsDe = (p) => {
+    const c = cargados.get(p.id) ?? [], s = sugeridos.get(p.id) ?? [];
+    const lista = [...c.map((m) => `<span class="dch">${ICONO_TIPO(m)} <span class="tt">${esc(m.titulo)}</span></span>`), ...s.map((d) => `<span class="dch s">${ICONO_TIPO(d)} <span class="tt">${esc(d.titulo || TIPO_DOC[d.tipo] || "Documento")}</span>${d.versiones > 1 ? `<span class="v">· ${d.reciente ? "más nuevo" : "anterior"}</span>` : ""}</span>`)];
+    if (!lista.length) return `<span class="peq mut">Sin archivos${admin ? " · tocá para agregar" : ""}</span>`;
+    return lista.slice(0, 4).join("") + (lista.length > 4 ? `<span class="dch mas">+${lista.length - 4}</span>` : "");
   };
-  $("#mpBus").oninput = lista;
-  $("#mpCon").onchange = () => { S.matCon = $("#mpCon").checked; lista(); };
-  $("#mpLista").onclick = (e) => { const b = e.target.closest("[data-p]"); if (b) { S.matPub = b.dataset.p; lista(); detalleMaterial(emp); } };
-  lista(); detalleMaterial(emp);
-  if ($("#mpSug")) pintarSugeridos(emp);
+  const pintar = () => {
+    const t = ($("#mpBus").value ?? "").toLowerCase();
+    const fil = pubs.filter((p) => (!t || p.titulo.toLowerCase().includes(t) || p.id.toLowerCase().includes(t)) && (S.matFil !== "rev" || sugeridos.get(p.id)?.length));
+    $("#mpLista").innerHTML = fil.slice(0, 200).map((p) => `<button type="button" class="dpub" data-p="${esc(p.id)}">
+        <span class="dpub-c">${foto(p.thumbnail)}<b>${esc(p.titulo)}</b></span><span class="dchs">${chipsDe(p)}</span></button>`).join("")
+      || `<div class="panel vacio"><b>No hay productos con ese nombre</b>Probá con otra palabra.</div>`;
+  };
+  $("#mpBus").oninput = pintar;
+  if ($("#mpFil")) $("#mpFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (!b) return; S.matFil = b.dataset.f; $("#mpFil").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); pintar(); };
+  $("#mpLista").onclick = (e) => { const b = e.target.closest("[data-p]"); if (b) hojaProducto(emp, b.dataset.p); };
+  pintar();
+  // Desde una conversación ("Cargarla"): se abre directo la hoja de ese producto
+  if (S.matAbrir) { const id = S.matAbrir; S.matAbrir = null; hojaProducto(emp, id); }
+  clearTimeout(S.sugTimer);
+  if (rev) S.sugTimer = setTimeout(() => { if (S.tab === "material" && !document.querySelector(".velo")) VISTAS.material(); }, 30000);
 };
 
-// ---------- Encontrado en envíos anteriores: documentación que ya se mandó a compradores de cada publicación ----------
+function abrirHoja(html) {
+  const v = cajon(html, true);
+  v.classList.add("hoja"); v.querySelector(".cajon").classList.add("hoja");
+  return v;
+}
+// Hoja de un producto: lo cargado, lo encontrado para marcar, y subir archivos o links
+function hojaProducto(emp, pubId) {
+  const admin = S.rol !== "operador";
+  const p = S.matPubs.find((x) => x.id === pubId) ?? { id: pubId, titulo: pubId };
+  S.matPub = pubId;
+  const cargados = S.matCargados.get(pubId) ?? [];
+  const sugeridos = (S.matSugeridos.get(pubId) ?? []);
+  // Marcados de entrada: manuales, guías, medidas y fichas (si hay versiones, solo la más reciente). Las fotos, sin marcar.
+  const marcados = new Set(sugeridos.filter((d) => d.tipo !== "imagen_producto" && d.tipo !== "otro" && (d.versiones <= 1 || d.reciente)).map((d) => d.clave));
+  const metaSug = (d) => [TIPO_DOC[d.tipo] ?? "Documento", d.versiones > 1 ? (d.reciente ? "versión más reciente" : "versión anterior") : "", d.version ? `versión ${d.version}` : "", d.fecha_doc ? `fecha ${fechaDoc(d.fecha_doc)}` : (d.fecha_archivo ? `archivo del ${fechaLarga(d.fecha_archivo)}` : ""), d.compradores > 1 ? `enviado a ${d.compradores} compradores` : "enviado una vez"].filter(Boolean).join(" · ");
+  const v = abrirHoja(`<div class="hoja-asa" aria-hidden="true"></div>
+    <div class="cajon-cab"><div class="prod">${foto(p.thumbnail)}<h2 style="margin:0">${esc(p.titulo)}</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <div class="dsec"><span>Listos para enviar</span><span>${cargados.length}</span></div>
+    ${cargados.map((m) => `<div class="drow" data-m="${m.id}"><span class="dic">${ICONO_TIPO(m)}</span><div class="dtx"><b>${esc(m.titulo)}</b>
+        <span class="peq mut">${m.tipo === "enlace" ? esc(m.url) : `${esc(m.archivo_nombre ?? "")}${m.bytes ? ` · ${pesoTxt(m.bytes)}` : ""}`} · ${m.cuando === "entrega" ? "el bot lo propone al entregarse" : "solo a mano"}</span>
+        <span class="dacc"><button type="button" class="enlace" data-ver="${m.id}">Ver</button>${admin ? `<button type="button" class="enlace" data-cop="${m.id}">Copiar a otros productos</button><button type="button" class="enlace rojo" data-bor="${m.id}">Quitar</button>` : ""}</span></div></div>`).join("")
+      || `<p class="peq mut" style="margin:4px 0 8px">Todavía no hay nada cargado para este producto.</p>`}
+    ${admin && sugeridos.length ? `<div class="dsec"><span>Encontrados · marcá los que sirven</span><span>${sugeridos.length}</span></div>
+      ${sugeridos.map((d) => `<label class="drow dsug"><input type="checkbox" value="${esc(d.clave)}" ${marcados.has(d.clave) ? "checked" : ""}><span class="dic">${ICONO_TIPO(d)}</span>
+        <span class="dtx"><b>${esc(d.titulo || TIPO_DOC[d.tipo] || "Documento")}</b><span class="peq mut">${esc(metaSug(d))}</span></span><button type="button" class="enlace" data-vers="${esc(d.clave)}">Ver</button></label>`).join("")}
+      <label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:12px 0 0"><input type="checkbox" id="hjEnt"> <span>Que el bot los proponga cuando el envío figure entregado (si no, quedan para mandar a mano)</span></label>
+      <button class="btn pri" type="button" id="hjAgr" style="width:100%;margin-top:12px;padding:12px;justify-content:center;text-align:center">Agregar</button>
+      <div class="dpie"><button type="button" class="enlace" id="hjSub">+ Subir archivo o link</button><button type="button" class="enlace mut" id="hjDes">Descartar los no marcados</button></div>`
+      : admin ? `<button class="btn pri" type="button" id="hjSub" style="width:100%;margin-top:14px;padding:12px;justify-content:center;text-align:center">+ Subir archivo o link</button>` : ""}
+    <div id="hjForm"></div>`);
+  const btnAgr = $("#hjAgr", v);
+  const contar = () => { if (!btnAgr) return; const n = [...v.querySelectorAll(".dsug input:checked")].length; btnAgr.disabled = !n; btnAgr.textContent = n ? `Agregar ${n === 1 ? "el marcado" : `los ${n} marcados`}` : "Marcá los que sirven"; };
+  contar();
+  v.addEventListener("change", (e) => { if (e.target.closest(".dsug")) contar(); });
+  v.addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.vers) { e.preventDefault(); b.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: b.dataset.vers })); b.disabled = false; if (x) abrirArchivoB64(x); return; }
+    if (b.dataset.ver) { const x = await seguro(() => api("material_link", { empresa_id: emp, id: Number(b.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); return; }
+    if (b.dataset.cop) { v.remove(); copiarMaterial(emp, cargados.find((m) => m.id === Number(b.dataset.cop))); return; }
+    if (b.dataset.bor) { if (confirm("¿Quitar este documento de este producto?") && await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(b.dataset.bor) }))) { aviso("Documento quitado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); } return; }
+  });
+  if (btnAgr) btnAgr.onclick = async () => {
+    const elegidos = sugeridos.filter((d) => v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked);
+    if (!elegidos.length) return;
+    btnAgr.disabled = true;
+    let ok = 0;
+    for (const [i, d] of elegidos.entries()) {
+      btnAgr.textContent = `Agregando ${i + 1} de ${elegidos.length}…`;
+      const x = await seguro(() => api("docs_agregar", { empresa_id: emp, clave: d.clave, titulo: d.titulo || d.nombre.replace(/\.[a-z0-9]{2,4}$/i, ""), publicaciones: [pubId], cuando: $("#hjEnt", v)?.checked ? "entrega" : "mano" }));
+      if (x) ok++;
+    }
+    aviso(ok === 1 ? "Agregado: ya se puede mandar" : `Agregados ${ok}: ya se pueden mandar`);
+    v.remove(); await VISTAS.material(); hojaProducto(emp, pubId);
+  };
+  if ($("#hjDes", v)) $("#hjDes", v).onclick = async () => {
+    const no = sugeridos.filter((d) => !v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked).map((d) => d.clave);
+    if (!no.length) return aviso("Están todos marcados");
+    if (!confirm(`¿Descartar ${no.length === 1 ? "el archivo no marcado" : `los ${no.length} archivos no marcados`}? No se vuelven a sugerir para este producto.`)) return;
+    if (await seguro(() => api("docs_descartar", { empresa_id: emp, claves: no, publicacion_id: pubId }))) { aviso("Listo"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
+  };
+  if ($("#hjSub", v)) $("#hjSub", v).onclick = () => formSubir(emp, pubId, v);
+}
+// Subir un archivo o un link a mano
+function formSubir(emp, pubId, v) {
+  const caja = $("#hjForm", v);
+  caja.innerHTML = `<div class="dsec"><span>Subir archivo o link</span><span></span></div>
+    <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
+    <label class="et" for="maTit" style="margin-top:10px">Nombre (es lo que ve quien envía)</label><input id="maTit" placeholder="Por ejemplo: Manual de instalación" maxlength="120" style="width:100%">
+    <div id="maCampo" style="margin-top:8px"><label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt"></div>
+    <div id="maAviso"></div>
+    <label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:12px 0 0"><input type="checkbox" id="maEnt"> <span>Que el bot lo proponga cuando el envío figure entregado</span></label>
+    <button class="btn pri" id="maG" style="margin-top:12px">Guardar</button>`;
+  caja.scrollIntoView({ behavior: "smooth", block: "start" });
+  let tipo = "archivo";
+  $("#maTipo", v).onclick = (e) => {
+    const b = e.target.closest("[data-t]"); if (!b) return; tipo = b.dataset.t;
+    $("#maTipo", v).querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    $("#maCampo", v).innerHTML = tipo === "archivo" ? `<label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt">`
+      : `<label class="et" for="maUrl">Link</label><input id="maUrl" type="url" placeholder="https://" style="width:100%">`;
+    $("#maAviso", v).innerHTML = "";
+    if ($("#maUrl", v)) $("#maUrl", v).oninput = () => {
+      const u = $("#maUrl", v).value.trim(); let h = ""; try { h = new URL(u).hostname; } catch {}
+      $("#maAviso", v).innerHTML = !h ? "" : /(meli\.la|bit\.ly|tinyurl|goo\.gl|cutt\.ly|wa\.me|linktr)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es un link acortado: MercadoLibre los modera. Pegá el link completo.</div>`
+        : /(facebook|instagram|tiktok|whatsapp|youtube|youtu\.be|telegram|twitter|x\.com)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es de una red social: MercadoLibre modera esos links en los mensajes.</div>`
+        : !/mercadoli(b|v)re\./i.test(h) ? `<div class="mej-al" style="margin-top:10px">Lleva fuera de MercadoLibre (${esc(h)}). Puede ser moderado: si es un manual, conviene subir el archivo.</div>` : "";
+    };
+  };
+  $("#maG", v).onclick = async () => {
+    const titulo = $("#maTit", v).value.trim(); if (!titulo) return aviso("Poné un nombre");
+    const m = { publicacion_id: pubId, titulo, cuando: $("#maEnt", v).checked ? "entrega" : "mano", tipo };
+    if (tipo === "archivo") {
+      const f = $("#maArch", v).files[0]; if (!f) return aviso("Elegí el archivo");
+      if (f.size > 25 * 1048576) return aviso("El archivo pesa más de 25 MB");
+      m.archivo = { nombre: f.name, mime: f.type, datos: await leerB64(f) };
+    } else m.url = $("#maUrl", v).value.trim();
+    const b = $("#maG", v); b.disabled = true; b.textContent = "Guardando…";
+    const ok = await seguro(() => api("material_guardar", { empresa_id: emp, material: m }));
+    b.disabled = false; b.textContent = "Guardar";
+    if (ok) { aviso("Documento guardado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
+  };
+}
+
 function abrirArchivoB64(r) {
   const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
   const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
@@ -3009,141 +3160,6 @@ function textoRevision(rv, porLeer) {
   if (porLeer) return `Leyendo ${porLeer} archivo${porLeer > 1 ? "s" : ""} para saber qué ${porLeer > 1 ? "son" : "es"} (las facturas y todo lo que tenga datos de una persona no se muestra).`;
   return "";
 }
-async function pintarSugeridos(emp) {
-  const caja = $("#mpSug"); if (!caja) return;
-  const r = await api("docs_sugeridos", { empresa_id: emp }).catch(() => null);
-  if (!r || S.tab !== "material" || !$("#mpSug")) return;
-  S.docsSug = r;
-  const activas = new Map((S.matPubs ?? []).map((p) => [p.id, p]));
-  const pubs = (r.publicaciones ?? []).filter((p) => activas.has(p.id));
-  const rev = textoRevision(r.revision ?? [], r.por_leer ?? 0);
-  if (!pubs.length && !rev) { caja.innerHTML = ""; }
-  else caja.innerHTML = `<div class="panel sug">
-      <h3 style="margin:0 0 4px">Encontrado en envíos anteriores</h3>
-      <p class="peq mut" style="margin:0 0 10px">Manuales, guías y medidas que ya mandaron a compradores de cada publicación, por mensaje o en reclamos. Las facturas y todo lo que tenga datos de una persona no aparecen. Nada se agrega sin que lo confirmes.</p>
-      ${rev ? `<p class="peq rev-doc">${esc(rev)}</p>` : ""}
-      ${pubs.length ? `<div class="sug-pubs">${pubs.map((p) => `<button type="button" class="sug-pub ${p.id === S.matPub ? "on" : ""}" data-sp="${esc(p.id)}">${foto(activas.get(p.id)?.thumbnail)}<span><b>${esc(activas.get(p.id)?.titulo ?? p.titulo ?? p.id)}</b><span class="peq mut">${p.docs.length} documento${p.docs.length > 1 ? "s" : ""}</span></span></button>`).join("")}</div>`
-        : (rev ? "" : `<p class="peq mut" style="margin:0">No encontramos documentación para volver a usar.</p>`)}
-    </div>`;
-  caja.onclick = (e) => {
-    const b = e.target.closest("[data-sp]"); if (!b) return;
-    S.matPub = b.dataset.sp;
-    caja.querySelectorAll(".sug-pub").forEach((x) => x.classList.toggle("on", x === b));
-    $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp);
-    if (anchoMovil()) setTimeout(() => $("#mpDet")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
-  };
-  if ($("#mpSugPub")) pintarSugPub(emp);
-  // Mientras la revisión sigue, se actualiza sola
-  clearTimeout(S.sugTimer);
-  if (rev) S.sugTimer = setTimeout(() => { if (S.tab === "material" && !document.querySelector(".velo")) pintarSugeridos(emp); }, 30000);
-}
-function pintarSugPub(emp) {
-  const caja = $("#mpSugPub"); if (!caja || !S.docsSug) return;
-  const p = (S.docsSug.publicaciones ?? []).find((x) => x.id === S.matPub);
-  if (!p?.docs?.length) { caja.innerHTML = ""; return; }
-  const tarjeta = (d) => {
-    const doc = [d.version ? `versión ${esc(d.version)}` : "", d.fecha_doc ? `fecha ${esc(fechaDoc(d.fecha_doc))}` : ""].filter(Boolean).join(", ");
-    return `<div class="sug-it" data-k="${esc(d.clave)}">${d.mime === "application/pdf" || d.mime === "text/plain" ? ICONO_M.doc : ICONO_M.clip}
-      <div class="sug-t"><b>${esc(d.titulo || (TIPO_DOC[d.tipo] ?? "Documento"))}</b>
-        <div class="peq" style="margin:3px 0"><span class="chip">${esc(TIPO_DOC[d.tipo] ?? "Documento")}</span>${d.versiones > 1 ? (d.reciente ? ` <span class="chip c-ok">Versión más reciente</span>` : ` <span class="chip">Versión anterior</span>`) : ""}</div>
-        ${doc ? `<div class="peq">Según el documento: ${doc}</div>` : ""}
-        ${d.fecha_archivo ? `<div class="peq mut">Archivo creado o modificado: ${fechaLarga(d.fecha_archivo)}</div>` : ""}
-        <div class="peq mut">${esc(d.nombre)} · ${pesoTxt(d.bytes)}</div>
-        <div class="peq mut">${d.compradores > 1 ? `Enviado a ${d.compradores} compradores` : "Enviado una vez"}, el último el ${fechaLarga(d.ultima)}${d.origenes.includes("reclamo") ? (d.origenes.length > 1 ? ", en mensajes y reclamos" : ", en un reclamo") : ""}${d.tambien?.length ? `. También se mandó en ${d.tambien.length} publicación${d.tambien.length > 1 ? "es" : ""} más` : ""}.</div></div>
-      <div class="sug-b"><button class="btn lin chico" type="button" data-ver>Ver</button><button class="btn pri chico" type="button" data-agr>Agregar</button><button class="btn lin chico" type="button" data-des>No sirve</button></div></div>`;
-  };
-  caja.innerHTML = `<div class="sug-pub-det"><h3 style="margin:20px 0 4px">Encontrado en envíos de esta publicación</h3>
-    <p class="peq mut" style="margin:0 0 6px">Lo que ya le mandaron a compradores de esta publicación.${p.docs.some((d) => d.versiones > 1) ? " Hay más de una versión: la más reciente está primero." : ""}</p>
-    ${p.docs.map(tarjeta).join("")}</div>`;
-  caja.onclick = async (e) => {
-    const it = e.target.closest("[data-k]"); const bt = e.target.closest("button"); if (!it || !bt) return;
-    const d = p.docs.find((x) => x.clave === it.dataset.k); if (!d) return;
-    if (bt.hasAttribute("data-ver")) { bt.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: d.clave })); bt.disabled = false; if (x) abrirArchivoB64(x); }
-    else if (bt.hasAttribute("data-des")) { if (await seguro(() => api("docs_descartar", { empresa_id: emp, clave: d.clave }))) { aviso("Listo: no se vuelve a sugerir"); VISTAS.material(); } }
-    else if (bt.hasAttribute("data-agr")) agregarSugerido(emp, d, p);
-  };
-}
-function agregarSugerido(emp, d, pub) {
-  const nombrePub = (id) => (S.matPubs ?? []).find((x) => x.id === id)?.titulo ?? (S.docsSug?.publicaciones ?? []).find((x) => x.id === id)?.titulo ?? id;
-  const ids = [pub.id, ...(d.tambien ?? []).filter((x) => (S.matPubs ?? []).some((p) => p.id === x))];
-  const base = d.titulo || d.nombre.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_-]+/g, " ").trim();
-  const v = cajon(`<div class="cajon-cab"><div><h2>Agregar a la documentación</h2><p class="mut peq" style="margin:4px 0 0">${esc(d.nombre)} · ${pesoTxt(d.bytes)}</p></div></div>
-    <label class="et" for="sgTit">Nombre (es lo que ve quien envía)</label><input id="sgTit" value="${esc(base.slice(0, 120))}" maxlength="120">
-    <div class="et" style="margin-top:12px">Publicaciones</div>
-    ${ids.map((id, i) => `<label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="checkbox" value="${esc(id)}" checked> <span>${esc(nombrePub(id))}${i ? ` <span class="mut">(también se mandó acá)</span>` : ""}</span></label>`).join("")}
-    <label class="et" for="sgCua" style="margin-top:12px">Cuándo</label>
-    <select id="sgCua"><option value="mano">Solo a mano</option><option value="entrega">El bot lo propone al entregarse</option></select>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn pri" type="button" id="sgOk">Agregar</button><button class="btn lin" type="button" data-cerrar>Cancelar</button></div>`, true);
-  $("#sgOk", v).onclick = async () => {
-    const elegidas = [...v.querySelectorAll("input[type=checkbox]:checked")].map((x) => x.value);
-    if (!elegidas.length) { aviso("Elegí al menos una publicación"); return; }
-    $("#sgOk", v).disabled = true;
-    const x = await seguro(() => api("docs_agregar", { empresa_id: emp, clave: d.clave, titulo: $("#sgTit", v).value, publicaciones: elegidas, cuando: $("#sgCua", v).value }));
-    $("#sgOk", v).disabled = false;
-    if (!x) return;
-    v.remove(); aviso(x.publicaciones > 1 ? `Agregado a ${x.publicaciones} publicaciones` : "Agregado a la publicación");
-    VISTAS.material();
-  };
-}
-
-async function detalleMaterial(emp) {
-  if (!S.matPub) { $("#mpDet").innerHTML = `<div class="panel vacio"><b>No hay publicaciones activas</b>Aparecen cuando la cuenta termine de leerlas.</div>`; return; }
-  const r = await seguro(() => api("material_lista", { empresa_id: emp, item_id: S.matPub })); if (!r) return;
-  const p = r.publicacion ?? { titulo: S.matPub };
-  $("#mpDet").innerHTML = `<div class="panel">
-    <div class="prod" style="margin-bottom:14px">${foto(p.thumbnail)}<div><b>${esc(p.titulo)}</b><div class="peq mut">${esc(S.matPub)}${p.permalink ? ` · <a href="${esc(p.permalink)}" target="_blank" rel="noopener">Ver en MercadoLibre</a>` : ""}</div></div></div>
-    ${r.material.map((m) => `<div class="mat-it">${m.tipo === "enlace" ? ICONO_M.link.replace(/15/g, "20") : ICONO_M.doc}
-      <div><b>${esc(m.titulo)}</b><div class="peq mut">${m.tipo === "enlace" ? esc(m.url) : `${esc(m.archivo_nombre)} · ${pesoTxt(m.bytes)}`}</div>
-        <div class="peq">${m.cuando === "entrega" ? `<span class="chip c-ok">El bot lo propone al entregarse</span>` : `<span class="chip">Solo a mano</span>`}${m.tambien ? ` <span class="chip">También lo usan ${m.tambien} publicación${m.tambien > 1 ? "es" : ""}</span>` : ""}</div></div>
-      <div class="acc"><button class="btn lin chico" data-ver="${m.id}">Ver</button><button class="btn lin chico" data-cop="${m.id}">Copiar a otras</button><button class="btn pel chico" data-bor="${m.id}">Quitar</button></div></div>`).join("") || `<div class="vacio" style="margin:0 0 12px"><b>Esta publicación no tiene documentación</b>Sumá el manual, la guía de instalación o un link útil.</div>`}
-    ${S.rol !== "operador" ? `<div id="mpSugPub"></div>` : ""}
-    <h3 style="margin:20px 0 10px">Agregar</h3>
-    <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
-    <div class="grilla g2" style="margin-top:12px;gap:12px">
-      <div><label class="et" for="maTit">Nombre</label><input id="maTit" placeholder="Por ejemplo: Manual de instalación" maxlength="120" style="width:100%"></div>
-      <div id="maCampo"><label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt"></div></div>
-    <div id="maAviso"></div>
-    <div class="mat-ops" role="radiogroup" aria-label="Cuándo se usa">
-      <label class="mat-op"><input type="radio" name="maCu" value="mano" checked> <span><b>Solo a mano</b><span class="peq mut">Aparece para elegirlo cuando escribís.</span></span></label>
-      <label class="mat-op"><input type="radio" name="maCu" value="entrega"> <span><b>Proponerlo al entregarse</b><span class="peq mut">Cuando el envío figura entregado, el bot lo suma al borrador. Lo envía una persona.</span></span></label></div>
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="maG">Guardar</button></div></div>`;
-  if ($("#mpSugPub")) pintarSugPub(emp);
-  let tipo = "archivo";
-  $("#maTipo").onclick = (e) => {
-    const b = e.target.closest("[data-t]"); if (!b) return; tipo = b.dataset.t;
-    $("#maTipo").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    $("#maCampo").innerHTML = tipo === "archivo" ? `<label class="et" for="maArch">Archivo (JPG, PNG, PDF o TXT, hasta 25 MB)</label><input type="file" id="maArch" accept=".jpg,.jpeg,.png,.pdf,.txt">`
-      : `<label class="et" for="maUrl">Link</label><input id="maUrl" type="url" placeholder="https://" style="width:100%">`;
-    $("#maAviso").innerHTML = "";
-    if ($("#maUrl")) $("#maUrl").oninput = () => {
-      const u = $("#maUrl").value.trim(); let h = ""; try { h = new URL(u).hostname; } catch {}
-      $("#maAviso").innerHTML = !h ? "" : /(meli\.la|bit\.ly|tinyurl|goo\.gl|cutt\.ly|wa\.me|linktr)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es un link acortado: MercadoLibre los modera. Pegá el link completo.</div>`
-        : /(facebook|instagram|tiktok|whatsapp|youtube|youtu\.be|telegram|twitter|x\.com)/i.test(h) ? `<div class="reg-mal" style="margin-top:10px">Es de una red social: MercadoLibre modera esos links en los mensajes.</div>`
-        : !/mercadoli(b|v)re\./i.test(h) ? `<div class="mej-al" style="margin-top:10px">Lleva fuera de MercadoLibre (${esc(h)}). Puede ser moderado: si es un manual, conviene subir el archivo.</div>` : "";
-    };
-  };
-  $("#maG").onclick = async () => {
-    const titulo = $("#maTit").value.trim(); if (!titulo) return aviso("Poné un nombre");
-    const cuando = document.querySelector("input[name=maCu]:checked").value;
-    const m = { publicacion_id: S.matPub, titulo, cuando, tipo };
-    if (tipo === "archivo") {
-      const f = $("#maArch").files[0]; if (!f) return aviso("Elegí el archivo");
-      if (f.size > 25 * 1048576) return aviso("El archivo pesa más de 25 MB");
-      m.archivo = { nombre: f.name, mime: f.type, datos: await leerB64(f) };
-    } else m.url = $("#maUrl").value.trim();
-    const b = $("#maG"); b.disabled = true; b.textContent = "Guardando…";
-    const ok = await seguro(() => api("material_guardar", { empresa_id: emp, material: m }));
-    b.disabled = false; b.textContent = "Guardar";
-    if (ok) { aviso("Documento guardado"); const p = S.matPubs.find((x) => x.id === S.matPub); if (p) tipo === "archivo" ? p.archivos++ : p.enlaces++; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); }
-  };
-  $("#mpDet").onclick = async (e) => {
-    const ver = e.target.closest("[data-ver]"), cop = e.target.closest("[data-cop]"), bor = e.target.closest("[data-bor]");
-    if (ver) { const x = await seguro(() => api("material_link", { empresa_id: emp, id: Number(ver.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); }
-    if (bor && confirm("¿Quitar este documento de esta publicación?")) { if (await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(bor.dataset.bor) }))) { const m = r.material.find((x) => x.id === Number(bor.dataset.bor)); const p = S.matPubs.find((x) => x.id === S.matPub); if (p && m) m.tipo === "archivo" ? p.archivos-- : p.enlaces--; $("#mpBus").dispatchEvent(new Event("input")); detalleMaterial(emp); } }
-    if (cop) copiarMaterial(emp, r.material.find((x) => x.id === Number(cop.dataset.cop)));
-  };
-}
-
 function copiarMaterial(emp, m) {
   const elegidas = new Set();
   const v = cajon(`<div class="cajon-cab"><h2>Copiar “${esc(m.titulo)}”</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
@@ -3158,9 +3174,9 @@ function copiarMaterial(emp, m) {
   $("#cpL", v).onchange = (e) => { const x = e.target; x.checked ? elegidas.add(x.value) : elegidas.delete(x.value); $("#cpN", v).textContent = elegidas.size ? `${elegidas.size} elegida${elegidas.size > 1 ? "s" : ""}` : "Ninguna elegida"; };
   $("#cpBus", v).oninput = pintar; pintar();
   $("#cpG", v).onclick = async () => {
-    if (!elegidas.size) return aviso("Elegí al menos una publicación");
+    if (!elegidas.size) return aviso("Elegí al menos un producto");
     const r = await seguro(() => api("material_copiar", { empresa_id: emp, id: m.id, publicaciones: [...elegidas] }));
-    if (r) { v.remove(); aviso(`Copiado a ${r.copiadas} publicación${r.copiadas === 1 ? "" : "es"}`); VISTAS.material(); }
+    if (r) { v.remove(); aviso(`Copiado a ${r.copiadas} producto${r.copiadas === 1 ? "" : "s"}`); await VISTAS.material(); hojaProducto(emp, S.matPub); }
   };
 }
 
