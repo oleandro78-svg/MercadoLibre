@@ -545,6 +545,18 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .puntos i:nth-child(2){animation-delay:.2s}.puntos i:nth-child(3){animation-delay:.4s}
 @keyframes puntos{0%,80%,100%{opacity:.15;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){.puntos i{animation:none;opacity:1}}
+/* Tablas que en el celular se muestran como tarjetas: cada dato con su título arriba */
+.tabla.apilable th{white-space:nowrap}
+@media (max-width:720px){
+  .tabla.apilable,.tabla.apilable tbody{display:block}
+  .tabla.apilable tr:has(th){display:none}
+  .tabla.apilable tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 4px;border-bottom:1px solid var(--linea)}
+  .tabla.apilable td{display:block;padding:0;border:0;min-width:0}
+  .tabla.apilable td:first-child{grid-column:1/-1;font-size:16px}
+  .tabla.apilable td[data-et]::before{content:attr(data-et);display:block;font-size:12.5px;color:var(--piz);margin-bottom:2px}
+  .tabla.apilable td:empty{display:none}
+  .tabla.apilable tr.fila-click.on{background:var(--cielo-2);border-radius:var(--r-m)}
+}
 /* ---------- material para enviar ---------- */
 .mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 .mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
@@ -2206,13 +2218,13 @@ async function vistaEmpresa(nuevos = true) {
       ${conMsj ? `<div class="medida"><b>${num(m.enviados)}</b><span>mensajes enviados a compradores en ${num(m.conversaciones)} ventas; tiempo promedio ${dur(m.tiempo_seg)}</span></div>` : ""}
     </div>
     <div class="panel" style="margin-top:16px;padding:16px 18px;overflow-x:auto"><h2>Cuentas de MercadoLibre</h2><p class="mut peq" style="margin:0 0 6px">Tocá una cuenta para ver sus franjas horarias.</p>
-      <table class="tabla"><tr><th>Cuenta</th><th>Modo</th><th>Preguntas</th><th>Bot solo</th><th>Según ML</th><th>Publicaciones</th></tr>
-      ${d.cuentas.map((c) => `<tr class="fila-click ${f?.id === c.id ? "on" : ""}" data-fil="cuenta" data-id="${c.id}" tabindex="0"><td><b>${esc(c.nombre)}</b>${c.conectada ? "" : ` <span class="chip c-error">Desconectada</span>`}</td><td>${esc(MODOS[c.modo] ?? c.modo)}</td><td>${num(c.preguntas)}</td><td>${pct(c.bot_pct)}</td><td>${durML(c.tiempo_ml?.total?.response_time)}</td><td>${num(c.publicaciones)}</td></tr>`).join("")}</table>
+      <table class="tabla apilable"><tr><th>Cuenta</th><th>Modo</th><th>Preguntas</th><th>Bot solo</th><th>Según ML</th><th>Publicaciones</th></tr>
+      ${d.cuentas.map((c) => `<tr class="fila-click ${f?.id === c.id ? "on" : ""}" data-fil="cuenta" data-id="${c.id}" tabindex="0"><td><b>${esc(c.nombre)}</b>${c.conectada ? "" : ` <span class="chip c-error">Desconectada</span>`}</td><td data-et="Modo">${esc(MODOS[c.modo] ?? c.modo)}</td><td data-et="Preguntas">${num(c.preguntas)}</td><td data-et="Bot solo">${pct(c.bot_pct)}</td><td data-et="Según MercadoLibre">${durML(c.tiempo_ml?.total?.response_time)}</td><td data-et="Publicaciones">${num(c.publicaciones)}</td></tr>`).join("")}</table>
       ${cta?.tiempo_ml ? bloqueTiempoML(cta) : ""}</div>
     <div class="panel" style="padding:16px 18px;overflow-x:auto"><h2>Equipo</h2>
-      ${d.operadores.length ? `<table class="tabla"><tr><th>Persona</th><th>Rol</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Ventas</th><th>Tiempo</th>" : ""}</tr>
-      ${d.operadores.map((o) => `<tr><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}</td><td>${o.rol === "admin" ? "Administrador" : "Operador"}</td><td>${num(o.respondidas)}</td><td>${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td>${num(o.mensajes)}</td><td>${num(o.conversaciones)}</td><td>${dur(o.tiempo_mensajes_seg)}</td>` : ""}</tr>`).join("")}
-      ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td></td><td>${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
+      ${d.operadores.length ? `<table class="tabla apilable"><tr><th>Persona</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Tiempo</th><th>Ventas atendidas</th>" : ""}</tr>
+      ${d.operadores.map((o) => `<tr><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}<div class="peq mut">${o.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Preguntas respondidas">${num(o.respondidas)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td data-et="Mensajes enviados">${num(o.mensajes)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_mensajes_seg)}</td><td data-et="Ventas atendidas">${num(o.conversaciones)}</td>` : ""}</tr>`).join("")}
+      ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td data-et="Mensajes enviados">${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
       : `<p class="mut" style="margin:6px 0 0">Esta empresa todavía no tiene usuarios.</p>`}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
     <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su empresa.</p>`;
@@ -2907,9 +2919,9 @@ async function rendimientoMensajes(emp) {
       <div class="medida"><b>${num(t.enviados)}</b><span>mensajes enviados (${num(t.conversaciones)} conversaciones)</span></div>
       <div class="medida"><b>${dur(t.tiempo_mediana_seg)}</b><span>tiempo típico de respuesta</span></div>
       <div class="medida"><b>${num(t.pendientes_ahora)}</b><span>esperando respuesta ahora${t.urgentes_ahora ? `, ${num(t.urgentes_ahora)} urgentes` : ""}</span></div></div>
-    <div class="panel" style="margin-top:18px;overflow-x:auto"><table class="tabla"><tr><th>Persona</th><th>Mensajes enviados</th><th>Conversaciones</th><th>Tiempo típico</th><th>Promedio</th></tr>
-      ${gente.map((p) => `<tr><td><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td>${num(p.enviados)}</td><td>${num(p.conversaciones)}</td><td>${dur(p.tiempo_mediana_seg)}</td><td>${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
-      ${t.desde_mercadolibre.enviados ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Respondidos fuera de Mostrador</div></td><td>${num(t.desde_mercadolibre.enviados)}</td><td>${num(t.desde_mercadolibre.conversaciones)}</td><td>${dur(t.desde_mercadolibre.tiempo_mediana_seg)}</td><td>${dur(t.desde_mercadolibre.tiempo_prom_seg)}</td></tr>` : ""}</table></div>`;
+    <div class="panel" style="margin-top:18px;overflow-x:auto"><table class="tabla apilable"><tr><th>Persona</th><th>Mensajes enviados</th><th>Ventas atendidas</th><th>Tiempo típico</th><th>Promedio</th></tr>
+      ${gente.map((p) => `<tr><td><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Mensajes enviados">${num(p.enviados)}</td><td data-et="Ventas atendidas">${num(p.conversaciones)}</td><td data-et="Tiempo típico">${dur(p.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
+      ${t.desde_mercadolibre.enviados ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Respondidos fuera de Mostrador</div></td><td data-et="Mensajes enviados">${num(t.desde_mercadolibre.enviados)}</td><td data-et="Ventas atendidas">${num(t.desde_mercadolibre.conversaciones)}</td><td data-et="Tiempo típico">${dur(t.desde_mercadolibre.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(t.desde_mercadolibre.tiempo_prom_seg)}</td></tr>` : ""}</table></div>`;
   enlazarPeriodo(VISTAS.rendimiento);
   pestModulo("rendMod", VISTAS.rendimiento);
 }
