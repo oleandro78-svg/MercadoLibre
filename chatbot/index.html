@@ -483,6 +483,9 @@ input[type=file]{max-width:100%}
 .b-comp{align-self:flex-start;background:var(--sup);border-bottom-left-radius:4px}
 .b-vend{align-self:flex-end;background:var(--pino-2);border-bottom-right-radius:4px}.b-vend small{text-align:right}
 .b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
+.adj-mini{width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--papel);flex:0 0 auto}.adj-mini:not([src]){animation:pulso 1.2s ease-in-out infinite}
+.adj-falla{animation:none!important}.adj-t{display:flex;flex-direction:column;min-width:0}.adj-t span:first-child{overflow-wrap:anywhere}.adj-img{padding:6px}
+@keyframes pulso{50%{opacity:.5}}@media (prefers-reduced-motion:reduce){.adj-mini{animation:none!important}}
 .adj{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid var(--linea);background:var(--sup);border-radius:10px;padding:6px 10px;margin-top:8px;font-size:13px;font-weight:600;color:var(--tinta)}
 .adj:focus-visible{outline:2px solid var(--cielo)}
 .mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
@@ -2622,7 +2625,7 @@ function hiloHTML(c) {
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
       <span class="h-venta">${pagoTxt(c)}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
-      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
@@ -2709,7 +2712,7 @@ async function refrescarConv(id) {
   S.msjConv = d;
   if (!escribiendo) { pintarChat(d); pintarVenta(d); return; }
   const bur = $("#mBur"); if (!bur) return;
-  bur.innerHTML = burbujas(d.mensajes); bur.scrollTop = bur.scrollHeight;
+  bur.innerHTML = burbujas(d.mensajes); bur.scrollTop = bur.scrollHeight; cargarMinis(id);
   aviso("El comprador escribió de nuevo. Lo que estabas escribiendo quedó como estaba.");
 }
 function volverLista() {
@@ -2718,13 +2721,37 @@ function volverLista() {
   cargarHilos(empMsj());
 }
 
+// Vencimiento de una mediación: "18 nov a las 14:08"
+const venceTxt = (f) => { const d = new Date(f); return `${d.toLocaleDateString("es-AR", { day: "numeric", month: "short" })} a las ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`; };
+// Imágenes adjuntas: se muestra una foto chiquita además del nombre (se traen de MercadoLibre la primera vez y quedan guardadas)
+const esImagen = (a) => /^image\//.test(a.tipo ?? "") || /\.(jpe?g|png|gif|webp)$/i.test(a.nombre ?? a.id ?? "");
+const ADJ_DATOS = {};
+async function traerAdjunto(convId, archivo) {
+  if (!ADJ_DATOS[archivo]) ADJ_DATOS[archivo] = api("mensaje_adjunto", { id: convId, archivo }).catch((e) => { delete ADJ_DATOS[archivo]; throw e; });
+  return ADJ_DATOS[archivo];
+}
+async function cargarMinis(convId) {
+  S.minis = S.minis ?? {};
+  const imgs = [...document.querySelectorAll("#mBur img[data-mini]:not([src])")];
+  for (let i = 0; i < imgs.length; i += 3) {
+    await Promise.all(imgs.slice(i, i + 3).map(async (img) => {
+      const id = img.dataset.mini;
+      try {
+        const r = await traerAdjunto(convId, id);
+        if (!/^image\//.test(r.tipo)) { img.replaceWith(document.createRange().createContextualFragment(ICONO_M.clip)); return; }
+        S.minis[id] = `data:${r.tipo};base64,${r.datos}`;
+        document.querySelectorAll(`#mBur img[data-mini="${CSS.escape(id)}"]`).forEach((x) => { x.src = S.minis[id]; });
+      } catch { img.classList.add("adj-falla"); }
+    }));
+  }
+}
 function burbujas(ms) {
   let dia = "";
   return ms.map((m) => {
     const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
     const sep = d !== dia ? `<div class="dia">${esc(d)}</div>` : ""; dia = d;
     const hora = new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
-    const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj" data-adj="${esc(a.id)}">${ICONO_M.clip}<span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</button>`).join("");
+    const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj ${esImagen(a) ? "adj-img" : ""}" data-adj="${esc(a.id)}">${esImagen(a) ? `<img class="adj-mini" data-mini="${esc(a.id)}" alt="" ${S.minis?.[a.id] ? `src="${S.minis[a.id]}"` : ""}>` : ICONO_M.clip}<span class="adj-t"><span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</span></button>`).join("");
     const mod = m.moderacion && m.moderacion !== "clean" ? `<div class="mod-x">${m.moderacion === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}${m.moderacion_motivo ? ` (${esc(m.moderacion_motivo)})` : ""}</div>` : "";
     const quien = m.de === "vendedor" ? (m.enviado_nombre ? `${esc(m.enviado_nombre)} · ` : m.opcion ? "Con motivo · " : "") : "";
     return `${sep}<div class="b ${m.de === "comprador" ? "b-comp" : "b-vend"}">${m.texto ? esc(m.texto).replace(/\n/g, "<br>") : ""}${adj}${mod}<small>${quien}${hora}${m.de === "vendedor" && m.leido_at ? " · leído" : ""}</small></div>`;
@@ -2737,7 +2764,8 @@ function pintarChat(d) {
   if (c.conv_estado === "active") estado = `<div class="estado e-ok">${ICONO_M.ok}<span>Podés escribir. Hasta ${LIM_MSJ} caracteres por mensaje; podés adjuntar JPG, PNG, PDF o TXT.</span></div>`;
   else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
   else estado = `<div class="estado e-blo">${ICONO_M.alto}<span>No se puede escribir: ${esc(c.bloqueo ?? "MercadoLibre no la habilita")}.${c.conv_subestado === "blocked_by_fulfillment" ? " Cuando el envío figure entregado se habilita sola." : ""}</span></div>`;
-  const urg = c.urgente ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>Atención:</b> ${esc(c.urgente_motivo ?? "posible reclamo")}. Respondé cuanto antes.</span></div>` : "";
+  const med = c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>${esc(c.mediacion.tipo)} abierta</b>${c.mediacion.etapa ? ` (${esc(c.mediacion.etapa)})` : ""}.${c.mediacion.tenes_que_responder && c.mediacion.vence ? ` Tenés que responder antes del ${esc(venceTxt(c.mediacion.vence))}.` : ""} <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a></span></div>` : "";
+  const urg = c.urgente && !c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>Atención:</b> ${esc(c.urgente_motivo ?? "posible reclamo")}. Respondé cuanto antes.</span></div>` : "";
   const avisos = (d.avisos ?? []).map((a) => `<div class="estado e-mot">${ICONO_M.info}<span>${esc(a)}</span></div>`).join("");
   const env = c.envio ?? {};
   $("#mChat").innerHTML = `
@@ -2747,17 +2775,18 @@ function pintarChat(d) {
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
-    ${estado}${urg}${avisos}
+    ${estado}${med}${urg}${avisos}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div class="redactar" id="mRed"></div>`;
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
+  cargarMinis(c.id).then(() => { if (!anchoMovil()) bur.scrollTop = bur.scrollHeight; });
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
   bur.onclick = async (e) => {
     const b = e.target.closest("[data-adj]"); if (!b) return;
-    b.disabled = true; const r = await seguro(() => api("mensaje_adjunto", { id: c.id, archivo: b.dataset.adj })); b.disabled = false;
+    b.disabled = true; const r = await seguro(() => traerAdjunto(c.id, b.dataset.adj)); b.disabled = false;
     if (!r) return;
     const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
@@ -2881,7 +2910,8 @@ function pintarVenta(d) {
     ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
-    ${c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
+    ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a> · número ${esc(c.mediacion.id)}</p>`
+      : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
     ${S.rol !== "operador" ? `<h3>Quién la atiende</h3><p class="peq" style="margin:0">${c.asignados_nombres?.length ? esc(c.asignados_nombres.join(", ")) : `<span class="mut">${S.msjLista?.con_asignaciones ? "Nadie la cubre ahora: te llega a vos" : "Todo el equipo"}</span>`}</p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
