@@ -561,6 +561,11 @@ input[type=file]{max-width:100%}
   .tabla.apilable tr.fila-click.on{background:var(--cielo-2);border-radius:var(--r-m)}
 }
 /* ---------- material para enviar ---------- */
+.sug{margin-bottom:16px}.sug-it{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--linea)}
+.sug-it>svg{flex:0 0 auto;margin-top:2px}.sug-t{flex:1;min-width:0}.sug-t b{overflow-wrap:anywhere}
+.sug-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sug-una summary{cursor:pointer;padding:10px 0 4px}
+.rev-doc{background:var(--papel);border-radius:8px;padding:8px 10px;margin:0 0 6px}
+@media (max-width:720px){.sug-it{flex-wrap:wrap}.sug-b{width:100%;justify-content:flex-start;padding-left:32px}}
 .mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 .mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
 #mpLista{overflow:auto;min-height:0;flex:1}
@@ -2843,6 +2848,7 @@ VISTAS.material = async () => {
   S.matPubs = r.publicaciones;
   if (!S.matPub || !r.publicaciones.some((p) => p.id === S.matPub)) S.matPub = (r.publicaciones.find((p) => p.archivos + p.enlaces) ?? r.publicaciones[0])?.id ?? null;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Manuales, guías de instalación, garantías y links de cada publicación, listos para mandarlos en la conversación con un clic. El bot también los propone cuando corresponde.</p></div></div>
+    ${S.rol !== "operador" ? `<div id="mpSug"></div>` : ""}
     <div class="mat-grid"><div class="panel mat-pubs"><input type="search" id="mpBus" placeholder="Buscar publicación" aria-label="Buscar publicación" style="width:100%">
       <label class="peq" style="display:flex;gap:6px;align-items:center;margin:10px 0 4px"><input type="checkbox" id="mpCon" ${S.matCon ? "checked" : ""}> Solo las que tienen documentación</label>
       <div id="mpLista"></div></div>
@@ -2856,7 +2862,79 @@ VISTAS.material = async () => {
   $("#mpCon").onchange = () => { S.matCon = $("#mpCon").checked; lista(); };
   $("#mpLista").onclick = (e) => { const b = e.target.closest("[data-p]"); if (b) { S.matPub = b.dataset.p; lista(); detalleMaterial(emp); } };
   lista(); detalleMaterial(emp);
+  if ($("#mpSug")) pintarSugeridos(emp);
 };
+
+// ---------- Encontrado en envíos anteriores: archivos que ya se mandaron a compradores ----------
+function abrirArchivoB64(r) {
+  const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
+  const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener";
+  if (!/^image\/|pdf|text\/plain/.test(r.tipo)) a.download = r.nombre;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+const mesAnio = (f) => f ? new Date(f).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "";
+function textoRevision(rv) {
+  const enCurso = rv.filter((x) => x.fase === "ventas" || x.fase === "reclamos" || x.fase === "pendiente");
+  if (!enCurso.length) return "";
+  const x = enCurso[0], ini = x.modo !== "diaria";
+  if (x.fase === "pendiente") return "En un minuto empieza la revisión de lo que se mandó a compradores en el último año.";
+  if (x.fase === "ventas") return `${ini ? "Revisando lo que se mandó a compradores en el último año" : "Repasando los envíos de los últimos días"}: ${x.por ? `vamos por ${mesAnio(x.por)}` : "empezando"} (${num(x.ventas)} ventas revisadas).`;
+  return `${ini ? "Revisando el último año" : "Repasando los últimos días"}: ventas listas, ahora los reclamos (${num(x.reclamos)} revisados).`;
+}
+async function pintarSugeridos(emp) {
+  const caja = $("#mpSug"); if (!caja) return;
+  const r = await api("docs_sugeridos", { empresa_id: emp }).catch(() => null);
+  if (!r || S.tab !== "material" || !$("#mpSug")) return;
+  const rev = textoRevision(r.revision ?? []);
+  const tarjeta = (d) => `<div class="sug-it" data-k="${esc(d.clave)}">${d.mime === "application/pdf" || d.mime === "text/plain" ? ICONO_M.doc : ICONO_M.clip}
+      <div class="sug-t"><b>${esc(d.nombre)}</b>
+        <div class="peq mut">${d.compradores > 1 ? `Enviado a ${d.compradores} compradores` : "Enviado una vez"}${d.ultima ? ` · última vez ${new Date(d.ultima).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })}` : ""} · ${pesoTxt(d.bytes)}${d.origenes.includes("reclamo") ? (d.origenes.length > 1 ? " · en mensajes y reclamos" : " · en reclamos") : ""}</div>
+        ${d.publicaciones.length ? `<div class="peq" style="margin-top:4px">${d.publicaciones.slice(0, 3).map((p) => `<span class="chip">${esc(p.titulo ?? p.id)}</span>`).join(" ")}${d.publicaciones.length > 3 ? ` <span class="mut">y ${d.publicaciones.length - 3} más</span>` : ""}</div>` : ""}</div>
+      <div class="sug-b"><button class="btn lin chico" type="button" data-ver>Ver</button><button class="btn pri chico" type="button" data-agr>Agregar</button><button class="btn lin chico" type="button" data-des>No sirve</button></div></div>`;
+  const sug = r.sugeridos ?? [], una = r.una_vez ?? [];
+  if (!sug.length && !una.length && !rev) { caja.innerHTML = ""; return; }
+  caja.innerHTML = `<div class="panel sug">
+      <h3 style="margin:0 0 4px">Encontrado en envíos anteriores</h3>
+      <p class="peq mut" style="margin:0 0 10px">Archivos que ya mandaron a compradores por mensaje o en reclamos. Agregalos y quedan listos para la próxima venta; nada entra sin que lo confirmes.</p>
+      ${rev ? `<p class="peq rev-doc">${esc(rev)}</p>` : ""}
+      ${sug.map(tarjeta).join("") || (rev ? "" : `<p class="peq mut" style="margin:0">No hay archivos enviados a más de un comprador.</p>`)}
+      ${una.length ? `<details class="sug-una"><summary class="peq">PDF enviados una sola vez (${una.length})</summary>${una.map(tarjeta).join("")}</details>` : ""}
+    </div>`;
+  const todos = new Map([...sug, ...una].map((d) => [d.clave, d]));
+  caja.onclick = async (e) => {
+    const it = e.target.closest("[data-k]"); if (!it) return;
+    const d = todos.get(it.dataset.k); if (!d) return;
+    const bt = e.target.closest("button"); if (!bt) return;
+    if (bt.hasAttribute("data-ver")) { bt.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: d.clave })); bt.disabled = false; if (x) abrirArchivoB64(x); }
+    else if (bt.hasAttribute("data-des")) { if (await seguro(() => api("docs_descartar", { empresa_id: emp, clave: d.clave }))) { aviso("Listo: no se vuelve a sugerir"); pintarSugeridos(emp); } }
+    else if (bt.hasAttribute("data-agr")) agregarSugerido(emp, d);
+  };
+  // Mientras la revisión sigue, la lista se actualiza sola
+  clearTimeout(S.sugTimer);
+  if (rev) S.sugTimer = setTimeout(() => { if (S.tab === "material" && !document.querySelector(".velo")) pintarSugeridos(emp); }, 30000);
+}
+function agregarSugerido(emp, d) {
+  const pubs = d.publicaciones.length ? d.publicaciones : (S.matPub ? [{ id: S.matPub, titulo: S.matPubs?.find((p) => p.id === S.matPub)?.titulo ?? S.matPub }] : []);
+  const base = d.nombre.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_-]+/g, " ").trim();
+  const v = cajon(`<div class="cajon-cab"><div><h2>Agregar a la documentación</h2><p class="mut peq" style="margin:4px 0 0">${esc(d.nombre)} · ${pesoTxt(d.bytes)}</p></div></div>
+    <label class="et" for="sgTit">Nombre (es lo que ve quien envía)</label><input id="sgTit" value="${esc(base.slice(0, 120))}" maxlength="120">
+    <div class="et" style="margin-top:12px">Publicaciones</div>
+    ${pubs.length ? pubs.map((p) => `<label class="peq" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="checkbox" value="${esc(p.id)}" checked> <span>${esc(p.titulo ?? p.id)}${p.veces ? ` <span class="mut">(enviado ${p.veces} ${p.veces > 1 ? "veces" : "vez"})</span>` : ""}</span></label>`).join("") : `<p class="peq mut">No sabemos de qué publicación era: elegí una en la lista de publicaciones y volvé a tocar Agregar.</p>`}
+    <label class="et" for="sgCua" style="margin-top:12px">Cuándo</label>
+    <select id="sgCua"><option value="mano">Solo a mano</option><option value="entrega">El bot lo propone al entregarse</option></select>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn pri" type="button" id="sgOk" ${pubs.length ? "" : "disabled"}>Agregar</button><button class="btn lin" type="button" data-cerrar>Cancelar</button></div>`, true);
+  $("#sgOk", v).onclick = async () => {
+    const elegidas = [...v.querySelectorAll("input[type=checkbox]:checked")].map((x) => x.value);
+    if (!elegidas.length) { aviso("Elegí al menos una publicación"); return; }
+    $("#sgOk", v).disabled = true;
+    const x = await seguro(() => api("docs_agregar", { empresa_id: emp, clave: d.clave, titulo: $("#sgTit", v).value, publicaciones: elegidas, cuando: $("#sgCua", v).value }));
+    $("#sgOk", v).disabled = false;
+    if (!x) return;
+    v.remove(); aviso(x.publicaciones > 1 ? `Agregado a ${x.publicaciones} publicaciones` : "Agregado a la publicación");
+    VISTAS.material();
+  };
+}
 
 async function detalleMaterial(emp) {
   if (!S.matPub) { $("#mpDet").innerHTML = `<div class="panel vacio"><b>No hay publicaciones activas</b>Aparecen cuando la cuenta termine de leerlas.</div>`; return; }
