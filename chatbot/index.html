@@ -465,10 +465,12 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
 .c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
 .m-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
 .m-vacio{margin:auto;text-align:center;color:var(--piz);display:grid;gap:4px}
-.chat-cab{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--sup);border-bottom:1px solid var(--linea)}
+.chat-cab{display:flex;align-items:center;gap:10px 12px;padding:12px 22px;background:var(--sup);border-bottom:1px solid var(--linea);flex-wrap:wrap}
 .chat-cab .foto{width:40px;height:40px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
 .chat-cab .t{min-width:0;flex:1}.chat-cab .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-cab .t span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-cab .t{flex:1 1 calc(100% - 60px)}
+.acc-cab{margin-left:auto}
 .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .estado svg{flex:none;margin-top:2px}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
@@ -526,10 +528,15 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   .m-venta{display:none}
   .msj.ver-lista .m-chat{display:none}.msj.ver-chat .m-lista{display:none}
   .b{max-width:85%}
-  .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .n{width:100%}
+  .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .t{flex:1 1 calc(100% - 110px)}
   .estado{margin:10px 14px 0}
   .redactar .acciones .der{margin-left:0;width:100%;justify-content:flex-end}
 }
+.venta-cab{display:grid;line-height:1.3;padding-left:52px}
+.venta-cab .peq{color:var(--piz)}
+.acc-cab{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:960px){.venta-cab{padding-left:0}}
+.m-pie{display:grid;gap:6px;justify-items:center;text-align:center;padding:16px 18px 22px}
 /* ---------- material para enviar ---------- */
 .mat-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
 .mat-pubs{max-height:calc(100vh - 170px);display:flex;flex-direction:column}
@@ -964,7 +971,9 @@ const VISTAS = {};
 function ir(t) {
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").classList.remove("lleno");
-  if (t !== "mensajes") { S.msjId = null; if (/^#mensajes/.test(location.hash)) try { history.replaceState(null, "", location.pathname + location.search); } catch {} }
+  if (t !== "mensajes") S.msjId = null;
+  // La pantalla actual queda en la dirección: al actualizar la página se vuelve a la misma
+  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
@@ -1744,10 +1753,12 @@ async function mejorarTexto(id, tx, caja, btn, acc = "mejorar") {
   btn.disabled = false; btn.innerHTML = t0;
   if (!r) return;
   tx.value = r.texto; tx.dispatchEvent(new Event("input"));
-  caja.innerHTML = `<div class="mej-caja">
-    ${r.alertas.length ? `<div class="mej-al"><b>Revisá antes de publicar</b><ul>${r.alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul></div>` : ""}
-    ${r.cambios.length ? `<div class="peq"><b>Qué cambió:</b> ${r.cambios.map(esc).join("; ")}.</div>` : `<div class="peq">No hacía falta cambiar nada.</div>`}
-    <button class="btn lin chico" type="button" style="margin-top:8px">Volver a mi versión</button></div>`;
+  ofrecerVolver(caja, tx, antes, r.alertas);
+}
+// Después de reemplazar el texto (mejorar redacción u otro borrador): solo el botón para deshacer, y avisos si los hay
+function ofrecerVolver(caja, tx, antes, alertas = []) {
+  caja.innerHTML = alertas.length ? `<div class="mej-caja"><div class="mej-al"><b>Revisá antes de enviar</b><ul>${alertas.map((a) => `<li>${esc(a)}</li>`).join("")}</ul></div>
+    <button class="btn lin chico" type="button">Volver a mi versión</button></div>` : `<div style="margin-top:8px"><button class="btn lin chico" type="button">Volver a mi versión</button></div>`;
   caja.querySelector("button").onclick = () => { tx.value = antes; tx.dispatchEvent(new Event("input")); caja.innerHTML = ""; };
 }
 // Aprender de cada edición: si la persona cambió el contenido del borrador, se ofrece guardarlo como corrección
@@ -2446,7 +2457,7 @@ const ICONO_M = {
   atras: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>`,
 };
 const pesoTxt = (b) => b == null ? "" : b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toFixed(1).replace(".", ",") + " MB";
-const plata = (n, m) => n == null ? "—" : (m === "ARS" || !m ? "$ " : m + " ") + Number(n).toLocaleString("es-AR", { maximumFractionDigits: 2 });
+const plata = (n, m) => n == null ? "—" : (m === "ARS" || !m ? "$ " : m + " ") + Number(n).toLocaleString("es-AR", Number.isInteger(Number(n)) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const anchoMovil = () => matchMedia("(max-width:960px)").matches;
 function empresasMsj() { return (S.yo?.empresas ?? []).filter((e) => (e.modulos ?? []).includes("mensajes")); }
 function empMsj() {
@@ -2490,28 +2501,63 @@ VISTAS.mensajes = async () => {
   else if (!movil && r?.filas?.length) abrirConv(r.filas[0].id);
 };
 
-async function cargarHilos(emp) {
-  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "" }));
-  if (!r || S.tab !== "mensajes") return null;
-  S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
-  const fil = [["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["todas", "Todas"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : []), ["bloqueadas", "Bloqueadas"]];
-  $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("");
-  $("#mFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); } };
+const POR_PAGINA = 40;
+function hiloHTML(c) {
   const admin = S.rol !== "operador";
-  $("#mHilos").innerHTML = r.filas.map((c) => {
-    const [ce, te] = estadoConv(c);
-    return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""}" data-c="${c.id}">
+  const [ce, te] = estadoConv(c);
+  return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""}" data-c="${c.id}">
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultimo_msj_at || c.fecha_venta))}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
       <span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto ?? "Todavía no hay mensajes")}</span>
       <span class="tags">${c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}<span class="chip ${ce}">${te}</span>${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
-  }).join("") || (r.cargadas ? `<div class="vacio" style="margin:18px"><b>${S.msjFil === "pendientes" ? "Todo respondido" : "No hay conversaciones"}</b>${S.msjFil === "pendientes" ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : "Probá con otro filtro."}</div>`
-    : `<div class="vacio" style="margin:18px"><b>Todavía no hay conversaciones</b>${admin ? `Desde ahora entran solas. Para ver las de tus ventas recientes, traelas de MercadoLibre.<div style="margin-top:12px"><button class="btn pri chico" id="mCargar">Traer conversaciones recientes</button></div>` : "Cuando un comprador escriba, aparece acá."}</div>`);
-  $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
+}
+// Pie de la lista: carga la página siguiente al llegar abajo y, al final, permite buscar conversaciones en ventas anteriores
+function pieHilos(emp, r) {
+  const admin = S.rol !== "operador";
+  const quedan = S.msjCargadas < (r.total ?? 0);
+  const hasta = r.revisadas_hasta ? new Date(r.revisadas_hasta).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" }) : null;
+  const pie = quedan ? `<div class="m-pie" id="mMas"><span class="mut peq">Cargando más…</span></div>`
+    : admin && (["todas", "bloqueadas"].includes(S.msjFil) || !r.cargadas) && !S.msjBus ? `<div class="m-pie"><button class="btn lin chico" id="mCargar" type="button">${hasta ? "Buscar en ventas anteriores" : "Traer conversaciones de ventas recientes"}</button>
+        <span class="mut peq">${hasta ? `Ya se revisaron las ventas hasta el ${esc(hasta)}.` : "Busca en tus últimas ventas las que tienen mensajes."} Tarda unos minutos.</span></div>` : "";
+  const viejo = $("#mHilos .m-pie"); if (viejo) viejo.remove();
+  $("#mHilos").insertAdjacentHTML("beforeend", pie);
+  if (quedan) {
+    S.msjObs?.disconnect();
+    S.msjObs = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { S.msjObs.disconnect(); cargarHilos(emp, true); } });
+    S.msjObs.observe($("#mMas"));
+  }
   if ($("#mCargar")) $("#mCargar").onclick = async () => {
-    if (await seguro(() => api("mensajes_cargar", { empresa_id: emp }))) { aviso("Buscando conversaciones en las últimas ventas; tarda unos minutos"); $("#mCargar").disabled = true; setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), 45000); }
+    const b = $("#mCargar"); b.disabled = true; b.textContent = "Buscando…";
+    if (await seguro(() => api("mensajes_cargar", { empresa_id: emp }))) {
+      aviso("Buscando conversaciones en ventas anteriores. En unos minutos aparecen en la lista.");
+      setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), 60000);
+    } else { b.disabled = false; b.textContent = "Buscar en ventas anteriores"; }
   };
+}
+
+async function cargarHilos(emp, mas = false) {
+  if (mas && S.msjTrayendo) return null;
+  S.msjTrayendo = true;
+  const desde = mas ? S.msjCargadas : 0;
+  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde, limite: POR_PAGINA }));
+  S.msjTrayendo = false;
+  if (!r || S.tab !== "mensajes") return null;
+  S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
+  if (!mas) {
+    S.msjCargadas = 0;
+    const fil = [["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["todas", "Todas"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : []), ["bloqueadas", "Bloqueadas"]];
+    $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("");
+    $("#mFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); } };
+    $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
+    $("#mHilos").innerHTML = r.filas.length ? "" : (r.cargadas || S.rol === "operador"
+      ? `<div class="vacio" style="margin:18px"><b>${S.msjFil === "pendientes" ? "Todo respondido" : "No hay conversaciones"}</b>${S.msjFil === "pendientes" ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "Probá con otra búsqueda." : "Probá con otro filtro."}</div>`
+      : `<div class="vacio" style="margin:18px"><b>Todavía no hay conversaciones</b>Desde ahora entran solas. Para ver las de ventas anteriores, buscalas en MercadoLibre.</div>`);
+  }
+  S.msjCargadas += r.filas.length;
+  const pie = $("#mHilos .m-pie"); if (pie) pie.remove();
+  $("#mHilos").insertAdjacentHTML("beforeend", r.filas.map(hiloHTML).join(""));
+  pieHilos(emp, r);
   return r;
 }
 
@@ -2529,7 +2575,7 @@ async function abrirConv(id) {
   const h = $(`#mHilos .hilo[data-c="${id}"] .punto`); if (h) h.remove();
 }
 function volverLista() {
-  S.msjId = null; try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+  S.msjId = null; try { history.replaceState(null, "", location.pathname + location.search + "#mensajes"); } catch {}
   const caja = $(".msj"); if (caja) { caja.classList.remove("ver-chat"); caja.classList.add("ver-lista"); }
   cargarHilos(empMsj());
 }
@@ -2559,10 +2605,10 @@ function pintarChat(d) {
   $("#mChat").innerHTML = `
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${c.comprador_nick && c.comprador_nombre ? esc(c.comprador_nick) + " · " : ""}${esc(c.item_titulo ?? "")}</span></div>
-      <div class="n" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+      <div class="venta-cab"><b>${plata(c.total, c.moneda)}</b><span class="peq">${esc(LOGISTICA[c.envio_logistica] ?? (c.envio_id ? "Envío" : "Sin envío"))}${c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
+      <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
-    ${movil ? `<div class="resumen-movil"><b>${plata(c.total, c.moneda)}</b><span>· ${esc(LOGISTICA[c.envio_logistica] ?? "Envío")}: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado ?? "—")}</span>${env.estimada && c.envio_estado !== "delivered" ? `<span class="mut">· llega ${fechaCorta(env.estimada)}</span>` : ""}</div>` : ""}
     ${estado}${urg}${avisos}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div class="redactar" id="mRed"></div>`;
@@ -2631,7 +2677,11 @@ function redactarLibre(d) {
     $("#mOtro").disabled = true; $("#mOtro").textContent = "Redactando…";
     const r = await seguro(() => api("mensaje_borrador", { id: c.id }));
     $("#mOtro").disabled = false; $("#mOtro").textContent = "Otro borrador";
-    if (r) { tx.value = r.texto ?? ""; contar(); if (r.nota) aviso(r.nota); }
+    if (r) {
+      const antes = tx.value; tx.value = r.texto ?? ""; contar();
+      const ia = $("#mRed .ia .mut"); if (ia) ia.textContent = r.nota ? `· ${r.nota}` : "";
+      if (antes.trim() && antes !== tx.value) ofrecerVolver($("#mRes"), tx, antes);
+    }
   };
   if ($("#mGuar")) $("#mGuar").onclick = async () => { if (await seguro(() => api("mensaje_borrador", { id: c.id, texto: tx.value }))) aviso("Borrador guardado"); };
   if ($("#mEnv")) $("#mEnv").onclick = async () => {
@@ -2886,16 +2936,24 @@ function avisosMensajes(m) {
 // Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
 function abrirDesdeEnlace(h) {
   const t = String(h || "");
-  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/);
-  if (!S.rol || (!mm && !mp)) return false;
+  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.match(/^#([a-z_]+)$/);
+  if (!S.rol) return false;
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
     S.msjId = Number(mm[1]); ir("mensajes"); return true;
   }
-  try { history.replaceState(null, "", location.pathname + location.search); } catch {}
-  ir(inicio());
-  detalle(Number(mp[1]));
-  return true;
+  if (mp) { ir(inicio()); detalle(Number(mp[1])); return true; }
+  if (mv && vistasPermitidas().has(mv[1])) { ir(mv[1]); return true; }
+  return false;
+}
+// Pantallas a las que se puede volver al actualizar la página, según quién entró y qué módulos tiene
+function vistasPermitidas() {
+  const mods = modsActuales();
+  let l;
+  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas"];
+  else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
+  else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
+  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
 }
 navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
 </script>
