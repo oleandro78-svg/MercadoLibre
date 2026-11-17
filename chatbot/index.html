@@ -538,6 +538,16 @@ input[type=file]{max-width:100%}
   .redactar .acciones .der{margin-left:0;width:100%;justify-content:flex-end}
 }
 .venta-cab{display:grid;line-height:1.3;padding-left:52px}
+.te{display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:12px;letter-spacing:.01em;color:var(--tinta);vertical-align:baseline}
+.te-full{color:#00A650;font-style:italic;font-weight:800}
+h3 .te{font-size:13px;margin-left:4px}
+.enlace{all:unset;cursor:pointer;color:var(--cielo);text-decoration:underline;font-weight:600}.enlace:focus-visible{outline:2px solid var(--cielo)}
+.mat-vacia svg{vertical-align:-2px}
+@media (max-width:960px){
+  .chat-alertas{position:sticky;top:57px;z-index:20;background:var(--papel);padding-bottom:6px;cursor:pointer}
+  .chat-alertas .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .chat-alertas.abierta .estado>span{display:block}
+}
 .venta-cab .peq{color:var(--piz)}
 .acc-cab{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:960px){.venta-cab{padding-left:0}}
@@ -2543,7 +2553,14 @@ VISTAS.no_incluido = () => {
 
 // ================= MENSAJES (posventa) =================
 const LIM_MSJ = 350;
-const LOGISTICA = { fulfillment: "Full", self_service: "Flex", cross_docking: "Colecta", drop_off: "Despacho en correo", xd_drop_off: "Despacho en punto", default: "Acordar con el comprador", custom: "Envío propio", not_specified: "Sin envío" };
+const LOGISTICA = { fulfillment: "Full", self_service: "Flex", turbo: "Turbo", cross_docking: "Colecta", drop_off: "Correo", xd_drop_off: "Places", default: "Acordar con el comprador", custom: "Envío propio", not_specified: "Sin envío" };
+// Tipo de envío como lo marca MercadoLibre: Full va en verde, en mayúsculas cursivas y con el rayo
+const RAYO = `<svg viewBox="0 0 12 16" width="9" height="12" aria-hidden="true"><path d="M7.5 0 0 9h4.5L3.5 16 12 6.5H7.2z" fill="currentColor"/></svg>`;
+function tipoEnvio(c) {
+  const k = c.envio_logistica; if (!k) return "";
+  if (k === "fulfillment") return `<span class="te te-full">${RAYO}FULL</span>`;
+  return `<span class="te te-${esc(k)}">${esc(LOGISTICA[k] ?? k)}</span>`;
+}
 const ENVIO_E = { pending: "Pendiente", handling: "Preparando", ready_to_ship: "Listo para despachar", shipped: "En camino", delivered: "Entregado", not_delivered: "No entregado", cancelled: "Cancelado" };
 const ORDEN_E = { paid: "Pagada", confirmed: "Confirmada", payment_required: "Falta el pago", payment_in_process: "Pago en proceso", partially_paid: "Pago parcial", cancelled: "Cancelada", invalid: "Inválida" };
 const ICONO_M = {
@@ -2623,7 +2640,7 @@ function hiloHTML(c) {
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta))}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
-      <span class="h-venta">${pagoTxt(c)}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
+      <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
       <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
@@ -2771,17 +2788,18 @@ function pintarChat(d) {
   $("#mChat").innerHTML = `
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
-      <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${esc(LOGISTICA[c.envio_logistica] ?? (c.envio_id ? "Envío" : "Sin envío"))}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
+      <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${c.envio_logistica ? tipoEnvio(c) : esc(c.envio_id ? "Envío" : "Sin envío")}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
-    ${estado}${med}${urg}${avisos}
+    ${estado}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${med}${urg}</div>` : ""}${avisos}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div class="redactar" id="mRed"></div>`;
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   cargarMinis(c.id).then(() => { if (!anchoMovil()) bur.scrollTop = bur.scrollHeight; });
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
+  if ($(".chat-alertas")) $(".chat-alertas").onclick = (e) => { if (!e.target.closest("a")) e.currentTarget.classList.toggle("abierta"); };
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
   bur.onclick = async (e) => {
@@ -2805,7 +2823,8 @@ function redactarLibre(d) {
   const sueltos = [];
   $("#mRed").innerHTML = `
     ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span>${c.borrador_motivo ? `<span class="mut">· ${esc(c.borrador_motivo)}</span>` : ""}</div>` : ""}
-    ${mat.length ? `<div class="mat"><span class="mat-t">Documentación de esta publicación:</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
+    ${!mat.length ? `<p class="peq mut mat-vacia" style="margin:0 0 8px">${ICONO_M.clip} Esta publicación no tiene documentación cargada.${S.rol !== "operador" ? ` <button type="button" class="enlace" id="mIrDoc">Cargarla</button>` : " Pedile al administrador que la cargue."}</p>` : ""}
+    ${mat.length ? `<div class="mat"><span class="mat-t">Documentación (tocala para sumarla al mensaje):</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
     <div class="mat" id="mSue"></div>
     <label class="oculto-v" for="mTx">Mensaje para el comprador</label>
     <textarea id="mTx" placeholder="Escribí el mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
@@ -2823,6 +2842,7 @@ function redactarLibre(d) {
   const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = `${n} / ${LIM_MSJ}`; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
   tx.oninput = contar; contar();
   const pintarSueltos = () => { $("#mSue").innerHTML = sueltos.map((f, i) => `<span class="mat-b on">${ICONO_M.clip} ${esc(f.nombre)} <span class="mut">${pesoTxt(f.bytes)}</span> <button type="button" class="x-s" data-q="${i}" aria-label="Quitar ${esc(f.nombre)}">×</button></span>`).join(""); };
+  if ($("#mIrDoc")) $("#mIrDoc").onclick = () => { S.matPub = c.item_id; ir("material"); };
   $("#mSue").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); } };
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
@@ -2906,7 +2926,7 @@ function pintarVenta(d) {
     ${c.pagado != null && Number(c.pagado) !== Number(c.total) ? `<div class="dv"><span>Total de productos</span><span>${plata(c.total, c.moneda)}</span></div>` : ""}
     ${Number(c.devuelto) > 0 ? `<div class="dv"><span>Devuelto al comprador</span><span style="color:var(--ladrillo)">${plata(c.devuelto, c.moneda)}</span></div>` : ""}
     <div class="dv"><span>Estado</span><span>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden ?? "—")}</span></div>
-    <h3>Envío · ${esc(LOGISTICA[c.envio_logistica] ?? c.envio_logistica ?? "—")}</h3>
+    <h3>Envío ${tipoEnvio(c) || "—"}</h3>
     ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
