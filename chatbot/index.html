@@ -2983,9 +2983,9 @@ function pintarSugPub(emp) {
   const p = (S.docsSug.publicaciones ?? []).find((x) => x.id === S.matPub);
   if (!p?.docs?.length) { caja.innerHTML = ""; return; }
   const tarjeta = (d) => {
-    const doc = [d.version ? `versión ${esc(d.version)}` : "", d.fecha_doc ? `del ${esc(fechaDoc(d.fecha_doc))}` : ""].filter(Boolean).join(", ");
+    const doc = [d.version ? `versión ${esc(d.version)}` : "", d.fecha_doc ? `fecha ${esc(fechaDoc(d.fecha_doc))}` : ""].filter(Boolean).join(", ");
     return `<div class="sug-it" data-k="${esc(d.clave)}">${d.mime === "application/pdf" || d.mime === "text/plain" ? ICONO_M.doc : ICONO_M.clip}
-      <div class="sug-t"><b>${esc(d.titulo || d.nombre)}</b>
+      <div class="sug-t"><b>${esc(d.titulo || (TIPO_DOC[d.tipo] ?? "Documento"))}</b>
         <div class="peq" style="margin:3px 0"><span class="chip">${esc(TIPO_DOC[d.tipo] ?? "Documento")}</span>${d.versiones > 1 ? (d.reciente ? ` <span class="chip c-ok">Versión más reciente</span>` : ` <span class="chip">Versión anterior</span>`) : ""}</div>
         ${doc ? `<div class="peq">Según el documento: ${doc}</div>` : ""}
         ${d.fecha_archivo ? `<div class="peq mut">Archivo creado o modificado: ${fechaLarga(d.fecha_archivo)}</div>` : ""}
