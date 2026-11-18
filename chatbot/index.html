@@ -78,6 +78,34 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .p-dueno .riel-pie .btn{background:transparent;color:#C9D4DE;border-color:#2C4153}
 .p-soporte .riel{border-right:4px solid var(--ambar)}.p-soporte .perfil{border-left-color:var(--ambar)}
 .riel-velo{display:none}
+.rec-acc{display:flex;gap:10px;flex-wrap:wrap}.btn.grande{padding:16px 20px;font-size:17px;gap:10px;display:inline-flex;align-items:center}
+@media (max-width:720px){.rec-acc .btn{width:100%;justify-content:center}}
+.rec-lista{display:grid;gap:10px}.rec-it{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;background:var(--sup);border:1px solid var(--linea);border-radius:14px;padding:12px;min-width:0}
+.rec-it .foto{width:56px;height:56px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.rec-tx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rec-it:focus-visible{outline:2px solid var(--cielo)}
+.rec-cab{display:flex;gap:14px;align-items:flex-start;margin:10px 0 16px}.rec-cab .foto{width:72px;height:72px;border-radius:12px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.rec-h{font-size:18px;margin:18px 0 10px}.rec-h3{font-size:15px;margin:18px 0 8px;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+.rec-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.rec-op{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:14px;border:2px solid var(--linea);background:var(--sup);text-align:center;font-size:16px}
+.rec-op.ok{color:var(--pino-t)}.rec-op.mal{color:var(--ladrillo)}.rec-op.ok.on{border-color:var(--pino);background:var(--pino-2)}.rec-op.mal.on{border-color:var(--ladrillo);background:var(--ladrillo-2)}
+.rec-op:focus-visible{outline:2px solid var(--cielo)}
+.rec-motivos{display:grid;gap:8px}.rec-motivos .opt{text-align:left;justify-content:flex-start}
+.rec-tip{display:flex;flex-wrap:wrap;gap:6px}.chip-b{all:unset;cursor:pointer;font-size:13px;font-weight:600;border:1px solid var(--linea);background:var(--sup);border-radius:999px;padding:6px 12px}.chip-b:hover{border-color:var(--piz)}
+.fotos-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.foto-c{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1;border-radius:12px;border:1px solid var(--linea);background:var(--sup);overflow:hidden;font-size:12px;text-align:center;color:var(--tinta);text-decoration:none}
+.foto-c img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.foto-c>span{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;padding:3px 4px;font-weight:600}
+.foto-c.nueva{cursor:pointer;border:2px dashed var(--linea);color:var(--piz);padding:6px}.foto-c.nueva>span{position:static;background:none;color:inherit;padding:0}
+.foto-c.subiendo{opacity:.6}.foto-x{all:unset;cursor:pointer;position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;text-align:center;line-height:26px;font-size:18px}
+.foto-c.desp>span{display:flex;gap:6px;align-items:center;justify-content:center}
+.rec-pie{position:sticky;bottom:0;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;background:var(--papel);padding:12px 0;margin-top:18px;border-top:1px solid var(--linea)}
+@media (max-width:720px){.rec-pie .btn{flex:1;justify-content:center}}
+.esc-velo{position:fixed;inset:0;z-index:200;background:#0b1117;display:flex;flex-direction:column}
+.esc-cab{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:#fff}.esc-cab .btn{background:#fff;color:var(--tinta)}
+.rec-tx .chip{white-space:normal;height:auto;line-height:1.3;padding:3px 9px}
+.esc-vid{position:relative;flex:1;overflow:hidden;display:grid;place-items:center}.esc-vid video{width:100%;height:100%;object-fit:cover}
+.esc-marco{position:absolute;width:78%;max-width:420px;aspect-ratio:1.6;border:3px solid rgba(255,255,255,.9);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.35)}
+.esc-ayuda{position:absolute;bottom:14px;left:16px;right:16px;margin:0;color:#fff;text-align:center;font-size:14px;text-shadow:0 1px 3px #000}
+.esc-man{padding:14px 16px 22px;background:#0b1117}
 .aviso-asig{border-color:var(--ambar);background:var(--ambar-2);margin-bottom:16px}.aviso-asig .conf-a{padding:10px 0;border-top:1px solid rgba(0,0,0,.08)}
 .aviso-asig .conf-a:first-of-type{border-top:0}.acc-conf{display:flex;gap:8px;flex-wrap:wrap}
 .asig-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;width:100%;padding:6px 0;border-bottom:1px dashed var(--linea)}
@@ -1008,16 +1036,17 @@ async function recargar() {
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"],
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["reclamos", "Reclamos", 0, "reclamos"],
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   mensajes: [["mensajes", "Bandeja"], ["material", "Documentación para enviar"]],
+  reclamos: [["reclamos", "Devoluciones"], ["despacho", "Foto al despachar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["numeros", "Mis números"]];
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["reclamos", "Reclamos", 0, "reclamos"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -1068,10 +1097,11 @@ addEventListener("pagehide", () => { try { sessionStorage.setItem("mostrador_est
 function restaurarEstado() { try { const e = JSON.parse(sessionStorage.getItem("mostrador_estado") ?? "{}"); for (const k of ESTADO_PANT) if (e[k] != null) S[k] = e[k]; } catch {} }
 function ir(t) {
   clearTimeout(sondeo);
-  $("#main").onclick = null; $("#main").classList.remove("lleno");
+  $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
   if (t !== "mensajes") S.msjId = null;
+  if (t !== "reclamos") S.recId = null;
   // La pantalla actual queda en la dirección: al actualizar la página se vuelve a la misma
-  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
+  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "reclamos" && S.recId ? `#reclamos/${S.recId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
@@ -1267,6 +1297,7 @@ VISTAS.equipo = async () => {
       ["nombre", "Cambiar nombre"],
       ...(m.estado === "invitado" || !m.vos ? [["codigo", m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"]] : []),
       ...(m.rol === "operador" ? [["publicar", m.puede_publicar ? "Que sus respuestas las apruebe un administrador" : "Que publique sin aprobación"]] : []),
+      ...(m.rol === "operador" && modsActuales().has("reclamos") ? [["recapr", m.reclamos_sin_aprobacion !== false ? "Que sus revisiones de devoluciones las apruebe un administrador" : "Que envíe revisiones de devoluciones sin aprobación"]] : []),
       ...(!m.vos ? [["rol", m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"], ["baja", "Dar de baja", "pel"]] : []),
     ];
     let avisos = "";
@@ -1287,7 +1318,8 @@ VISTAS.equipo = async () => {
         <div class="mut peq p-mail">${esc(m.email ?? "")}</div>
         <div class="p-chips"><span class="rol-t ${m.rol}">${m.rol === "admin" ? "Administrador" : "Operador"}</span>
           ${m.estado === "invitado" ? `<span class="chip c-borrador">Invitado, todavía no entró</span>` : baja ? `<span class="chip">Dado de baja${m.baja_at ? " el " + fechaCorta(m.baja_at) : ""}</span>` : ""}
-          ${m.rol === "operador" && !baja ? `<span class="mut peq">${m.puede_publicar ? "Publica sin aprobación" : "Sus respuestas las aprueba un administrador"}</span>` : ""}</div></div>
+          ${m.rol === "operador" && !baja ? `<span class="mut peq">${m.puede_publicar ? "Publica sin aprobación" : "Sus respuestas las aprueba un administrador"}</span>` : ""}
+          ${m.rol === "operador" && !baja && modsActuales().has("reclamos") ? `<span class="mut peq">${m.reclamos_sin_aprobacion !== false ? "Envía revisiones de devoluciones sin aprobación" : "Sus revisiones de devoluciones las aprueba un administrador"}</span>` : ""}</div></div>
       <details class="menu-p"><summary class="btn lin chico" aria-label="Opciones de ${esc(nombre)}">Opciones</summary>
         <div class="menu-l" role="menu">${opciones.map(([a, t, c]) => `<button type="button" role="menuitem" data-a="${a}" class="${c ?? ""}">${t}</button>`).join("")}</div></details>
       ${avisos}
@@ -1329,6 +1361,8 @@ VISTAS.equipo = async () => {
       if (await seguro(() => api("miembro_cambiar", { id: m.id, nombre: nuevo.trim() }))) { aviso("Nombre cambiado"); VISTAS.equipo(); }
     } else if (a === "reactivar") {
       if (await seguro(() => api("miembro_reactivar", { id: m.id }))) { aviso(`${quien} volvió al equipo`); VISTAS.equipo(); }
+    } else if (a === "recapr") {
+      if (await seguro(() => api("miembro_cambiar", { id: m.id, reclamos_sin_aprobacion: m.reclamos_sin_aprobacion === false }))) VISTAS.equipo();
     } else if (a === "publicar") {
       if (await seguro(() => api("miembro_cambiar", { id: m.id, puede_publicar: !m.puede_publicar }))) VISTAS.equipo();
     } else if (a === "rol") {
@@ -2674,7 +2708,7 @@ new MutationObserver(() => titularTablas()).observe(document.body, { childList: 
 
 // ================= MÓDULOS =================
 // Cada empresa tiene los módulos de su plan (Preguntas, Mensajes) o los que le asignó el dueño de la app.
-const MODULOS = { preguntas: "Preguntas", mensajes: "Mensajes" };
+const MODULOS = { preguntas: "Preguntas", mensajes: "Mensajes", reclamos: "Reclamos" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
   mensajes: "Conversa con quienes ya compraron: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
@@ -3378,10 +3412,253 @@ function avisosMensajes(m) {
 }
 // Al tocar el aviso de un mensaje, se abre esa conversación
 // Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
+// ================= RECLAMOS: devoluciones que vuelven al depósito y fotos al despachar =================
+const empRec = () => S.rol === "admin" ? S.empSel : (S.empresaId || S.res?.empresas?.[0]?.id || null);
+const ICONO_R = {
+  cam: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  scan: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M7 12h10"/></svg>`,
+  ok: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>`,
+  mal: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>`,
+};
+const venceRec = (f) => { if (!f) return ""; const h = (new Date(f) - Date.now()) / 3600000; return h < 0 ? "venció" : h < 24 ? `quedan ${Math.max(1, Math.round(h))} h` : `hasta el ${venceTxt(f)}`; };
+function estadoDev(d) {
+  const r = d.revision;
+  if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
+  if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
+  if (d.destino === "warehouse") return { t: "Vuelve al depósito de MercadoLibre", c: "", grupo: "otras" };
+  if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
+  if (!d.abierto) return { t: "Cerrada", c: "", grupo: "otras" };
+  return { t: d.envio_estado === "shipped" ? "En camino al depósito" : "El comprador todavía no la despachó", c: "", grupo: "camino" };
+}
+
+// ---------- escáner de etiquetas con la cámara ----------
+async function escanear(titulo, alLeer) {
+  const v = document.createElement("div");
+  v.className = "esc-velo";
+  v.innerHTML = `<div class="esc-cab"><b>${esc(titulo)}</b><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="esc-vid"><video playsinline muted></video><div class="esc-marco" aria-hidden="true"></div><p class="esc-ayuda">Apuntá al código de barras o al QR de la etiqueta</p></div>
+    <form class="esc-man"><label class="et" for="escCod" style="color:#fff">¿No lo lee? Escribí el número de envío, de venta o el código de seguimiento</label>
+      <div style="display:flex;gap:8px"><input id="escCod" inputmode="text" autocomplete="off" style="flex:1"><button class="btn pri">Buscar</button></div></form>`;
+  document.body.appendChild(v);
+  let flujo = null, vivo = true;
+  const cerrar = () => { vivo = false; flujo?.getTracks().forEach((t) => t.stop()); v.remove(); };
+  const leido = (c) => { if (!vivo) return; try { navigator.vibrate?.(80); } catch {} cerrar(); alLeer(c); };
+  v.querySelector("[data-cerrar]").onclick = cerrar;
+  v.querySelector("form").onsubmit = (e) => { e.preventDefault(); const c = $("#escCod", v).value.trim(); if (c) leido(c); };
+  const video = v.querySelector("video");
+  if (!("BarcodeDetector" in window)) { v.querySelector(".esc-ayuda").textContent = "Este navegador no puede leer códigos con la cámara. Escribí el número abajo (en Android, usá Chrome)."; return; }
+  try {
+    flujo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 } }, audio: false });
+    if (!vivo) { flujo.getTracks().forEach((t) => t.stop()); return; }
+    video.srcObject = flujo; await video.play();
+    const formatos = (await BarcodeDetector.getSupportedFormats?.()) ?? ["qr_code", "code_128"];
+    const det = new BarcodeDetector({ formats: formatos.filter((f) => ["qr_code", "code_128", "code_39", "ean_13", "data_matrix", "pdf417", "itf", "codabar"].includes(f)) });
+    const mirar = async () => {
+      if (!vivo) return;
+      try { const r = await det.detect(video); if (r?.length) return leido(r[0].rawValue); } catch {}
+      setTimeout(mirar, 220);
+    };
+    mirar();
+  } catch (e) {
+    v.querySelector(".esc-ayuda").textContent = /NotAllowed|Permission/i.test(e?.name ?? e) ? "No hay permiso para usar la cámara. Habilitalo en el navegador o escribí el número abajo." : "No se pudo abrir la cámara. Escribí el número abajo.";
+  }
+}
+async function buscarEtiqueta(codigo, modo) {
+  const r = await seguro(() => api("reclamo_buscar", { empresa_id: empRec(), codigo }));
+  if (!r) return;
+  if (r.tipo === "devolucion") { S.recId = r.claim_id; S.tab === "reclamos" ? VISTAS.reclamos() : ir("reclamos"); return; }
+  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución. Si lo estás despachando, usá Foto al despachar."); return; }
+  aviso("No encontré ninguna venta con ese código");
+}
+
+// ---------- fotos: se achican en el celular antes de subirlas ----------
+async function achicar(file, max = 1600) {
+  const img = await createImageBitmap(file).catch(() => null);
+  if (!img) return { datos: await leerB64(file), tipo: file.type || "image/jpeg" };
+  const k = Math.min(1, max / Math.max(img.width, img.height));
+  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const url = c.toDataURL("image/jpeg", 0.85);
+  return { datos: url.split(",")[1], tipo: "image/jpeg" };
+}
+async function subirFoto(file, etiqueta) {
+  const { datos, tipo } = await achicar(file);
+  return api("reclamo_foto", { empresa_id: empRec(), datos, tipo, etiqueta });
+}
+// Casillas de fotos guiadas; devuelve el estado (lista de fotos) que se va llenando
+function casillasFotos(caja, guias, fotos, cambio) {
+  const pintar = () => {
+    const usadas = new Set(fotos.map((f) => f.etiqueta));
+    const libres = guias.filter((g) => !usadas.has(g));
+    caja.innerHTML = `<div class="fotos-g">${fotos.map((f, i) => `<div class="foto-c"><img src="${esc(f.url ?? "")}" alt="${esc(f.etiqueta ?? "Foto")}"><span>${esc(f.etiqueta ?? "Foto")}</span><button type="button" class="foto-x" data-x="${i}" aria-label="Quitar foto">×</button></div>`).join("")}
+      ${libres.map((g) => `<label class="foto-c nueva">${ICONO_R.cam}<span>${esc(g)}</span><input type="file" accept="image/*" capture="environment" data-g="${esc(g)}" hidden></label>`).join("")}
+      <label class="foto-c nueva otra">${ICONO_R.cam}<span>Otra foto</span><input type="file" accept="image/*" multiple data-g="Foto" hidden></label></div>`;
+  };
+  caja.onchange = async (e) => {
+    const inp = e.target.closest("input[type=file]"); if (!inp?.files?.length) return;
+    const cel = inp.closest(".foto-c"); cel.classList.add("subiendo"); cel.querySelector("span").textContent = "Subiendo…";
+    for (const f of [...inp.files].slice(0, 6)) { const r = await seguro(() => subirFoto(f, inp.dataset.g)); if (r) fotos.push(r); }
+    pintar(); cambio?.();
+  };
+  caja.onclick = (e) => { const x = e.target.closest("[data-x]"); if (!x) return; e.preventDefault(); fotos.splice(Number(x.dataset.x), 1); pintar(); cambio?.(); };
+  pintar();
+}
+
+// ---------- lista ----------
+VISTAS.reclamos = async () => {
+  if (S.recId) return detalleReclamo(S.recId);
+  const emp = empRec();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  const r = await seguro(() => api("reclamos", { empresa_id: emp })); if (!r || S.tab !== "reclamos" || S.recId) return;
+  const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) }));
+  const n = (g) => lista.filter((d) => d.est.grupo === g).length;
+  S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
+  const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando vuelve un producto, escaneá la etiqueta del paquete y decí cómo llegó. Si llegó con un problema, MercadoLibre lo revisa con tus fotos.</p></div></div>
+    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta de devolución</button>
+      <button class="btn lin" id="recDesp">${ICONO_R.cam} Foto al despachar</button></div>
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}</div>
+    <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">
+        ${foto(d.item_foto)}<span class="rec-tx"><b>${esc(d.item_titulo ?? "Producto")}</b>
+        <span class="peq mut">${esc(d.comprador ?? "Comprador")}${d.motivo_comprador_txt ? ` · ${esc(d.motivo_comprador_txt)}` : ""}</span>
+        <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span></span></span></button>`).join("")
+      || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
+  $("#recEsc").onclick = () => escanear("Escanear devolución", (c) => buscarEtiqueta(c, "devolucion"));
+  $("#recDesp").onclick = () => ir("despacho");
+  $("#recFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.reclamos(); } };
+  $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.recId = Number(b.dataset.id); ir("reclamos"); } };
+};
+
+// ---------- detalle de una devolución: cómo llegó ----------
+async function detalleReclamo(id) {
+  const r = await seguro(() => api("reclamo", { id })); if (!r || S.tab !== "reclamos" || S.recId !== id) return;
+  const d = r.devolucion, rv = r.revision, yo = r.yo;
+  const enviada = rv?.estado === "enviada";
+  const st = { resultado: rv?.resultado ?? null, motivo: rv?.motivo ?? null, descripcion: rv?.descripcion ?? "", fotos: [...(rv?.fotos ?? [])] };
+  const motivoTxt = (k) => r.motivos.find((m) => m.id === k)?.texto ?? k;
+  const tip = r.tipicos ?? {};
+  const chips = [...(tip.historial ?? []).map((t) => ({ t, de: "ya pasó" })), ...(tip.ia ?? []).map((t) => ({ t, de: "" }))];
+  const cab = `<button class="btn lin chico" id="recVolver" type="button">‹ Devoluciones</button>
+    <div class="panel rec-cab">${foto(d.item_foto)}<div><h1 style="font-size:20px;margin:0 0 4px">${esc(d.item_titulo ?? "Producto")}</h1>
+      <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
+      ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
+      <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div></div></div>`;
+  if (enviada) {
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se informó que llegó bien" : "Se informó que llegó con un problema"}</h2>
+      ${rv.resultado === "falla" ? `<p style="margin:0 0 6px"><b>${esc(motivoTxt(rv.motivo))}</b></p><p class="pre" style="margin:0 0 10px">${esc(rv.descripcion ?? "")}</p>` : ""}
+      ${rv.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div>` : ""}
+      <p class="peq mut" style="margin:10px 0 0">Enviada el ${fecha(rv.enviado_at)}. Ya no se puede cambiar: el resto lo resuelve MercadoLibre.</p></div>`;
+    $("#recVolver").onclick = () => { S.recId = null; ir("reclamos"); };
+    return;
+  }
+  $("#main").innerHTML = `${cab}
+    ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
+    ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
+    ${!d.se_puede_revisar ? `<div class="estado e-pend" style="margin-bottom:12px"><span>MercadoLibre habilita la revisión cuando la devolución llega. Podés dejarla preparada y enviarla después.</span></div>` : ""}
+    <h2 class="rec-h">¿Cómo llegó?</h2>
+    <div class="rec-dos"><button type="button" class="rec-op ok ${st.resultado === "ok" ? "on" : ""}" data-r="ok">${ICONO_R.ok}<b>Llegó bien</b></button>
+      <button type="button" class="rec-op mal ${st.resultado === "falla" ? "on" : ""}" data-r="falla">${ICONO_R.mal}<b>Llegó con un problema</b></button></div>
+    <div id="recFalla"></div>
+    <div class="rec-pie"><button class="btn lin" id="recBorr" type="button">Guardar sin enviar</button>
+      <button class="btn pri" id="recEnv" type="button"></button></div>`;
+  const pintarPie = () => {
+    const b = $("#recEnv");
+    b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? "Aprobar y enviar a MercadoLibre" : "Enviar a MercadoLibre";
+    b.disabled = !st.resultado || (yo.sinAprobacion && !d.se_puede_revisar);
+  };
+  const pintarFalla = () => {
+    const caja = $("#recFalla");
+    if (st.resultado !== "falla") { caja.innerHTML = ""; pintarPie(); return; }
+    caja.innerHTML = `<h2 class="rec-h">¿Qué pasó?</h2>
+      <div class="rec-motivos" role="radiogroup">${r.motivos.map((m) => `<button type="button" role="radio" aria-checked="${st.motivo === m.id}" class="opt ${st.motivo === m.id ? "on" : ""}" data-mo="${m.id}">${esc(m.texto)}</button>`).join("")}</div>
+      ${chips.length || tip.del_comprador?.length ? `<h3 class="rec-h3">Problemas típicos de esta publicación <span class="peq mut">tocá para sumarlo a la descripción</span></h3>
+        <div class="rec-tip">${chips.map((c) => `<button type="button" class="chip-b" data-tip="${esc(c.t)}">${esc(c.t)}${c.de ? ` <span class="mut">· ${c.de}</span>` : ""}</button>`).join("")}</div>
+        ${tip.del_comprador?.length ? `<p class="peq mut" style="margin:6px 0 0">Motivos de los compradores en devoluciones de esta publicación: ${tip.del_comprador.map((x) => `${esc(x.texto)} (${x.veces})`).join(" · ")}</p>` : ""}` : ""}
+      <h3 class="rec-h3">Fotos ${["SRF2", "SRF4"].includes(st.motivo) ? `<span class="peq" style="color:var(--ladrillo)">para este motivo MercadoLibre pide fotos</span>` : `<span class="peq mut">ayudan a que MercadoLibre te dé la razón</span>`}</h3>
+      <div id="recFotos"></div>
+      ${r.despacho?.length ? `<h3 class="rec-h3">Fotos de cuando se despachó <span class="peq mut">son la mejor prueba</span></h3>
+        <div class="fotos-g">${r.despacho.flatMap((x) => x.fotos).map((f) => `<label class="foto-c desp"><img src="${esc(f.url ?? "")}" alt=""><span><input type="checkbox" data-desp="${esc(f.path)}" ${st.fotos.some((y) => y.path === f.path) ? "checked" : ""}> Incluir</span></label>`).join("")}</div>` : ""}
+      <h3 class="rec-h3">Descripción para MercadoLibre</h3>
+      <textarea id="recDesc" rows="5" maxlength="2000" placeholder="Contá qué encontraste al abrir el paquete. Podés tocar los problemas típicos de arriba o pedirle la descripción a la IA.">${esc(st.descripcion)}</textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn lin chico" id="recIA">✨ Sugerir descripción con IA</button><span class="peq mut" id="recIAt" style="align-self:center"></span></div>`;
+    casillasFotos($("#recFotos"), ["Caja cerrada", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+    $("#recDesc").oninput = () => { st.descripcion = $("#recDesc").value; };
+    pintarPie();
+  };
+  $("#main").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.r) { st.resultado = b.dataset.r; $("#main").querySelectorAll(".rec-op").forEach((x) => x.classList.toggle("on", x === b)); pintarFalla(); return; }
+    if (b.dataset.mo) { st.motivo = b.dataset.mo; pintarFalla(); return; }
+    if (b.dataset.tip) { const t = $("#recDesc"); t.value = (t.value.trim() ? t.value.trim() + (/[.!?]$/.test(t.value.trim()) ? " " : ". ") : "") + b.dataset.tip; st.descripcion = t.value; return; }
+    if (b.id === "recIA") {
+      if (!st.motivo) return aviso("Elegí primero qué pasó");
+      b.disabled = true; $("#recIAt").innerHTML = `${buscandoTxt("Mirando las fotos")}`;
+      const x = await seguro(() => api("reclamo_sugerir", { id, motivo: st.motivo, notas: $("#recDesc").value, fotos: st.fotos }));
+      b.disabled = false; $("#recIAt").textContent = "";
+      if (x?.descripcion) { const antes = $("#recDesc").value; $("#recDesc").value = x.descripcion; st.descripcion = x.descripcion; if (antes.trim()) ofrecerVolver($("#recIAt"), $("#recDesc"), antes); }
+      return;
+    }
+    if (b.id === "recVolver") { S.recId = null; ir("reclamos"); return; }
+    if (b.id === "recBorr" || b.id === "recEnv") {
+      const enviar = b.id === "recEnv";
+      if (enviar && st.resultado === "falla" && !st.motivo) return aviso("Elegí qué pasó");
+      if (enviar && st.resultado === "falla" && !String(st.descripcion).trim()) return aviso("Escribí la descripción o pedísela a la IA");
+      if (enviar && yo.sinAprobacion && !confirm(st.resultado === "ok" ? "¿Confirmás que la devolución llegó bien? MercadoLibre libera la devolución de la plata al comprador." : "¿Enviar el reporte a MercadoLibre? Después no se puede cambiar.")) return;
+      b.disabled = true;
+      const x = await seguro(() => api("reclamo_guardar", { id, enviar, revision: st }));
+      b.disabled = false;
+      if (!x) return;
+      aviso(x.estado === "enviada" ? "Enviada a MercadoLibre" : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
+      if (x.estado !== "borrador") { S.recId = null; ir("reclamos"); }
+    }
+  };
+  $("#main").onchange = (e) => {
+    const c = e.target.closest("[data-desp]"); if (!c) return;
+    const f = r.despacho.flatMap((x) => x.fotos).find((y) => y.path === c.dataset.desp);
+    if (c.checked && f && !st.fotos.some((y) => y.path === f.path)) st.fotos.push({ ...f, etiqueta: "Al despachar" });
+    if (!c.checked) { const i = st.fotos.findIndex((y) => y.path === c.dataset.desp); if (i >= 0) st.fotos.splice(i, 1); }
+    casillasFotos($("#recFotos"), ["Caja cerrada", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+  };
+  pintarFalla();
+}
+
+// ---------- fotos al despachar ----------
+VISTAS.despacho = async () => {
+  const emp = empRec();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Foto al despachar</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  const l = await seguro(() => api("despachos", { empresa_id: emp })) ?? [];
+  if (S.tab !== "despacho") return;
+  $("#main").innerHTML = `${S.rol === "operador" ? `<button class="btn lin chico" id="dsVolver" type="button" style="margin-bottom:10px">‹ Devoluciones</button>` : ""}
+    <div class="cabecera"><div><h1>Foto al despachar</h1><p>Antes de cerrar la caja, escaneá la etiqueta del envío y sacá una foto del producto adentro. Si después el comprador reclama que llegó otra cosa o vacío, la prueba ya está guardada en esa venta.</p></div></div>
+    <div class="rec-acc"><button class="btn pri grande" id="dsEsc">${ICONO_R.scan} Escanear etiqueta del envío</button></div>
+    <h2 class="eq-h" style="margin-top:20px">Últimas guardadas</h2>
+    <div class="rec-lista">${l.map((x) => `<div class="rec-it">${x.fotos[0]?.url ? `<img class="foto" src="${esc(x.fotos[0].url)}" alt="">` : foto(null)}<span class="rec-tx"><b>${esc(x.item_titulo ?? `Envío ${x.envio_id ?? ""}`)}</b><span class="peq mut">${x.cantidad} foto${x.cantidad > 1 ? "s" : ""} · ${fecha(x.created_at)}${x.orden_id ? ` · venta ${esc(x.orden_id)}` : ""}</span></span></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay fotos</b>Es opcional: sirve como prueba si después hay un reclamo.</div>`}</div>`;
+  $("#dsEsc").onclick = () => escanear("Escanear envío", (c) => buscarEtiqueta(c, "despacho"));
+  if ($("#dsVolver")) $("#dsVolver").onclick = () => ir("reclamos");
+};
+function fotosDespacho(env) {
+  const fotos = [];
+  const v = cajon(`<div class="cajon-cab"><div class="prod">${foto(env.item_foto)}<div><h2 style="margin:0">${esc(env.item_titulo ?? "Envío " + env.envio_id)}</h2><p class="peq mut" style="margin:2px 0 0">${esc(env.comprador ?? "")}${env.orden_id ? ` · venta ${esc(env.orden_id)}` : ""}</p></div></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 10px">Sacá las fotos antes de cerrar la caja.</p>
+    <div id="dsFotos"></div>
+    <label class="et" for="dsNota" style="margin-top:12px">Nota (opcional)</label><input id="dsNota" maxlength="500" placeholder="Por ejemplo: con los 2 flexibles y el manual" style="width:100%">
+    <button class="btn pri" id="dsG" style="margin-top:14px;width:100%;justify-content:center">Guardar fotos</button>`, true);
+  v.classList.add("hoja"); v.querySelector(".cajon").classList.add("hoja");
+  casillasFotos($("#dsFotos", v), ["Producto", "Caja abierta con el producto", "Caja cerrada con la etiqueta"], fotos, null);
+  $("#dsG", v).onclick = async () => {
+    if (!fotos.length) return aviso("Sacá al menos una foto");
+    $("#dsG", v).disabled = true;
+    const ok = await seguro(() => api("despacho_guardar", { empresa_id: env.empresa_id ?? empRec(), cuenta_id: env.cuenta_id, envio_id: env.envio_id, orden_id: env.orden_id, item_id: env.item_id, item_titulo: env.item_titulo, nota: $("#dsNota", v).value, fotos }));
+    $("#dsG", v).disabled = false;
+    if (ok) { v.remove(); aviso("Fotos guardadas en la venta"); if (S.tab === "despacho") VISTAS.despacho(); }
+  };
+}
+
 function abrirDesdeEnlace(h) {
   const t = String(h || "");
-  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.match(/^#([a-z_]+)$/);
+  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.match(/^#([a-z_]+)$/), mr = t.match(/#reclamos\/(\d+)/);
   if (!S.rol) return false;
+  if (mr) { if (!modsActuales().has("reclamos")) return false; S.recId = Number(mr[1]); ir("reclamos"); return true; }
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
     S.msjId = Number(mm[1]); ir("mensajes"); return true;
@@ -3394,10 +3671,10 @@ function abrirDesdeEnlace(h) {
 function vistasPermitidas() {
   const mods = modsActuales();
   let l;
-  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas"];
+  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas", "despacho"];
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
   else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
-  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
+  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("reclamos") || !["reclamos", "despacho"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
 }
 navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
 </script>
