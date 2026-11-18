@@ -519,8 +519,11 @@ input[type=file]{max-width:100%}
 .chat-cab .t{flex:1 1 calc(100% - 60px)}
 .acc-cab{margin-left:auto}
 .m-chat .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
-.m-chat .estado{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.m-chat .estado.e-ok{background:color-mix(in srgb,var(--pino-2) 62%,transparent)}.m-chat .estado.e-blo{background:color-mix(in srgb,var(--ladrillo-2) 62%,transparent)}.m-chat .estado.e-mot{background:color-mix(in srgb,var(--ambar-2) 62%,transparent)}
+.chat-cuerpo{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.chat-flota{position:absolute;top:0;left:0;right:14px;z-index:5;display:grid;gap:6px;padding:8px 0 0;pointer-events:none}.chat-flota:empty{display:none}
+.chat-flota .estado,.chat-flota .chat-alertas{pointer-events:auto}.chat-flota .estado{margin:0 22px}.chat-flota .chat-alertas{display:grid;gap:6px;cursor:pointer}
+.chat-flota .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.chat-flota .chat-alertas.abierta .estado>span{display:block}
+.m-chat .estado.e-ok{background:color-mix(in srgb,var(--pino-2) 50%,transparent)}.m-chat .estado.e-blo{background:color-mix(in srgb,var(--ladrillo-2) 50%,transparent)}.m-chat .estado.e-mot{background:color-mix(in srgb,var(--ambar-2) 50%,transparent)}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
@@ -597,7 +600,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .enlace{all:unset;cursor:pointer;color:var(--cielo);text-decoration:underline;font-weight:600}.enlace:focus-visible{outline:2px solid var(--cielo)}
 .mat-vacia svg{vertical-align:-2px}
 @media (max-width:960px){
-  .chat-alertas{position:sticky;top:57px;z-index:20;background:transparent;padding-bottom:6px;cursor:pointer}
+  .chat-flota{position:sticky;top:57px;right:0;padding:6px 0}.chat-flota .estado{margin:0 14px}
   .chat-alertas .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .chat-alertas.abierta .estado>span{display:block}
 }
@@ -3036,10 +3039,14 @@ function pintarChat(d) {
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
-    ${estado}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${med}${urg}</div>` : ""}${avisos}
-    <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
+    <div class="chat-cuerpo"><div class="chat-flota">${estado}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${med}${urg}</div>` : ""}${avisos}</div>
+    <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div></div>
     <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div>`;
-  const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
+  const bur = $("#mBur");
+  // Los avisos flotan sobre los mensajes (translúcidos); arriba de todo se deja el lugar para que no tapen el primero
+  const flota = $(".chat-flota");
+  if (flota && !movil) bur.style.paddingTop = `${flota.offsetHeight + 8}px`;
+  bur.scrollTop = bur.scrollHeight;
   cargarMinis(c.id).then(() => { if (!anchoMovil()) bur.scrollTop = bur.scrollHeight; });
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
