@@ -1099,9 +1099,9 @@ function ir(t) {
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
   if (t !== "mensajes") S.msjId = null;
-  if (t !== "devoluciones") S.recId = null;
+  if (t !== "devoluciones") S.devId = null;
   // La pantalla actual queda en la dirección: al actualizar la página se vuelve a la misma
-  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.recId ? `#devoluciones/${S.recId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
+  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
@@ -1297,7 +1297,7 @@ VISTAS.equipo = async () => {
       ["nombre", "Cambiar nombre"],
       ...(m.estado === "invitado" || !m.vos ? [["codigo", m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"]] : []),
       ...(m.rol === "operador" ? [["publicar", m.puede_publicar ? "Que sus respuestas las apruebe un administrador" : "Que publique sin aprobación"]] : []),
-      ...(m.rol === "operador" && modsActuales().has("devoluciones") ? [["recapr", m.reclamos_sin_aprobacion !== false ? "Que sus revisiones de devoluciones las apruebe un administrador" : "Que envíe revisiones de devoluciones sin aprobación"]] : []),
+      ...(m.rol === "operador" && modsActuales().has("devoluciones") ? [["recapr", m.devoluciones_sin_aprobacion !== false ? "Que sus revisiones de devoluciones las apruebe un administrador" : "Que envíe revisiones de devoluciones sin aprobación"]] : []),
       ...(!m.vos ? [["rol", m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"], ["baja", "Dar de baja", "pel"]] : []),
     ];
     let avisos = "";
@@ -1319,7 +1319,7 @@ VISTAS.equipo = async () => {
         <div class="p-chips"><span class="rol-t ${m.rol}">${m.rol === "admin" ? "Administrador" : "Operador"}</span>
           ${m.estado === "invitado" ? `<span class="chip c-borrador">Invitado, todavía no entró</span>` : baja ? `<span class="chip">Dado de baja${m.baja_at ? " el " + fechaCorta(m.baja_at) : ""}</span>` : ""}
           ${m.rol === "operador" && !baja ? `<span class="mut peq">${m.puede_publicar ? "Publica sin aprobación" : "Sus respuestas las aprueba un administrador"}</span>` : ""}
-          ${m.rol === "operador" && !baja && modsActuales().has("devoluciones") ? `<span class="mut peq">${m.reclamos_sin_aprobacion !== false ? "Envía revisiones de devoluciones sin aprobación" : "Sus revisiones de devoluciones las aprueba un administrador"}</span>` : ""}</div></div>
+          ${m.rol === "operador" && !baja && modsActuales().has("devoluciones") ? `<span class="mut peq">${m.devoluciones_sin_aprobacion !== false ? "Envía revisiones de devoluciones sin aprobación" : "Sus revisiones de devoluciones las aprueba un administrador"}</span>` : ""}</div></div>
       <details class="menu-p"><summary class="btn lin chico" aria-label="Opciones de ${esc(nombre)}">Opciones</summary>
         <div class="menu-l" role="menu">${opciones.map(([a, t, c]) => `<button type="button" role="menuitem" data-a="${a}" class="${c ?? ""}">${t}</button>`).join("")}</div></details>
       ${avisos}
@@ -1362,7 +1362,7 @@ VISTAS.equipo = async () => {
     } else if (a === "reactivar") {
       if (await seguro(() => api("miembro_reactivar", { id: m.id }))) { aviso(`${quien} volvió al equipo`); VISTAS.equipo(); }
     } else if (a === "recapr") {
-      if (await seguro(() => api("miembro_cambiar", { id: m.id, reclamos_sin_aprobacion: m.reclamos_sin_aprobacion === false }))) VISTAS.equipo();
+      if (await seguro(() => api("miembro_cambiar", { id: m.id, devoluciones_sin_aprobacion: m.devoluciones_sin_aprobacion === false }))) VISTAS.equipo();
     } else if (a === "publicar") {
       if (await seguro(() => api("miembro_cambiar", { id: m.id, puede_publicar: !m.puede_publicar }))) VISTAS.equipo();
     } else if (a === "rol") {
@@ -2712,6 +2712,7 @@ const MODULOS = { preguntas: "Preguntas", mensajes: "Mensajes", devoluciones: "D
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
   mensajes: "Conversa con quienes ya compraron: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
+  devoluciones: "Revisa los productos que vuelven al depósito: escaneás la etiqueta, decís cómo llegó y sacás fotos. Si llegó mal, MercadoLibre lo revisa con esas fotos. También permite sacar fotos al despachar.",
 };
 function modsActuales() {
   if (S.rol === "operador") {
@@ -3412,7 +3413,7 @@ function avisosMensajes(m) {
 }
 // Al tocar el aviso de un mensaje, se abre esa conversación
 // Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
-// ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, reclamo con fotos) y fotos al despachar =================
+// ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, se informa a ML con fotos) y fotos al despachar =================
 const empRec = () => S.rol === "admin" ? S.empSel : (S.empresaId || S.res?.empresas?.[0]?.id || null);
 const ICONO_R = {
   cam: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>`,
@@ -3423,7 +3424,7 @@ const ICONO_R = {
 const venceRec = (f) => { if (!f) return ""; const h = (new Date(f) - Date.now()) / 3600000; return h < 0 ? "venció" : h < 24 ? `quedan ${Math.max(1, Math.round(h))} h` : `hasta el ${venceTxt(f)}`; };
 function estadoDev(d) {
   const r = d.revision;
-  if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Reclamo abierto: llegó con problema", c: "c-ok", grupo: "enviadas" };
+  if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
   if (d.destino === "warehouse") return { t: "Vuelve al depósito de MercadoLibre", c: "", grupo: "otras" };
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
@@ -3464,9 +3465,9 @@ async function escanear(titulo, alLeer) {
   }
 }
 async function buscarEtiqueta(codigo, modo) {
-  const r = await seguro(() => api("reclamo_buscar", { empresa_id: empRec(), codigo }));
+  const r = await seguro(() => api("devolucion_buscar", { empresa_id: empRec(), codigo }));
   if (!r) return;
-  if (r.tipo === "devolucion") { S.recId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
+  if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución. Si lo estás despachando, usá Foto al despachar."); return; }
   aviso("No encontré ninguna venta con ese código");
 }
@@ -3483,7 +3484,7 @@ async function achicar(file, max = 1600) {
 }
 async function subirFoto(file, etiqueta) {
   const { datos, tipo } = await achicar(file);
-  return api("reclamo_foto", { empresa_id: empRec(), datos, tipo, etiqueta });
+  return api("devolucion_foto", { empresa_id: empRec(), datos, tipo, etiqueta });
 }
 // Casillas de fotos guiadas; devuelve el estado (lista de fotos) que se va llenando
 function casillasFotos(caja, guias, fotos, cambio) {
@@ -3506,15 +3507,15 @@ function casillasFotos(caja, guias, fotos, cambio) {
 
 // ---------- lista ----------
 VISTAS.devoluciones = async () => {
-  if (S.recId) return detalleReclamo(S.recId);
+  if (S.devId) return detalleDevolucion(S.devId);
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("reclamos", { empresa_id: emp })); if (!r || S.tab !== "devoluciones" || S.recId) return;
+  const r = await seguro(() => api("devoluciones", { empresa_id: emp })); if (!r || S.tab !== "devoluciones" || S.devId) return;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) }));
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando vuelve un producto, escaneá la etiqueta del paquete y decí cómo llegó. Si llegó con un problema, se abre un reclamo ante MercadoLibre con tus fotos.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando vuelve un producto, escaneá la etiqueta del paquete y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta de devolución</button>
       <button class="btn lin" id="recDesp">${ICONO_R.cam} Foto al despachar</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}</div>
@@ -3526,12 +3527,12 @@ VISTAS.devoluciones = async () => {
   $("#recEsc").onclick = () => escanear("Escanear devolución", (c) => buscarEtiqueta(c, "devolucion"));
   $("#recDesp").onclick = () => ir("despacho");
   $("#recFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
-  $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.recId = Number(b.dataset.id); ir("devoluciones"); } };
+  $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
 };
 
 // ---------- detalle de una devolución: cómo llegó ----------
-async function detalleReclamo(id) {
-  const r = await seguro(() => api("reclamo", { id })); if (!r || S.tab !== "devoluciones" || S.recId !== id) return;
+async function detalleDevolucion(id) {
+  const r = await seguro(() => api("devolucion", { id })); if (!r || S.tab !== "devoluciones" || S.devId !== id) return;
   const d = r.devolucion, rv = r.revision, yo = r.yo;
   const enviada = rv?.estado === "enviada";
   const st = { resultado: rv?.resultado ?? null, motivo: rv?.motivo ?? null, descripcion: rv?.descripcion ?? "", fotos: [...(rv?.fotos ?? [])] };
@@ -3544,11 +3545,11 @@ async function detalleReclamo(id) {
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div></div></div>`;
   if (enviada) {
-    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se confirmó que llegó bien" : "Se abrió un reclamo: llegó con un problema"}</h2>
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se confirmó que llegó bien" : "Se informó a MercadoLibre que llegó con un problema"}</h2>
       ${rv.resultado === "falla" ? `<p style="margin:0 0 6px"><b>${esc(motivoTxt(rv.motivo))}</b></p><p class="pre" style="margin:0 0 10px">${esc(rv.descripcion ?? "")}</p>` : ""}
       ${rv.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div>` : ""}
       <p class="peq mut" style="margin:10px 0 0">Enviada el ${fecha(rv.enviado_at)}. Ya no se puede cambiar: el resto lo resuelve MercadoLibre.</p></div>`;
-    $("#recVolver").onclick = () => { S.recId = null; ir("devoluciones"); };
+    $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
     return;
   }
   $("#main").innerHTML = `${cab}
@@ -3563,9 +3564,7 @@ async function detalleReclamo(id) {
       <button class="btn pri" id="recEnv" type="button"></button></div>`;
   const pintarPie = () => {
     const b = $("#recEnv");
-    // Si llegó mal, lo que se manda es un reclamo ante MercadoLibre; si llegó bien, la confirmación
-    const que = st.resultado === "falla" ? "reclamo" : "confirmación";
-    b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? `Aprobar y enviar ${que === "reclamo" ? "el reclamo" : "la confirmación"}` : st.resultado === "falla" ? "Abrir reclamo en MercadoLibre" : "Confirmar que llegó bien";
+    b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? "Aprobar y enviar a MercadoLibre" : st.resultado === "falla" ? "Informar el problema a MercadoLibre" : "Confirmar que llegó bien";
     b.disabled = !st.resultado || (yo.sinAprobacion && !d.se_puede_revisar);
   };
   const pintarFalla = () => {
@@ -3580,7 +3579,7 @@ async function detalleReclamo(id) {
       <div id="recFotos"></div>
       ${r.despacho?.length ? `<h3 class="rec-h3">Fotos de cuando se despachó <span class="peq mut">son la mejor prueba</span></h3>
         <div class="fotos-g">${r.despacho.flatMap((x) => x.fotos).map((f) => `<label class="foto-c desp"><img src="${esc(f.url ?? "")}" alt=""><span><input type="checkbox" data-desp="${esc(f.path)}" ${st.fotos.some((y) => y.path === f.path) ? "checked" : ""}> Incluir</span></label>`).join("")}</div>` : ""}
-      <h3 class="rec-h3">Descripción del reclamo</h3>
+      <h3 class="rec-h3">Descripción del problema</h3>
       <textarea id="recDesc" rows="5" maxlength="2000" placeholder="Contá qué encontraste al abrir el paquete. Podés tocar los problemas típicos de arriba o pedirle la descripción a la IA.">${esc(st.descripcion)}</textarea>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn lin chico" id="recIA">✨ Sugerir descripción con IA</button><span class="peq mut" id="recIAt" style="align-self:center"></span></div>`;
     casillasFotos($("#recFotos"), ["Caja cerrada", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
@@ -3595,23 +3594,23 @@ async function detalleReclamo(id) {
     if (b.id === "recIA") {
       if (!st.motivo) return aviso("Elegí primero qué pasó");
       b.disabled = true; $("#recIAt").innerHTML = `${buscandoTxt("Mirando las fotos")}`;
-      const x = await seguro(() => api("reclamo_sugerir", { id, motivo: st.motivo, notas: $("#recDesc").value, fotos: st.fotos }));
+      const x = await seguro(() => api("devolucion_sugerir", { id, motivo: st.motivo, notas: $("#recDesc").value, fotos: st.fotos }));
       b.disabled = false; $("#recIAt").textContent = "";
       if (x?.descripcion) { const antes = $("#recDesc").value; $("#recDesc").value = x.descripcion; st.descripcion = x.descripcion; if (antes.trim()) ofrecerVolver($("#recIAt"), $("#recDesc"), antes); }
       return;
     }
-    if (b.id === "recVolver") { S.recId = null; ir("devoluciones"); return; }
+    if (b.id === "recVolver") { S.devId = null; ir("devoluciones"); return; }
     if (b.id === "recBorr" || b.id === "recEnv") {
       const enviar = b.id === "recEnv";
       if (enviar && st.resultado === "falla" && !st.motivo) return aviso("Elegí qué pasó");
       if (enviar && st.resultado === "falla" && !String(st.descripcion).trim()) return aviso("Escribí la descripción o pedísela a la IA");
-      if (enviar && yo.sinAprobacion && !confirm(st.resultado === "ok" ? "¿Confirmás que la devolución llegó bien? MercadoLibre le devuelve la plata al comprador." : "¿Abrir el reclamo en MercadoLibre con esta descripción y estas fotos? Después no se puede cambiar.")) return;
+      if (enviar && yo.sinAprobacion && !confirm(st.resultado === "ok" ? "¿Confirmás que la devolución llegó bien? MercadoLibre le devuelve la plata al comprador." : "¿Informar el problema a MercadoLibre con esta descripción y estas fotos? Después no se puede cambiar.")) return;
       b.disabled = true;
-      const x = await seguro(() => api("reclamo_guardar", { id, enviar, revision: st }));
+      const x = await seguro(() => api("devolucion_guardar", { id, enviar, revision: st }));
       b.disabled = false;
       if (!x) return;
-      aviso(x.estado === "enviada" ? (st.resultado === "falla" ? "Reclamo abierto en MercadoLibre" : "Confirmado a MercadoLibre") : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
-      if (x.estado !== "borrador") { S.recId = null; ir("devoluciones"); }
+      aviso(x.estado === "enviada" ? (st.resultado === "falla" ? "Problema informado a MercadoLibre" : "Confirmado a MercadoLibre") : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
+      if (x.estado !== "borrador") { S.devId = null; ir("devoluciones"); }
     }
   };
   $("#main").onchange = (e) => {
@@ -3631,10 +3630,10 @@ VISTAS.despacho = async () => {
   const l = await seguro(() => api("despachos", { empresa_id: emp })) ?? [];
   if (S.tab !== "despacho") return;
   $("#main").innerHTML = `${S.rol === "operador" ? `<button class="btn lin chico" id="dsVolver" type="button" style="margin-bottom:10px">‹ Devoluciones</button>` : ""}
-    <div class="cabecera"><div><h1>Foto al despachar</h1><p>Antes de cerrar la caja, escaneá la etiqueta del envío y sacá una foto del producto adentro. Si después el comprador reclama que llegó otra cosa o vacío, la prueba ya está guardada en esa venta.</p></div></div>
+    <div class="cabecera"><div><h1>Foto al despachar</h1><p>Antes de cerrar la caja, escaneá la etiqueta del envío y sacá una foto del producto adentro. Si después el comprador dice que le llegó otra cosa o la caja vacía, la prueba ya está guardada en esa venta.</p></div></div>
     <div class="rec-acc"><button class="btn pri grande" id="dsEsc">${ICONO_R.scan} Escanear etiqueta del envío</button></div>
     <h2 class="eq-h" style="margin-top:20px">Últimas guardadas</h2>
-    <div class="rec-lista">${l.map((x) => `<div class="rec-it">${x.fotos[0]?.url ? `<img class="foto" src="${esc(x.fotos[0].url)}" alt="">` : foto(null)}<span class="rec-tx"><b>${esc(x.item_titulo ?? `Envío ${x.envio_id ?? ""}`)}</b><span class="peq mut">${x.cantidad} foto${x.cantidad > 1 ? "s" : ""} · ${fecha(x.created_at)}${x.orden_id ? ` · venta ${esc(x.orden_id)}` : ""}</span></span></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay fotos</b>Es opcional: sirve como prueba si después hay un reclamo.</div>`}</div>`;
+    <div class="rec-lista">${l.map((x) => `<div class="rec-it">${x.fotos[0]?.url ? `<img class="foto" src="${esc(x.fotos[0].url)}" alt="">` : foto(null)}<span class="rec-tx"><b>${esc(x.item_titulo ?? `Envío ${x.envio_id ?? ""}`)}</b><span class="peq mut">${x.cantidad} foto${x.cantidad > 1 ? "s" : ""} · ${fecha(x.created_at)}${x.orden_id ? ` · venta ${esc(x.orden_id)}` : ""}</span></span></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay fotos</b>Es opcional: sirve como prueba si después hay un problema con la venta.</div>`}</div>`;
   $("#dsEsc").onclick = () => escanear("Escanear envío", (c) => buscarEtiqueta(c, "despacho"));
   if ($("#dsVolver")) $("#dsVolver").onclick = () => ir("devoluciones");
 };
@@ -3658,9 +3657,9 @@ function fotosDespacho(env) {
 
 function abrirDesdeEnlace(h) {
   const t = String(h || "");
-  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/);
+  const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.replace(/^#reclamos$/, "#devoluciones").match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/); // "reclamos": enlaces viejos
   if (!S.rol) return false;
-  if (mr) { if (!modsActuales().has("devoluciones")) return false; S.recId = Number(mr[1]); ir("devoluciones"); return true; }
+  if (mr) { if (!modsActuales().has("devoluciones")) return false; S.devId = Number(mr[1]); ir("devoluciones"); return true; }
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
     S.msjId = Number(mm[1]); ir("mensajes"); return true;
