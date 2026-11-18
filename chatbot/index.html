@@ -2870,6 +2870,8 @@ function estadoConv(c) {
 const recibida = (c) => c.envio_entregado_at ?? c.envio?.entregado ?? null;
 // ¿Todavía puede devolverlo? Regla general de MercadoLibre: 30 días desde que lo recibe
 function plazoDev(c) {
+  // Venta cancelada o envío que no se entregó: no hay plazo de devolución que mostrar
+  if (c.estado_orden === "cancelled" || ["not_delivered", "cancelled"].includes(c.envio_estado)) return null;
   if (c.mediacion || c.reclamo_ids?.length) return { c: "mal", t: "Tiene un reclamo o devolución abierta", s: "Se gestiona desde MercadoLibre" };
   const r = recibida(c);
   if (!r) return c.envio_id ? { c: "", t: "Todavía no lo recibió", s: "Los 30 días para devolver empiezan cuando lo reciba" } : null;
@@ -3236,19 +3238,17 @@ function pintarVenta(d) {
     <h3>Venta</h3>
     ${c.pack_id && !(c.orden_ids ?? []).includes(String(c.pack_id)) ? `<div class="dv"><span>Venta (paquete)</span><span>${esc(c.pack_id)}</span></div>
     <div class="dv"><span>Orden${(c.orden_ids ?? []).length > 1 ? "es" : ""}</span><span>${(c.orden_ids ?? []).map(esc).join("<br>")}</span></div>` : `<div class="dv"><span>Número</span><span>${esc((c.orden_ids ?? [c.pack_id])[0])}</span></div>`}
-    <div class="dv"><span>Fecha</span><span>${fecha(c.fecha_venta)}</span></div>
-    <div class="dv"><span>Cantidad</span><span>${num(c.cantidad)}</span></div>
+    ${Number(c.cantidad) > 1 ? `<div class="dv"><span>Cantidad</span><span>${num(c.cantidad)}</span></div>` : ""}
     <div class="dv"><span>Precio pagado</span><b>${plata(c.pagado ?? c.total, c.moneda)}</b></div>
     ${c.pagado != null && Number(c.pagado) !== Number(c.total) ? `<div class="dv"><span>Total de productos</span><span>${plata(c.total, c.moneda)}</span></div>` : ""}
     ${Number(c.devuelto) > 0 ? `<div class="dv"><span>Devuelto al comprador</span><span style="color:var(--ladrillo)">${plata(c.devuelto, c.moneda)}</span></div>` : ""}
-    <div class="dv"><span>Estado</span><span>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden ?? "—")}</span></div>
+    ${c.estado_orden && c.estado_orden !== "paid" ? `<div class="dv"><span>Estado</span><span${c.estado_orden === "cancelled" ? ' style="color:var(--ladrillo);font-weight:600"' : ""}>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden)}</span></div>` : ""}
     <h3>Envío ${tipoEnvio(c) || "—"}</h3>
     ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a> · número ${esc(c.mediacion.id)}</p>`
       : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
-    ${S.rol !== "operador" ? `<h3>Quién la atiende</h3><p class="peq" style="margin:0">${c.asignados_nombres?.length ? esc(c.asignados_nombres.join(", ")) : `<span class="mut">${S.msjLista?.con_asignaciones ? "Nadie la cubre ahora: te llega a vos" : "Todo el equipo"}</span>`}</p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
 }
