@@ -84,6 +84,11 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .rec-it .foto{width:56px;height:56px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.rec-tx{display:flex;flex-direction:column;gap:3px;min-width:0}
 .rec-it:focus-visible{outline:2px solid var(--cielo)}
 .rec-cab{display:flex;gap:14px;align-items:flex-start;margin:10px 0 16px}.rec-cab .foto{width:72px;height:72px;border-radius:12px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.env{margin:12px 0 4px}.env-fotos{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:2px}.env-f{all:unset;cursor:pointer;flex:none;width:96px;height:96px;scroll-snap-align:start;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--linea)}.env-f img{width:100%;height:100%;object-fit:contain;display:block}.env-f:focus-visible{outline:2px solid var(--cielo)}
+.env-dl{margin:0;display:grid;gap:0}.env-dl div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;padding:7px 0;border-top:1px solid var(--linea)}.env-dl div:first-child{border-top:0}.env-dl dt{color:var(--piz);font-size:14px}.env-dl dd{margin:0;font-size:15px}
+.env-check{display:grid;gap:6px}.env-check label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--linea);border-radius:10px;background:var(--sup);cursor:pointer}.env-check input{width:20px;height:20px;flex:none;margin:1px 0 0}.env-check label:has(input:checked){border-color:var(--pino);background:var(--pino-2)}
+.env .estado,#recOk .estado,#recFalla .estado{padding:10px 12px;border-radius:10px;display:block;font-size:14px;line-height:1.45}
+.env-que{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--sup);border:1px solid var(--linea)}.env-que p{margin:4px 0 0;font-size:14px}
 .rec-h{font-size:18px;margin:18px 0 10px}.rec-h3{font-size:15px;margin:18px 0 8px;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
 .rec-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .rec-op{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:14px;border:2px solid var(--linea);background:var(--sup);text-align:center;font-size:16px}
@@ -514,6 +519,8 @@ input[type=file]{max-width:100%}
 .chat-cab .t{flex:1 1 calc(100% - 60px)}
 .acc-cab{margin-left:auto}
 .m-chat .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.m-chat .estado{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.m-chat .estado.e-ok{background:color-mix(in srgb,var(--pino-2) 62%,transparent)}.m-chat .estado.e-blo{background:color-mix(in srgb,var(--ladrillo-2) 62%,transparent)}.m-chat .estado.e-mot{background:color-mix(in srgb,var(--ambar-2) 62%,transparent)}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
@@ -525,9 +532,15 @@ input[type=file]{max-width:100%}
 .b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
 .adj-mini{width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--papel);flex:0 0 auto}.adj-mini:not([src]){animation:pulso 1.2s ease-in-out infinite}
 .adj-falla{animation:none!important}.adj-t{display:flex;flex-direction:column;min-width:0}.adj-t span:first-child{overflow-wrap:anywhere}.adj-img{padding:6px}
+.adj.adj-img{flex-direction:column;align-items:stretch;gap:4px;padding:5px;width:min(240px,100%);box-sizing:border-box}
+.adj-img .adj-mini{width:100%;height:auto;min-height:120px;max-height:300px;object-fit:contain;border-radius:8px;background:#fff}.adj-img .adj-mini[src]{min-height:0}
+.adj-img .adj-t{flex-direction:row;gap:6px;font-size:11px;font-weight:400;color:var(--piz);padding:0 2px}.adj-img .adj-t span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.adj-img .adj-t span+span{white-space:nowrap;flex:none}
 @keyframes pulso{50%{opacity:.5}}@media (prefers-reduced-motion:reduce){.adj-mini{animation:none!important}}
 .adj{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid var(--linea);background:var(--sup);border-radius:10px;padding:6px 10px;margin-top:8px;font-size:13px;font-weight:600;color:var(--tinta)}
 .adj:focus-visible{outline:2px solid var(--cielo)}
+.pres{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ambar-t);background:color-mix(in srgb,var(--ambar-2) 70%,transparent);border-radius:10px;padding:6px 10px;margin:0 0 8px}
+.pres-p{display:inline-flex;gap:3px}.pres-p i{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pres 1.2s infinite ease-in-out}.pres-p i:nth-child(2){animation-delay:.15s}.pres-p i:nth-child(3){animation-delay:.3s}
+@keyframes pres{0%,80%,100%{opacity:.25}40%{opacity:1}}@media (prefers-reduced-motion:reduce){.pres-p i{animation:none}}
 .mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
 .redactar{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px 16px}
 .redactar textarea{width:100%;min-height:96px;resize:vertical}
@@ -584,7 +597,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .enlace{all:unset;cursor:pointer;color:var(--cielo);text-decoration:underline;font-weight:600}.enlace:focus-visible{outline:2px solid var(--cielo)}
 .mat-vacia svg{vertical-align:-2px}
 @media (max-width:960px){
-  .chat-alertas{position:sticky;top:57px;z-index:20;background:var(--papel);padding-bottom:6px;cursor:pointer}
+  .chat-alertas{position:sticky;top:57px;z-index:20;background:transparent;padding-bottom:6px;cursor:pointer}
   .chat-alertas .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .chat-alertas.abierta .estado>span{display:block}
 }
@@ -760,6 +773,35 @@ function dur(seg) {
   return (seg / 86400).toFixed(1).replace(".", ",") + " días";
 }
 const hace = (f) => { if (!f) return ""; const s = (Date.now() - new Date(f)) / 1000; return s < 3600 ? `hace ${Math.max(1, Math.round(s / 60))} min` : s < 86400 ? `hace ${Math.round(s / 3600)} h` : fecha(f); };
+// ---------- "está escribiendo" ----------
+// Cada 6 segundos se le cuenta al servidor qué preguntas o conversaciones hay en pantalla y en cuál se está escribiendo;
+// el servidor responde quién más escribe en cada una, y se muestra arriba del cuadro de respuesta.
+const PRES = { tecleo: new Map(), corriendo: false };
+document.addEventListener("input", (e) => { const c = e.target.closest?.("[data-pres]"); if (c && e.target.matches("textarea,input[type=text]")) { const o = c.dataset.pres; const nuevo = !PRES.tecleo.has(o) || Date.now() - PRES.tecleo.get(o) > 10000; PRES.tecleo.set(o, Date.now()); if (nuevo) latidoPresencia(); } });
+async function latidoPresencia() {
+  if (PRES.corriendo || document.hidden || !S.rol || typeof api !== "function") return;
+  const objetos = [...new Set([...document.querySelectorAll("[data-pres]")].map((x) => x.dataset.pres))].slice(0, 40);
+  for (const [o, t] of PRES.tecleo) if (!objetos.includes(o) && Date.now() - t > 20000) PRES.tecleo.delete(o);
+  if (!objetos.length && !PRES.tecleo.size) return;
+  const escribiendo = objetos.filter((o) => Date.now() - (PRES.tecleo.get(o) ?? 0) < 12000);
+  PRES.corriendo = true;
+  try {
+    const r = await api("presencia", { objetos: [...new Set([...objetos, ...PRES.tecleo.keys()])], escribiendo });
+    document.querySelectorAll("[data-pres]").forEach((c) => {
+      const quienes = r?.escriben?.[c.dataset.pres] ?? [];
+      let el = c.querySelector(":scope .pres");
+      if (!quienes.length) { el?.remove(); return; }
+      if (!el) { el = document.createElement("div"); el.className = "pres"; el.setAttribute("role", "status"); const t = c.querySelector("textarea"); t ? t.before(el) : c.prepend(el); }
+      const txt = `${quienes.join(" y ")} ${quienes.length > 1 ? "están" : "está"} escribiendo una respuesta`;
+      if (el.textContent !== txt) el.innerHTML = `<span class="pres-p" aria-hidden="true"><i></i><i></i><i></i></span>${esc(txt)}`;
+    });
+  } catch {} finally { PRES.corriendo = false; }
+}
+setInterval(latidoPresencia, 6000);
+
+// Igual que hace(), pero se actualiza solo con el paso del tiempo
+const haceVivo = (f) => f ? `<span data-hace="${esc(new Date(f).toISOString())}">${esc(hace(f))}</span>` : "";
+setInterval(() => { document.querySelectorAll("[data-hace]").forEach((x) => { const t = hace(x.dataset.hace); if (x.textContent !== t) x.textContent = t; }); }, 30000);
 const ESTADOS = { respondida: "Respondida", borrador: "Para aprobar", pendiente_revision: "Te necesita", simulada: "Simulada", descartada: "Descartada", ignorada: "Ignorada", error: "Error", prueba: "Prueba", procesando: "Procesando", recibida: "Recibida" };
 const MODOS = { simulacion: "Simulación", aprobacion: "Aprobación", automatico: "Automático" };
 const MODOS_D = { simulacion: "Prepara respuestas pero no publica nada.", aprobacion: "Prepara respuestas y vos las aprobás con un clic.", automatico: "Publica sola lo que sabe; lo dudoso te lo deja a vos." };
@@ -1042,7 +1084,6 @@ const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["m
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   mensajes: [["mensajes", "Bandeja"], ["material", "Documentación para enviar"]],
-  devoluciones: [["devoluciones", "Bandeja"], ["despacho", "Foto al despachar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
 };
@@ -1185,11 +1226,11 @@ function tarjetaConv(p) {
   const emp = S.yo ? empresaYo(p.empresa_id) : null;
   const multi = (S.yo?.empresas.length ?? 0) > 1;
   const puede = S.rol !== "operador" || emp?.puede_publicar !== false;
-  return `<article class="conv" data-id="${p.id}" ${multi && emp ? `style="box-shadow:inset 4px 0 0 ${esc(emp.color)}"` : ""}>
+  return `<article class="conv" data-id="${p.id}" data-pres="preg:${p.id}" ${multi && emp ? `style="box-shadow:inset 4px 0 0 ${esc(emp.color)}"` : ""}>
     ${foto(p.item_thumbnail)}
     <div>
       ${multi && emp ? `<div style="margin-bottom:4px">${etiquetaEmpresa(p.empresa_id)}</div>` : ""}
-      <div class="cab"><b>${esc(p.item_titulo ?? p.ml_item_id ?? "Publicación")}</b><span>${hace(p.fecha_pregunta ?? p.created_at)}</span></div>
+      <div class="cab"><b>${esc(p.item_titulo ?? p.ml_item_id ?? "Publicación")}</b><span>${haceVivo(p.fecha_pregunta ?? p.created_at)}</span></div>
       <div class="burbuja">${esc(p.texto_pregunta)}</div>
     </div>
     <div class="respuesta ${duda ? "duda" : ""}">
@@ -1411,7 +1452,7 @@ const pctTxt = (x) => x == null ? "—" : String(x).replace(".", ",") + "%";
 function listaRepreguntas(xs, h, propias) {
   if (!xs.length) return `<p class="mut" style="margin:6px 0 0">Ninguna en este período: ${propias ? "nadie volvió a preguntarte" : "ningún comprador volvió a preguntar"} dentro de las ${h} horas siguientes a una respuesta.</p>`;
   return xs.map((x) => `<div class="repreg">
-    <div class="peq mut">${esc(x.publicacion ?? "")}${propias ? "" : ` · respondió ${esc(x.quien)}`} · ${hace(x.cuando)}</div>
+    <div class="peq mut">${esc(x.publicacion ?? "")}${propias ? "" : ` · respondió ${esc(x.quien)}`} · ${haceVivo(x.cuando)}</div>
     <div class="rp-q">${esc(x.pregunta ?? "")}</div>
     <div class="rp-a">${esc(x.respuesta ?? "")}</div>
     <div class="rp-n"><b>Volvió a preguntar:</b> ${esc(x.repregunta ?? "")}</div></div>`).join("");
@@ -1684,7 +1725,8 @@ VISTAS.asignaciones = async () => {
   const r = await datosAsignaciones(emp); if (!r) return;
   S.asigVista ??= "categoria";
   // Cada asignación con sus botones a la vista: Editar y Borrar
-  const accA = (a) => `<span class="asig-acc"><button class="btn lin chico" type="button" data-asig="${a.id}">${ICONO_E.lapiz} Editar</button><button class="btn pel chico" type="button" data-quitar-asig="${a.id}">${ICONO_E.tacho} Borrar</button></span>`;
+  // m: en la vista por persona, Borrar saca solo a esa persona de la asignación
+  const accA = (a, m) => `<span class="asig-acc"><button class="btn lin chico" type="button" data-asig="${a.id}">${ICONO_E.lapiz} Editar</button><button class="btn pel chico" type="button" data-quitar-asig="${a.id}"${m ? ` data-quitar-m="${m.id}"` : ""}>${ICONO_E.tacho} Borrar</button></span>`;
   // Una fila por asignación, con todas las personas que tiene (así Borrar o Editar se entiende que es para todas)
   const quienes = (ents) => ents.length ? [...new Map(ents.map((e) => [e.a.id, e.a])).values()].map((a) => {
     const ms = ents.filter((e) => e.a.id === a.id).map((e) => e.m);
@@ -1707,7 +1749,7 @@ VISTAS.asignaciones = async () => {
       const ents = r.entradasTodas.filter((e) => e.m.id === m.id);
       const alc = (a) => a.alcance === "todo" ? "Toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} ${a.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
       return `<div class="fila-a"><div style="display:flex;gap:10px;align-items:center">${avatarM(m, 34)}<div><b class="tit">${esc(m.nombre)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${m.rol === "admin" ? "Administrador" : "Operador"}${m.estado === "invitado" ? " · todavía no entró" : ""}</div></div></div>
-        <div class="quienes">${ents.length ? ents.map((e) => `<div class="asig-l ${vencida(e.a) ? "vencida" : ""}"><span class="asig-t"><span><b>${esc(alc(e.a))}</b> <span class="mut">${esc(cuandoTxt(e.a))}${vencida(e.a) ? " · vencida" : ""}</span></span></span>${accA(e.a)}</div>`).join("") : `<span class="mut">No tiene nada asignado</span>`}</div>
+        <div class="quienes">${ents.length ? ents.map((e) => `<div class="asig-l ${vencida(e.a) ? "vencida" : ""}"><span class="asig-t"><span><b>${esc(alc(e.a))}</b> <span class="mut">${esc(cuandoTxt(e.a))}${vencida(e.a) ? " · vencida" : ""}</span></span></span>${accA(e.a, m)}</div>`).join("") : `<span class="mut">No tiene nada asignado</span>`}</div>
         ${semana(vig(ents))}<div class="acc-a"><button class="btn lin chico" data-nueva-m="${m.id}">Asignar</button></div></div>`;
     }).join("");
     cuerpo = `<div class="tabla-a"><div class="fila-a cab-a"><div>Persona</div><div>Qué atiende</div>${cabSemana}<div></div></div>${filas}</div>`;
@@ -1745,10 +1787,25 @@ VISTAS.asignaciones = async () => {
     else if (b.dataset.asig) editarAsignacion(emp, r, r.asignaciones.find((a) => a.id === Number(b.dataset.asig)));
     else if (b.dataset.quitarAsig) {
       const a = r.asignaciones.find((x) => x.id === Number(b.dataset.quitarAsig)); if (!a) return;
-      const quien = a.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean).join(", ").replace(/, ([^,]*)$/, " y $1");
       const que = a.alcance === "todo" ? "toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} publicaciones`;
-      if (!confirm(`¿Borrar la asignación de ${quien}: ${que}, ${cuandoTxt(a)}?${a.miembro_ids.length > 1 ? " Se borra para todas esas personas." : ""} Lo que ya tenían asignado sigue en su bandeja.`)) return;
-      if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { aviso("Asignación borrada"); VISTAS.asignaciones(); }
+      const ids = a.miembro_ids.map(Number);
+      // Una sola persona (o la que se eligió en la vista por persona): se saca solo a ella
+      const sacarUna = async (id) => {
+        if (!confirm(`¿Sacar a ${r.m(id)?.corto ?? "esa persona"} de ${que}, ${cuandoTxt(a)}? Las demás personas de esta asignación siguen igual. Lo que ya tenía asignado sigue en su bandeja.`)) return;
+        if (await seguro(() => sacarDeAsig(emp, a, [id]))) { aviso("Listo"); VISTAS.asignaciones(); }
+      };
+      if (b.dataset.quitarM) return sacarUna(Number(b.dataset.quitarM));
+      if (ids.length === 1) return sacarUna(ids[0]);
+      // Varias personas: se elige a quién sacar, o se borra para todas
+      const h = abrirHoja(`<div class="cajon-cab"><h2>¿A quién sacás?</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+        <p class="peq mut" style="margin:0 0 10px">${esc(que)}, ${esc(cuandoTxt(a))}</p>
+        <div style="display:grid;gap:8px">${ids.map((id) => `<button class="btn lin" type="button" data-una="${id}" style="justify-content:flex-start">${avatarM(r.m(id) ?? {}, 24)} Sacar a ${esc(r.m(id)?.corto ?? "")}</button>`).join("")}
+          <button class="btn pel" type="button" data-todas style="justify-content:center">Borrar la asignación para todas</button></div>`);
+      h.querySelectorAll("[data-una]").forEach((x) => x.onclick = () => { h.remove(); sacarUna(Number(x.dataset.una)); });
+      h.querySelector("[data-todas]").onclick = async () => {
+        h.remove();
+        if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { aviso("Asignación borrada"); VISTAS.asignaciones(); }
+      };
     }
     else if (b.dataset.nuevaCat) editarAsignacion(emp, r, null, { alcance: "categorias", categorias: [b.dataset.nuevaCat] });
     else if (b.dataset.nuevaM) editarAsignacion(emp, r, null, { miembro_ids: [Number(b.dataset.nuevaM)] });
@@ -1902,7 +1959,7 @@ VISTAS.preguntas = async () => {
       ${p.item_thumbnail ? `<img src="${esc(p.item_thumbnail)}" alt="" loading="lazy">` : `<div class="sinfoto"></div>`}
       <div><div class="q">${esc(p.texto_pregunta)}</div><div class="a">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? p.error ?? "")}</div>
       <div class="peq mut" style="margin-top:4px">${esc(p.item_titulo ?? p.ml_item_id ?? "")}</div></div>
-      <div class="lado">${chip(p.estado)}${p.respondida_por === "bot" ? "<span>por el bot</span>" : p.respondida_nombre ? `<span>por ${esc(p.respondida_nombre)}</span>` : p.descartada_nombre ? `<span>descartó ${esc(p.descartada_nombre)}</span>` : ""}<span>${hace(p.fecha_pregunta ?? p.created_at)}</span>${p.tiempo_respuesta_seg != null ? `<span>respondida en ${dur(p.tiempo_respuesta_seg)}</span>` : ""}${S.res.cuentas.length > 1 ? `<span>${esc(cuentaNom(p.cuenta_id))}</span>` : ""}</div></div>`).join("")}</div>
+      <div class="lado">${chip(p.estado)}${p.respondida_por === "bot" ? "<span>por el bot</span>" : p.respondida_nombre ? `<span>por ${esc(p.respondida_nombre)}</span>` : p.descartada_nombre ? `<span>descartó ${esc(p.descartada_nombre)}</span>` : ""}<span>${haceVivo(p.fecha_pregunta ?? p.created_at)}</span>${p.tiempo_respuesta_seg != null ? `<span>respondida en ${dur(p.tiempo_respuesta_seg)}</span>` : ""}${S.res.cuentas.length > 1 ? `<span>${esc(cuentaNom(p.cuenta_id))}</span>` : ""}</div></div>`).join("")}</div>
     <div class="fila" style="padding:14px 0"><span class="mut peq">${num(r.total)} preguntas</span><div class="n"><button class="btn lin chico" id="ant" ${f.desde ? "" : "disabled"}>Anteriores</button> <button class="btn lin chico" id="sig" ${f.desde + 40 < r.total ? "" : "disabled"}>Siguientes</button></div></div>`
     : `<div class="vacio"><b>No hay preguntas con este filtro</b>Probá con otro estado${S.res.cuentas.length > 1 ? " o cuenta" : ""}.</div>`;
   if ($("#ant")) $("#ant").onclick = () => { f.desde = Math.max(0, f.desde - 40); VISTAS.preguntas(); };
@@ -1924,7 +1981,7 @@ async function detalle(id) {
     ${p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta publicada</h3><p class="mut peq" style="margin:0 0 6px">${p.respondida_por === "bot" ? "La publicó el bot" : p.respondida_por === "panel" ? (p.respondida_nombre ? "La publicó " + esc(p.respondida_nombre) + " desde el panel" : "Publicada desde el panel") : "Respondida directamente en MercadoLibre, fuera del panel"}, ${fecha(p.respondida_at)}</p>
       <div class="caja pre">${esc(p.respuesta_enviada)}</div><button class="btn lin chico" style="margin-top:8px" id="malR">Marcar como incorrecta</button></div>` : ""}
     ${p.respuesta_enviada && p.respuesta_sugerida && p.respondida_por === "mercadolibre" ? `<div class="bloque"><h3>Lo que había sugerido el bot</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : ""}
-    ${editable ? `<div class="bloque"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
+    ${editable ? `<div class="bloque" data-pres="preg:${p.id}"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
       <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><div class="mej-fila"><p class="peq mut" id="cnt" style="margin:0"></p><span class="mej-bot"><button class="btn lin chico" type="button" id="regD">${ICONO.escudo}Revisar reglas</button><button class="btn lin chico" type="button" id="mejD">${ICONO.varita}Mejorar redacción</button></span></div><div id="mejDres"></div>
       <div class="fila">${S.rol !== "operador" || empresaYo(p.empresa_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.empresas.length ?? 0) > 1 && empresaYo(p.empresa_id) ? "Publicar como " + esc(empresaYo(p.empresa_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
       : (p.respuesta_sugerida && !p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta sugerida</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : "")}
@@ -2825,7 +2882,7 @@ function hiloHTML(c) {
   const ec = estadoConv(c);
   return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${foto(c.item_thumbnail)}
-      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${esc(hace(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta))}</span>
+      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
       <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
@@ -2981,7 +3038,7 @@ function pintarChat(d) {
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     ${estado}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${med}${urg}</div>` : ""}${avisos}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
-    <div class="redactar" id="mRed"></div>`;
+    <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div>`;
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   cargarMinis(c.id).then(() => { if (!anchoMovil()) bur.scrollTop = bur.scrollHeight; });
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
@@ -3515,7 +3572,7 @@ function elegirDevolucion(lista, titulo) {
 function mostrarResultado(r, modo, sinNada) {
   if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
-  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución. Si lo estás despachando, usá Foto al despachar."); return; }
+  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución abierta"); return; }
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
@@ -3575,9 +3632,8 @@ VISTAS.devoluciones = async () => {
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando vuelve un producto, escaneá la etiqueta del paquete y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
-    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Buscar devolución</button>
-      <button class="btn lin" id="recDesp">${ICONO_R.cam} Foto al despachar</button></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
+    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Buscar devolución</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">
         ${foto(d.item_foto)}<span class="rec-tx"><b>${esc(d.item_titulo ?? "Producto")}</b>
@@ -3585,7 +3641,6 @@ VISTAS.devoluciones = async () => {
         <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span></span></span></button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   $("#recEsc").onclick = () => escanear("Buscar devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
-  $("#recDesp").onclick = () => ir("despacho");
   $("#recFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
 };
@@ -3616,17 +3671,38 @@ async function detalleDevolucion(id) {
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se confirmó que llegó bien" : "Se informó a MercadoLibre que llegó con un problema"}</h2>
       ${rv.resultado === "falla" ? `<p style="margin:0 0 6px"><b>${esc(motivoTxt(rv.motivo))}</b></p><p class="pre" style="margin:0 0 10px">${esc(rv.descripcion ?? "")}</p>` : ""}
       ${rv.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div>` : ""}
-      <p class="peq mut" style="margin:10px 0 0">Enviada el ${fecha(rv.enviado_at)}. Ya no se puede cambiar: el resto lo resuelve MercadoLibre.</p></div>`;
+      <p class="peq mut" style="margin:10px 0 0">Enviada el ${fecha(rv.enviado_at).replace(/\.$/, "")}. Ya no se puede cambiar: el resto lo resuelve MercadoLibre.</p></div>`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
     return;
   }
+  const env = r.enviado ?? {};
+  const despFotos = (r.despacho ?? []).flatMap((x) => x.fotos ?? []).filter((f) => f.url);
+  const despNota = (r.despacho ?? []).map((x) => x.nota).filter(Boolean).join(" · ");
+  st.tiene ??= rv?.tiene ?? {};
+  const cajaTxt = (p) => p ? `${[p.largo, p.ancho, p.alto].filter(Boolean).join(" × ")} cm${p.peso_g ? ` · ${num(Math.round(p.peso_g / 100) / 10)} kg` : ""}` : "";
+  const enviadoHtml = `<section class="panel env" aria-labelledby="envT"><h2 id="envT" class="rec-h" style="margin-top:0">Cómo se envió</h2>
+      ${despFotos.length ? `<div class="env-fotos" role="list">${despFotos.map((f, i) => `<button type="button" role="listitem" class="env-f" data-ver="${i}"><img src="${esc(f.url ?? "")}" alt="Foto ${i + 1} del despacho" loading="lazy"></button>`).join("")}</div>
+        <p class="peq mut" style="margin:6px 0 14px">Fotos que se sacaron al despachar${despNota ? `: ${esc(despNota)}` : ""}. Tocá una para ampliarla.</p>`
+        : `<p class="peq mut" style="margin:0 0 12px">No se sacaron fotos al despachar esta venta. Compará con los datos de abajo.</p>`}
+      <dl class="env-dl">
+        ${env.variacion || env.cantidad ? `<div><dt>Se vendió</dt><dd>${env.cantidad ?? 1} unidad${(env.cantidad ?? 1) > 1 ? "es" : ""}${env.variacion ? `, ${esc(env.variacion.replace(/^[^:]+:\s*/, "").toLowerCase())}` : ""}</dd></div>` : ""}
+        ${env.paquete ? `<div><dt>Paquete</dt><dd>${cajaTxt(env.paquete)}<span class="peq mut" style="display:block">Si vuelve en otro embalaje o pesa mucho menos, puede faltar algo.</span></dd></div>` : ""}
+        ${(env.medidas ?? []).map((x) => { const i = x.indexOf(":"); return i > 0 ? `<div><dt>${esc(x.slice(0, i).replace(/ en volumen$/i, ""))}</dt><dd>${esc(x.slice(i + 1).trim())}</dd></div>` : ""; }).join("")}
+        ${env.documentos?.length ? `<div><dt>Documentación</dt><dd>${env.documentos.map(esc).join(" · ")}</dd></div>` : ""}
+      </dl>
+      ${env.incluye?.length ? `<h3 class="rec-h3" style="margin-top:14px">Tiene que traer <span class="peq mut">tildá lo que vino</span></h3>
+        <div class="env-check">${env.incluye.map((x, i) => `<label><input type="checkbox" data-tiene="${i}" ${st.tiene[i] ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div>` : ""}
+      ${env.no_incluye?.length ? `<p class="peq mut" style="margin:10px 0 0"><b>No incluía:</b> ${env.no_incluye.map(esc).join(" · ")}</p>` : ""}
+    </section>`;
   $("#main").innerHTML = `${cab}
+    ${enviadoHtml}
     ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
     ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
     ${!d.se_puede_revisar ? `<div class="estado e-pend" style="margin-bottom:12px"><span>MercadoLibre habilita la revisión cuando la devolución llega. Podés dejarla preparada y enviarla después.</span></div>` : ""}
     <h2 class="rec-h">¿Cómo llegó?</h2>
     <div class="rec-dos"><button type="button" class="rec-op ok ${st.resultado === "ok" ? "on" : ""}" data-r="ok">${ICONO_R.ok}<b>Llegó bien</b></button>
       <button type="button" class="rec-op mal ${st.resultado === "falla" ? "on" : ""}" data-r="falla">${ICONO_R.mal}<b>Llegó con un problema</b></button></div>
+    <div id="recOk"></div>
     <div id="recFalla"></div>
     <div class="rec-pie"><button class="btn lin" id="recBorr" type="button">Guardar sin enviar</button>
       <button class="btn pri" id="recEnv" type="button"></button></div>`;
@@ -3635,11 +3711,26 @@ async function detalleDevolucion(id) {
     b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? "Aprobar y enviar a MercadoLibre" : st.resultado === "falla" ? "Informar el problema a MercadoLibre" : "Confirmar que llegó bien";
     b.disabled = !st.resultado || (yo.sinAprobacion && !d.se_puede_revisar);
   };
+  const faltan = () => (env.incluye ?? []).filter((x, i) => !st.tiene[i]).map((x) => x.replace(/[.\s]+$/, ""));
+  const pintarOk = () => {
+    const caja = $("#recOk");
+    if (st.resultado !== "ok") { caja.innerHTML = ""; return; }
+    const f = faltan();
+    caja.innerHTML = `${f.length ? `<div class="estado e-blo" style="margin-top:14px"><span><b>Sin tildar:</b> ${f.map(esc).join(" · ")}. Si no vino, elegí <b>Llegó con un problema</b>.</span></div>` : env.incluye?.length ? `<div class="estado e-ok" style="margin-top:14px"><span>Vino todo lo que tenía que traer.</span></div>` : ""}
+      <h3 class="rec-h3">Fotos <span class="peq mut">opcionales: quedan guardadas en la app como respaldo, no se envían</span></h3>
+      <div id="recFotosOk"></div>
+      <div class="env-que"><b>Qué pasa al confirmar</b><p>MercadoLibre da la devolución por buena y le devuelve la plata al comprador. Después ya no se puede reclamar por esta devolución.</p>
+        ${d.vence_at ? `<p>Si no la revisás ${venceRec(d.vence_at)}, MercadoLibre la da por buena igual.</p>` : ""}</div>`;
+    casillasFotos($("#recFotosOk"), ["Producto", "Embalaje"], st.fotos, null);
+  };
   const pintarFalla = () => {
     const caja = $("#recFalla");
+    pintarOk();
     if (st.resultado !== "falla") { caja.innerHTML = ""; pintarPie(); return; }
+    const f = faltan();
     caja.innerHTML = `<h2 class="rec-h">¿Qué pasó?</h2>
-      <div class="rec-motivos" role="radiogroup">${r.motivos.map((m) => `<button type="button" role="radio" aria-checked="${st.motivo === m.id}" class="opt ${st.motivo === m.id ? "on" : ""}" data-mo="${m.id}">${esc(m.texto)}</button>`).join("")}</div>
+      ${f.length && !st.motivo ? `<div class="estado e-pend" style="margin-bottom:10px"><span>No tildaste: ${f.map(esc).join(" · ")}. Si no vino, es <b>La devolución está incompleta</b>.</span></div>` : ""}
+      <div class="rec-motivos" role="radiogroup">${r.motivos.filter((m) => !(m.id === "SRF7" && d.llegada_at)).map((m) => `<button type="button" role="radio" aria-checked="${st.motivo === m.id}" class="opt ${st.motivo === m.id ? "on" : ""}" data-mo="${m.id}">${esc(m.texto)}</button>`).join("")}</div>
       ${chips.length || tip.del_comprador?.length ? `<h3 class="rec-h3">Problemas típicos de esta publicación <span class="peq mut">tocá para sumarlo a la descripción</span></h3>
         <div class="rec-tip">${chips.map((c) => `<button type="button" class="chip-b" data-tip="${esc(c.t)}">${esc(c.t)}${c.de ? ` <span class="mut">· ${c.de}</span>` : ""}</button>`).join("")}</div>
         ${tip.del_comprador?.length ? `<p class="peq mut" style="margin:6px 0 0">Motivos de los compradores en devoluciones de esta publicación: ${tip.del_comprador.map((x) => `${esc(x.texto)} (${x.veces})`).join(" · ")}</p>` : ""}` : ""}
@@ -3649,15 +3740,22 @@ async function detalleDevolucion(id) {
         <div class="fotos-g">${r.despacho.flatMap((x) => x.fotos).map((f) => `<label class="foto-c desp"><img src="${esc(f.url ?? "")}" alt=""><span><input type="checkbox" data-desp="${esc(f.path)}" ${st.fotos.some((y) => y.path === f.path) ? "checked" : ""}> Incluir</span></label>`).join("")}</div>` : ""}
       <h3 class="rec-h3">Descripción del problema</h3>
       <textarea id="recDesc" rows="5" maxlength="2000" placeholder="Contá qué encontraste al abrir el paquete. Podés tocar los problemas típicos de arriba o pedirle la descripción a la IA.">${esc(st.descripcion)}</textarea>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn lin chico" id="recIA">✨ Sugerir descripción con IA</button><span class="peq mut" id="recIAt" style="align-self:center"></span></div>`;
-    casillasFotos($("#recFotos"), ["Caja cerrada", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn lin chico" id="recIA">✨ Sugerir descripción con IA</button><span class="peq mut" id="recIAt" style="align-self:center"></span></div>
+      <div class="env-que"><b>Qué pasa al enviar</b><p>MercadoLibre revisa tu reporte con las fotos y decide. Mientras tanto la plata queda retenida. Una vez enviado no se puede cambiar.</p></div>`;
+    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
     $("#recDesc").oninput = () => { st.descripcion = $("#recDesc").value; };
     pintarPie();
   };
   $("#main").onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.r) { st.resultado = b.dataset.r; $("#main").querySelectorAll(".rec-op").forEach((x) => x.classList.toggle("on", x === b)); pintarFalla(); return; }
-    if (b.dataset.mo) { st.motivo = b.dataset.mo; pintarFalla(); return; }
+    if (b.dataset.mo) {
+      st.motivo = b.dataset.mo;
+      const f = faltan();
+      if (st.motivo === "SRF3" && f.length && !String(st.descripcion).trim()) st.descripcion = `La devolución llegó incompleta. Falta: ${f.join("; ")}.`;
+      pintarFalla(); return;
+    }
+    if (b.dataset.ver != null) { verFotos(despFotos.map((f) => f.url), Number(b.dataset.ver)); return; }
     if (b.dataset.tip) { const t = $("#recDesc"); t.value = (t.value.trim() ? t.value.trim() + (/[.!?]$/.test(t.value.trim()) ? " " : ". ") : "") + b.dataset.tip; st.descripcion = t.value; return; }
     if (b.id === "recIA") {
       if (!st.motivo) return aviso("Elegí primero qué pasó");
@@ -3672,7 +3770,7 @@ async function detalleDevolucion(id) {
       const enviar = b.id === "recEnv";
       if (enviar && st.resultado === "falla" && !st.motivo) return aviso("Elegí qué pasó");
       if (enviar && st.resultado === "falla" && !String(st.descripcion).trim()) return aviso("Escribí la descripción o pedísela a la IA");
-      if (enviar && yo.sinAprobacion && !confirm(st.resultado === "ok" ? "¿Confirmás que la devolución llegó bien? MercadoLibre le devuelve la plata al comprador." : "¿Informar el problema a MercadoLibre con esta descripción y estas fotos? Después no se puede cambiar.")) return;
+      if (enviar && yo.sinAprobacion && !(await confirmarEnvio(d, st, r))) return;
       b.disabled = true;
       const x = await seguro(() => api("devolucion_guardar", { id, enviar, revision: st }));
       b.disabled = false;
@@ -3682,13 +3780,40 @@ async function detalleDevolucion(id) {
     }
   };
   $("#main").onchange = (e) => {
+    const t = e.target.closest("[data-tiene]");
+    if (t) { st.tiene[t.dataset.tiene] = t.checked; if (st.resultado) pintarFalla(); return; }
     const c = e.target.closest("[data-desp]"); if (!c) return;
     const f = r.despacho.flatMap((x) => x.fotos).find((y) => y.path === c.dataset.desp);
     if (c.checked && f && !st.fotos.some((y) => y.path === f.path)) st.fotos.push({ ...f, etiqueta: "Al despachar" });
     if (!c.checked) { const i = st.fotos.findIndex((y) => y.path === c.dataset.desp); if (i >= 0) st.fotos.splice(i, 1); }
-    casillasFotos($("#recFotos"), ["Caja cerrada", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
   };
   pintarFalla();
+}
+
+// Ver las fotos de la publicación en grande
+function verFotos(fotos, i) {
+  const v = cajon(`<div class="cajon-cab"><h2>Foto ${i + 1} de ${fotos.length}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <img src="${esc(fotos[i])}" alt="" style="width:100%;max-height:70vh;object-fit:contain;background:#fff;border-radius:12px">
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn lin" data-p="-1" type="button" ${i ? "" : "disabled"} style="flex:1;justify-content:center">‹ Anterior</button><button class="btn lin" data-p="1" type="button" ${i < fotos.length - 1 ? "" : "disabled"} style="flex:1;justify-content:center">Siguiente ›</button></div>`, true);
+  v.querySelectorAll("[data-p]").forEach((b) => b.onclick = () => { v.remove(); verFotos(fotos, i + Number(b.dataset.p)); });
+}
+// Antes de mandar a MercadoLibre: resumen de lo que se envía, con confirmación
+function confirmarEnvio(d, st, r) {
+  return new Promise((ok) => {
+    const mot = r.motivos.find((m) => m.id === st.motivo)?.texto ?? "";
+    const v = cajon(`<div class="cajon-cab"><h2>${st.resultado === "ok" ? "Confirmar que llegó bien" : "Informar el problema a MercadoLibre"}</h2></div>
+      <dl class="env-dl"><div><dt>Venta</dt><dd>${esc(d.orden_id ?? "")} · ${esc(d.comprador ?? "")}</dd></div>
+        <div><dt>Producto</dt><dd>${esc(d.item_titulo ?? "")}</dd></div>
+        ${st.resultado === "ok" ? `<div><dt>Se informa</dt><dd>Llegó bien</dd></div>` : `<div><dt>Motivo</dt><dd>${esc(mot)}</dd></div><div><dt>Descripción</dt><dd class="pre">${esc(st.descripcion)}</dd></div><div><dt>Fotos</dt><dd>${st.fotos.length}</dd></div>`}</dl>
+      <p class="peq" style="margin:12px 0 0">${st.resultado === "ok" ? "MercadoLibre le devuelve la plata al comprador." : "MercadoLibre revisa el reporte y decide."} No se puede deshacer.</p>
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn lin" data-no type="button" style="flex:1;justify-content:center">Volver</button><button class="btn pri" data-si type="button" style="flex:1;justify-content:center">${st.resultado === "ok" ? "Sí, llegó bien" : "Sí, informar"}</button></div>`, true);
+    v.classList.add("hoja"); v.querySelector(".cajon").classList.add("hoja");
+    let listo = false; const fin = (x) => { if (listo) return; listo = true; v.remove(); ok(x); };
+    v.querySelector("[data-si]").onclick = () => fin(true);
+    v.querySelector("[data-no]").onclick = () => fin(false);
+    new MutationObserver(() => { if (!v.isConnected) fin(false); }).observe(document.body, { childList: true });
+  });
 }
 
 // ---------- fotos al despachar ----------
@@ -3713,7 +3838,7 @@ function fotosDespacho(env) {
     <label class="et" for="dsNota" style="margin-top:12px">Nota (opcional)</label><input id="dsNota" maxlength="500" placeholder="Por ejemplo: con los 2 flexibles y el manual" style="width:100%">
     <button class="btn pri" id="dsG" style="margin-top:14px;width:100%;justify-content:center">Guardar fotos</button>`, true);
   v.classList.add("hoja"); v.querySelector(".cajon").classList.add("hoja");
-  casillasFotos($("#dsFotos", v), ["Producto", "Caja abierta con el producto", "Caja cerrada con la etiqueta"], fotos, null);
+  casillasFotos($("#dsFotos", v), ["Producto", "Embalaje abierto con el producto", "Embalaje cerrado con la etiqueta"], fotos, null);
   $("#dsG", v).onclick = async () => {
     if (!fotos.length) return aviso("Sacá al menos una foto");
     $("#dsG", v).disabled = true;
