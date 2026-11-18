@@ -3197,7 +3197,8 @@ function pintarVenta(d) {
     ${pz ? `<div class="dev-glob ${pz.c}"><b>${pz.t}</b><span>${pz.s}</span></div>` : ""}
     <h3>Producto</h3><div class="prod">${foto(c.item_thumbnail)}<div><b>${esc(c.item_titulo ?? "—")}</b>${c.item_variacion ? `<div class="peq mut">${esc(c.item_variacion)}</div>` : ""}</div></div>
     <h3>Venta</h3>
-    <div class="dv"><span>Número</span><span>${esc((c.orden_ids ?? [c.pack_id])[0])}</span></div>
+    ${c.pack_id && !(c.orden_ids ?? []).includes(String(c.pack_id)) ? `<div class="dv"><span>Venta (paquete)</span><span>${esc(c.pack_id)}</span></div>
+    <div class="dv"><span>Orden${(c.orden_ids ?? []).length > 1 ? "es" : ""}</span><span>${(c.orden_ids ?? []).map(esc).join("<br>")}</span></div>` : `<div class="dv"><span>Número</span><span>${esc((c.orden_ids ?? [c.pack_id])[0])}</span></div>`}
     <div class="dv"><span>Fecha</span><span>${fecha(c.fecha_venta)}</span></div>
     <div class="dv"><span>Cantidad</span><span>${num(c.cantidad)}</span></div>
     <div class="dv"><span>Precio pagado</span><b>${plata(c.pagado ?? c.total, c.moneda)}</b></div>
