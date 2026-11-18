@@ -621,6 +621,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .fx-g select{width:100%}
 .fx-pie{display:flex;gap:10px;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}.fx-pie .btn{flex:1;justify-content:center}
 .hilo .h-venta{grid-column:2/-1;font-size:12.5px;color:var(--piz)}
+.hilo .h-marca{grid-column:2/-1;font-size:12.5px;font-weight:600;color:var(--ambar-t);background:var(--ambar-2);border-radius:8px;padding:4px 8px;margin:2px 0}
 .hilo .h-venta .cancel{color:var(--ladrillo)}
 .c-esp{background:var(--cielo-2);color:var(--cielo)}
 .puntos i{font-style:normal;display:inline-block;animation:puntos 1.2s infinite ease-in-out;opacity:.15}
@@ -2933,7 +2934,7 @@ function hiloHTML(c) {
   return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)}</span>
-      <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
+      <span class="h-prod">${esc(c.item_titulo ?? "")}</span>${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
       <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
       <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
@@ -2972,6 +2973,7 @@ function pieHilos(emp, r) {
 
 // ---------- filtros de Ventas: los de MercadoLibre y otros propios ----------
 const FX = [
+  ["inteligente", "Para atender primero", [["vence", "Por vencer"], ["riesgo", "Riesgo de reclamo"], ["escribir", "Conviene escribirle primero"], ["recuperar", "Plata para recuperar"], ["lote", "Mismo problema en otras ventas"]]],
   ["envio", "Estado del envío", [["hoy", "Envíos de hoy"], ["proximos", "Próximos días"], ["transito", "En tránsito"], ["finalizadas", "Finalizadas"], ["sin_entregar", "Sin entregar"], ["demorado", "Envío demorado"]]],
   ["tipo_envio", "Tipo de envío", [["full", "Full"], ["flex", "Flex"], ["turbo", "Turbo"], ["colecta", "Colecta"], ["punto", "Punto de despacho"], ["sin_envio", "Sin envío"]]],
   ["comprador", "Comprador", [["persona", "Persona"], ["negocio", "Negocio"]]],
@@ -2992,15 +2994,15 @@ function filtrosActivos() {
 function hojaFiltros(emp) {
   const f = { ...(S.msjFx ?? {}) };
   const grupo = ([k, t, ops]) => `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
-    <label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "orden" ? "Actividad reciente" : k === "dias" ? "Todo" : "Todas"}</span></label>
+    <label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "orden" ? "Actividad reciente" : k === "dias" ? "Todo" : k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>
     ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
   const h = abrirHoja(`<div class="cajon-cab"><h2>Filtros</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
-      ${FX.slice(0, 5).map(grupo).join("")}
+      ${FX.slice(0, 6).map(grupo).join("")}
       <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       <fieldset class="fx-g"><legend>Producto</legend><select id="fxProd"><option value="">Todos los productos</option>${prods.map((p) => `<option value="${esc(p.id)}" ${f.producto === p.id ? "selected" : ""}>${esc(p.titulo)} (${p.ventas})</option>`).join("")}</select></fieldset>
-      ${FX.slice(5).map(grupo).join("")}
+      ${FX.slice(6).map(grupo).join("")}
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" id="fxLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="fxAplicar">Aplicar</button></div>`);
   h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFx = {}; cargarHilos(emp); };
