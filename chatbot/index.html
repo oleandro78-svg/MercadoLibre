@@ -796,7 +796,11 @@ $("#fCodigo").onsubmit = async (e) => {
 async function entrarUsuario() {
   S.modo = "usuario"; S.empresaId = "";
   S.yo = await api("yo");
-  if (S.yo.usuario?.admin_app) { S.rol = "admin"; }
+  if (S.yo.usuario?.admin_app) {
+    S.rol = "admin";
+    // Al refrescar la página se sigue dentro de la empresa en la que se estaba dando soporte
+    try { const sp = JSON.parse(sessionStorage.getItem("mostrador_soporte") ?? "null"); if (sp?.id) { S.soporte = sp.id; S.soporteNom = sp.nombre; } } catch {}
+  }
   else {
     if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene empresas activas. Pedile a quien te invitó que te vuelva a sumar.");
     let guardada = ""; try { guardada = localStorage.getItem("mostrador_empresa_sel") ?? ""; } catch {}
@@ -806,7 +810,9 @@ async function entrarUsuario() {
   $("#ingreso").classList.add("oculto"); $("#app").classList.remove("oculto");
   $("#quien").textContent = S.yo.usuario?.nombre || S.yo.usuario?.email || "";
   armarSelector();
-  await recargar(); armarNav();
+  try { await recargar(); }
+  catch (e) { if (!S.soporte) throw e; S.soporte = ""; try { sessionStorage.removeItem("mostrador_soporte"); } catch {} await recargar(); }
+  armarNav(); pintarSoporte(); restaurarEstado();
   if (!abrirDesdeEnlace(location.hash)) ir(inicio());
   iniciarAvisos();
 }
@@ -1056,6 +1062,10 @@ function pintarPerfil() {
   $(".barra-movil b").textContent = corto;
 }
 const VISTAS = {};
+// Lo elegido dentro de cada pantalla (solapa Preguntas o Mensajes, vista por persona, etc.) también se conserva al refrescar
+const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "matFil"];
+addEventListener("pagehide", () => { try { sessionStorage.setItem("mostrador_estado", JSON.stringify(Object.fromEntries(ESTADO_PANT.map((k) => [k, S[k] ?? null])))); } catch {} });
+function restaurarEstado() { try { const e = JSON.parse(sessionStorage.getItem("mostrador_estado") ?? "{}"); for (const k of ESTADO_PANT) if (e[k] != null) S[k] = e[k]; } catch {} }
 function ir(t) {
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").classList.remove("lleno");
@@ -2430,11 +2440,13 @@ async function vistaEmpresa(nuevos = true) {
 // Modo soporte: el dueño de la app ve el panel de una empresa como su administrador
 async function entrarSoporte(id, nombre) {
   S.soporte = id; S.soporteNom = nombre; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
+  try { sessionStorage.setItem("mostrador_soporte", JSON.stringify({ id, nombre })); } catch {}
   await recargar(); armarNav(); pintarSoporte(); ir("hoy");
 }
 async function salirSoporte() {
   const id = S.soporte;
   S.soporte = ""; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
+  try { sessionStorage.removeItem("mostrador_soporte"); } catch {}
   await recargar(); armarNav(); pintarSoporte(); S.platEmp = id; ir("plataforma");
 }
 function pintarSoporte() {
