@@ -80,7 +80,13 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .riel-velo{display:none}
 .aviso-asig{border-color:var(--ambar);background:var(--ambar-2);margin-bottom:16px}.aviso-asig .conf-a{padding:10px 0;border-top:1px solid rgba(0,0,0,.08)}
 .aviso-asig .conf-a:first-of-type{border-top:0}.acc-conf{display:flex;gap:8px;flex-wrap:wrap}
-.quien-b.vencida{opacity:.55;text-decoration:line-through}
+.asig-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;width:100%;padding:6px 0;border-bottom:1px dashed var(--linea)}
+.asig-l:last-child{border-bottom:0}.avs{display:inline-flex;flex:none}.avs>*+*{margin-left:-6px}.asig-t{display:inline-flex;align-items:center;gap:8px;font-size:14px;flex:1 1 200px;min-width:0}
+.asig-acc{display:flex;gap:6px;flex:none}.asig-acc .btn{display:inline-flex;align-items:center;gap:4px}
+.asig-acc .btn.pel,.asig-borrar-top .btn.pel{background:var(--sup);border-color:var(--ladrillo);color:var(--ladrillo)}
+.asig-l.vencida .asig-t{opacity:.55;text-decoration:line-through}
+.asig-borrar-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--ladrillo-2);border-radius:var(--r-m);padding:8px 12px;margin:0 0 14px}
+.asig-borrar-top .btn{display:inline-flex;align-items:center;gap:4px}
 .riel-pie{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:0 6px}
 .contenido{padding:28px 36px 60px;max-width:1200px;width:100%}
 .cabecera{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
@@ -1543,6 +1549,10 @@ function cuandoTxt(a) {
 }
 // Vigente hoy por fechas (las que todavía no empezaron o ya terminaron no se dibujan en la semana)
 const vigenteHoy = (a) => (!a.fecha_desde || a.fecha_desde <= hoyISO()) && (!a.fecha_hasta || a.fecha_hasta >= hoyISO());
+const ICONO_E = {
+  lapiz: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>`,
+  tacho: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>`,
+};
 const vencida = (a) => !!a.fecha_hasta && a.fecha_hasta < hoyISO();
 // ¿La asignación A cubre todo lo que cubre B? (mismo alcance o más amplio, mismos horarios o más, mismas fechas o más)
 function contiene(A, B) {
@@ -1628,7 +1638,14 @@ VISTAS.asignaciones = async () => {
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>Elegí un cliente para ver sus asignaciones.</p></div></div>`; return; }
   const r = await datosAsignaciones(emp); if (!r) return;
   S.asigVista ??= "categoria";
-  const quienes = (ents) => ents.length ? ents.map((e) => `<button class="quien-b" data-asig="${e.a.id}" type="button">${avatarM(e.m, 24)}<span><b>${esc(e.m.corto)}</b> <span class="mut">${esc(cuandoTxt(e.a))}</span></span></button>`).join("") : `<span class="nadie">Nadie asignado</span>`;
+  // Cada asignación con sus botones a la vista: Editar y Borrar
+  const accA = (a) => `<span class="asig-acc"><button class="btn lin chico" type="button" data-asig="${a.id}">${ICONO_E.lapiz} Editar</button><button class="btn pel chico" type="button" data-quitar-asig="${a.id}">${ICONO_E.tacho} Borrar</button></span>`;
+  // Una fila por asignación, con todas las personas que tiene (así Borrar o Editar se entiende que es para todas)
+  const quienes = (ents) => ents.length ? [...new Map(ents.map((e) => [e.a.id, e.a])).values()].map((a) => {
+    const ms = ents.filter((e) => e.a.id === a.id).map((e) => e.m);
+    const noms = ms.map((m) => m.corto).join(", ").replace(/, ([^,]*)$/, " y $1");
+    return `<div class="asig-l"><span class="asig-t"><span class="avs">${ms.map((m) => avatarM(m, 24)).join("")}</span><span><b>${esc(noms)}</b> <span class="mut">${esc(cuandoTxt(a))}</span></span></span>${accA(a)}</div>`;
+  }).join("") : `<span class="nadie">Nadie asignado</span>`;
   const vig = (ents) => ents.filter((e) => vigenteHoy(e.a));
   r.entradasTodas = r.entradas; r.entradas = r.entradas.filter((e) => !vencida(e.a));
   let cuerpo = "";
@@ -1645,7 +1662,7 @@ VISTAS.asignaciones = async () => {
       const ents = r.entradasTodas.filter((e) => e.m.id === m.id);
       const alc = (a) => a.alcance === "todo" ? "Toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} ${a.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
       return `<div class="fila-a"><div style="display:flex;gap:10px;align-items:center">${avatarM(m, 34)}<div><b class="tit">${esc(m.nombre)}${m.vos ? " (vos)" : ""}</b><div class="mut peq">${m.rol === "admin" ? "Administrador" : "Operador"}${m.estado === "invitado" ? " · todavía no entró" : ""}</div></div></div>
-        <div class="quienes">${ents.length ? ents.map((e) => `<button class="quien-b ${vencida(e.a) ? "vencida" : ""}" data-asig="${e.a.id}" type="button"><span><b>${esc(alc(e.a))}</b> <span class="mut">${esc(cuandoTxt(e.a))}${vencida(e.a) ? " · vencida" : ""}</span></span></button>`).join("") : `<span class="mut">No tiene nada asignado</span>`}</div>
+        <div class="quienes">${ents.length ? ents.map((e) => `<div class="asig-l ${vencida(e.a) ? "vencida" : ""}"><span class="asig-t"><span><b>${esc(alc(e.a))}</b> <span class="mut">${esc(cuandoTxt(e.a))}${vencida(e.a) ? " · vencida" : ""}</span></span></span>${accA(e.a)}</div>`).join("") : `<span class="mut">No tiene nada asignado</span>`}</div>
         ${semana(vig(ents))}<div class="acc-a"><button class="btn lin chico" data-nueva-m="${m.id}">Asignar</button></div></div>`;
     }).join("");
     cuerpo = `<div class="tabla-a"><div class="fila-a cab-a"><div>Persona</div><div>Qué atiende</div>${cabSemana}<div></div></div>${filas}</div>`;
@@ -1670,7 +1687,7 @@ VISTAS.asignaciones = async () => {
     <div class="g2" style="display:grid;gap:16px;margin-top:16px">
       <div class="panel"><h2 style="margin:0">Por un tiempo</h2><p class="mut peq" style="margin:4px 0 8px">Reemplazos o refuerzos con fecha de inicio o de fin.</p>
         ${temporales.length ? temporales.map((a) => `<div class="item-t"><div class="fecha-t"><span>${mes(a.fecha_desde ?? a.fecha_hasta)}</span><b>${Number((a.fecha_desde ?? a.fecha_hasta).slice(8))}</b></div>
-          <div style="flex:1;min-width:0"><b>${esc(nomsA(a))}</b> · ${esc(alcTxt(a))}<div class="mut peq">${esc(cuandoTxt(a))}</div></div><button class="btn lin chico" data-asig="${a.id}">Editar</button></div>`).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay asignaciones con fecha. Se cargan desde "Nueva asignación", con la opción "Solo por un tiempo".</p>`}</div>
+          <div style="flex:1;min-width:0;${vencida(a) ? "opacity:.6" : ""}"><b>${esc(nomsA(a))}</b> · ${esc(alcTxt(a))}<div class="mut peq">${esc(cuandoTxt(a))}${vencida(a) ? " · <b>vencida</b>" : ""}</div></div><span class="asig-acc"><button class="btn lin chico" data-asig="${a.id}">${ICONO_E.lapiz} Editar</button><button class="btn pel chico" data-quitar-asig="${a.id}">${ICONO_E.tacho} Borrar</button></span></div>`).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay asignaciones con fecha. Se cargan desde "Nueva asignación", con la opción "Solo por un tiempo".</p>`}</div>
       <div class="panel"><div class="fila"><div><h2 style="margin:0">Ausencias y feriados</h2><p class="mut peq" style="margin:4px 0 8px">En esos días la persona no recibe preguntas. Un feriado deja el día sin nadie.</p></div><div class="n"><button class="btn lin chico" id="excNueva">Agregar</button></div></div>
         ${r.excepciones.length ? r.excepciones.map((x) => { const m = x.miembro_id ? r.m(x.miembro_id) : null; return `<div class="item-t">${m ? avatarM(m, 32) : `<span class="av-m" style="width:32px;height:32px;background:var(--sup2);color:var(--piz)" aria-hidden="true">F</span>`}
           <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Toda la empresa"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
@@ -1681,6 +1698,13 @@ VISTAS.asignaciones = async () => {
     if (b.dataset.v) { S.asigVista = b.dataset.v; VISTAS.asignaciones(); }
     else if (b.id === "asNueva") editarAsignacion(emp, r, null);
     else if (b.dataset.asig) editarAsignacion(emp, r, r.asignaciones.find((a) => a.id === Number(b.dataset.asig)));
+    else if (b.dataset.quitarAsig) {
+      const a = r.asignaciones.find((x) => x.id === Number(b.dataset.quitarAsig)); if (!a) return;
+      const quien = a.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean).join(", ").replace(/, ([^,]*)$/, " y $1");
+      const que = a.alcance === "todo" ? "toda la cuenta" : a.alcance === "categorias" ? a.categorias.map(r.catNom).join(", ") : `${a.publicaciones.length} publicaciones`;
+      if (!confirm(`¿Borrar la asignación de ${quien}: ${que}, ${cuandoTxt(a)}?${a.miembro_ids.length > 1 ? " Se borra para todas esas personas." : ""} Lo que ya tenían asignado sigue en su bandeja.`)) return;
+      if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { aviso("Asignación borrada"); VISTAS.asignaciones(); }
+    }
     else if (b.dataset.nuevaCat) editarAsignacion(emp, r, null, { alcance: "categorias", categorias: [b.dataset.nuevaCat] });
     else if (b.dataset.nuevaM) editarAsignacion(emp, r, null, { miembro_ids: [Number(b.dataset.nuevaM)] });
     else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { empresa_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.asignaciones(); } }
@@ -1710,7 +1734,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
   // Categorías que hoy no cubre nadie (sin contar esta asignación)
   const otras = r.entradas.filter((e) => !a || e.a.id !== a.id);
   const sinNadie = (c) => !otras.some((e) => e.a.alcance === "todo" || (e.a.alcance === "categorias" && e.a.categorias.includes(c)));
-  const v = cajon(`<div class="cajon-cab"><h2 style="margin:0">${a ? "Editar asignación" : "Nueva asignación"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div><div id="asForm"></div>`);
+  const v = cajon(`<div class="cajon-cab"><h2 style="margin:0">${a ? "Editar asignación" : "Nueva asignación"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>${a ? `<div class="asig-borrar-top"><span class="peq mut">¿No la necesitás más?</span><button type="button" class="btn pel chico" id="asBorrar2">${ICONO_E.tacho} Borrar esta asignación</button></div>` : ""}<div id="asForm"></div>`);
   const resumen = () => {
     const quien = st.miembro_ids.map((id) => r.m(id)?.corto).filter(Boolean);
     const q = quien.length ? quien.join(", ").replace(/, ([^,]*)$/, " y $1") : "Nadie todavía";
@@ -1744,7 +1768,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
         <label class="chk"><input type="checkbox" id="asTiempo" ${st.porTiempo ? "checked" : ""}> <b>Solo por un tiempo</b></label>
         ${st.porTiempo ? `<div class="g2" style="display:grid;gap:12px"><label><span class="et">Empieza</span><input type="date" id="asFd" value="${st.fecha_desde ?? ""}"></label><label><span class="et">Termina</span><input type="date" id="asFh" value="${st.fecha_hasta ?? ""}"></label></div>` : ""}</fieldset>
       <div class="pie-a"><p style="margin:0">${resumen()}</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">${a ? `<button type="button" class="btn pel" id="asBorrar" style="margin-right:auto">Borrar</button>` : ""}<button type="button" class="btn lin" data-cerrar>Cancelar</button><button type="button" class="btn pri" id="asOk">Guardar asignación</button></div></div>`;
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">${a ? `<button type="button" class="btn pel" id="asBorrar" style="margin-right:auto">Borrar esta asignación</button>` : ""}<button type="button" class="btn lin" data-cerrar>Cancelar</button><button type="button" class="btn pri" id="asOk">Guardar asignación</button></div></div>`;
     const bus = $("#asBus", v); if (bus) { bus.oninput = () => { busca = bus.value; const pos = bus.selectionStart; pintar(); const n = $("#asBus", v); n.focus(); n.setSelectionRange(pos, pos); }; }
   };
   v.addEventListener("click", async (e) => {
@@ -1754,7 +1778,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
     else if (b.dataset.siempre) { st.siempre = b.dataset.siempre === "true"; pintar(); }
     else if (b.dataset.dia) { const d = Number(b.dataset.dia); st.dias = st.dias.includes(d) ? st.dias.filter((x) => x !== d) : [...st.dias, d].sort(); pintar(); }
     else if (b.dataset.dias) { st.dias = b.dataset.dias.split(",").map(Number); pintar(); }
-    else if (b.id === "asBorrar") {
+    else if (b.id === "asBorrar" || b.id === "asBorrar2") {
       if (!confirm("¿Borrar esta asignación? Las preguntas que ya tenían asignadas siguen en la bandeja de esas personas.")) return;
       if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { v.remove(); aviso("Asignación borrada"); VISTAS.asignaciones(); }
     } else if (b.id === "asOk") {
