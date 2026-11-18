@@ -106,6 +106,7 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .esc-marco{position:absolute;width:78%;max-width:420px;aspect-ratio:1.6;border:3px solid rgba(255,255,255,.9);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.35)}
 .esc-ayuda{position:absolute;bottom:14px;left:16px;right:16px;margin:0;color:#fff;text-align:center;font-size:14px;text-shadow:0 1px 3px #000}
 .esc-man{padding:14px 16px 22px;background:#0b1117}
+.esc-foto{display:flex;justify-content:center;gap:8px;width:100%;box-sizing:border-box;margin-bottom:6px}.esc-nota{color:#c9d1d9;font-size:13px;margin:0 0 12px;text-align:center}
 .aviso-asig{border-color:var(--ambar);background:var(--ambar-2);margin-bottom:16px}.aviso-asig .conf-a{padding:10px 0;border-top:1px solid rgba(0,0,0,.08)}
 .aviso-asig .conf-a:first-of-type{border-top:0}.acc-conf{display:flex;gap:8px;flex-wrap:wrap}
 .asig-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;width:100%;padding:6px 0;border-bottom:1px dashed var(--linea)}
@@ -3433,43 +3434,102 @@ function estadoDev(d) {
 }
 
 // ---------- escáner de etiquetas con la cámara ----------
-async function escanear(titulo, alLeer) {
+// Lee códigos de barras y QR. Usa el lector del navegador si lo trae (Chrome en Android); si no (iPhone y otros),
+// carga un lector propio que analiza la imagen de la cámara.
+let ZXING = null;
+function cargarZxing() {
+  if (ZXING) return ZXING;
+  ZXING = new Promise((ok, mal) => { const sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"; sc.onload = () => ok(window.ZXing); sc.onerror = () => { ZXING = null; mal(new Error("No se pudo cargar el lector")); }; document.head.appendChild(sc); });
+  return ZXING;
+}
+async function lectorPropio() {
+  const Z = await cargarZxing();
+  const pistas = new Map();
+  pistas.set(Z.DecodeHintType.TRY_HARDER, true);
+  pistas.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.QR_CODE, Z.BarcodeFormat.CODE_39, Z.BarcodeFormat.ITF, Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.DATA_MATRIX, Z.BarcodeFormat.PDF_417]);
+  const lector = new Z.MultiFormatReader(); lector.setHints(pistas);
+  const lienzo = document.createElement("canvas"), ctx = lienzo.getContext("2d", { willReadFrequently: true });
+  // Recorre por turnos la imagen entera y franjas horizontales (los códigos de barras se leen mejor en una franja que los contiene)
+  const zonas = [[0, 1], [0, 0.3], [0.15, 0.3], [0.3, 0.3], [0.45, 0.3], [0.6, 0.3], [0.75, 0.25]];
+  let vuelta = 0;
+  return (video) => {
+    const w = video.videoWidth, h = video.videoHeight; if (!w || !h) return null;
+    const [y0, alto] = zonas[vuelta++ % zonas.length];
+    const sx = 0, sy = h * y0, sw = w, sh = h * alto;
+    const k = Math.min(1.5, 1100 / Math.max(sw, sh)); lienzo.width = Math.round(sw * k); lienzo.height = Math.round(sh * k);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, lienzo.width, lienzo.height);
+    try { return lector.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(lienzo)))).getText(); } catch { return null; } finally { lector.reset(); }
+  };
+}
+async function escanear(titulo, alLeer, alFoto) {
   const v = document.createElement("div");
   v.className = "esc-velo";
   v.innerHTML = `<div class="esc-cab"><b>${esc(titulo)}</b><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="esc-vid"><video playsinline muted></video><div class="esc-marco" aria-hidden="true"></div><p class="esc-ayuda">Apuntá al código de barras o al QR de la etiqueta</p></div>
-    <form class="esc-man"><label class="et" for="escCod" style="color:#fff">¿No lo lee? Escribí el número de envío, de venta o el código de seguimiento</label>
-      <div style="display:flex;gap:8px"><input id="escCod" inputmode="text" autocomplete="off" style="flex:1"><button class="btn pri">Buscar</button></div></form>`;
+    <div class="esc-man">
+      ${alFoto ? `<label class="btn pri esc-foto">${ICONO_R.cam}Leer la etiqueta con una foto<input type="file" accept="image/*" capture="environment" hidden></label>
+      <p class="esc-nota">Si el código está roto o borroso: la foto se lee entera, con números y nombres.</p>` : ""}
+      <form><label class="et" for="escCod" style="color:#fff">${alFoto ? "O escribí cualquier dato: número de envío, de venta o de devolución, nombre del comprador o el producto" : "¿No lo lee? Escribí el número de envío"}</label>
+      <div style="display:flex;gap:8px"><input id="escCod" inputmode="text" autocomplete="off" style="flex:1"><button class="btn pri">Buscar</button></div></form></div>`;
   document.body.appendChild(v);
   let flujo = null, vivo = true;
   const cerrar = () => { vivo = false; flujo?.getTracks().forEach((t) => t.stop()); v.remove(); };
   const leido = (c) => { if (!vivo) return; try { navigator.vibrate?.(80); } catch {} cerrar(); alLeer(c); };
   v.querySelector("[data-cerrar]").onclick = cerrar;
   v.querySelector("form").onsubmit = (e) => { e.preventDefault(); const c = $("#escCod", v).value.trim(); if (c) leido(c); };
-  const video = v.querySelector("video");
-  if (!("BarcodeDetector" in window)) { v.querySelector(".esc-ayuda").textContent = "Este navegador no puede leer códigos con la cámara. Escribí el número abajo (en Android, usá Chrome)."; return; }
+  const archivo = v.querySelector(".esc-foto input");
+  if (archivo) archivo.onchange = () => { const f = archivo.files?.[0]; if (!f) return; cerrar(); alFoto(f); };
+  const video = v.querySelector("video"), ayuda = v.querySelector(".esc-ayuda");
   try {
-    flujo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 } }, audio: false });
+    flujo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
     if (!vivo) { flujo.getTracks().forEach((t) => t.stop()); return; }
     video.srcObject = flujo; await video.play();
-    const formatos = (await BarcodeDetector.getSupportedFormats?.()) ?? ["qr_code", "code_128"];
-    const det = new BarcodeDetector({ formats: formatos.filter((f) => ["qr_code", "code_128", "code_39", "ean_13", "data_matrix", "pdf417", "itf", "codabar"].includes(f)) });
+    let leer;
+    if ("BarcodeDetector" in window) {
+      const formatos = (await BarcodeDetector.getSupportedFormats?.()) ?? ["qr_code", "code_128"];
+      const det = new BarcodeDetector({ formats: formatos.filter((f) => ["qr_code", "code_128", "code_39", "ean_13", "data_matrix", "pdf417", "itf", "codabar"].includes(f)) });
+      leer = async () => { const r = await det.detect(video); return r?.[0]?.rawValue ?? null; };
+    } else {
+      ayuda.textContent = "Preparando el lector…";
+      const propio = await lectorPropio();
+      ayuda.textContent = "Apuntá al código de barras o al QR de la etiqueta";
+      leer = async () => propio(video);
+    }
     const mirar = async () => {
       if (!vivo) return;
-      try { const r = await det.detect(video); if (r?.length) return leido(r[0].rawValue); } catch {}
-      setTimeout(mirar, 220);
+      try { const c = await leer(); if (c) return leido(c); } catch {}
+      setTimeout(mirar, 250);
     };
     mirar();
   } catch (e) {
-    v.querySelector(".esc-ayuda").textContent = /NotAllowed|Permission/i.test(e?.name ?? e) ? "No hay permiso para usar la cámara. Habilitalo en el navegador o escribí el número abajo." : "No se pudo abrir la cámara. Escribí el número abajo.";
+    ayuda.textContent = /NotAllowed|Permission/i.test(e?.name ?? e) ? "No hay permiso para usar la cámara. Habilitalo en el navegador, o usá la foto o escribí un dato abajo." : "No se pudo abrir la cámara. Usá la foto o escribí un dato abajo.";
   }
+}
+// Varias devoluciones posibles: se elige de una lista
+function elegirDevolucion(lista, titulo) {
+  const h = abrirHoja(`<div class="cajon-cab"><h2>${esc(titulo)}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="rec-lista">${lista.map((x) => `<button type="button" class="rec-it" data-dev="${x.claim_id}">${foto(x.item_foto)}<span class="rec-tx"><b>${esc(x.item_titulo ?? "Producto")}</b>
+      <span class="peq">${esc(x.comprador ?? "")}${x.llegada_at ? ` · llegó el ${diaMes(x.llegada_at)}` : x.abierto ? " · en camino" : " · cerrada"}</span></span></button>`).join("")}</div>`);
+  h.querySelectorAll("[data-dev]").forEach((b) => b.onclick = () => { h.remove(); S.devId = Number(b.dataset.dev); S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); });
+}
+function mostrarResultado(r, modo, sinNada) {
+  if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
+  if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
+  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución. Si lo estás despachando, usá Foto al despachar."); return; }
+  aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
   const r = await seguro(() => api("devolucion_buscar", { empresa_id: empRec(), codigo }));
+  if (r) mostrarResultado(r, modo, "No encontré ninguna devolución con ese dato");
+}
+async function leerEtiquetaFoto(file, modo) {
+  const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Leyendo la etiqueta…</b></p><p class="peq" style="margin:0">Busco los números y nombres que se ven y pruebo cada uno.</p></div>`);
+  const img = await achicar(file, 2000);
+  const r = await seguro(() => api("devolucion_leer_etiqueta", { empresa_id: empRec(), imagen: img.datos, tipo: img.tipo }));
+  espera.remove();
   if (!r) return;
-  if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
-  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución. Si lo estás despachando, usá Foto al despachar."); return; }
-  aviso("No encontré ninguna venta con ese código");
+  const vi = [...(r.leido?.numeros ?? []), ...(r.leido?.nombres ?? [])];
+  mostrarResultado(r, modo, vi.length ? `Leí ${vi.slice(0, 4).join(", ")}, pero no encontré ninguna devolución con esos datos` : "No pude leer datos en la foto. Probá con más luz o más cerca.");
 }
 
 // ---------- fotos: se achican en el celular antes de subirlas ----------
@@ -3516,7 +3576,7 @@ VISTAS.devoluciones = async () => {
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando vuelve un producto, escaneá la etiqueta del paquete y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
-    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta de devolución</button>
+    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Buscar devolución</button>
       <button class="btn lin" id="recDesp">${ICONO_R.cam} Foto al despachar</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">
@@ -3524,7 +3584,7 @@ VISTAS.devoluciones = async () => {
         <span class="peq mut">${esc(d.comprador ?? "Comprador")}${d.motivo_comprador_txt ? ` · ${esc(d.motivo_comprador_txt)}` : ""}</span>
         <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span></span></span></button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
-  $("#recEsc").onclick = () => escanear("Escanear devolución", (c) => buscarEtiqueta(c, "devolucion"));
+  $("#recEsc").onclick = () => escanear("Buscar devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
   $("#recDesp").onclick = () => ir("despacho");
   $("#recFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
@@ -3634,7 +3694,7 @@ VISTAS.despacho = async () => {
     <div class="rec-acc"><button class="btn pri grande" id="dsEsc">${ICONO_R.scan} Escanear etiqueta del envío</button></div>
     <h2 class="eq-h" style="margin-top:20px">Últimas guardadas</h2>
     <div class="rec-lista">${l.map((x) => `<div class="rec-it">${x.fotos[0]?.url ? `<img class="foto" src="${esc(x.fotos[0].url)}" alt="">` : foto(null)}<span class="rec-tx"><b>${esc(x.item_titulo ?? `Envío ${x.envio_id ?? ""}`)}</b><span class="peq mut">${x.cantidad} foto${x.cantidad > 1 ? "s" : ""} · ${fecha(x.created_at)}${x.orden_id ? ` · venta ${esc(x.orden_id)}` : ""}</span></span></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay fotos</b>Es opcional: sirve como prueba si después hay un problema con la venta.</div>`}</div>`;
-  $("#dsEsc").onclick = () => escanear("Escanear envío", (c) => buscarEtiqueta(c, "despacho"));
+  $("#dsEsc").onclick = () => escanear("Escanear envío", (c) => buscarEtiqueta(c, "despacho"), (f) => leerEtiquetaFoto(f, "despacho"));
   if ($("#dsVolver")) $("#dsVolver").onclick = () => ir("devoluciones");
 };
 function fotosDespacho(env) {
