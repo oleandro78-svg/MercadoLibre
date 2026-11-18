@@ -741,6 +741,7 @@ h3 .te{font-size:13px;margin-left:4px}
     <nav class="nav" id="nav"></nav>
     <div class="riel-pie">
       <button class="btn pri chico oculto" id="avisosBtn" type="button">Activar avisos</button>
+      <button class="btn lin chico oculto" id="recargarTodos" type="button" title="Hace que todos los celulares y computadoras con la app abierta tomen la última versión">Actualizar todos los dispositivos</button>
       <button class="btn pri chico oculto" id="instalar" type="button">Instalar la app</button><button class="btn lin chico" id="tema" type="button">Cambiar tema</button>
       <button class="btn lin chico" id="salir" type="button">Salir</button>
     </div>
@@ -799,6 +800,27 @@ async function latidoPresencia() {
   } catch {} finally { PRES.corriendo = false; }
 }
 setInterval(latidoPresencia, 6000);
+
+// ---------- actualizar todos los dispositivos ----------
+// El dueño de la app aprieta el botón; cada app abierta lo ve (cada 30 segundos o al volver a mostrarse) y se recarga
+// con la última versión, en la misma pantalla. Si la persona está escribiendo, espera a que deje de escribir.
+const CARGADA = Date.now();
+async function revisarRecarga() {
+  if (document.hidden || !S.rol || typeof api !== "function") return;
+  let r; try { r = await api("recarga_ver"); } catch { return; }
+  if (!r?.recarga || new Date(r.recarga).getTime() <= CARGADA) return;
+  const escribiendo = [...PRES.tecleo.values()].some((t) => Date.now() - t < 20000);
+  if (escribiendo) return; // se vuelve a intentar en la próxima vuelta
+  try { aviso("Actualizando la app…"); } catch {}
+  setTimeout(() => location.reload(), 600);
+}
+setInterval(revisarRecarga, 30000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) revisarRecarga(); });
+document.addEventListener("click", async (e) => {
+  if (!e.target.closest?.("#recargarTodos")) return;
+  if (!confirm("¿Actualizar todos los dispositivos? Cada celular y computadora con la app abierta se va a recargar en el próximo medio minuto (si alguien está escribiendo, espera a que termine).")) return;
+  if (await seguro(() => api("recarga_forzar"))) aviso("Listo: los dispositivos se actualizan en el próximo medio minuto");
+});
 
 // Igual que hace(), pero se actualiza solo con el paso del tiempo
 const haceVivo = (f) => f ? `<span data-hace="${esc(new Date(f).toISOString())}">${esc(hace(f))}</span>` : "";
@@ -1093,6 +1115,7 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Mensaje
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
+  $("#recargarTodos")?.classList.toggle("oculto", S.rol !== "admin");
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
   const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : 0;
   const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
