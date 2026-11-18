@@ -77,6 +77,7 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .p-dueno .perfil{background:#1E3140;--emp:#38C29E}.p-dueno .perfil b{color:#fff}.p-dueno .perfil span{color:#9FB0BF}
 .p-dueno .riel-pie .btn{background:transparent;color:#C9D4DE;border-color:#2C4153}
 .p-soporte .riel{border-right:4px solid var(--ambar)}.p-soporte .perfil{border-left-color:var(--ambar)}
+.riel-velo{display:none}
 .riel-pie{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:0 6px}
 .contenido{padding:28px 36px 60px;max-width:1200px;width:100%}
 .cabecera{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
@@ -355,6 +356,7 @@ input[type=file]{max-width:100%}
   .app{grid-template-columns:1fr}
   .riel{position:fixed;inset:0 auto 0 0;width:260px;z-index:50;transform:translateX(-100%);transition:transform .2s}
   .riel.abierto{transform:none}
+  .riel.abierto + .riel-velo{display:block;position:fixed;inset:0;z-index:49;background:rgba(10,16,22,.4)}
   .barra-movil{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--sup);border-bottom:1px solid var(--linea);position:sticky;top:0;z-index:30}
   .contenido{padding:20px 16px 60px}
   .conf{grid-template-columns:minmax(0,1fr)}.conf>*{min-width:0}.costo{position:static}
@@ -692,6 +694,7 @@ h3 .te{font-size:13px;margin-left:4px}
       <button class="btn lin chico" id="salir" type="button">Salir</button>
     </div>
   </aside>
+  <div class="riel-velo" id="rielVelo" aria-hidden="true"></div>
   <div>
     <div class="barra-movil"><button class="btn lin chico" id="abrirRiel" type="button">Menú</button><b>Mostrador</b><span></span></div>
     <main class="contenido" id="main"></main>
@@ -837,7 +840,10 @@ async function salir() {
   $("#app").classList.add("oculto"); $("#ingreso").classList.remove("oculto"); modoIngreso("usuario");
 }
 $("#salir").onclick = salir;
+// Menú del celular: mientras está abierto, la pantalla de atrás queda tapada; tocarla (o Escape) cierra el menú
 $("#abrirRiel").onclick = () => $("#riel").classList.toggle("abierto");
+$("#rielVelo").onclick = () => $("#riel").classList.remove("abierto");
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#riel").classList.remove("abierto"); });
 // ================= AVISOS DE PREGUNTAS NUEVAS =================
 // Con el panel abierto: cada 30 segundos revisa si llegó algo para esta persona (sonido, número en el ícono y en la pestaña).
 // Con el panel cerrado: notificaciones push al dispositivo, si la persona las activó.
