@@ -519,12 +519,9 @@ input[type=file]{max-width:100%}
 .chat-cab .t{flex:1 1 calc(100% - 60px)}
 .acc-cab{margin-left:auto}
 .m-chat .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
-.chat-cuerpo{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
-.chat-flota{position:absolute;top:0;left:0;right:14px;z-index:5;display:grid;gap:6px;padding:8px 0 0;pointer-events:none}.chat-flota:empty{display:none}
-.chat-flota .estado,.chat-flota .chat-alertas{pointer-events:auto}.chat-flota .estado{margin:0 22px}.chat-flota .chat-alertas{display:grid;gap:6px;cursor:pointer}
-.chat-flota .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.chat-flota .chat-alertas.abierta .estado>span{display:block}
-.m-chat .estado.e-ok{background:color-mix(in srgb,var(--pino-2) 50%,transparent)}.m-chat .estado.e-blo{background:color-mix(in srgb,var(--ladrillo-2) 50%,transparent)}.m-chat .estado.e-mot{background:color-mix(in srgb,var(--ambar-2) 50%,transparent)}
+.m-chat .estado>span{flex:1;min-width:0}.aviso-x{all:unset;cursor:pointer;flex:none;width:24px;height:24px;margin:-2px -4px -2px 0;border-radius:6px;display:grid;place-items:center;font-size:20px;line-height:1;color:inherit;opacity:.7}.aviso-x:hover,.aviso-x:focus-visible{opacity:1;background:rgba(0,0,0,.06)}.aviso-x:focus-visible{outline:2px solid var(--cielo)}
 .m-chat .estado svg{flex:none;margin-top:2px}
+.dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
 .dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
@@ -600,7 +597,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .enlace{all:unset;cursor:pointer;color:var(--cielo);text-decoration:underline;font-weight:600}.enlace:focus-visible{outline:2px solid var(--cielo)}
 .mat-vacia svg{vertical-align:-2px}
 @media (max-width:960px){
-  .chat-flota{position:sticky;top:57px;right:0;padding:6px 0}.chat-flota .estado{margin:0 14px}
+  .chat-alertas{position:sticky;top:57px;z-index:20;background:var(--papel);padding-bottom:6px;cursor:pointer}
   .chat-alertas .estado>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .chat-alertas.abierta .estado>span{display:block}
 }
@@ -2841,6 +2838,15 @@ function estadoConv(c) {
 // Estado de la venta para la lista: cancelada, entregada o en camino
 // Fecha de recepción: la de entrega que marca MercadoLibre
 const recibida = (c) => c.envio_entregado_at ?? c.envio?.entregado ?? null;
+// ¿Todavía puede devolverlo? Regla general de MercadoLibre: 30 días desde que lo recibe
+function plazoDev(c) {
+  if (c.mediacion || c.reclamo_ids?.length) return { c: "mal", t: "Tiene un reclamo o devolución abierta", s: "Se gestiona desde MercadoLibre" };
+  const r = recibida(c);
+  if (!r) return c.envio_id ? { c: "", t: "Todavía no lo recibió", s: "Los 30 días para devolver empiezan cuando lo reciba" } : null;
+  const lim = new Date(new Date(r).getTime() + 30 * 86400000), dias = Math.ceil((lim - Date.now()) / 86400000);
+  return dias > 0 ? { c: "amb", t: `Puede devolverlo hasta el ${diaMes(lim)}`, s: `Le ${dias === 1 ? "queda 1 día" : `quedan ${dias} días`} (30 días desde que lo recibió)` }
+    : { c: "ok", t: "Ya no puede devolverlo", s: `El plazo de 30 días venció el ${diaMes(lim)}` };
+}
 // Lo que pagó el comprador; si la venta se canceló y se le devolvió todo, se muestra lo devuelto
 const pagoTxt = (c) => Number(c.pagado) === 0 && Number(c.devuelto) > 0 ? `Devuelto ${plata(c.devuelto, c.moneda)}` : `Pagó ${plata(c.pagado ?? c.total, c.moneda)}`;
 // Día y mes; el año solo si no es el actual
@@ -3022,6 +3028,25 @@ function burbujas(ms) {
   }).join("");
 }
 
+// Avisos del chat que se pueden cerrar con la X: quedan cerrados en ese celular o computadora para esa venta
+function avisoCerrado(k, cerrar) {
+  let l = []; try { l = JSON.parse(localStorage.getItem("mostrador_avisos_cerrados") ?? "[]"); } catch {}
+  if (!cerrar) return l.includes(k);
+  try { localStorage.setItem("mostrador_avisos_cerrados", JSON.stringify([...l.filter((x) => x !== k), k].slice(-300))); } catch {}
+}
+function conX(html, convId) {
+  if (!html) return "";
+  const t = document.createElement("template"); t.innerHTML = html;
+  t.content.querySelectorAll(".estado").forEach((e) => {
+    const txt = e.textContent.trim(); let h = 0; for (let i = 0; i < txt.length; i++) h = (h * 31 + txt.charCodeAt(i)) | 0;
+    const k = `${convId}:${h}`;
+    if (avisoCerrado(k)) { e.remove(); return; }
+    const x = document.createElement("button"); x.type = "button"; x.className = "aviso-x"; x.dataset.cerrarAviso = k; x.setAttribute("aria-label", "Cerrar aviso"); x.textContent = "×";
+    e.append(x);
+  });
+  return t.innerHTML;
+}
+
 function pintarChat(d) {
   const c = d.conversacion, movil = anchoMovil();
   let estado;
@@ -3039,14 +3064,14 @@ function pintarChat(d) {
       <div class="n acc-cab">
         <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
-    <div class="chat-cuerpo"><div class="chat-flota">${estado}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${med}${urg}</div>` : ""}${avisos}</div>
-    <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div></div>
+    ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
+    <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div>`;
-  const bur = $("#mBur");
-  // Los avisos flotan sobre los mensajes (translúcidos); arriba de todo se deja el lugar para que no tapen el primero
-  const flota = $(".chat-flota");
-  if (flota && !movil) bur.style.paddingTop = `${flota.offsetHeight + 8}px`;
-  bur.scrollTop = bur.scrollHeight;
+  const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
+  $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
+    e.stopPropagation(); avisoCerrado(b.dataset.cerrarAviso, true);
+    const caja = b.closest(".estado"), grupo = caja.closest(".chat-alertas"); caja.remove(); if (grupo && !grupo.querySelector(".estado")) grupo.remove();
+  });
   cargarMinis(c.id).then(() => { if (!anchoMovil()) bur.scrollTop = bur.scrollHeight; });
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
@@ -3073,7 +3098,7 @@ function redactarLibre(d) {
   const elegidos = new Set((c.borrador_material ?? []).map(Number));
   const sueltos = [];
   $("#mRed").innerHTML = `
-    ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span>${c.borrador_motivo ? `<span class="mut">· ${esc(c.borrador_motivo)}</span>` : ""}</div>` : ""}
+    ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span></div>` : ""}
     ${!mat.length ? `<p class="peq mut mat-vacia" style="margin:0 0 8px">${ICONO_M.clip} Esta publicación no tiene documentación cargada.${S.rol !== "operador" ? ` <button type="button" class="enlace" id="mIrDoc">Cargarla</button>` : " Pedile al administrador que la cargue."}</p>` : ""}
     ${mat.length ? `<div class="mat"><span class="mat-t">Documentación (tocala para sumarla al mensaje):</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
     <div class="mat" id="mSue"></div>
@@ -3167,7 +3192,9 @@ async function redactarMotivo(d) {
 function pintarVenta(d) {
   const c = d.conversacion, env = c.envio ?? {};
   const paso = (si, t, f) => `<div class="${si ? "si" : ""}"><b>${t}</b>${f ? `<span class="mut"> · ${fecha(f)}</span>` : ""}</div>`;
+  const pz = plazoDev(c);
   $("#mVen").innerHTML = `
+    ${pz ? `<div class="dev-glob ${pz.c}"><b>${pz.t}</b><span>${pz.s}</span></div>` : ""}
     <h3>Producto</h3><div class="prod">${foto(c.item_thumbnail)}<div><b>${esc(c.item_titulo ?? "—")}</b>${c.item_variacion ? `<div class="peq mut">${esc(c.item_variacion)}</div>` : ""}</div></div>
     <h3>Venta</h3>
     <div class="dv"><span>Número</span><span>${esc((c.orden_ids ?? [c.pack_id])[0])}</span></div>
