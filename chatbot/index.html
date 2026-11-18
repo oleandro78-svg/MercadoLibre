@@ -611,6 +611,15 @@ h3 .te{font-size:13px;margin-left:4px}
 .acc-cab{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:960px){.venta-cab{padding-left:0}}
 .m-pie{display:grid;gap:6px;justify-items:center;text-align:center;padding:16px 18px 22px}
+.m-fil .fx{display:inline-flex;align-items:center;gap:5px}.m-fil .fx svg{width:14px;height:14px}
+.fx-act{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}.fx-act button{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--cielo-2,#e6f0fb);color:var(--cielo)}.fx-act button:focus-visible{outline:2px solid var(--cielo)}
+.fx-cuerpo{display:grid;gap:14px;max-height:62vh;overflow:auto;padding-right:4px}
+.fx-g{border:0;padding:0;margin:0}.fx-g legend{font-weight:700;font-size:14px;margin-bottom:6px;padding:0}
+.fx-ops{display:flex;flex-wrap:wrap;gap:6px}.fx-ops label{cursor:pointer}.fx-ops input{position:absolute;opacity:0;pointer-events:none}
+.fx-ops span{display:inline-block;padding:7px 12px;border-radius:999px;border:1px solid var(--linea);background:var(--sup);font-size:13.5px}
+.fx-ops input:checked+span{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}.fx-ops input:focus-visible+span{outline:2px solid var(--cielo)}
+.fx-g select{width:100%}
+.fx-pie{display:flex;gap:10px;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}.fx-pie .btn{flex:1;justify-content:center}
 .hilo .h-venta{grid-column:2/-1;font-size:12.5px;color:var(--piz)}
 .hilo .h-venta .cancel{color:var(--ladrillo)}
 .c-esp{background:var(--cielo-2);color:var(--cielo)}
@@ -1164,7 +1173,7 @@ function pintarPerfil() {
 }
 const VISTAS = {};
 // Lo elegido dentro de cada pantalla (solapa Preguntas o Mensajes, vista por persona, etc.) también se conserva al refrescar
-const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "matFil"];
+const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "matFil", "msjFil", "msjFx"];
 addEventListener("pagehide", () => { try { sessionStorage.setItem("mostrador_estado", JSON.stringify(Object.fromEntries(ESTADO_PANT.map((k) => [k, S[k] ?? null])))); } catch {} });
 function restaurarEstado() { try { const e = JSON.parse(sessionStorage.getItem("mostrador_estado") ?? "{}"); for (const k of ESTADO_PANT) if (e[k] != null) S[k] = e[k]; } catch {} }
 function ir(t) {
@@ -2838,6 +2847,7 @@ function tipoEnvio(c) {
 const ENVIO_E = { pending: "Pendiente", handling: "Preparando", ready_to_ship: "Listo para despachar", shipped: "En camino", delivered: "Entregado", not_delivered: "No entregado", cancelled: "Cancelado" };
 const ORDEN_E = { paid: "Pagada", confirmed: "Confirmada", payment_required: "Falta el pago", payment_in_process: "Pago en proceso", partially_paid: "Pago parcial", cancelled: "Cancelada", invalid: "Inválida" };
 const ICONO_M = {
+  filtro: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg>`,
   clip: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.3 3.3 0 0 1 4.7 4.7L10.2 17a1.7 1.7 0 0 1-2.4-2.4L15.5 7"/></svg>`,
   link: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>`,
   doc: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>`,
@@ -2924,7 +2934,7 @@ function hiloHTML(c) {
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>
-      <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
+      <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
       <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
@@ -2960,19 +2970,72 @@ function pieHilos(emp, r) {
   };
 }
 
+// ---------- filtros de Ventas: los de MercadoLibre y otros propios ----------
+const FX = [
+  ["envio", "Estado del envío", [["hoy", "Envíos de hoy"], ["proximos", "Próximos días"], ["transito", "En tránsito"], ["finalizadas", "Finalizadas"], ["sin_entregar", "Sin entregar"], ["demorado", "Envío demorado"]]],
+  ["tipo_envio", "Tipo de envío", [["full", "Full"], ["flex", "Flex"], ["turbo", "Turbo"], ["colecta", "Colecta"], ["punto", "Punto de despacho"], ["sin_envio", "Sin envío"]]],
+  ["comprador", "Comprador", [["persona", "Persona"], ["negocio", "Negocio"]]],
+  ["cobro", "Cobro", [["cobradas", "Cobradas"], ["no_cobradas", "No cobradas"]]],
+  ["factura", "Facturación", [["emitida", "Factura emitida"], ["sin", "Sin factura"]]],
+  ["dias", "Período", [["7", "Últimos 7 días"], ["30", "Últimos 30 días"], ["60", "Últimos 2 meses"], ["90", "Últimos 3 meses"]]],
+  ["orden", "Ordenar por", [["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]]],
+];
+const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"],
+  ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
+function filtrosActivos() {
+  const f = S.msjFx ?? {}, out = [];
+  for (const [k, , ops] of FX) if (f[k]) out.push([k, ops.find((o) => o[0] === String(f[k]))?.[1] ?? f[k]]);
+  for (const [k, t] of FX_SI) if (f[k]) out.push([k, t]);
+  if (f.producto) out.push(["producto", (S.msjProductos ?? []).find((p) => p.id === f.producto)?.titulo?.slice(0, 40) ?? "Producto"]);
+  return out;
+}
+function hojaFiltros(emp) {
+  const f = { ...(S.msjFx ?? {}) };
+  const grupo = ([k, t, ops]) => `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
+    <label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "orden" ? "Actividad reciente" : k === "dias" ? "Todo" : "Todas"}</span></label>
+    ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
+  const prods = S.msjProductos ?? [];
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Filtros</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="fx-cuerpo">
+      ${FX.slice(0, 5).map(grupo).join("")}
+      <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
+      <fieldset class="fx-g"><legend>Producto</legend><select id="fxProd"><option value="">Todos los productos</option>${prods.map((p) => `<option value="${esc(p.id)}" ${f.producto === p.id ? "selected" : ""}>${esc(p.titulo)} (${p.ventas})</option>`).join("")}</select></fieldset>
+      ${FX.slice(5).map(grupo).join("")}
+    </div>
+    <div class="fx-pie"><button class="btn lin" type="button" id="fxLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="fxAplicar">Aplicar</button></div>`);
+  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFx = {}; cargarHilos(emp); };
+  h.querySelector("#fxAplicar").onclick = () => {
+    const n = {};
+    for (const [k] of FX) { const v = h.querySelector(`input[name="fx_${k}"]:checked`)?.value; if (v) n[k] = v; }
+    for (const [k] of FX_SI) if (h.querySelector(`input[name="fxs_${k}"]`)?.checked) n[k] = true;
+    if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
+    const p = h.querySelector("#fxProd").value; if (p) n.producto = p;
+    h.remove(); S.msjFx = n; cargarHilos(emp);
+  };
+}
+
 async function cargarHilos(emp, mas = false) {
   if (mas && S.msjTrayendo) return null;
   S.msjTrayendo = true;
   const desde = mas ? S.msjCargadas : 0;
-  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde, limite: POR_PAGINA }));
+  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde, limite: POR_PAGINA, filtros: S.msjFx ?? {}, con_productos: !S.msjProductos }));
   S.msjTrayendo = false;
   if (!r || S.tab !== "mensajes") return null;
   S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
   if (!mas) {
     S.msjCargadas = 0;
-    const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["con_mensajes", "Con mensajes"], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
-    $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("");
-    $("#mFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); } };
+    if (r.productos) S.msjProductos = r.productos;
+    if (S.msjFil === "con_mensajes") { S.msjFil = "todas"; (S.msjFx ??= {}).con_mensajes = true; }
+    const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["reclamos", "Con reclamo", r.reclamos], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
+    const act = filtrosActivos();
+    $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("")
+      + `<button type="button" id="mFx" class="fx ${act.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtros${act.length ? ` · ${act.length}` : ""}</button>`
+      + (act.length ? `<div class="fx-act">${act.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
+    $("#mFil").onclick = (e) => {
+      const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); return; }
+      if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
+      const q = e.target.closest("[data-qx]"); if (q) { delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
+    };
     $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
     $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
   }
@@ -2981,7 +3044,7 @@ async function cargarHilos(emp, mas = false) {
     clearTimeout(S.msjNombres);
     S.msjNombres = setTimeout(async () => {
       if (S.tab !== "mensajes") return;
-      const x = await api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde: 0, limite: POR_PAGINA }).catch(() => null);
+      const x = await api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde: 0, limite: POR_PAGINA, filtros: S.msjFx ?? {} }).catch(() => null);
       for (const c of x?.filas ?? []) { const b = $(`#mHilos .hilo[data-c="${c.id}"] .h-nom b`); if (b) b.textContent = nombreComp(c); }
     }, 12000);
   }
