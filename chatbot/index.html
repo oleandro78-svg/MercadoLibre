@@ -3427,7 +3427,7 @@ function estadoDev(d) {
   const r = d.revision;
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
-  if (d.destino === "warehouse") return { t: "Vuelve al depósito de MercadoLibre", c: "", grupo: "otras" };
+  if (d.destino === "warehouse") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : d.envio_estado === "delivered" ? "Llegó al depósito de MercadoLibre" : "Vuelve al depósito de MercadoLibre", c: "", grupo: "otras" };
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
   if (!d.abierto) return { t: "Cerrada", c: "", grupo: "otras" };
   return { t: d.envio_estado === "shipped" ? "En camino al depósito" : "El comprador todavía no la despachó", c: "", grupo: "camino" };
@@ -3604,6 +3604,14 @@ async function detalleDevolucion(id) {
       <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div></div></div>`;
+  if (d.destino === "warehouse" && !enviada) {
+    // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
+      <p style="margin:0 0 10px">Vuelve al depósito de MercadoLibre (Full) y la revisa MercadoLibre. No hay que escanearla ni sacarle fotos.</p>
+      ${d.ml_detalle?.titulo ? `<div class="estado e-pend"><span><b>${esc(d.ml_detalle.titulo)}</b>${d.ml_detalle.descripcion ? `<br>${esc(d.ml_detalle.descripcion)}` : ""}</span></div>` : ""}</div>`;
+    $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
+    return;
+  }
   if (enviada) {
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se confirmó que llegó bien" : "Se informó a MercadoLibre que llegó con un problema"}</h2>
       ${rv.resultado === "falla" ? `<p style="margin:0 0 6px"><b>${esc(motivoTxt(rv.motivo))}</b></p><p class="pre" style="margin:0 0 10px">${esc(rv.descripcion ?? "")}</p>` : ""}
