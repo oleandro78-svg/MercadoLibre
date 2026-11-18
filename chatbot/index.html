@@ -776,7 +776,7 @@ const hace = (f) => { if (!f) return ""; const s = (Date.now() - new Date(f)) / 
 // ---------- "está escribiendo" ----------
 // Cada 6 segundos se le cuenta al servidor qué preguntas o conversaciones hay en pantalla y en cuál se está escribiendo;
 // el servidor responde quién más escribe en cada una, y se muestra arriba del cuadro de respuesta.
-const PRES = { tecleo: new Map(), corriendo: false };
+const PRES = { tecleo: new Map(), corriendo: false, disp: (() => { try { let d = sessionStorage.getItem("mostrador_disp"); if (!d) { d = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("mostrador_disp", d); } return d; } catch { return Math.random().toString(36).slice(2, 12); } })() };
 document.addEventListener("input", (e) => { const c = e.target.closest?.("[data-pres]"); if (c && e.target.matches("textarea,input[type=text]")) { const o = c.dataset.pres; const nuevo = !PRES.tecleo.has(o) || Date.now() - PRES.tecleo.get(o) > 10000; PRES.tecleo.set(o, Date.now()); if (nuevo) latidoPresencia(); } });
 async function latidoPresencia() {
   if (PRES.corriendo || document.hidden || !S.rol || typeof api !== "function") return;
@@ -786,13 +786,14 @@ async function latidoPresencia() {
   const escribiendo = objetos.filter((o) => Date.now() - (PRES.tecleo.get(o) ?? 0) < 12000);
   PRES.corriendo = true;
   try {
-    const r = await api("presencia", { objetos: [...new Set([...objetos, ...PRES.tecleo.keys()])], escribiendo });
+    const r = await api("presencia", { objetos: [...new Set([...objetos, ...PRES.tecleo.keys()])], escribiendo, dispositivo: PRES.disp });
     document.querySelectorAll("[data-pres]").forEach((c) => {
       const quienes = r?.escriben?.[c.dataset.pres] ?? [];
       let el = c.querySelector(":scope .pres");
       if (!quienes.length) { el?.remove(); return; }
       if (!el) { el = document.createElement("div"); el.className = "pres"; el.setAttribute("role", "status"); const t = c.querySelector("textarea"); t ? t.before(el) : c.prepend(el); }
-      const txt = `${quienes.join(" y ")} ${quienes.length > 1 ? "están" : "está"} escribiendo una respuesta`;
+      const otros = quienes.filter((q) => q !== "__vos__");
+      const txt = otros.length ? `${otros.join(" y ")} ${otros.length > 1 ? "están" : "está"} escribiendo una respuesta${quienes.includes("__vos__") ? " (y vos, en otro dispositivo)" : ""}` : "Estás escribiendo una respuesta en otro dispositivo";
       if (el.textContent !== txt) el.innerHTML = `<span class="pres-p" aria-hidden="true"><i></i><i></i><i></i></span>${esc(txt)}`;
     });
   } catch {} finally { PRES.corriendo = false; }
