@@ -1122,7 +1122,7 @@ const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["m
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
-  mensajes: [["mensajes", "Bandeja"], ["material", "Documentación para enviar"]],
+  conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
 };
@@ -2786,7 +2786,8 @@ VISTAS.motor = async () => {
 // Solapas de la sección (solo administrador de la empresa o dueño en modo soporte)
 function ponerSubtabs() {
   if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
-  const sec = SUBTABS[seccionDe(S.tab)]; if (!sec || $("#main .subnav")) return;
+  const ok = vistasPermitidas();
+  const sec = (SUBTABS[seccionDe(S.tab)] ?? []).filter(([k]) => ok.has(k)); if (sec.length < 2 || $("#main .subnav")) return;
   const html = `<nav class="subnav" aria-label="Pantallas de esta sección">${sec.map(([k, t]) => `<button type="button" data-st="${k}" class="${k === S.tab ? "on" : ""}" ${k === S.tab ? 'aria-current="page"' : ""}>${t}</button>`).join("")}</nav>`;
   const mcab = $("#main .m-cab"), cab = $("#main .cabecera");
   if (mcab) mcab.insertAdjacentHTML("afterbegin", html); else if (cab) cab.insertAdjacentHTML("beforebegin", html); else return;
@@ -3226,7 +3227,7 @@ function redactarLibre(d) {
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
       if (!/\.(jpe?g|png|pdf|txt)$/i.test(f.name)) { aviso(`${f.name}: MercadoLibre acepta solo JPG, PNG, PDF o TXT`); continue; }
-      if (f.size > 8 * 1048576) { aviso(`${f.name}: para enviarlo desde acá tiene que pesar menos de 8 MB. Si es un manual, cargalo en Documentación para enviar.`); continue; }
+      if (f.size > 8 * 1048576) { aviso(`${f.name}: para enviarlo desde acá tiene que pesar menos de 8 MB. Si es un manual, cargalo en Conocimiento → Documentación para enviar.`); continue; }
       sueltos.push({ nombre: f.name, mime: f.type, bytes: f.size, datos: await leerB64(f) });
     }
     $("#mArch").value = ""; pintarSueltos();
