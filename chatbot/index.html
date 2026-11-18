@@ -1108,7 +1108,7 @@ async function recargar() {
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"],
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"],
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
@@ -1117,7 +1117,7 @@ const SUBTABS = {
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Mensajes", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["numeros", "Mis números"]];
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -2795,11 +2795,11 @@ function titularTablas() {
 new MutationObserver(() => titularTablas()).observe(document.body, { childList: true, subtree: true });
 
 // ================= MÓDULOS =================
-// Cada empresa tiene los módulos de su plan (Preguntas, Mensajes) o los que le asignó el dueño de la app.
-const MODULOS = { preguntas: "Preguntas", mensajes: "Mensajes", devoluciones: "Devoluciones" };
+// Cada empresa tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
+const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Devoluciones" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
-  mensajes: "Conversa con quienes ya compraron: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
+  mensajes: "Tus ventas y la conversación con cada comprador: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
   devoluciones: "Revisa los productos que vuelven al depósito: escaneás la etiqueta, decís cómo llegó y sacás fotos. Si llegó mal, MercadoLibre lo revisa con esas fotos. También permite sacar fotos al despachar.",
 };
 function modsActuales() {
@@ -2810,7 +2810,7 @@ function modsActuales() {
   if (S.rol === "empresa" || S.soporte) return new Set(S.res?.empresas?.[0]?.modulos_efectivos ?? ["preguntas"]);
   return new Set(Object.keys(MODULOS));
 }
-// Pestañas Preguntas / Mensajes arriba de Asignaciones y Rendimiento (solo si la empresa tiene los dos)
+// Pestañas Preguntas / Ventas arriba de Asignaciones y Rendimiento (solo si la empresa tiene los dos)
 function pestModulo(clave, volver) {
   const m = modsActuales();
   if (!(m.has("preguntas") && m.has("mensajes"))) { S[clave] = m.has("mensajes") && !m.has("preguntas") ? "mensajes" : "preguntas"; return; }
@@ -2895,13 +2895,13 @@ const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
 
 VISTAS.mensajes = async () => {
   const emp = empMsj();
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Elegí un cliente para ver sus conversaciones.</p></div></div>`; return; }
-  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Mensajes</h1><p>Ninguna de tus empresas tiene el módulo Mensajes.</p></div></div>`; return; }
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Elegí un cliente para ver sus ventas.</p></div></div>`; return; }
+  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Ninguna de tus empresas tiene el módulo Ventas.</p></div></div>`; return; }
   S.msjFil ??= "todas";
   $("#main").classList.add("lleno");
   const movil = anchoMovil();
   $("#main").innerHTML = `<div class="msj ${S.msjId ? "ver-chat" : "ver-lista"}">
-    <section class="m-lista" aria-label="Conversaciones"><div class="m-cab"><h1>Mensajes</h1>
+    <section class="m-lista" aria-label="Ventas"><div class="m-cab"><h1>Ventas</h1>
       ${S.rol === "operador" && !S.empresaId && empresasMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${empresasMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
       <input type="search" id="mBus" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.msjBus ?? "")}" aria-label="Buscar">
       <div class="m-fil" id="mFil" role="group" aria-label="Filtro"></div></div>
