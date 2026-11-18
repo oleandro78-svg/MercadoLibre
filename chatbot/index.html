@@ -388,7 +388,7 @@ input[type=file]{max-width:100%}
 .rank .flecha{width:8px;height:8px;border-right:2px solid var(--piz);border-top:2px solid var(--piz);transform:rotate(45deg)}
 .av-e{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex:none}
 .av-e.g{width:52px;height:52px;border-radius:14px;font-size:17px}
-.soporte{background:var(--ambar-2);color:var(--ambar-t);border-radius:var(--r-m);padding:12px;font-size:13.5px;display:flex;flex-direction:column;gap:8px}
+.soporte{background:var(--ambar-2);color:var(--ambar-t);border-radius:var(--r-m);padding:6px 12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}.soporte span{font-weight:700}.soporte .enlace{color:var(--ambar-t);font-size:13px}
 .fila-click{cursor:pointer}.fila-click:hover td{background:var(--papel)}.fila-click.on td{background:var(--pino-2)}
 .preg-d{border-top:1px solid var(--linea);padding:12px 4px}.preg-d summary{list-style:none;display:grid;grid-template-columns:1fr auto;gap:12px;font-weight:500}
 .preg-d summary::-webkit-details-marker{display:none}.preg-d .r{border-left:3px solid var(--pino);padding:2px 0 2px 12px;margin-top:8px;color:var(--piz);font-size:14px}
@@ -517,6 +517,7 @@ input[type=file]{max-width:100%}
 .chat-cab .t{min-width:0;flex:1}.chat-cab .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-cab .t span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-cab .t{flex:1 1 calc(100% - 60px)}
+@media (min-width:961px){.chat-cab{flex-wrap:nowrap}.chat-cab .venta-cab{display:none}.chat-cab .t{flex:1 1 auto}.chat-cab .acc-cab{flex-wrap:nowrap;flex:none}}
 .acc-cab{margin-left:auto}
 .m-chat .estado{margin:12px 22px 0;border-radius:var(--r-m);padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .m-chat .estado>span{flex:1;min-width:0}.aviso-x{all:unset;cursor:pointer;flex:none;width:24px;height:24px;margin:-2px -4px -2px 0;border-radius:6px;display:grid;place-items:center;font-size:20px;line-height:1;color:inherit;opacity:.7}.aviso-x:hover,.aviso-x:focus-visible{opacity:1;background:rgba(0,0,0,.06)}.aviso-x:focus-visible{outline:2px solid var(--cielo)}
@@ -544,6 +545,11 @@ input[type=file]{max-width:100%}
 .mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
 .redactar{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px 16px}
 .redactar textarea{width:100%;min-height:96px;resize:vertical}
+.tx-caja{position:relative}.tx-caja textarea{display:block}.tx-caja .cont{display:block;text-align:right;margin-top:3px;font-size:12px;color:var(--piz)}.tx-caja .cont.pasado{color:var(--ladrillo);font-weight:700}
+.tx-ia{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--cielo);margin:0 0 4px}.tx-ia svg{width:14px;height:14px}
+@media (min-width:961px){.redactar #mTx{min-height:190px}}
+.mas-caja{position:relative}.mas-menu{position:absolute;bottom:calc(100% + 6px);left:0;z-index:30;min-width:260px;background:var(--sup);border:1px solid var(--linea);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;display:grid}
+.mas-menu button{all:unset;cursor:pointer;display:flex;gap:8px;align-items:center;padding:9px 10px;border-radius:8px;font-size:14px}.mas-menu button:hover,.mas-menu button:focus-visible{background:var(--sup2)}.mas-menu svg{width:16px;height:16px}
 .redactar .ia{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cielo);margin-bottom:8px;flex-wrap:wrap}.redactar .ia .mut{font-weight:400}
 .redactar .acciones{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .redactar .acciones .der{margin-left:auto;display:flex;gap:10px;align-items:center}
@@ -588,7 +594,7 @@ input[type=file]{max-width:100%}
   .burbujas .b{max-width:85%}
   .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .t{flex:1 1 calc(100% - 110px)}
   .m-chat .estado{margin:10px 14px 0}
-  .redactar .acciones .der{margin-left:0;width:100%;justify-content:flex-end}
+  .redactar .acciones .der{margin-left:auto}
 }
 .venta-cab{display:grid;line-height:1.3;padding-left:52px}
 .te{display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:12px;letter-spacing:.01em;color:var(--tinta);vertical-align:baseline}
@@ -2569,7 +2575,7 @@ function pintarSoporte() {
   const b = $("#soporte");
   if (!S.soporte) { b.classList.add("oculto"); b.innerHTML = ""; return; }
   b.classList.remove("oculto");
-  b.innerHTML = `<span>Estás dentro de <b>${esc(S.soporteNom)}</b> para darle soporte.</span><button class="btn osc chico" id="soporteSalir">Volver a mi panel</button>`;
+  b.innerHTML = `<span>Soporte</span><button class="enlace" id="soporteSalir" type="button">Volver a mi panel</button>`;
   $("#soporteSalir").onclick = salirSoporte;
 }
 
@@ -2894,7 +2900,6 @@ VISTAS.mensajes = async () => {
   const movil = anchoMovil();
   $("#main").innerHTML = `<div class="msj ${S.msjId ? "ver-chat" : "ver-lista"}">
     <section class="m-lista" aria-label="Conversaciones"><div class="m-cab"><h1>Mensajes</h1>
-      <p class="mut peq" style="margin:4px 0 0">Tus ventas, para hablar con cada comprador.</p>
       ${S.rol === "operador" && !S.empresaId && empresasMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${empresasMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
       <input type="search" id="mBus" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.msjBus ?? "")}" aria-label="Buscar">
       <div class="m-fil" id="mFil" role="group" aria-label="Filtro"></div></div>
@@ -3074,7 +3079,7 @@ function conX(html, convId) {
 function pintarChat(d) {
   const c = d.conversacion, movil = anchoMovil();
   let estado;
-  if (c.conv_estado === "active") estado = `<div class="estado e-ok">${ICONO_M.ok}<span>Podés escribir. Hasta ${LIM_MSJ} caracteres por mensaje; podés adjuntar JPG, PNG, PDF o TXT.</span></div>`;
+  if (c.conv_estado === "active") estado = "";
   else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
   else estado = `<div class="estado e-blo">${ICONO_M.alto}<span>No se puede escribir: ${esc(c.bloqueo ?? "MercadoLibre no la habilita")}.${c.conv_subestado === "blocked_by_fulfillment" ? " Cuando el envío figure entregado se habilita sola." : ""}</span></div>`;
   const med = c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>${esc(c.mediacion.tipo)} abierta</b>${c.mediacion.etapa ? ` (${esc(c.mediacion.etapa)})` : ""}.${c.mediacion.tenes_que_responder && c.mediacion.vence ? ` Tenés que responder antes del ${esc(venceTxt(c.mediacion.vence))}.` : ""} <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a></span></div>` : "";
@@ -3122,22 +3127,30 @@ function redactarLibre(d) {
   const elegidos = new Set((c.borrador_material ?? []).map(Number));
   const sueltos = [];
   $("#mRed").innerHTML = `
-    ${c.borrador ? `<div class="ia">${ICONO.varita}<span>Borrador del bot</span></div>` : ""}
-    ${!mat.length ? `<p class="peq mut mat-vacia" style="margin:0 0 8px">${ICONO_M.clip} Esta publicación no tiene documentación cargada.${S.rol !== "operador" ? ` <button type="button" class="enlace" id="mIrDoc">Cargarla</button>` : " Pedile al administrador que la cargue."}</p>` : ""}
     ${mat.length ? `<div class="mat"><span class="mat-t">Documentación (tocala para sumarla al mensaje):</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
     <div class="mat" id="mSue"></div>
     <label class="oculto-v" for="mTx">Mensaje para el comprador</label>
-    <textarea id="mTx" placeholder="Escribí el mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
+    <div class="tx-caja">${c.borrador ? `<span class="tx-ia">${ICONO.varita} Borrador del bot</span>` : ""}<textarea id="mTx" placeholder="Escribí el mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea><span class="cont" id="mCont"></span></div>
     <div id="mRes"></div>
     <div class="acciones">
       <label class="btn lin chico" style="cursor:pointer">${ICONO_M.clip} Adjuntar<input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v"></label>
-      <button class="btn lin chico" type="button" id="mReg">${ICONO.escudo} Revisar reglas</button>
-      <button class="btn lin chico" type="button" id="mMej">${ICONO.varita} Mejorar redacción</button>
-      <button class="btn lin chico" type="button" id="mOtro" title="El bot vuelve a leer la conversación y propone otro texto">Otro borrador</button>
-      <div class="der"><span class="cont" id="mCont"></span>
+      <div class="mas-caja"><button class="btn lin chico" type="button" id="mMas" aria-expanded="false" aria-controls="mMasM">Más ▾</button>
+        <div class="mas-menu oculto" id="mMasM" role="menu">
+          <button type="button" role="menuitem" id="mReg">${ICONO.escudo} Revisar reglas</button>
+          <button type="button" role="menuitem" id="mMej">${ICONO.varita} Mejorar redacción</button>
+          <button type="button" role="menuitem" id="mOtro" title="El bot vuelve a leer la conversación y propone otro texto">${ICONO.varita} Otro borrador</button>
+          ${!mat.length && S.rol !== "operador" ? `<button type="button" role="menuitem" id="mIrDoc">${ICONO_M.clip} Cargar documentación de esta publicación</button>` : ""}
+        </div></div>
+      <div class="der">
         ${c.puede_enviar ? `<button class="btn pri" type="button" id="mEnv">Enviar</button>` : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div></div>
     ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en esta empresa: guardá el borrador y lo envía el administrador.</p>`}`;
   const tx = $("#mTx");
+  // Menú "Más": se abre y se cierra con el botón, y se cierra al elegir algo o tocar afuera
+  const menu = $("#mMasM"), bm = $("#mMas");
+  const cerrarMenu = () => { menu.classList.add("oculto"); bm.setAttribute("aria-expanded", "false"); };
+  bm.onclick = (e) => { e.stopPropagation(); const abrir = menu.classList.contains("oculto"); menu.classList.toggle("oculto", !abrir); bm.setAttribute("aria-expanded", String(abrir)); };
+  menu.addEventListener("click", cerrarMenu);
+  if (!window.MAS_ESCUCHA) { window.MAS_ESCUCHA = true; document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu").forEach((m) => { m.classList.add("oculto"); m.previousElementSibling?.setAttribute("aria-expanded", "false"); }); }, true); }
   const extra = () => mat.filter((m) => elegidos.has(m.id) && m.tipo === "enlace" && !tx.value.includes(m.url)).reduce((n, m) => n + m.url.length + 1, 0);
   const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = `${n} / ${LIM_MSJ}`; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
   tx.oninput = contar; contar();
