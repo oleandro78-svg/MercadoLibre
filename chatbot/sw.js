@@ -1,5 +1,5 @@
 // Mostrador: guarda la pantalla del panel para que abra rápido. Los datos siempre se piden al servidor.
-const VERSION = "mostrador-v67";
+const VERSION = "mostrador-v68";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icono-192.png", "icono-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
