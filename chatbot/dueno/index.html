@@ -2905,6 +2905,11 @@ function estadoConv(c) {
 // Fecha de recepción: la de entrega que marca MercadoLibre
 const recibida = (c) => c.envio_entregado_at ?? c.envio?.entregado ?? null;
 // ¿Todavía puede devolverlo? Regla general de MercadoLibre: 30 días desde que lo recibe
+// Pasados 30 días de la entrega ya no puede reclamar ni devolver por MercadoLibre
+function puedeReclamar(c) {
+  if (c.estado_orden === "cancelled") return false;
+  const rec = c.envio_entregado_at; return !rec || Date.now() - new Date(rec).getTime() <= 30 * 86400_000;
+}
 function plazoDev(c) {
   // Venta cancelada o envío que no se entregó: no hay plazo de devolución que mostrar
   if (c.estado_orden === "cancelled" || ["not_delivered", "cancelled"].includes(c.envio_estado)) return null;
@@ -2962,7 +2967,7 @@ function hiloHTML(c) {
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
       <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
-      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
