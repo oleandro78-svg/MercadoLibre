@@ -648,6 +648,8 @@ h3 .te{font-size:13px;margin-left:4px}
 @media (max-width:960px){.venta-cab{padding-left:0}}
 .m-pie{display:grid;gap:6px;justify-items:center;text-align:center;padding:16px 18px 22px}
 .m-fil .fx{display:inline-flex;align-items:center;gap:5px}.m-fil .fx svg{width:14px;height:14px}
+.fx-per-l{display:grid;gap:2px}.fx-per-o{display:flex;gap:10px;align-items:flex-start;padding:8px 6px;border-radius:10px;cursor:pointer}.fx-per-o:hover{background:var(--sup2)}.fx-per-o input{margin-top:3px;accent-color:var(--pino)}.fx-per-o>span{display:flex;flex-direction:column;gap:1px}
+.fx-fechas{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}.fx-fechas label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;flex:1 1 140px}.fx-fechas input{width:100%}
 .fx-act .fx-per{background:var(--sup2)!important;color:var(--tinta)!important}
 .fx-act{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}.fx-act button{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--cielo-2,#e6f0fb);color:var(--cielo)}.fx-act button:focus-visible{outline:2px solid var(--cielo)}
 .fx-cuerpo{display:grid;gap:14px;max-height:62vh;overflow:auto;padding-right:4px}
@@ -3006,7 +3008,7 @@ function hiloHTML(c) {
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
       <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
-      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip">${esc(c.asignados_nombres.join(", "))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+      <span class="tags">${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip" title="Personas asignadas a esta venta">Atiende${c.asignados_nombres.length > 1 ? "n" : ""}: ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
@@ -3047,9 +3049,20 @@ const FX = [
   ["tipo_envio", "Tipo de envío", [["full", "Full"], ["flex", "Flex"], ["turbo", "Turbo"], ["colecta", "Colecta"], ["punto", "Punto de despacho"], ["sin_envio", "Sin envío"]]],
   ["comprador", "Comprador", [["persona", "Persona"], ["negocio", "Negocio"]]],
   ["factura", "Facturación", [["emitida", "Factura emitida"], ["sin", "Sin factura"]]],
-  ["dias", "Período", [["7", "Últimos 7 días"], ["30", "Últimos 30 días"], ["60", "Últimos 2 meses"], ["90", "Últimos 3 meses"]]],
+  ["dias", "Período", [["1", "Últimas 24 horas"], ["7", "Última semana"], ["30", "Último mes"], ["60", "Últimos 2 meses"], ["180", "Últimos 6 meses"], ["365", "Último año"], ["custom", "Fecha personalizada"]]],
 ];
-// En Ventas siempre hay un período elegido (por defecto, los últimos 30 días)
+// Período de Ventas: como en MercadoLibre, relativo (24 horas, semana, mes…) o con fecha de inicio y de fin
+const fCorta = (d, anio) => d.toLocaleDateString("es-AR", { day: "numeric", month: "short", ...(anio ? { year: "numeric" } : {}) });
+function rangoPeriodo(f) {
+  if (f.dias === "custom" && f.desde && f.hasta) { const a = new Date(f.desde + "T00:00"), b = new Date(f.hasta + "T00:00"); return { a, b }; }
+  // Los meses y el año se cuentan por calendario, como MercadoLibre (del 19 de septiembre al 19 de noviembre)
+  const b = new Date(), a = new Date(b), dd = String(f.dias || DIAS_DEF);
+  const meses = { "30": 1, "60": 2, "180": 6, "365": 12 }[dd];
+  if (meses) a.setMonth(a.getMonth() - meses); else a.setTime(b.getTime() - Number(dd) * 86400_000);
+  return { a, b };
+}
+function textoRango(f) { const { a, b } = rangoPeriodo(f), anio = a.getFullYear() !== b.getFullYear(); return `${fCorta(a, anio)} al ${fCorta(b, anio)}`; }
+// En Ventas siempre hay un período elegido (por defecto, el último mes)
 const DIAS_DEF = "30";
 const ORDEN_MSJ = [["", "Actividad reciente"], ["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]];
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
@@ -3065,7 +3078,10 @@ function filtrosActivos() {
 }
 function hojaFiltros(emp) {
   const f = { ...(S.msjFx ?? {}) };
-  const grupo = ([k, t, ops]) => `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
+  const hoyStr = new Date().toLocaleDateString("en-CA");
+  const grupo = ([k, t, ops]) => k === "dias" ? `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-per-l">${ops.map(([v, tt]) => `<label class="fx-per-o"><input type="radio" name="fx_dias" value="${v}" ${String(f.dias ?? DIAS_DEF) === v ? "checked" : ""}><span><b>${tt}</b><span class="peq mut">${v === "custom" ? "Elegí desde y hasta qué día" : textoRango({ dias: v })}</span></span></label>`).join("")}</div>
+      <div class="fx-fechas ${f.dias === "custom" ? "" : "oculto"}" id="fxFechas"><label>Desde<input type="date" id="fxDesde" max="${hoyStr}" value="${esc(f.desde ?? "")}"></label><label>Hasta<input type="date" id="fxHasta" max="${hoyStr}" value="${esc(f.hasta ?? hoyStr)}"></label></div></fieldset>`
+    : `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
     ${k === "dias" ? "" : `<label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>`}
     ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
@@ -3090,6 +3106,7 @@ function hojaFiltros(emp) {
       || `<p class="peq mut" style="padding:8px">No hay productos con ese nombre</p>`;
   };
   ponerT();
+  h.querySelectorAll('input[name="fx_dias"]').forEach((i) => i.onchange = () => h.querySelector("#fxFechas").classList.toggle("oculto", i.value !== "custom" || !i.checked));
   h.querySelector("#fxProdB").onclick = () => { const p = h.querySelector("#fxProdP"), ab = p.classList.contains("oculto"); p.classList.toggle("oculto", !ab); h.querySelector("#fxProdB").setAttribute("aria-expanded", String(ab)); if (ab) { listar(); h.querySelector("#fxProdQ").focus(); } };
   h.querySelector("#fxProdQ").oninput = listar;
   h.querySelector("#fxProdL").onchange = (e) => { const i = e.target.closest("[data-pp]"); if (!i) return; elegidos = i.checked ? [...elegidos, i.dataset.pp] : elegidos.filter((x) => x !== i.dataset.pp); ponerT(); };
@@ -3100,6 +3117,13 @@ function hojaFiltros(emp) {
     for (const [k] of FX_SI) if (h.querySelector(`input[name="fxs_${k}"]`)?.checked) n[k] = true;
     if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
     if (elegidos.length) n.producto = [...elegidos];
+    if (n.dias === "custom") {
+      const d = h.querySelector("#fxDesde").value, ha = h.querySelector("#fxHasta").value;
+      if (!d || !ha) return aviso("Elegí la fecha de inicio y la de fin");
+      if (d > ha) return aviso("La fecha de inicio es posterior a la de fin");
+      n.desde = d; n.hasta = ha;
+      n.desde_iso = new Date(d + "T00:00").toISOString(); n.hasta_iso = new Date(new Date(ha + "T00:00").getTime() + 86400_000).toISOString();
+    }
     if (S.msjFx?.orden) n.orden = S.msjFx.orden;
     h.remove(); S.msjFx = n; cargarHilos(emp);
   };
@@ -3107,6 +3131,7 @@ function hojaFiltros(emp) {
 
 async function cargarHilos(emp, mas = false) {
   if (!S.msjFx?.dias) S.msjFx = { ...(S.msjFx ?? {}), dias: DIAS_DEF };
+  if (S.msjFx.dias !== "custom") { S.msjFx.desde_iso = rangoPeriodo(S.msjFx).a.toISOString(); delete S.msjFx.hasta_iso; }
   if (mas && S.msjTrayendo) return null;
   S.msjTrayendo = true;
   const desde = mas ? S.msjCargadas : 0;
@@ -3120,7 +3145,7 @@ async function cargarHilos(emp, mas = false) {
     if (S.msjFil === "con_mensajes") { S.msjFil = "todas"; (S.msjFx ??= {}).con_mensajes = true; }
     const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["reclamos", "Con reclamo", r.reclamos], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
     const act = filtrosActivos().filter(([k]) => k !== "dias");
-    const per = FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
+    const per = S.msjFx.dias === "custom" ? textoRango(S.msjFx) : FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
     $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("")
       + `<button type="button" id="mFx" class="fx ${act.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtros${act.length ? ` · ${act.length}` : ""}</button>`
       + `<span class="mas-caja"><button type="button" id="mOrd" class="fx ${S.msjFx?.orden ? "on" : ""}" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar">${ICONO_ORDEN} ${ORDEN_MSJ.find(([k]) => k === (S.msjFx?.orden ?? ""))?.[1]} ▾</button>
