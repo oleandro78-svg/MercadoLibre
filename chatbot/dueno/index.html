@@ -3438,7 +3438,7 @@ async function panelNotas(caja, origen, ref, alContar) {
       <div class="nt-pie"><button class="urg-marcar" type="button" data-ncorr="${n.id}">Corregir</button></div></div>`;
   };
   const rec = r.recorrido ?? [];
-  caja.innerHTML = `<p class="nt-aviso">Notas del equipo. Quedan registradas con fecha, hora y quién las escribió: no se pueden borrar ni modificar. Nunca las ve el comprador ni MercadoLibre.${r.sigue_comprador ? " Se ven también las que se anotaron en otras preguntas, ventas o devoluciones de este comprador." : ""}</p>
+  caja.innerHTML = `
     ${rec.length > 1 ? `<details class="nt-rec"><summary>Recorrido del comprador · ${rec.length} ${rec.length === 1 ? "paso" : "pasos"}</summary>
       <ol>${rec.map((x) => { const aca = x.origen === origen && String(x.ref) === String(ref); return `<li>${aca ? `<span class="nt-rec-it aca">` : `<button type="button" class="nt-rec-it" data-nir="${x.origen}:${esc(x.ref)}">`}
         <span class="nt-rec-t"><b>${TIPO[x.origen]}</b> · ${fh(x.fecha)}${aca ? " · acá" : ""}</span><span>${esc(x.titulo ?? "")}</span>${x.detalle ? `<span class="mut">${esc(String(x.detalle).slice(0, 140))}</span>` : ""}${aca ? `</span>` : `</button>`}</li>`; }).join("")}</ol></details>` : ""}
@@ -3449,6 +3449,7 @@ async function panelNotas(caja, origen, ref, alContar) {
       <div class="nt-acc"><span class="nt-men" aria-label="Citar a alguien del equipo">${[...(r.equipo ?? []).filter((m) => m.id !== r.yo).map((m) => m.nombre), ...((r.equipo ?? []).length > 1 ? ["Todos"] : [])].map((n) => `<button type="button" data-nmen="${esc(n)}" title="Citarlo en la nota: le llega un aviso">@${esc(n)}</button>`).join("")}</span>
         <span class="n"><button class="btn pri chico" type="button" data-nguardar>Guardar nota</button></span></div>
     </div>`;
+  if (S.irNotas) { S.irNotas = false; caja.scrollIntoView({ block: "start" }); }
   const tx = caja.querySelector("textarea"), ver = caja.querySelector("[data-ncorr-ver]");
   caja.onclick = async (e) => {
     const ira = e.target.closest("[data-nir]"); if (ira) { const [o, rf] = ira.dataset.nir.split(":"); irA(o, rf); return; }
@@ -4686,6 +4687,8 @@ function abrirDesdeEnlace(h) {
   const t = String(h || "");
   const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.replace(/^#reclamos$/, "#devoluciones").match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/); // "reclamos": enlaces viejos
   if (!S.rol) return false;
+  // Aviso de una nota en la que citaron a la persona: se abre directo en las notas
+  if (/\/notas$/.test(t)) { S.irNotas = true; if (mm) { S.convTab = S.convTab ?? {}; S.convTab[Number(mm[1])] = "notas"; } }
   if (mr) { if (!modsActuales().has("devoluciones")) return false; S.devId = Number(mr[1]); ir("devoluciones"); return true; }
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
