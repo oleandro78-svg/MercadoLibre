@@ -3348,9 +3348,9 @@ async function redactarMotivo(d) {
   let sel = ops.find((o) => o.habilitada && o.cupo !== 0) ?? null;
   const pintar = () => {
     const pl = sel?.plantillas?.[0];
-    $("#mRed").innerHTML = `<div class="motivos" role="radiogroup" aria-label="Motivo">${ops.map((o) => {
+    $("#mRed").innerHTML = `<p class="peq mut" style="margin:0 0 8px;display:flex;align-items:center;gap:6px">Elegí el motivo para escribirle primero ${ayuda("Mientras el comprador no te escriba, MercadoLibre solo te deja iniciar la conversación con estos mensajes, y cada uno se puede mandar una cantidad limitada de veces en esta venta. El número de la derecha dice cuántas veces más podés mandarlo. Cuando el comprador conteste, ya le escribís lo que quieras, sin límite.")}</p><div class="motivos" role="radiogroup" aria-label="Motivo">${ops.map((o) => {
       const sin = !o.habilitada || o.cupo === 0;
-      return `<button type="button" role="radio" aria-checked="${sel?.id === o.id}" class="motivo ${sel?.id === o.id ? "on" : ""}" data-o="${esc(o.id)}" ${sin ? "disabled" : ""}><span class="r"></span><span><b>${esc(o.nombre)}</b><span class="peq mut">${o.plantillas?.length ? "Texto fijo de MercadoLibre" : `Texto libre, hasta ${o.limite ?? LIM_MSJ} caracteres`}</span></span><span class="cupo ${sin ? "cero" : ""}">${o.cupo == null ? "" : o.cupo === 0 ? "Sin cupo" : `Quedan ${o.cupo}`}</span></button>`;
+      return `<button type="button" role="radio" aria-checked="${sel?.id === o.id}" class="motivo ${sel?.id === o.id ? "on" : ""}" data-o="${esc(o.id)}" ${sin ? "disabled" : ""}><span class="r"></span><span><b>${esc(o.nombre)}</b><span class="peq mut">${o.plantillas?.length ? "Texto fijo de MercadoLibre" : `Texto libre, hasta ${o.limite ?? LIM_MSJ} caracteres`}</span></span><span class="cupo ${sin ? "cero" : ""}">${o.cupo == null ? "" : o.cupo === 0 ? "Ya lo usaste todas las veces" : `Podés mandarlo ${o.cupo === 1 ? "1 vez" : `${o.cupo} veces`} más`}</span></button>`;
     }).join("")}</div>
       ${sel ? pl ? `<div class="fijo">${esc(pl.texto)}</div>` : `<textarea id="mTx" maxlength="${sel.limite ?? LIM_MSJ}" placeholder="Escribí el mensaje"></textarea>` : ""}
       <div class="acciones"><span class="peq mut">Con un motivo solo se manda texto. Los archivos van cuando el comprador conteste.</span>
@@ -4102,16 +4102,19 @@ function resumenDespacho(l, titulo) {
   w.document.close();
 }
 
-VISTAS.despacho = async () => {
+VISTAS.despacho = async (op = {}) => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>${buscandoTxt("Buscando lo que hay que despachar")}</p></div></div>`;
-  const d = await seguro(() => api("despacho_lista", { empresa_id: emp }));
+  if (!op.rapido) { S.dsSel = new Set(); $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>${buscandoTxt("Buscando lo que hay que despachar")}</p></div></div>`; }
+  const scroll = window.scrollY, foco = document.activeElement?.id;
+  const d = await seguro(() => api("despacho_lista", { empresa_id: emp, rapido: !!op.rapido }));
   if (!d || S.tab !== "despacho") return;
+  vigilarDespacho(emp);
   const imps = d.impresoras ?? [];
   let impId = (S.rol === "admin" ? impLocal(emp) : d.mia?.id) ?? null;
   if (!imps.some((i) => i.id === impId)) impId = imps.length === 1 ? imps[0].id : null;
-  const env = d.envios ?? [], sel = new Set();
+  const env = d.envios ?? [], sel = S.dsSel ??= new Set();
+  for (const id of [...sel]) if (!env.some((c) => c.id === id)) sel.delete(id);
   const F = S.dsF ??= { plazo: "hoy", tipos: [], etiqueta: "todas", producto: "", mio: null, orden: "plazo" };
   if (F.mio === null) F.mio = !!d.con_asignaciones && S.rol === "operador";
   if (!d.con_asignaciones) F.mio = false;
@@ -4165,6 +4168,7 @@ VISTAS.despacho = async () => {
       <div class="mas-caja"><button class="btn lin" type="button" id="dsRes" aria-expanded="false" aria-controls="dsResM">Resumen ▾</button>
         <div class="mas-menu oculto" id="dsResM" role="menu" style="left:auto;right:0"><button type="button" role="menuitem" data-res="sel">De las elegidas</button><button type="button" role="menuitem" data-res="vis">De las que se ven en la lista</button><button type="button" role="menuitem" data-res="imp">De las ya impresas</button></div></div>
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
+  if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
   $("#dsEtq").value = F.etiqueta; $("#dsProd").value = productos.some(([p]) => p === F.producto) ? F.producto : (F.producto = ""); $("#dsOrd").value = F.orden;
   pintar();
   $("#dsPlazo").onclick = (e) => { const b = e.target.closest("[data-pl]"); if (b) { F.plazo = b.dataset.pl; pintar(); } };
@@ -4216,9 +4220,27 @@ VISTAS.despacho = async () => {
         aviso(res === "sin_programa" ? "No encontramos el programa de Zebra (Browser Print) en esta computadora: bajamos el archivo para imprimirlo a mano" : "La impresora Zebra no respondió: bajamos el archivo para imprimirlo a mano");
       }
     }
-    setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho(); }, 4000);
+    sel.clear(); setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); }, 3000);
   };
 };
+// Mientras Despacho está abierto, cada 6 segundos se pregunta si cambió algo (otra persona imprimió, MercadoLibre
+// marcó la etiqueta como impresa, entró una venta nueva) y la lista se actualiza sola, sin perder filtros ni selección.
+function vigilarDespacho(emp) {
+  if (S.dsVigila === emp) return;
+  S.dsVigila = emp; S.dsFirma = null;
+  const tick = async () => {
+    if (S.tab !== "despacho" || S.dsVigila !== emp) { S.dsVigila = null; return; }
+    if (!document.hidden) {
+      const r = await api("despacho_firma", { empresa_id: emp }).catch(() => null);
+      if (r?.firma && S.tab === "despacho") {
+        if (S.dsFirma && r.firma !== S.dsFirma && !document.querySelector("#dsResM:not(.oculto)")) await VISTAS.despacho({ rapido: true });
+        S.dsFirma = r.firma;
+      }
+    }
+    setTimeout(tick, 6000);
+  };
+  setTimeout(tick, 1500);
+}
 
 // ---------- Impresoras (Empresa → Impresoras): las carga el administrador y le asigna una a cada persona ----------
 VISTAS.impresoras = async () => {
