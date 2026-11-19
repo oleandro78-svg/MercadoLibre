@@ -166,6 +166,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ayuda .burbuja-ay{position:absolute;z-index:60;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(300px,80vw);background:var(--sup);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:400;text-align:left}
 .ds-filtros{display:grid;gap:8px;margin:0 0 14px}.ds-filtros .m-fil{margin-top:0}
 .ds-sel{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ds-sel select{width:auto;max-width:100%;min-width:0;flex:0 1 auto}
+.ds-ord{display:inline-flex;align-items:center;gap:6px;height:42px}#dsOrdM [aria-checked="true"]{font-weight:700}#dsOrdM [aria-checked="true"]::after{content:" ✓"}
 .ds-fila{display:flex;gap:6px 18px;flex-wrap:wrap}.ds-fila .m-fil{margin-top:0}
 .ds-grupo{margin:10px 0 0;font-size:14px;color:var(--piz)}
 .ds-sel #dsProd{max-width:420px}@media (max-width:640px){.ds-sel select,.ds-sel #dsProd{width:100%;max-width:100%}}
@@ -4071,6 +4072,7 @@ function grupoDespacho(c) {
 }
 const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta todavía no disponible", "c-blo"] };
 
+const ICONO_ORDEN = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>`;
 const ORDEN_DS = [["plazo", "Por plazo"], ["producto", "Por producto"], ["tipo", "Por tipo de envío"]];
 const impresa = (c) => c.envio_subestado === "printed" || (c.impresiones ?? []).length > 0;
 const quienImprimio = (c) => (c.impresiones ?? []).length ? `Impresa por ${c.impresiones[0].quien} el ${new Date(c.impresiones[0].at).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}${c.impresiones.length > 1 ? ` (${c.impresiones.length} veces)` : ""}` : "";
@@ -4162,7 +4164,8 @@ VISTAS.despacho = async (op = {}) => {
         <div class="m-fil" id="dsEtq" role="group" aria-label="Etiqueta">${[["sin", "Sin imprimir"], ["impresas", "Impresas"]].map(([k, t]) => `<button type="button" data-et="${k}">${t} <span class="n"></span></button>`).join("")}</div></div>
       <div class="ds-sel">
         <select id="dsProd" aria-label="Producto"><option value="">Todos los productos</option>${productos.map(([p, n]) => `<option value="${esc(p)}">${esc(p.length > 60 ? p.slice(0, 58) + "…" : p)} (${n} u.)</option>`).join("")}</select>
-        <select id="dsOrd" aria-label="Ordenar">${ORDEN_DS.map(([k, t]) => `<option value="${k}">${t}</option>`).join("")}</select>
+        <div class="mas-caja"><button class="btn lin ds-ord" type="button" id="dsOrdB" aria-expanded="false" aria-controls="dsOrdM" aria-label="Ordenar la lista">${ICONO_ORDEN}<span id="dsOrdT"></span> ▾</button>
+          <div class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}">${t}</button>`).join("")}</div></div>
         <button class="lnk oculto" type="button" id="dsLimpiar">Quitar filtros</button></div>
     </div>
     <div class="rec-lista" id="dsLista"></div>
@@ -4171,14 +4174,18 @@ VISTAS.despacho = async (op = {}) => {
         <div class="mas-menu oculto" id="dsResM" role="menu" style="left:auto;right:0"><button type="button" role="menuitem" data-res="sel">De las elegidas</button><button type="button" role="menuitem" data-res="vis">De las que se ven en la lista</button><button type="button" role="menuitem" data-res="imp">De las ya impresas</button></div></div>
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
   if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
-  $("#dsProd").value = productos.some(([p]) => p === F.producto) ? F.producto : (F.producto = ""); $("#dsOrd").value = F.orden;
+  $("#dsProd").value = productos.some(([p]) => p === F.producto) ? F.producto : (F.producto = "");
   pintar();
   $("#dsPlazo").onclick = (e) => { const b = e.target.closest("[data-pl]"); if (b) { F.plazo = b.dataset.pl; pintar(); } };
   if ($("#dsMio")) $("#dsMio").onclick = (e) => { F.mio = !F.mio; e.currentTarget.classList.toggle("on", F.mio); e.currentTarget.setAttribute("aria-pressed", String(F.mio)); pintar(); };
   $("#dsTipos").onclick = (e) => { const b = e.target.closest("[data-ti]"); if (!b) return; const k = b.dataset.ti; F.tipos = F.tipos.includes(k) ? F.tipos.filter((x) => x !== k) : [...F.tipos, k]; pintar(); };
   $("#dsEtq").onclick = (e) => { const b = e.target.closest("[data-et]"); if (b) { F.etiqueta = F.etiqueta === b.dataset.et ? "todas" : b.dataset.et; pintar(); } };
   $("#dsProd").onchange = (e) => { F.producto = e.target.value; pintar(); };
-  $("#dsOrd").onchange = (e) => { F.orden = e.target.value; pintar(); };
+  const om = $("#dsOrdM"), ob = $("#dsOrdB");
+  const ponerOrden = () => { $("#dsOrdT").textContent = ORDEN_DS.find(([k]) => k === F.orden)[1]; om.querySelectorAll("[data-ord]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.ord === F.orden))); };
+  ponerOrden();
+  ob.onclick = (e) => { e.stopPropagation(); const ab = om.classList.contains("oculto"); om.classList.toggle("oculto", !ab); ob.setAttribute("aria-expanded", String(ab)); };
+  om.onclick = (e) => { const b = e.target.closest("[data-ord]"); if (!b) return; om.classList.add("oculto"); ob.setAttribute("aria-expanded", "false"); F.orden = b.dataset.ord; ponerOrden(); pintar(); };
   $("#dsLimpiar").onclick = () => { Object.assign(F, { plazo: "hoy", tipos: [], etiqueta: "todas", producto: "" }); $("#dsProd").value = ""; pintar(); };
   $("#dsLista").onchange = (e) => { const i = e.target.closest("[data-id]"); if (!i) return; const id = Number(i.dataset.id); i.checked ? sel.add(id) : sel.delete(id); pintar(); };
   $("#dsTodas").onclick = () => { const vis = visibles(); const todas = vis.every((c) => sel.has(c.id)); vis.forEach((c) => todas ? sel.delete(c.id) : sel.add(c.id)); pintar(); };
