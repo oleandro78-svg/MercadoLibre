@@ -601,6 +601,10 @@ input[type=file]{max-width:100%}
 .nt-men{display:flex;gap:6px;flex-wrap:wrap}.nt-men button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--cielo)}.nt-men button:hover{background:var(--sup2)}.nt-men button:focus-visible{outline:2px solid var(--cielo)}
 .nt-cita{color:var(--cielo)}
 .c-nota{background:var(--ambar-2);color:var(--ambar-t)}
+.tabla-p{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);overflow:hidden}
+.tp-fila{display:grid;grid-template-columns:minmax(140px,1.2fr) repeat(4,minmax(0,1fr));gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--linea)}.tp-cab{border-top:0;background:var(--sup2);font-size:12.5px;color:var(--piz);font-weight:600}
+.tp-b{all:unset;box-sizing:border-box;cursor:pointer;width:100%;padding:7px 10px;border-radius:8px;border:1px dashed var(--linea);font-size:13px;color:var(--piz);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tp-b.on{border-style:solid;border-color:var(--pino);color:var(--pino-t);background:var(--pino-2);font-weight:600}.tp-b:hover{border-color:var(--cielo)}.tp-b:focus-visible{outline:2px solid var(--cielo)}
+@media (max-width:960px){.tp-cab{display:none}.tp-fila{grid-template-columns:1fr 1fr}.tp-fila>b{grid-column:1/-1}.tp-fila>span::before{content:attr(data-et);display:block;font-size:12px;color:var(--piz);margin-bottom:3px}}
 .cht{display:grid;grid-template-columns:340px minmax(0,1fr);height:100vh;min-width:0}
 .cht .m-chat{min-height:0}
 .ch-lista{overflow:auto;flex:1}
@@ -1259,11 +1263,15 @@ const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["m
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
-  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
+  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"], ["numeros", "Mis números"]];
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
+  ["conocimiento", "Conocimiento", 0, "preguntas", "conocimiento"], ["material", "Documentación para enviar", 0, "mensajes", "material"], ["dudas", "Dudas frecuentes", 0, "preguntas", "dudas"], ["probar", "Probar el bot", 0, "preguntas", "probar"],
+  ["numeros", "Mis números"]];
+// Operador: secciones que el administrador le habilitó (Equipo → Permisos)
+const permOp = (sec) => (S.yo?.empresas ?? []).filter((e) => !S.empresaId || e.id === S.empresaId).some((e) => (e.permisos ?? []).includes(sec));
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -1274,7 +1282,7 @@ function armarNav() {
   const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
-  else if (S.rol === "operador") html = TABS_OP.filter((t) => !t[3] || mods.has(t[3])).map((t) => boton(t)).join("");
+  else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
   else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
   $("#nav").innerHTML = html;
   $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
@@ -1716,6 +1724,55 @@ function autonomiaHTML(a) {
 }
 
 // ================= DUDAS FRECUENTES (administrador) =================
+// ---------- Equipo → Permisos: quién puede agregar o borrar en Conocimiento, Documentación, Dudas y Probar, y sobre qué ----------
+const permTxt = (p, r) => !p ? "Sin acceso" : p.alcance === "todo" ? "Toda la cuenta" : p.alcance === "categorias" ? (p.categorias.length === 1 ? (r.categorias.find((c) => c.id === p.categorias[0])?.nombre ?? "1 categoría") : `${p.categorias.length} categorías`) : `${p.publicaciones.length} ${p.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
+VISTAS.permisos = async () => {
+  const emp = empRec();
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  const r = await seguro(() => api("permisos_lista", { empresa_id: emp })); if (!r || S.tab !== "permisos") return;
+  const secs = Object.entries(r.secciones);
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Qué puede agregar o borrar cada operador en estas secciones, y sobre qué publicaciones. No dependen del horario. Los administradores pueden todo; un operador sin acceso no ve la sección.</p></div></div>
+    ${r.personas.length ? `<div class="tabla-p" role="table"><div class="tp-fila tp-cab" role="row"><span role="columnheader">Persona</span>${secs.map(([, t]) => `<span role="columnheader">${esc(t)}</span>`).join("")}</div>
+      ${r.personas.map((pe) => `<div class="tp-fila" role="row"><b role="cell">${esc(pe.nombre)}</b>${secs.map(([k, t]) => `<span role="cell" data-et="${esc(t)}"><button type="button" class="tp-b ${pe.permisos[k] ? "on" : ""}" data-u="${esc(pe.id)}" data-s="${k}">${esc(permTxt(pe.permisos[k], r))}</button></span>`).join("")}</div>`).join("")}</div>`
+      : `<div class="panel vacio"><b>No hay operadores en el equipo</b>Sumalos desde Equipo → Personas.</div>`}`;
+  $("#main").onclick = (e) => { const b = e.target.closest("[data-u]"); if (!b) return; const pe = r.personas.find((x) => x.id === b.dataset.u); editarPermiso(emp, r, pe, b.dataset.s); };
+};
+function editarPermiso(emp, r, pe, sec) {
+  const p = pe.permisos[sec];
+  const st = { alcance: p?.alcance ?? null, categorias: [...(p?.categorias ?? [])], publicaciones: [...(p?.publicaciones ?? [])] };
+  let busca = "";
+  const nota = { conocimiento: "Las instrucciones y el catálogo son de toda la cuenta: para cambiarlos hace falta «Toda la cuenta». Con categorías o publicaciones puede manejar las correcciones y respuestas rápidas de esas publicaciones.",
+    material: "Puede subir, copiar y quitar los archivos y links de esas publicaciones.", dudas: "Puede analizar las dudas de esas publicaciones.", probar: "Puede probar el bot con esas publicaciones." }[sec];
+  const v = cajon(`<div class="cajon-cab"><h2 style="margin:0">${esc(pe.nombre)} · ${esc(r.secciones[sec])}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div><div id="peForm"></div>`);
+  const pintar = () => {
+    const pubs = r.publicaciones.filter((x) => !busca || x.titulo.toLowerCase().includes(busca.toLowerCase()));
+    const elegidas = r.publicaciones.filter((x) => st.publicaciones.includes(x.id));
+    $("#peForm", v).innerHTML = `<fieldset class="fs"><legend>¿Sobre qué?</legend>
+        <div class="opts" role="radiogroup">${[[null, "Sin acceso"], ["todo", "Toda la cuenta"], ["categorias", "Categorías"], ["publicaciones", "Publicaciones"]].map(([k, t]) => `<button type="button" role="radio" aria-checked="${st.alcance === k}" class="opt ${st.alcance === k ? "on" : ""}" data-alc="${k ?? ""}">${t}</button>`).join("")}</div>
+        <p class="mut peq" style="margin:8px 0 0">${esc(nota)}</p>
+        ${st.alcance === "categorias" ? `<div class="lista-c">${r.categorias.map((c) => `<label class="${st.categorias.includes(c.id) ? "on" : ""}"><input type="checkbox" data-cat="${esc(c.id)}" ${st.categorias.includes(c.id) ? "checked" : ""}><span>${esc(c.nombre)}</span><span class="mut peq">${c.publicaciones}</span></label>`).join("")}</div>` : ""}
+        ${st.alcance === "publicaciones" ? `<input id="peBus" placeholder="Buscar publicación por nombre" value="${esc(busca)}" autocomplete="off" style="margin-top:10px">
+          ${elegidas.length ? `<div class="peq" style="margin:8px 0 4px"><b>${elegidas.length} ${elegidas.length === 1 ? "elegida" : "elegidas"}:</b> ${elegidas.map((x) => esc(x.titulo)).join(" · ")}</div>` : ""}
+          <div class="lista-c">${pubs.slice(0, 60).map((x) => `<label class="${st.publicaciones.includes(x.id) ? "on" : ""}"><input type="checkbox" data-pub="${esc(x.id)}" ${st.publicaciones.includes(x.id) ? "checked" : ""}>${x.thumbnail ? `<img src="${esc(x.thumbnail)}" alt="" class="mini-p" style="width:34px;height:34px">` : ""}<span>${esc(x.titulo)}</span></label>`).join("")}</div>
+          ${pubs.length > 60 ? `<p class="mut peq" style="margin:6px 0 0">Hay ${pubs.length} resultados: escribí más para achicar la lista.</p>` : ""}` : ""}</fieldset>
+      <div class="fila" style="margin-top:14px"><div class="n" style="margin-left:auto"><button type="button" class="btn lin" data-cerrar>Cancelar</button> <button type="button" class="btn pri" id="peOk">Guardar</button></div></div>`;
+    const bus = $("#peBus", v); if (bus) bus.oninput = () => { busca = bus.value; const pos = bus.selectionStart; pintar(); const n = $("#peBus", v); n.focus(); n.setSelectionRange(pos, pos); };
+  };
+  v.addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.alc !== undefined) { st.alcance = b.dataset.alc || null; pintar(); }
+    else if (b.id === "peOk") {
+      if (await seguro(() => api("permiso_guardar", { empresa_id: emp, usuario_id: pe.id, seccion: sec, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones }))) { v.remove(); aviso("Permiso guardado"); VISTAS.permisos(); }
+    }
+  });
+  v.addEventListener("change", (e) => {
+    const c = e.target.closest("[data-cat]"), q = e.target.closest("[data-pub]");
+    if (c) { st.categorias = c.checked ? [...st.categorias, c.dataset.cat] : st.categorias.filter((x) => x !== c.dataset.cat); pintar(); }
+    if (q) { st.publicaciones = q.checked ? [...st.publicaciones, q.dataset.pub] : st.publicaciones.filter((x) => x !== q.dataset.pub); pintar(); }
+  });
+  pintar();
+}
+
 VISTAS.dudas = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Dudas frecuentes</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
@@ -3794,12 +3851,13 @@ const ICONO_TIPO = (m) => m.tipo === "enlace" ? "🔗" : /^image\//.test(m.mime 
 VISTAS.material = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const admin = S.rol !== "operador";
-  const [r, sg] = await Promise.all([
-    seguro(() => api("material_lista", { empresa_id: emp })),
-    admin ? api("docs_sugeridos", { empresa_id: emp }).catch(() => null) : Promise.resolve(null),
-  ]);
+  const r = await seguro(() => api("material_lista", { empresa_id: emp }));
   if (!r || S.tab !== "material") return;
+  // Quién puede editar: el administrador todo; un operador, lo que le dio el permiso de "Documentación para enviar"
+  S.matEdit = r.editables === "todo" ? "todo" : new Set(r.editables ?? []);
+  const admin = S.matEdit === "todo" || S.matEdit.size > 0;
+  const sg = admin ? await api("docs_sugeridos", { empresa_id: emp }).catch(() => null) : null;
+  if (S.tab !== "material") return;
   S.matPubs = r.publicaciones; S.docsSug = sg;
   const cargados = new Map(); for (const m of r.materiales ?? []) cargados.set(m.publicacion_id, [...(cargados.get(m.publicacion_id) ?? []), m]);
   const sugeridos = new Map(((sg?.publicaciones) ?? []).map((p) => [p.id, p.docs]));
@@ -3845,7 +3903,7 @@ function abrirHoja(html) {
 }
 // Hoja de un producto: lo cargado, lo encontrado para marcar, y subir archivos o links
 function hojaProducto(emp, pubId) {
-  const admin = S.rol !== "operador";
+  const admin = S.rol !== "operador" || S.matEdit === "todo" || !!S.matEdit?.has?.(pubId);
   const p = S.matPubs.find((x) => x.id === pubId) ?? { id: pubId, titulo: pubId };
   S.matPub = pubId;
   const cargados = S.matCargados.get(pubId) ?? [];
@@ -3971,7 +4029,7 @@ function copiarMaterial(emp, m) {
     <div style="display:flex;gap:8px;margin-top:14px;align-items:center"><span class="peq mut" id="cpN">Ninguna elegida</span><button class="btn pri" id="cpG" style="margin-left:auto">Copiar</button></div>`);
   const pintar = () => {
     const t = $("#cpBus", v).value.toLowerCase();
-    $("#cpL", v).innerHTML = S.matPubs.filter((p) => p.id !== S.matPub && (!t || p.titulo.toLowerCase().includes(t))).slice(0, 150)
+    $("#cpL", v).innerHTML = S.matPubs.filter((p) => p.id !== S.matPub && (S.matEdit === "todo" || S.matEdit?.has?.(p.id)) && (!t || p.titulo.toLowerCase().includes(t))).slice(0, 150)
       .map((p) => `<label class="cp-f"><input type="checkbox" value="${esc(p.id)}" ${elegidas.has(p.id) ? "checked" : ""}><span>${esc(p.titulo)}</span></label>`).join("");
   };
   $("#cpL", v).onchange = (e) => { const x = e.target; x.checked ? elegidas.add(x.value) : elegidas.delete(x.value); $("#cpN", v).textContent = elegidas.size ? `${elegidas.size} elegida${elegidas.size > 1 ? "s" : ""}` : "Ninguna elegida"; };
@@ -4656,20 +4714,20 @@ VISTAS.devoluciones = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const r = await seguro(() => api("devoluciones", { empresa_id: emp })); if (!r || S.tab !== "devoluciones" || S.devId) return;
-  const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) }));
+  const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}</div>
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">
         ${foto(d.item_foto)}<span class="rec-tx"><b>${esc(d.item_titulo ?? "Producto")}</b>
         <span class="peq mut">${esc(d.comprador ?? "Comprador")}${d.motivo_comprador_txt ? ` · ${esc(d.motivo_comprador_txt)}` : ""}</span>
-        <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span>${d.con_notas ? ` <span class="chip c-nota">Notas</span>` : ""}</span></span></button>`).join("")
+        <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span>${d.con_notas ? ` <span class="chip c-nota">Notas</span>` : ""}${d.es_mia ? ` <span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && d.asignados_nombres?.length ? ` <span class="chip">Para ${esc(d.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span></span></button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
-  $("#recFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
+  $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
 };
 
@@ -4967,7 +5025,7 @@ VISTAS.despacho = async (op = {}) => {
       const cab = grupo && grupo !== previo ? `<h3 class="ds-grupo">${esc(grupo)}</h3>` : ""; previo = grupo;
       return `${cab}<label class="ds-it"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}>${foto(c.item_thumbnail)}
         <span class="rec-tx"><b>${esc(nombreComp(c))}</b><span class="peq">${c.cantidad > 1 ? `<b>${c.cantidad} ×</b> ` : ""}${esc(c.item_titulo ?? "")}</span>
-        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}</span>
+        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}${c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span>
         ${q ? `<span class="peq mut">${esc(q)}</span>` : ""}</span></label>`;
     }).join("") : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
     $("#dsN").textContent = sel.size ? `Imprimir ${sel.size === 1 ? "1 etiqueta" : `${sel.size} etiquetas`}` : "Imprimir etiquetas";
@@ -5206,7 +5264,7 @@ function abrirDesdeEnlace(h) {
 function vistasPermitidas() {
   const mods = modsActuales();
   let l;
-  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas"];
+  if (S.rol === "operador") l = [...TABS_OP.filter((t) => !t[4] || permOp(t[4])).map((t) => t[0]), "preguntas"];
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
   else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
   return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
