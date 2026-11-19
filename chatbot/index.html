@@ -166,7 +166,9 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ayuda .burbuja-ay{position:absolute;z-index:60;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(300px,80vw);background:var(--sup);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:400;text-align:left}
 .ds-filtros{display:grid;gap:8px;margin:0 0 14px}.ds-filtros .m-fil{margin-top:0}
 .ds-sel{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ds-sel select{width:auto;max-width:100%;min-width:0;flex:0 1 auto}
-.ds-ord{display:inline-flex;align-items:center;gap:6px;height:42px}#dsOrdM [aria-checked="true"]{font-weight:700}#dsOrdM [aria-checked="true"]::after{content:" ✓"}
+.ds-ord{display:inline-flex;align-items:center;gap:6px;height:42px}#dsOrdM [aria-checked="true"],#mOrdM [aria-checked="true"]{font-weight:700}#dsOrdM [aria-checked="true"]::after,#mOrdM [aria-checked="true"]::after{content:" ✓"}
+.fx-prod{margin-top:8px;display:grid;gap:8px;border:1px solid var(--linea);border-radius:12px;padding:8px}.fx-prod input[type=search]{width:100%}.fx-prod .lnk{justify-self:start}
+#mOrd svg{width:15px;height:15px;vertical-align:-3px}
 .ds-fila{display:flex;gap:6px 18px;flex-wrap:wrap}.ds-fila .m-fil{margin-top:0}
 .ds-grupo{margin:10px 0 0;font-size:14px;color:var(--piz)}
 .ds-ord.on{border-color:var(--tinta);background:var(--sup2)}
@@ -3045,38 +3047,57 @@ const FX = [
   ["comprador", "Comprador", [["persona", "Persona"], ["negocio", "Negocio"]]],
   ["factura", "Facturación", [["emitida", "Factura emitida"], ["sin", "Sin factura"]]],
   ["dias", "Período", [["7", "Últimos 7 días"], ["30", "Últimos 30 días"], ["60", "Últimos 2 meses"], ["90", "Últimos 3 meses"]]],
-  ["orden", "Ordenar por", [["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]]],
 ];
+const ORDEN_MSJ = [["", "Actividad reciente"], ["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]];
+const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
 const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"],
   ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
 function filtrosActivos() {
   const f = S.msjFx ?? {}, out = [];
   for (const [k, , ops] of FX) if (f[k]) out.push([k, ops.find((o) => o[0] === String(f[k]))?.[1] ?? f[k]]);
   for (const [k, t] of FX_SI) if (f[k]) out.push([k, t]);
-  if (f.producto) out.push(["producto", (S.msjProductos ?? []).find((p) => p.id === f.producto)?.titulo?.slice(0, 40) ?? "Producto"]);
+  const pe = prodsElegidos(f);
+  if (pe.length) out.push(["producto", pe.length === 1 ? (S.msjProductos ?? []).find((p) => p.id === pe[0])?.titulo?.slice(0, 40) ?? "Producto" : `${pe.length} productos`]);
   return out;
 }
 function hojaFiltros(emp) {
   const f = { ...(S.msjFx ?? {}) };
   const grupo = ([k, t, ops]) => `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
-    <label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "orden" ? "Actividad reciente" : k === "dias" ? "Todo" : k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>
+    <label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "dias" ? "Todo" : k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>
     ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
   const h = abrirHoja(`<div class="cajon-cab"><h2>Filtros</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
       ${FX.slice(0, 6).map(grupo).join("")}
       <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
-      <fieldset class="fx-g"><legend>Producto</legend><select id="fxProd"><option value="">Todos los productos</option>${prods.map((p) => `<option value="${esc(p.id)}" ${f.producto === p.id ? "selected" : ""}>${esc(p.titulo)} (${p.ventas})</option>`).join("")}</select></fieldset>
+      <fieldset class="fx-g"><legend>Producto</legend>
+        <button class="btn lin ds-ord" type="button" id="fxProdB" aria-expanded="false">${ICONO_CAJA}<span id="fxProdT"></span> ▾</button>
+        <div class="fx-prod oculto" id="fxProdP"><input type="search" id="fxProdQ" placeholder="Buscar producto" aria-label="Buscar producto"><div class="ds-prodl" id="fxProdL"></div>
+          <button class="lnk" type="button" id="fxProdN">Todos los productos</button></div></fieldset>
       ${FX.slice(6).map(grupo).join("")}
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" id="fxLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="fxAplicar">Aplicar</button></div>`);
-  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFx = {}; cargarHilos(emp); };
+  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFx = S.msjFx?.orden ? { orden: S.msjFx.orden } : {}; cargarHilos(emp); };
+  // Productos: lista con foto, buscador y cantidad de ventas; se pueden elegir varios
+  let elegidos = prodsElegidos(f);
+  const ponerT = () => { const t = !elegidos.length ? "Todos los productos" : elegidos.length === 1 ? (prods.find((p) => p.id === elegidos[0])?.titulo ?? "1 producto") : `${elegidos.length} productos`; h.querySelector("#fxProdT").textContent = t.length > 40 ? t.slice(0, 38) + "…" : t; h.querySelector("#fxProdB").classList.toggle("on", elegidos.length > 0); };
+  const listar = () => {
+    const q = h.querySelector("#fxProdQ").value.trim().toLowerCase();
+    h.querySelector("#fxProdL").innerHTML = prods.filter((p) => !q || p.titulo.toLowerCase().includes(q)).map((p) => `<label class="ds-prodi"><input type="checkbox" data-pp="${esc(p.id)}" ${elegidos.includes(p.id) ? "checked" : ""}>${foto(p.foto, "foto mini")}<span><span class="t">${esc(p.titulo)}</span><span class="peq mut">${p.ventas} ${p.ventas === 1 ? "venta" : "ventas"} en los últimos 3 meses</span></span></label>`).join("")
+      || `<p class="peq mut" style="padding:8px">No hay productos con ese nombre</p>`;
+  };
+  ponerT();
+  h.querySelector("#fxProdB").onclick = () => { const p = h.querySelector("#fxProdP"), ab = p.classList.contains("oculto"); p.classList.toggle("oculto", !ab); h.querySelector("#fxProdB").setAttribute("aria-expanded", String(ab)); if (ab) { listar(); h.querySelector("#fxProdQ").focus(); } };
+  h.querySelector("#fxProdQ").oninput = listar;
+  h.querySelector("#fxProdL").onchange = (e) => { const i = e.target.closest("[data-pp]"); if (!i) return; elegidos = i.checked ? [...elegidos, i.dataset.pp] : elegidos.filter((x) => x !== i.dataset.pp); ponerT(); };
+  h.querySelector("#fxProdN").onclick = () => { elegidos = []; ponerT(); listar(); };
   h.querySelector("#fxAplicar").onclick = () => {
     const n = {};
     for (const [k] of FX) { const v = h.querySelector(`input[name="fx_${k}"]:checked`)?.value; if (v) n[k] = v; }
     for (const [k] of FX_SI) if (h.querySelector(`input[name="fxs_${k}"]`)?.checked) n[k] = true;
     if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
-    const p = h.querySelector("#fxProd").value; if (p) n.producto = p;
+    if (elegidos.length) n.producto = [...elegidos];
+    if (S.msjFx?.orden) n.orden = S.msjFx.orden;
     h.remove(); S.msjFx = n; cargarHilos(emp);
   };
 }
@@ -3097,10 +3118,14 @@ async function cargarHilos(emp, mas = false) {
     const act = filtrosActivos();
     $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("")
       + `<button type="button" id="mFx" class="fx ${act.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtros${act.length ? ` · ${act.length}` : ""}</button>`
+      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx ${S.msjFx?.orden ? "on" : ""}" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar">${ICONO_ORDEN} ${ORDEN_MSJ.find(([k]) => k === (S.msjFx?.orden ?? ""))?.[1]} ▾</button>
+        <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${(S.msjFx?.orden ?? "") === k}">${t}</button>`).join("")}</span></span>`
       + (act.length ? `<div class="fx-act">${act.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); return; }
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
+      if (e.target.closest("#mOrd")) { e.stopPropagation(); const m = $("#mOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mOrd").setAttribute("aria-expanded", String(ab)); return; }
+      const o = e.target.closest("[data-ord]"); if (o) { S.msjFx = { ...(S.msjFx ?? {}) }; if (o.dataset.ord) S.msjFx.orden = o.dataset.ord; else delete S.msjFx.orden; cargarHilos(emp); return; }
       const q = e.target.closest("[data-qx]"); if (q) { delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
     $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
@@ -4080,6 +4105,8 @@ function grupoDespacho(c) {
 }
 const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta todavía no disponible", "c-blo"] };
 
+// Los menús desplegables (orden, resumen, etc.) se cierran al tocar afuera
+document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu:not(.oculto)").forEach((m) => m.classList.add("oculto")); });
 const ICONO_CAJA = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>`;
 const ICONO_ORDEN = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>`;
 const ORDEN_DS = [["plazo", "Por plazo"], ["producto", "Por producto"], ["tipo", "Por tipo de envío"]];
