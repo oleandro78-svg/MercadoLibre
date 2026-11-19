@@ -3396,9 +3396,27 @@ async function cargarReclamo(id) {
   caja.querySelectorAll("[data-rdev]").forEach((b) => b.onclick = () => { S.devId = Number(b.dataset.rdev); ir("devoluciones"); });
   caja.onclick = async (e) => {
     const b = e.target.closest("[data-radj]"); if (!b) return;
-    b.disabled = true; const a = await seguro(() => api("reclamo_adjunto", { id, reclamo: b.dataset.rec, archivo: b.dataset.radj, nombre: b.dataset.nom })); b.disabled = false;
+    b.disabled = true; const a = await seguro(() => adjReclamo(id, b.dataset.rec, b.dataset.radj, b.dataset.nom)); b.disabled = false;
     if (a) abrirArchivo(a);
   };
+  minisReclamo(id);
+}
+// Fotos de los mensajes del reclamo: se ven chiquitas, igual que en el chat
+const ADJ_REC = {};
+const adjReclamo = (id, rec, archivo, nombre) => ADJ_REC[archivo] ??= api("reclamo_adjunto", { id, reclamo: rec, archivo, nombre }).catch((e) => { delete ADJ_REC[archivo]; throw e; });
+async function minisReclamo(id) {
+  S.minis = S.minis ?? {};
+  const imgs = [...document.querySelectorAll("#cRec img[data-rmini]:not([src])")];
+  for (let i = 0; i < imgs.length; i += 3) {
+    await Promise.all(imgs.slice(i, i + 3).map(async (img) => {
+      try {
+        const r = await adjReclamo(id, img.dataset.rec, img.dataset.rmini);
+        if (!/^image\//.test(r.tipo)) { img.replaceWith(document.createRange().createContextualFragment(ICONO_M.clip)); return; }
+        S.minis[`rec:${img.dataset.rmini}`] = `data:${r.tipo};base64,${r.datos}`;
+        img.src = S.minis[`rec:${img.dataset.rmini}`];
+      } catch { img.classList.add("adj-falla"); }
+    }));
+  }
 }
 function fichaReclamo(x) {
   if (x.error) return `<div class="rec-ficha"><b>Reclamo ${esc(x.id)}</b><p class="mut">${esc(x.error)}</p></div>`;
@@ -3413,7 +3431,8 @@ function fichaReclamo(x) {
     const sep = d !== dia ? `<div class="dia">${esc(d)}</div>` : ""; dia = d;
     const clase = m.de === "vendedor" ? "b-vend" : m.de === "mercadolibre" ? "b-ml" : "b-comp";
     const quien = m.de === "vendedor" ? `Vos${m.para === "mercadolibre" ? " a MercadoLibre" : m.para === "comprador" ? " al comprador" : ""}` : `${QUIEN_REC[m.de] ?? m.de}${m.de === "mercadolibre" && m.para === "comprador" ? " al comprador" : ""}`;
-    const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj" data-radj="${esc(a.id)}" data-rec="${esc(x.id)}" data-nom="${esc(a.nombre)}">${ICONO_M.clip}<span class="adj-t"><span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</span></button>`).join("");
+    const adj = (m.adjuntos ?? []).map((a) => { const img = esImagen(a), k = `rec:${a.id}`;
+      return `<button type="button" class="adj ${img ? "adj-img" : ""}" data-radj="${esc(a.id)}" data-rec="${esc(x.id)}" data-nom="${esc(a.nombre)}">${img ? `<img class="adj-mini" data-rmini="${esc(a.id)}" data-rec="${esc(x.id)}" alt="" ${S.minis?.[k] ? `src="${S.minis[k]}"` : ""}>` : ICONO_M.clip}<span class="adj-t"><span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</span></button>`; }).join("");
     return `${sep}<div class="b ${clase}"><span class="quien">${esc(quien)}</span>${m.texto ? negritas(m.texto) : ""}${adj}${m.moderado ? `<div class="mod-x">${m.moderado === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}</div>` : ""}<small>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</small></div>`;
   }).join("");
   return `<div class="rec-ficha">
