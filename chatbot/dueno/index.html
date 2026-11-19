@@ -166,6 +166,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ayuda .burbuja-ay{position:absolute;z-index:60;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(300px,80vw);background:var(--sup);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:400;text-align:left}
 .ds-filtros{display:grid;gap:8px;margin:0 0 14px}.ds-filtros .m-fil{margin-top:0}
 .ds-sel{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.ds-sel select{width:auto;max-width:100%;min-width:0;flex:0 1 auto}
+.ds-fila{display:flex;gap:6px 18px;flex-wrap:wrap}.ds-fila .m-fil{margin-top:0}
 .ds-grupo{margin:10px 0 0;font-size:14px;color:var(--piz)}
 .ds-sel #dsProd{max-width:420px}@media (max-width:640px){.ds-sel select,.ds-sel #dsProd{width:100%;max-width:100%}}
 .ds-imp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}.ds-imp select{width:auto;min-width:220px;max-width:100%}
@@ -4123,7 +4124,7 @@ VISTAS.despacho = async (op = {}) => {
   const productos = [...env.reduce((m, c) => m.set(c.item_titulo ?? "Producto", (m.get(c.item_titulo ?? "Producto") ?? 0) + (c.cantidad || 1)), new Map())].sort((a, b) => a[0].localeCompare(b[0]));
   const pasa = (c, sin = "") => (sin === "plazo" || F.plazo === "todos" || grupoDespacho(c) === F.plazo)
     && (sin === "tipos" || !F.tipos.length || F.tipos.includes(c.envio_logistica))
-    && (F.etiqueta === "todas" || (F.etiqueta === "impresas") === impresa(c))
+    && (sin === "etiqueta" || F.etiqueta === "todas" || (F.etiqueta === "impresas") === impresa(c))
     && (!F.producto || (c.item_titulo ?? "Producto") === F.producto)
     && (!F.mio || c.para_mi);
   const visibles = () => ordenarDespacho(env.filter((c) => pasa(c)), F.orden);
@@ -4147,6 +4148,7 @@ VISTAS.despacho = async (op = {}) => {
     // contadores de cada filtro, con los demás filtros aplicados
     $("#dsPlazo").querySelectorAll("[data-pl]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "plazo") && (b.dataset.pl === "todos" || grupoDespacho(c) === b.dataset.pl)).length; b.classList.toggle("on", F.plazo === b.dataset.pl); });
     $("#dsTipos").querySelectorAll("[data-ti]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "tipos") && c.envio_logistica === b.dataset.ti).length; b.classList.toggle("on", F.tipos.includes(b.dataset.ti)); b.setAttribute("aria-pressed", String(F.tipos.includes(b.dataset.ti))); });
+    $("#dsEtq").querySelectorAll("[data-et]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "etiqueta") && (b.dataset.et === "impresas") === impresa(c)).length; b.classList.toggle("on", F.etiqueta === b.dataset.et); b.setAttribute("aria-pressed", String(F.etiqueta === b.dataset.et)); });
     $("#dsLimpiar").classList.toggle("oculto", !(F.tipos.length || F.etiqueta !== "todas" || F.producto || F.plazo !== "hoy"));
   };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despacha tu empresa (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>
@@ -4156,9 +4158,9 @@ VISTAS.despacho = async (op = {}) => {
     <div class="ds-filtros">
       <div class="m-fil" id="dsPlazo" role="group" aria-label="Plazo">${[["hoy", "Para hoy"], ["proximos", "Próximos días"], ["todos", "Todos"]].map(([k, t]) => `<button type="button" data-pl="${k}">${t} <span class="n"></span></button>`).join("")}
         ${d.con_asignaciones ? `<button type="button" id="dsMio" class="${F.mio ? "on" : ""}" aria-pressed="${F.mio}">Para mí</button>` : ""}</div>
-      <div class="m-fil" id="dsTipos" role="group" aria-label="Tipo de envío">${tiposHay.map((k) => `<button type="button" data-ti="${esc(k)}">${esc(LOGISTICA[k] ?? k)} <span class="n"></span></button>`).join("")}</div>
+      <div class="ds-fila"><div class="m-fil" id="dsTipos" role="group" aria-label="Tipo de envío">${tiposHay.map((k) => `<button type="button" data-ti="${esc(k)}">${esc(LOGISTICA[k] ?? k)} <span class="n"></span></button>`).join("")}</div>
+        <div class="m-fil" id="dsEtq" role="group" aria-label="Etiqueta">${[["sin", "Sin imprimir"], ["impresas", "Impresas"]].map(([k, t]) => `<button type="button" data-et="${k}">${t} <span class="n"></span></button>`).join("")}</div></div>
       <div class="ds-sel">
-        <select id="dsEtq" aria-label="Etiqueta"><option value="todas">Impresas y sin imprimir</option><option value="sin">Sin imprimir</option><option value="impresas">Ya impresas</option></select>
         <select id="dsProd" aria-label="Producto"><option value="">Todos los productos</option>${productos.map(([p, n]) => `<option value="${esc(p)}">${esc(p.length > 60 ? p.slice(0, 58) + "…" : p)} (${n} u.)</option>`).join("")}</select>
         <select id="dsOrd" aria-label="Ordenar">${ORDEN_DS.map(([k, t]) => `<option value="${k}">${t}</option>`).join("")}</select>
         <button class="lnk oculto" type="button" id="dsLimpiar">Quitar filtros</button></div>
@@ -4169,15 +4171,15 @@ VISTAS.despacho = async (op = {}) => {
         <div class="mas-menu oculto" id="dsResM" role="menu" style="left:auto;right:0"><button type="button" role="menuitem" data-res="sel">De las elegidas</button><button type="button" role="menuitem" data-res="vis">De las que se ven en la lista</button><button type="button" role="menuitem" data-res="imp">De las ya impresas</button></div></div>
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
   if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
-  $("#dsEtq").value = F.etiqueta; $("#dsProd").value = productos.some(([p]) => p === F.producto) ? F.producto : (F.producto = ""); $("#dsOrd").value = F.orden;
+  $("#dsProd").value = productos.some(([p]) => p === F.producto) ? F.producto : (F.producto = ""); $("#dsOrd").value = F.orden;
   pintar();
   $("#dsPlazo").onclick = (e) => { const b = e.target.closest("[data-pl]"); if (b) { F.plazo = b.dataset.pl; pintar(); } };
   if ($("#dsMio")) $("#dsMio").onclick = (e) => { F.mio = !F.mio; e.currentTarget.classList.toggle("on", F.mio); e.currentTarget.setAttribute("aria-pressed", String(F.mio)); pintar(); };
   $("#dsTipos").onclick = (e) => { const b = e.target.closest("[data-ti]"); if (!b) return; const k = b.dataset.ti; F.tipos = F.tipos.includes(k) ? F.tipos.filter((x) => x !== k) : [...F.tipos, k]; pintar(); };
-  $("#dsEtq").onchange = (e) => { F.etiqueta = e.target.value; pintar(); };
+  $("#dsEtq").onclick = (e) => { const b = e.target.closest("[data-et]"); if (b) { F.etiqueta = F.etiqueta === b.dataset.et ? "todas" : b.dataset.et; pintar(); } };
   $("#dsProd").onchange = (e) => { F.producto = e.target.value; pintar(); };
   $("#dsOrd").onchange = (e) => { F.orden = e.target.value; pintar(); };
-  $("#dsLimpiar").onclick = () => { Object.assign(F, { plazo: "hoy", tipos: [], etiqueta: "todas", producto: "" }); $("#dsEtq").value = "todas"; $("#dsProd").value = ""; pintar(); };
+  $("#dsLimpiar").onclick = () => { Object.assign(F, { plazo: "hoy", tipos: [], etiqueta: "todas", producto: "" }); $("#dsProd").value = ""; pintar(); };
   $("#dsLista").onchange = (e) => { const i = e.target.closest("[data-id]"); if (!i) return; const id = Number(i.dataset.id); i.checked ? sel.add(id) : sel.delete(id); pintar(); };
   $("#dsTodas").onclick = () => { const vis = visibles(); const todas = vis.every((c) => sel.has(c.id)); vis.forEach((c) => todas ? sel.delete(c.id) : sel.add(c.id)); pintar(); };
   if (!window.DS_ESCUCHA) { window.DS_ESCUCHA = true; document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu").forEach((m) => m.classList.add("oculto")); }); }
