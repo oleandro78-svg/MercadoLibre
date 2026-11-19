@@ -1,5 +1,5 @@
 // Mostrador: guarda la pantalla del panel para que abra rápido. Los datos siempre se piden al servidor.
-const VERSION = "mostrador-v58";
+const VERSION = "mostrador-v59";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icono-192.png", "icono-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
@@ -12,8 +12,10 @@ self.addEventListener("fetch", (e) => {
   // La pantalla: primero la versión nueva; si no hay conexión, la guardada
   if (r.mode === "navigate") {
     // Se pide sin la memoria del navegador (GitHub guarda la página 10 minutos) para mostrar siempre la última versión
-    e.respondWith(fetch(new Request(r.url, { cache: "no-cache", credentials: "same-origin" })).then((res) => { const copia = res.clone(); caches.open(VERSION).then((c) => c.put("index.html", copia)); return res; })
-      .catch(() => caches.match("index.html")));
+    // Cada link (empresas y operadores, o dueño de la app) se guarda por separado
+    const clave = u.pathname.includes("/dueno") ? "dueno/index.html" : "index.html";
+    e.respondWith(fetch(new Request(r.url, { cache: "no-cache", credentials: "same-origin" })).then((res) => { const copia = res.clone(); caches.open(VERSION).then((c) => c.put(clave, copia)); return res; })
+      .catch(() => caches.match(clave)));
     return;
   }
   // Íconos, librería y letras: de la memoria si están

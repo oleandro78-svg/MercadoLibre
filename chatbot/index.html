@@ -13,6 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>window.MOSTRADOR_LINK = "app";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -910,6 +911,11 @@ $("#fCodigo").onsubmit = async (e) => {
 async function entrarUsuario() {
   S.modo = "usuario"; S.empresaId = "";
   S.yo = await api("yo");
+  // Dos links: el de empresas y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
+  // (la sesión es la misma, así que entra directo).
+  const link = window.MOSTRADOR_LINK;
+  if (link === "app" && S.yo.usuario?.admin_app) { location.replace("dueno/"); return new Promise(() => {}); }
+  if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../"); return new Promise(() => {}); }
   if (S.yo.usuario?.admin_app) {
     S.rol = "admin";
     // Al refrescar la página se sigue dentro de la empresa en la que se estaba dando soporte
