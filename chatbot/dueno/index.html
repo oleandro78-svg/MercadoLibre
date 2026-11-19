@@ -3409,7 +3409,7 @@ async function cargarReclamo(id) {
 }
 // Fotos de los mensajes del reclamo: se ven chiquitas, igual que en el chat
 const ADJ_REC = {};
-const adjReclamo = (id, rec, archivo, nombre) => ADJ_REC[archivo] ??= api("reclamo_adjunto", { id, reclamo: rec, archivo, nombre }).catch((e) => { delete ADJ_REC[archivo]; throw e; });
+const adjReclamo = (id, rec, archivo, nombre) => ADJ_REC[archivo] ??= api("venta_reclamo_adjunto", { id, reclamo: rec, archivo, nombre }).catch((e) => { delete ADJ_REC[archivo]; throw e; });
 async function minisReclamo(id) {
   S.minis = S.minis ?? {};
   const imgs = [...document.querySelectorAll("#cRec img[data-rmini]:not([src])")];
