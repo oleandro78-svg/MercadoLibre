@@ -590,13 +590,15 @@ input[type=file]{max-width:100%}
 .nt-donde{background:var(--sup2);border-radius:999px;padding:0 8px}
 .nt-tx{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45}
 .nt-ref{font-size:12.5px;color:var(--ambar-t);background:var(--ambar-2);border-radius:8px;padding:3px 8px;justify-self:start}
-.nt-fotos{display:flex;gap:6px;flex-wrap:wrap}.nt-fotos button{all:unset;cursor:pointer;width:84px;height:84px;border-radius:8px;overflow:hidden;background:var(--sup2);border:1px solid var(--linea)}.nt-fotos img{width:100%;height:100%;object-fit:cover;display:block}.nt-fotos button:focus-visible{outline:2px solid var(--cielo)}
+.nt-ir{all:unset;cursor:pointer;color:var(--cielo);text-decoration:underline;text-underline-offset:2px}.nt-ir:focus-visible{outline:2px solid var(--cielo)}
+.nt-rec{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 14px;font-size:13.5px}.nt-rec summary{cursor:pointer;font-weight:600}
+.nt-rec ol{list-style:none;margin:10px 0 0;padding:0 0 0 14px;border-left:1px solid var(--linea);display:grid;gap:8px}
+.nt-rec-it{all:unset;display:grid;gap:1px;cursor:pointer;padding:4px 8px;border-radius:8px}.nt-rec-it:hover{background:var(--sup2)}.nt-rec-it:focus-visible{outline:2px solid var(--cielo)}.nt-rec-it.aca{cursor:default;background:var(--sup2)}.nt-rec-t{color:var(--piz);font-size:12.5px}.nt-rec-t b{color:var(--tinta)}
 .nt-pie{display:flex;justify-content:flex-end}
 .nt-form{display:grid;gap:8px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:12px 14px}
 .nt-form textarea{width:100%;min-height:72px;resize:vertical}
 .nt-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.nt-acc .n{margin-left:auto}
 .nt-men{display:flex;gap:6px;flex-wrap:wrap}.nt-men button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea)}.nt-men button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}.nt-men button:focus-visible{outline:2px solid var(--cielo)}
-.nt-prev{display:flex;gap:6px;flex-wrap:wrap}.nt-prev span{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden}.nt-prev img{width:100%;height:100%;object-fit:cover}.nt-prev button{position:absolute;top:2px;right:2px;all:unset;cursor:pointer;background:rgba(0,0,0,.6);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:14px}
 .c-nota{background:var(--ambar-2);color:var(--ambar-t)}
 .c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
 .rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
@@ -3402,48 +3404,51 @@ function pestConv(t) {
   if (t === "reclamo" && !$("#cRec").dataset.listo) cargarReclamo(c.id);
 }
 // ---------- Notas internas: las escribe el equipo, no se borran ni se modifican y siguen al comprador ----------
-const NOTAS_FOTOS = {};
+// Abre la pregunta, venta o devolución donde se escribió una nota o por donde pasó el comprador
+function irA(origen, ref) {
+  document.querySelectorAll(".velo").forEach((v) => v.remove());
+  if (origen === "pregunta") return detalle(Number(ref));
+  if (origen === "venta") { S.msjId = Number(ref); S.msjBus = ""; if (S.tab === "mensajes" && $(".msj")) { abrirConv(Number(ref)); return; } return ir("mensajes"); }
+  if (origen === "devolucion") { S.devId = Number(ref); return S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); }
+}
 async function panelNotas(caja, origen, ref, alContar) {
   if (!caja) return;
   const r = await api("notas_lista", { origen, ref }).catch((e) => ({ error: e.message }));
   if (!caja.isConnected) return;
   if (r.error) { caja.innerHTML = `<p class="mut">No se pudieron traer las notas: ${esc(r.error)}</p>`; return; }
-  const st = { corrige: null, menciones: new Set(), fotos: [] };
+  const st = { corrige: null, menciones: new Set() };
   const notas = r.notas ?? [];
   alContar?.(notas.length);
   const porId = new Map(notas.map((n) => [n.id, n]));
   const corregidas = new Set(notas.map((n) => n.corrige_id).filter(Boolean));
   const fh = (f) => new Date(f).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  const ORIG = { pregunta: "en una pregunta", venta: "en la venta", devolucion: "en la devolución" };
+  const TIPO = { pregunta: "Preguntó", venta: "Compró", devolucion: "Devolución" };
+  const donde = (o, rf, txt) => o === origen && String(rf) === String(ref) ? `<span class="nt-donde">acá</span>` : `<button type="button" class="nt-ir" data-nir="${o}:${esc(rf)}">en la ${esc(txt ?? o)}</button>`;
   const tarjeta = (n) => {
     const c = n.corrige_id ? porId.get(n.corrige_id) : null;
     return `<div class="nt ${n.aqui ? "" : "nt-otra"}" id="nt-${n.id}">
-      <div class="nt-cab"><b>${esc(n.autor)}</b><span>${fh(n.fecha)}</span><span class="nt-donde">${n.aqui ? "acá" : esc(n.ref_txt ? `en la ${n.ref_txt}` : ORIG[n.origen] ?? "")}</span>${n.para?.length ? `<span>para ${esc(n.para.join(", "))}</span>` : ""}</div>
+      <div class="nt-cab"><b>${esc(n.autor)}</b><span>${fh(n.fecha)}</span>${donde(n.origen, n.ref, n.ref_txt)}${n.para?.length ? `<span>para ${esc(n.para.join(", "))}</span>` : ""}</div>
       ${c ? `<div class="nt-ref">Corrige la nota de ${esc(c.autor)} del ${fh(c.fecha)}</div>` : ""}
       <div class="nt-tx">${esc(n.texto)}</div>
-      ${n.fotos?.length ? `<div class="nt-fotos">${n.fotos.map((f, i) => `<button type="button" data-nfoto="${n.id}:${i}" aria-label="Ver foto ${i + 1}"><img alt="" data-nmini="${n.id}:${i}" ${NOTAS_FOTOS[`${n.id}:${i}`] ? `src="${NOTAS_FOTOS[`${n.id}:${i}`]}"` : ""}></button>`).join("")}</div>` : ""}
       ${corregidas.has(n.id) ? `<div class="peq mut">Tiene una corrección más abajo.</div>` : ""}
       <div class="nt-pie"><button class="urg-marcar" type="button" data-ncorr="${n.id}">Corregir</button></div></div>`;
   };
+  const rec = r.recorrido ?? [];
   caja.innerHTML = `<p class="nt-aviso">Notas del equipo. Quedan registradas con fecha, hora y quién las escribió: no se pueden borrar ni modificar. Nunca las ve el comprador ni MercadoLibre.${r.sigue_comprador ? " Se ven también las que se anotaron en otras preguntas, ventas o devoluciones de este comprador." : ""}</p>
+    ${rec.length > 1 ? `<details class="nt-rec"><summary>Recorrido del comprador · ${rec.length} ${rec.length === 1 ? "paso" : "pasos"}</summary>
+      <ol>${rec.map((x) => { const aca = x.origen === origen && String(x.ref) === String(ref); return `<li>${aca ? `<span class="nt-rec-it aca">` : `<button type="button" class="nt-rec-it" data-nir="${x.origen}:${esc(x.ref)}">`}
+        <span class="nt-rec-t"><b>${TIPO[x.origen]}</b> · ${fh(x.fecha)}${aca ? " · acá" : ""}</span><span>${esc(x.titulo ?? "")}</span>${x.detalle ? `<span class="mut">${esc(String(x.detalle).slice(0, 140))}</span>` : ""}${aca ? `</span>` : `</button>`}</li>`; }).join("")}</ol></details>` : ""}
     <div class="nt-lista">${notas.map(tarjeta).join("") || `<p class="mut peq" style="margin:0">Todavía no hay notas.</p>`}</div>
     <div class="nt-form">
       <div class="nt-ref" data-ncorr-ver hidden></div>
       <textarea placeholder="Escribí una nota para el equipo" aria-label="Nota interna" maxlength="4000"></textarea>
-      <div class="nt-prev"></div>
       <div class="nt-men" hidden>${(r.equipo ?? []).filter((m) => m.id !== r.yo).map((m) => `<button type="button" aria-pressed="false" data-nmen="${esc(m.id)}">${esc(m.nombre)}</button>`).join("") || `<span class="peq mut">No hay otras personas en el equipo.</span>`}</div>
-      <div class="nt-acc"><label class="btn lin chico" style="cursor:pointer">Agregar foto<input type="file" accept="image/*" multiple hidden></label>
-        <button class="btn lin chico" type="button" data-nmen-abrir>Avisarle a alguien</button>
+      <div class="nt-acc"><button class="btn lin chico" type="button" data-nmen-abrir>Avisarle a alguien</button>
         <span class="n"><button class="btn pri chico" type="button" data-nguardar>Guardar nota</button></span></div>
     </div>`;
-  const lista = caja.querySelector(".nt-lista"), tx = caja.querySelector("textarea"), prev = caja.querySelector(".nt-prev"), men = caja.querySelector(".nt-men"), ver = caja.querySelector("[data-ncorr-ver]");
-  const pintarPrev = () => { prev.innerHTML = st.fotos.map((f, i) => `<span><img src="data:${f.tipo};base64,${f.datos}" alt=""><button type="button" data-nquitar="${i}" aria-label="Quitar foto">×</button></span>`).join(""); };
-  caja.querySelector("input[type=file]").onchange = async (e) => {
-    for (const f of [...e.target.files].slice(0, 6 - st.fotos.length)) { const a = await achicar(f, 1600); st.fotos.push({ ...a, nombre: f.name }); }
-    e.target.value = ""; pintarPrev();
-  };
+  const tx = caja.querySelector("textarea"), men = caja.querySelector(".nt-men"), ver = caja.querySelector("[data-ncorr-ver]");
   caja.onclick = async (e) => {
-    const q = e.target.closest("[data-nquitar]"); if (q) { st.fotos.splice(Number(q.dataset.nquitar), 1); pintarPrev(); return; }
+    const ira = e.target.closest("[data-nir]"); if (ira) { const [o, rf] = ira.dataset.nir.split(":"); irA(o, rf); return; }
     const ab = e.target.closest("[data-nmen-abrir]"); if (ab) { men.hidden = !men.hidden; return; }
     const m = e.target.closest("[data-nmen]"); if (m) { const on = !st.menciones.has(m.dataset.nmen); on ? st.menciones.add(m.dataset.nmen) : st.menciones.delete(m.dataset.nmen); m.setAttribute("aria-pressed", on); return; }
     const co = e.target.closest("[data-ncorr]"); if (co) {
@@ -3452,23 +3457,14 @@ async function panelNotas(caja, origen, ref, alContar) {
       tx.focus(); return;
     }
     if (e.target.closest("[data-ncorr-no]")) { st.corrige = null; ver.hidden = true; return; }
-    const fo = e.target.closest("[data-nfoto]"); if (fo) {
-      const [id, i] = fo.dataset.nfoto.split(":"); const a = await seguro(() => api("nota_foto", { id: Number(id), i: Number(i) })); if (a) abrirArchivo(a); return;
-    }
     const g = e.target.closest("[data-nguardar]"); if (g) {
-      if (!tx.value.trim() && !st.fotos.length) return aviso("Escribí la nota o agregá una foto");
+      if (!tx.value.trim()) return aviso("Escribí la nota");
       g.disabled = true; g.textContent = "Guardando…";
-      const ok = await seguro(() => api("nota_agregar", { origen, ref, texto: tx.value, fotos: st.fotos, corrige_id: st.corrige, menciones: [...st.menciones] }));
+      const ok = await seguro(() => api("nota_agregar", { origen, ref, texto: tx.value, corrige_id: st.corrige, menciones: [...st.menciones] }));
       g.disabled = false; g.textContent = "Guardar nota";
       if (ok) { aviso(st.menciones.size ? "Nota guardada y avisada" : "Nota guardada"); panelNotas(caja, origen, ref, alContar); }
     }
   };
-  // Fotos chiquitas
-  for (const img of caja.querySelectorAll("img[data-nmini]:not([src])")) {
-    const [id, i] = img.dataset.nmini.split(":");
-    api("nota_foto", { id: Number(id), i: Number(i) }).then((a) => { NOTAS_FOTOS[img.dataset.nmini] = `data:${a.tipo};base64,${a.datos}`; img.src = NOTAS_FOTOS[img.dataset.nmini]; }).catch(() => {});
-  }
-  lista.lastElementChild?.scrollIntoView?.({ block: "nearest" });
 }
 const QUIEN_REC = { comprador: "Comprador", vendedor: "Vos", mercadolibre: "MercadoLibre" };
 const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
