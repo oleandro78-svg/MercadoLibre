@@ -651,8 +651,8 @@ h3 .te{font-size:13px;margin-left:4px}
 .m-fil .fx{display:inline-flex;align-items:center;gap:5px}.m-fil .fx svg{width:14px;height:14px}
 .fx-per-l{display:grid;gap:2px}.fx-per-o{display:flex;gap:10px;align-items:flex-start;padding:8px 6px;border-radius:10px;cursor:pointer}.fx-per-o:hover{background:var(--sup2)}.fx-per-o input{margin-top:3px;accent-color:var(--pino)}.fx-per-o>span{display:flex;flex-direction:column;gap:1px}
 .fx-fechas{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}.fx-fechas label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;flex:1 1 140px}.fx-fechas input{width:100%}
-#mFil .fx-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;padding:6px 4px;color:var(--tinta)}#mFil .fx-bt svg{width:18px;height:18px;margin:0!important}#mFil .fx-bt.on{color:var(--pino-t)}
-#mFil{align-items:center;gap:6px 16px}.per-m{min-width:260px}.per-m [data-dias]{display:flex!important;flex-direction:column;align-items:flex-start;gap:2px}.per-m [aria-checked="true"] b{color:var(--cielo,#3b6ef5)}
+.m-fil .fx-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;padding:6px 4px;color:var(--tinta)}.m-fil .fx-bt svg{width:18px;height:18px;margin:0!important}.m-fil .fx-bt,.m-fil .fx-bt.on{background:transparent!important}.m-fil .fx-bt.on{color:var(--pino-t)}
+#mFil,.ds-barra{align-items:center;gap:6px 16px}.ds-barra{margin:0 0 14px}.per-m .n{font-weight:700}.per-m{min-width:260px}.per-m [data-dias]{display:flex!important;flex-direction:column;align-items:flex-start;gap:2px}.per-m [aria-checked="true"] b{color:var(--cielo,#3b6ef5)}
 .per-fechas{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:8px 12px 12px}.per-fechas label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;flex:1 1 110px}.per-fechas input{width:100%}
 .fx-act .fx-per{background:var(--sup2)!important;color:var(--tinta)!important}
 .fx-act{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}.fx-act button{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--cielo-2,#e6f0fb);color:var(--cielo)}.fx-act button:focus-visible{outline:2px solid var(--cielo)}
@@ -4235,37 +4235,28 @@ VISTAS.despacho = async (op = {}) => {
     $("#dsImp").disabled = !sel.size;
     $("#dsTodas").textContent = vis.length && vis.every((c) => sel.has(c.id)) ? "Quitar selección" : `Elegir todas (${vis.length})`;
     $("#dsTodas").disabled = !vis.length;
-    // contadores de cada filtro, con los demás filtros aplicados
-    $("#dsPlazo").querySelectorAll("[data-pl]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "plazo") && (b.dataset.pl === "todos" || grupoDespacho(c) === b.dataset.pl)).length; b.classList.toggle("on", F.plazo === b.dataset.pl); });
-    $("#dsTipos").querySelectorAll("[data-ti]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "tipos") && c.envio_logistica === b.dataset.ti).length; b.classList.toggle("on", F.tipos.includes(b.dataset.ti)); b.setAttribute("aria-pressed", String(F.tipos.includes(b.dataset.ti))); });
-    $("#dsEtq").querySelectorAll("[data-et]").forEach((b) => { b.querySelector(".n").textContent = env.filter((c) => pasa(c, "etiqueta") && (b.dataset.et === "impresas") === impresa(c)).length; b.classList.toggle("on", F.etiqueta === b.dataset.et); b.setAttribute("aria-pressed", String(F.etiqueta === b.dataset.et)); });
-    $("#dsLimpiar").classList.toggle("oculto", !(F.tipos.length || F.etiqueta !== "todas" || F.productos.length || F.plazo !== "hoy"));
-    // botón y globitos de productos elegidos
-    $("#dsProdT").textContent = !F.productos.length ? "Todos los productos" : F.productos.length === 1 ? (F.productos[0].length > 34 ? F.productos[0].slice(0, 32) + "…" : F.productos[0]) : `${F.productos.length} productos`;
-    $("#dsProdB").classList.toggle("on", F.productos.length > 0);
-    $("#dsChips").innerHTML = F.productos.length > 1 ? F.productos.map((p) => `<span class="chip ds-chip">${esc(p.length > 40 ? p.slice(0, 38) + "…" : p)}<button type="button" data-qp="${esc(p)}" aria-label="Quitar ${esc(p)}">×</button></span>`).join("") : "";
-    if (!$("#dsProdM").classList.contains("oculto")) listaProductos();
+    // barra: período, cantidad de filtros y globitos con × solo de lo elegido
+    const PL = { hoy: "Para hoy", proximos: "Próximos días", todos: "Todos los plazos" };
+    $("#dsPlT").textContent = PL[F.plazo];
+    $("#dsPlM").querySelectorAll("[data-pl]").forEach((b) => { b.setAttribute("aria-checked", String(F.plazo === b.dataset.pl)); b.querySelector(".n").textContent = env.filter((c) => pasa(c, "plazo") && (b.dataset.pl === "todos" || grupoDespacho(c) === b.dataset.pl)).length; });
+    const elegidos = [...(F.mio ? [["mio", "Para mí"]] : []), ...F.tipos.map((k) => [`ti:${k}`, LOGISTICA[k] ?? k]),
+      ...(F.etiqueta !== "todas" ? [["et", F.etiqueta === "impresas" ? "Impresas" : "Sin imprimir"]] : []),
+      ...F.productos.map((p) => [`pr:${p}`, p.length > 40 ? p.slice(0, 38) + "…" : p]),
+      ...(F.orden !== "plazo" ? [["ord", ORDEN_DS.find(([k]) => k === F.orden)[1]]] : [])];
+    $("#dsFxN").textContent = elegidos.length ? ` · ${elegidos.length}` : "";
+    $("#dsFx").classList.toggle("on", elegidos.length > 0);
+    $("#dsAct").innerHTML = elegidos.map(([k, t]) => `<button type="button" data-qd="${esc(k)}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("");
+    $("#dsAct").classList.toggle("oculto", !elegidos.length);
   };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despacha tu empresa (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>
     <div class="ds-imp">${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
       <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "zpl" ? "térmica" : "común"}</option>`).join("")}</select>`
       : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
-    <div class="ds-filtros">
-      <div class="m-fil" id="dsPlazo" role="group" aria-label="Plazo">${[["hoy", "Para hoy"], ["proximos", "Próximos días"], ["todos", "Todos"]].map(([k, t]) => `<button type="button" data-pl="${k}">${t} <span class="n"></span></button>`).join("")}
-        ${d.con_asignaciones ? `<button type="button" id="dsMio" class="${F.mio ? "on" : ""}" aria-pressed="${F.mio}">Para mí</button>` : ""}</div>
-      <div class="ds-fila"><div class="m-fil" id="dsTipos" role="group" aria-label="Tipo de envío">${tiposHay.map((k) => `<button type="button" data-ti="${esc(k)}">${esc(LOGISTICA[k] ?? k)} <span class="n"></span></button>`).join("")}</div>
-        <div class="m-fil" id="dsEtq" role="group" aria-label="Etiqueta">${[["sin", "Sin imprimir"], ["impresas", "Impresas"]].map(([k, t]) => `<button type="button" data-et="${k}">${t} <span class="n"></span></button>`).join("")}</div></div>
-      <div class="ds-sel">
-        <div class="mas-caja"><button class="btn lin ds-ord" type="button" id="dsProdB" aria-expanded="false" aria-controls="dsProdM">${ICONO_CAJA}<span id="dsProdT"></span> ▾</button>
-          <div class="mas-menu oculto ds-prodm" id="dsProdM" role="dialog" aria-label="Elegir productos" style="top:calc(100% + 6px);bottom:auto">
-            <input type="search" id="dsProdQ" placeholder="Buscar producto" aria-label="Buscar producto">
-            <div id="dsProdL" class="ds-prodl"></div>
-            <div class="ds-prodpie"><button class="lnk" type="button" id="dsProdN">Todos los productos</button><button class="btn pri chico" type="button" id="dsProdOk">Listo</button></div></div></div>
-        <div class="mas-caja"><button class="btn lin ds-ord" type="button" id="dsOrdB" aria-expanded="false" aria-controls="dsOrdM" aria-label="Ordenar la lista">${ICONO_ORDEN}<span id="dsOrdT"></span> ▾</button>
-          <div class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}">${t}</button>`).join("")}</div></div>
-        <button class="lnk oculto" type="button" id="dsLimpiar">Quitar filtros</button></div>
-    </div>
-    <div class="ds-chips" id="dsChips"></div>
+    <div class="m-fil ds-barra" id="dsBarra">
+      <span class="mas-caja"><button type="button" id="dsPl" class="fx-bt" aria-expanded="false" aria-controls="dsPlM">${ICONO_CAL}<span id="dsPlT"></span> <span aria-hidden="true">⌄</span></button>
+        <span class="mas-menu oculto per-m" id="dsPlM" role="menu" style="top:calc(100% + 6px);bottom:auto">${[["hoy", "Para hoy", "Hay que despacharlos hoy"], ["proximos", "Próximos días", "Se despachan de mañana en adelante"], ["todos", "Todos los plazos", "Todo lo que falta despachar"]].map(([k, t, x]) => `<button type="button" role="menuitemradio" data-pl="${k}"><b>${t} · <span class="n"></span></b><span class="peq mut">${x}</span></button>`).join("")}</span></span>
+      <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar y ordenar<span id="dsFxN"></span></button>
+      <div class="fx-act" id="dsAct"></div></div>
     <div class="rec-lista" id="dsLista"></div>
     <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button>
       <div class="mas-caja"><button class="btn lin" type="button" id="dsRes" aria-expanded="false" aria-controls="dsResM">Resumen ▾</button>
@@ -4273,33 +4264,49 @@ VISTAS.despacho = async (op = {}) => {
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
   if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
   pintar();
-  $("#dsPlazo").onclick = (e) => { const b = e.target.closest("[data-pl]"); if (b) { F.plazo = b.dataset.pl; pintar(); } };
-  if ($("#dsMio")) $("#dsMio").onclick = (e) => { F.mio = !F.mio; e.currentTarget.classList.toggle("on", F.mio); e.currentTarget.setAttribute("aria-pressed", String(F.mio)); pintar(); };
-  $("#dsTipos").onclick = (e) => { const b = e.target.closest("[data-ti]"); if (!b) return; const k = b.dataset.ti; F.tipos = F.tipos.includes(k) ? F.tipos.filter((x) => x !== k) : [...F.tipos, k]; pintar(); };
-  $("#dsEtq").onclick = (e) => { const b = e.target.closest("[data-et]"); if (b) { F.etiqueta = F.etiqueta === b.dataset.et ? "todas" : b.dataset.et; pintar(); } };
-  // Productos: lista con foto, buscador y cantidades; se pueden elegir varios
-  const pm = $("#dsProdM"), pb = $("#dsProdB");
-  function listaProductos() {
-    const q = $("#dsProdQ").value.trim().toLowerCase();
-    const filas = productos.filter(([p]) => !q || p.toLowerCase().includes(q)).map(([p, fotoP]) => {
-      const cs = env.filter((c) => tit(c) === p && pasa(c, "producto")), u = cs.reduce((n, c) => n + (c.cantidad || 1), 0);
-      return `<label class="ds-prodi ${cs.length ? "" : "vacio-p"}"><input type="checkbox" data-pp="${esc(p)}" ${F.productos.includes(p) ? "checked" : ""}>${foto(fotoP, "foto mini")}<span><span class="t">${esc(p)}</span><span class="peq mut">${cs.length ? `${u} ${u === 1 ? "unidad" : "unidades"} · ${cs.length} ${cs.length === 1 ? "envío" : "envíos"}` : "Ninguno con estos filtros"}</span></span></label>`;
-    }).join("");
-    $("#dsProdL").innerHTML = filas || `<p class="peq mut" style="padding:8px">No hay productos con ese nombre</p>`;
+  $("#dsBarra").onclick = (e) => {
+    if (e.target.closest("#dsPl")) { e.stopPropagation(); const m = $("#dsPlM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsPl").setAttribute("aria-expanded", String(ab)); return; }
+    const pl = e.target.closest("[data-pl]"); if (pl) { $("#dsPlM").classList.add("oculto"); F.plazo = pl.dataset.pl; pintar(); return; }
+    if (e.target.closest("#dsFx")) { hojaDespacho(); return; }
+    const q = e.target.closest("[data-qd]"); if (!q) return;
+    const k = q.dataset.qd;
+    if (k === "mio") F.mio = false; else if (k === "et") F.etiqueta = "todas"; else if (k === "ord") F.orden = "plazo";
+    else if (k.startsWith("ti:")) F.tipos = F.tipos.filter((x) => x !== k.slice(3)); else if (k.startsWith("pr:")) F.productos = F.productos.filter((x) => x !== k.slice(3));
+    pintar();
+  };
+  // Hoja "Filtrar y ordenar": se arma sobre una copia y se aplica al tocar Aplicar
+  function hojaDespacho() {
+    const G = { ...F, tipos: [...F.tipos], productos: [...F.productos] };
+    const cuenta = (fn, sin) => { const F0 = { ...F }; Object.assign(F, G); const n = env.filter((c) => pasa(c, sin) && fn(c)).length; Object.assign(F, F0); return n; };
+    const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+      <div class="fx-cuerpo">
+        ${d.con_asignaciones ? `<fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops"><label><input type="radio" name="dmio" value="" ${!G.mio ? "checked" : ""}><span>Todos</span></label><label><input type="radio" name="dmio" value="1" ${G.mio ? "checked" : ""}><span>Para mí</span></label></div></fieldset>` : ""}
+        <fieldset class="fx-g"><legend>Tipo de envío</legend><div class="fx-ops">${tiposHay.map((k) => `<label><input type="checkbox" name="dti" value="${esc(k)}" ${G.tipos.includes(k) ? "checked" : ""}><span>${esc(LOGISTICA[k] ?? k)} · ${cuenta((c) => c.envio_logistica === k, "tipos")}</span></label>`).join("")}</div></fieldset>
+        <fieldset class="fx-g"><legend>Etiqueta</legend><div class="fx-ops">${[["todas", "Todas"], ["sin", "Sin imprimir"], ["impresas", "Impresas"]].map(([k, t]) => `<label><input type="radio" name="det" value="${k}" ${G.etiqueta === k ? "checked" : ""}><span>${t}${k === "todas" ? "" : ` · ${cuenta((c) => (k === "impresas") === impresa(c), "etiqueta")}`}</span></label>`).join("")}</div></fieldset>
+        <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_DS.map(([k, t]) => `<label><input type="radio" name="dord" value="${k}" ${G.orden === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
+        <fieldset class="fx-g"><legend>Producto</legend><input type="search" id="dpQ" placeholder="Buscar producto" aria-label="Buscar producto" style="width:100%;margin-bottom:6px"><div class="ds-prodl" id="dpL"></div></fieldset>
+      </div>
+      <div class="fx-pie"><button class="btn lin" type="button" id="dLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="dAplicar">Aplicar</button></div>`);
+    const listar = () => {
+      const q = h.querySelector("#dpQ").value.trim().toLowerCase();
+      h.querySelector("#dpL").innerHTML = productos.filter(([p]) => !q || p.toLowerCase().includes(q)).map(([p, fotoP]) => {
+        const F0 = { ...F }; Object.assign(F, G); const cs = env.filter((c) => tit(c) === p && pasa(c, "producto")); Object.assign(F, F0);
+        const u = cs.reduce((n, c) => n + (c.cantidad || 1), 0);
+        return `<label class="ds-prodi ${cs.length ? "" : "vacio-p"}"><input type="checkbox" data-pp="${esc(p)}" ${G.productos.includes(p) ? "checked" : ""}>${foto(fotoP, "foto mini")}<span><span class="t">${esc(p)}</span><span class="peq mut">${cs.length ? `${u} ${u === 1 ? "unidad" : "unidades"} · ${cs.length} ${cs.length === 1 ? "envío" : "envíos"}` : "Ninguno con estos filtros"}</span></span></label>`;
+      }).join("") || `<p class="peq mut" style="padding:8px">No hay productos con ese nombre</p>`;
+    };
+    listar();
+    h.querySelector("#dpQ").oninput = listar;
+    h.querySelector("#dpL").onchange = (e) => { const i = e.target.closest("[data-pp]"); if (i) G.productos = i.checked ? [...G.productos, i.dataset.pp] : G.productos.filter((x) => x !== i.dataset.pp); };
+    h.querySelector("#dLimpiar").onclick = () => { h.remove(); Object.assign(F, { tipos: [], etiqueta: "todas", productos: [], mio: false, orden: "plazo" }); pintar(); };
+    h.querySelector("#dAplicar").onclick = () => {
+      G.mio = !!h.querySelector('input[name="dmio"]:checked')?.value;
+      G.tipos = [...h.querySelectorAll('input[name="dti"]:checked')].map((x) => x.value);
+      G.etiqueta = h.querySelector('input[name="det"]:checked')?.value ?? "todas";
+      G.orden = h.querySelector('input[name="dord"]:checked')?.value ?? "plazo";
+      h.remove(); Object.assign(F, G); pintar();
+    };
   }
-  pb.onclick = (e) => { e.stopPropagation(); const ab = pm.classList.contains("oculto"); pm.classList.toggle("oculto", !ab); pb.setAttribute("aria-expanded", String(ab)); if (ab) { $("#dsProdQ").value = ""; listaProductos(); $("#dsProdQ").focus(); } };
-  pm.onclick = (e) => e.stopPropagation();
-  $("#dsProdQ").oninput = listaProductos;
-  $("#dsProdL").onchange = (e) => { const i = e.target.closest("[data-pp]"); if (!i) return; const p = i.dataset.pp; F.productos = i.checked ? [...F.productos, p] : F.productos.filter((x) => x !== p); pintar(); };
-  $("#dsProdN").onclick = () => { F.productos = []; pintar(); };
-  $("#dsProdOk").onclick = () => { pm.classList.add("oculto"); pb.setAttribute("aria-expanded", "false"); };
-  $("#dsChips").onclick = (e) => { const b = e.target.closest("[data-qp]"); if (b) { F.productos = F.productos.filter((x) => x !== b.dataset.qp); pintar(); } };
-  const om = $("#dsOrdM"), ob = $("#dsOrdB");
-  const ponerOrden = () => { $("#dsOrdT").textContent = ORDEN_DS.find(([k]) => k === F.orden)[1]; om.querySelectorAll("[data-ord]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.ord === F.orden))); };
-  ponerOrden();
-  ob.onclick = (e) => { e.stopPropagation(); const ab = om.classList.contains("oculto"); om.classList.toggle("oculto", !ab); ob.setAttribute("aria-expanded", String(ab)); };
-  om.onclick = (e) => { const b = e.target.closest("[data-ord]"); if (!b) return; om.classList.add("oculto"); ob.setAttribute("aria-expanded", "false"); F.orden = b.dataset.ord; ponerOrden(); pintar(); };
-  $("#dsLimpiar").onclick = () => { Object.assign(F, { plazo: "hoy", tipos: [], etiqueta: "todas", productos: [] }); pintar(); };
   $("#dsLista").onchange = (e) => { const i = e.target.closest("[data-id]"); if (!i) return; const id = Number(i.dataset.id); i.checked ? sel.add(id) : sel.delete(id); pintar(); };
   $("#dsTodas").onclick = () => { const vis = visibles(); const todas = vis.every((c) => sel.has(c.id)); vis.forEach((c) => todas ? sel.delete(c.id) : sel.add(c.id)); pintar(); };
   if (!window.DS_ESCUCHA) { window.DS_ESCUCHA = true; document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu").forEach((m) => m.classList.add("oculto")); }); }
