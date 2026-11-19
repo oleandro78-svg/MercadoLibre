@@ -159,6 +159,10 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .c-error{background:var(--ladrillo-2);color:var(--ladrillo)}
 .c-simulada,.c-prueba{background:var(--cielo-2);color:var(--cielo)}
 
+.ayuda{position:relative;display:inline-flex;flex:none}
+.ayuda>button{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cielo,#3b6ef5);color:var(--cielo,#3b6ef5);background:transparent;font:700 12px/1 var(--fuente);display:grid;place-items:center;cursor:pointer;padding:0}
+.ayuda>button:focus-visible{outline:2px solid var(--cielo,#3b6ef5);outline-offset:2px}
+.ayuda .burbuja-ay{position:absolute;z-index:60;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(300px,80vw);background:var(--sup);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:400;text-align:left}
 .panel{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-l);padding:20px 22px}
 .panel+.panel{margin-top:16px}.grilla>.panel+.panel{margin-top:0}
 .panel h2{margin-bottom:4px}
@@ -1244,6 +1248,20 @@ VISTAS.hoy = async () => {
   if ($("#irCuentas")) $("#irCuentas").onclick = () => ir("cuentas");
 };
 
+// Ayuda: signo de pregunta en un círculo; al tocarlo se abre una burbuja con la explicación y se cierra tocando en otro lado
+function ayuda(texto) { return `<span class="ayuda"><button type="button" aria-label="Ayuda" aria-expanded="false" data-ayuda="${esc(texto)}">?</button></span>`; }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".ayuda>button");
+  const abierta = document.querySelector(".burbuja-ay");
+  if (abierta && (!b || abierta.parentElement !== b.parentElement)) { abierta.parentElement.querySelector("button")?.setAttribute("aria-expanded", "false"); abierta.remove(); }
+  if (!b) return;
+  if (abierta && abierta.parentElement === b.parentElement) { b.setAttribute("aria-expanded", "false"); abierta.remove(); return; }
+  const d = document.createElement("div"); d.className = "burbuja-ay"; d.setAttribute("role", "tooltip"); d.textContent = b.dataset.ayuda;
+  b.parentElement.appendChild(d); b.setAttribute("aria-expanded", "true");
+  const r = d.getBoundingClientRect(); // que no se salga de la pantalla
+  if (r.right > innerWidth - 8) d.style.left = `calc(50% - ${r.right - innerWidth + 8}px)`; else if (r.left < 8) d.style.left = `calc(50% + ${8 - r.left}px)`;
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelector(".burbuja-ay")?.remove(); });
 // Tiempo de respuesta tal como lo muestra MercadoLibre: últimos 14 días, tres franjas, escala hasta 1:30 y rojo a partir de 1 hora
 const durML = (m) => m == null ? "—" : m < 60 ? `${Math.round(m)} min` : `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, "0")}`;
 function bloqueTiempoML(c) {
@@ -1253,8 +1271,8 @@ function bloqueTiempoML(c) {
     return `<div class="franja"><span>${nombre}</span><div class="barra"><i class="${m > 60 ? "roja" : ""}" style="width:${m == null ? 0 : Math.max(3, Math.min(m, tope) / tope * 100)}%"></i></div><b>${m == null ? "—" : m > tope ? "+ 1h30" : durML(m)}</b></div>`;
   };
   const mejora = Math.max(t.weekdays_extra_hours?.sales_percent_increase ?? 0, t.weekend?.sales_percent_increase ?? 0, t.weekdays_working_hours?.sales_percent_increase ?? 0);
-  return `<div class="panel" style="margin-top:16px"><div class="fila" style="align-items:flex-end"><div><h3>Tiempo de respuesta según MercadoLibre${S.res.cuentas.length > 1 ? ` · ${esc(c.nombre)}` : ""}</h3>
-      <p class="mut peq" style="margin:2px 0 0">Últimos 14 días, ${num(t.total_questions)} preguntas. Es el dato que MercadoLibre entrega a las aplicaciones${c.tiempo_ml_at ? ` (consultado ${hace(c.tiempo_ml_at)})` : ""}; MercadoLibre lo recalcula una vez por día, así que puede no coincidir con lo que ves en su página en este momento. Las preguntas de lunes a viernes de 0 a 9 no tienen franja propia.</p></div>
+  return `<div class="panel" style="margin-top:16px"><div class="fila" style="align-items:flex-end"><div><h3>Tiempo de respuesta${S.res.cuentas.length > 1 ? ` · ${esc(c.nombre)}` : ""}</h3>
+      <p class="mut peq" style="margin:2px 0 0;display:flex;align-items:center;gap:6px">Últimos 14 días, ${num(t.total_questions)} preguntas ${ayuda(`Es el dato que MercadoLibre entrega a las aplicaciones${c.tiempo_ml_at ? ` (consultado ${hace(c.tiempo_ml_at)})` : ""}. MercadoLibre lo recalcula una vez por día, así que puede no coincidir con lo que ves en su página en este momento. Toma la primera pregunta de cada comprador. Las preguntas de lunes a viernes de 0 a 9 no tienen franja propia.`)}</p></div>
       <div class="n" style="text-align:right"><div style="font-size:30px;font-weight:800;color:${t.total?.response_time > 60 ? "var(--ladrillo)" : "var(--pino)"}">${durML(t.total?.response_time)}</div><div class="peq mut">promedio total</div></div></div>
     <div class="franjas" style="margin-top:12px">${fila("Lunes a viernes, 9 a 18", t.weekdays_working_hours)}${fila("Lunes a viernes, 18 a 24", t.weekdays_extra_hours)}${fila("Sábado y domingo", t.weekend)}</div>
     ${mejora ? `<p class="peq" style="margin:12px 0 0"><b>Según MercadoLibre podrías vender hasta un ${mejora}% más</b> si respondés en menos de 1 hora en las franjas en rojo.</p>` : ""}</div>`;
