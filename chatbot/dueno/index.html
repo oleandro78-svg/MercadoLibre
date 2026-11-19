@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>Mostrador · Administración</title>
 <meta name="theme-color" content="#132029">
 <meta name="description" content="Panel de Mostrador: respuestas a las preguntas de MercadoLibre.">
@@ -620,7 +620,7 @@ input[type=file]{max-width:100%}
 .ch-cita-resp{all:unset;box-sizing:border-box;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;background:var(--sup2);border-left:3px solid var(--cielo);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--piz);margin-bottom:6px}.ch-cita-resp.mini{cursor:pointer;margin:0;display:block}
 .ch-comp{background:var(--sup);border-top:1px solid var(--linea);padding:10px 22px 14px;position:relative}
 .ch-fila{display:flex;gap:8px;align-items:flex-end}.ch-fila textarea{flex:1;min-height:42px;max-height:160px;resize:none}
-.ch-ref{font-size:18px;font-weight:700;width:42px;height:42px;padding:0}
+.ch-ref{font-size:20px;font-weight:700;width:42px;height:42px;padding:0;display:inline-grid;place-items:center;line-height:1;flex:none}
 .ch-emo{position:absolute;bottom:100%;left:22px;width:min(360px,calc(100vw - 24px));background:var(--sup);border:1px solid var(--linea);border-radius:12px;box-shadow:var(--sombra);z-index:6;display:flex;flex-direction:column;max-height:300px}.ch-emo[hidden]{display:none}
 .emo-tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--linea)}.emo-tabs button{all:unset;cursor:pointer;font-size:20px;padding:4px 8px;border-radius:8px;opacity:.55}.emo-tabs button[aria-selected="true"]{opacity:1;background:var(--sup2)}.emo-tabs button:focus-visible{outline:2px solid var(--cielo)}
 .emo-grid{overflow:auto;padding:6px 8px 10px}.emo-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}.emo-g[hidden]{display:none}.emo-t{grid-column:1/-1;font-size:12px;color:var(--piz);padding:2px 2px 4px}
@@ -647,7 +647,9 @@ input[type=file]{max-width:100%}
 .ev-form{display:grid;gap:12px}.ev-form label{display:grid;gap:4px;font-size:13px}.ev-form input,.ev-form select,.ev-form textarea{width:100%}.ev-fila{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}.ev-form .ev-chk{display:flex;align-items:center;gap:8px}.ev-form .ev-chk input{width:auto}
 .nt-men button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
 @media (max-width:960px){
-  .cht{grid-template-columns:minmax(0,1fr);height:calc(100dvh - 57px)}
+  .cht{grid-template-columns:minmax(0,1fr);position:fixed;left:0;right:0;top:var(--cht-top,57px);height:var(--cht-alto,calc(100dvh - 57px));z-index:20;background:var(--papel)}
+  .cht .m-lista,.cht .m-chat{min-height:0;height:100%}
+  .cht .chat-cab{flex-wrap:nowrap;padding:10px 12px}.cht .chat-cab .t{flex:1 1 0;min-width:0}.cht .chat-cab .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cht.ver-lista .m-chat{display:none}.cht.ver-chat .m-lista{display:none}
   .ch-b{max-width:86%}.ch-msjs{padding:12px}.ch-comp{padding:8px 10px 10px}
   .cal-d{min-height:64px}.cal-ev{font-size:0;height:6px;padding:0;border-radius:3px;background:var(--cielo)}
@@ -4179,6 +4181,17 @@ async function contarChat() {
 }
 setInterval(contarChat, 20000); setTimeout(contarChat, 3000);
 
+// En el celular el chat ocupa todo el alto visible, y cuando sube el teclado se achica para que el campo de escribir quede a la vista
+function altoChat() {
+  const c = document.querySelector(".cht"); if (!c) return;
+  if (!anchoMovil()) { c.style.removeProperty("--cht-top"); c.style.removeProperty("--cht-alto"); return; }
+  const barra = document.querySelector(".barra-movil"), top = barra ? Math.max(0, barra.getBoundingClientRect().bottom) : 0;
+  const vv = window.visualViewport, alto = vv ? vv.height + vv.offsetTop - top : innerHeight - top;
+  c.style.setProperty("--cht-top", `${top}px`); c.style.setProperty("--cht-alto", `${Math.max(200, alto)}px`);
+  const box = document.querySelector("#chMsjs"); if (box && document.activeElement?.id === "chTx") box.scrollTop = box.scrollHeight;
+}
+if (window.visualViewport) { visualViewport.addEventListener("resize", altoChat); visualViewport.addEventListener("scroll", altoChat); }
+addEventListener("resize", altoChat);
 VISTAS.chat = async () => {
   const emp = empChat();
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Chat</h1><p>Elegí una empresa.</p></div></div>`; return; }
@@ -4187,6 +4200,7 @@ VISTAS.chat = async () => {
     <aside class="m-lista"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Chat</h1><div class="n"><button class="btn pri chico" id="chNuevo" type="button">Nuevo chat</button></div></div></div><div id="chLista" class="ch-lista"><p class="mut" style="padding:16px">Cargando…</p></div></aside>
     <section class="m-chat" id="chConv"><div class="m-vacio"><b>Elegí un chat</b><span>o empezá uno nuevo</span></div></section></div>`;
   $("#chNuevo").onclick = () => nuevoChat(emp);
+  altoChat();
   await cargarChats();
   if (S.chatCitas) abrirCitas(); else if (S.chatId) abrirChat(S.chatId);
 };
@@ -4352,6 +4366,7 @@ async function abrirChat(id) {
     S.chatTimer = setTimeout(traer, RT.ok ? 30000 : document.hidden ? 15000 : 3000);
   };
   S.chatTraer = traer;
+  tx.addEventListener("focus", () => { setTimeout(altoChat, 50); setTimeout(altoChat, 350); });
   await traer(true);
   tx.focus();
 }
