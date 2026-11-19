@@ -164,6 +164,17 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ayuda>button{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cielo,#3b6ef5);color:var(--cielo,#3b6ef5);background:transparent;font:700 12px/1 var(--fuente);display:grid;place-items:center;cursor:pointer;padding:0}
 .ayuda>button:focus-visible{outline:2px solid var(--cielo,#3b6ef5);outline-offset:2px}
 .ayuda .burbuja-ay{position:absolute;z-index:60;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(300px,80vw);background:var(--sup);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;font-size:13.5px;line-height:1.45;font-weight:400;text-align:left}
+.ds-imp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}.ds-imp select{width:auto;min-width:220px;max-width:100%}
+.imp-per select{width:auto;min-width:220px;max-width:100%}
+.ds-it{display:flex;gap:12px;align-items:center;background:var(--sup);border:1px solid var(--linea);border-radius:14px;padding:12px;cursor:pointer;min-width:0}
+.ds-it input{width:20px;height:20px;flex:none;accent-color:var(--pino)}.ds-it .foto{width:56px;height:56px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.ds-it:has(input:checked){border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset}
+.ds-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.imp-lista{display:grid;gap:8px;margin-bottom:14px}.imp-it,.imp-per{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--linea)}
+.imp-it>span:first-child,.imp-per>span:first-child{display:flex;flex-direction:column;gap:2px}.imp-acc{display:flex;gap:8px}
+.imp-form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}.imp-form input,.imp-form select{width:100%}.imp-bt{display:flex;gap:8px}
+@media (max-width:640px){.imp-form{grid-template-columns:1fr}}
+.lnk{border:0;background:none;padding:0;color:var(--pino-t);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
 .panel{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-l);padding:20px 22px}
 .panel+.panel{margin-top:16px}.grilla>.panel+.panel{margin-top:0}
 .panel h2{margin-bottom:4px}
@@ -1132,16 +1143,16 @@ async function recargar() {
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"],
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"],
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["uso", "Plan y uso"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["numeros", "Mis números"]];
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -2835,7 +2846,7 @@ new MutationObserver(() => titularTablas()).observe(document.body, { childList: 
 
 // ================= MÓDULOS =================
 // Cada empresa tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
-const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Devoluciones" };
+const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Devoluciones", despacho: "Despacho" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
   mensajes: "Tus ventas y la conversación con cada comprador: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
@@ -3235,7 +3246,7 @@ function redactarLibre(d) {
     <div id="mRes"></div>
     <div class="acciones">
       <label class="btn lin chico" style="cursor:pointer">${ICONO_M.clip} Adjuntar<input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v"></label>
-      <div class="mas-caja"><button class="btn lin chico" type="button" id="mMas" aria-expanded="false" aria-controls="mMasM">Más ▾</button>
+      <div class="mas-caja"><button class="btn lin chico" type="button" id="mMasB" aria-expanded="false" aria-controls="mMasM">Más ▾</button>
         <div class="mas-menu oculto" id="mMasM" role="menu">
           <button type="button" role="menuitem" id="mReg">${ICONO.escudo} Revisar reglas</button>
           <button type="button" role="menuitem" id="mMej">${ICONO.varita} Mejorar redacción</button>
@@ -3247,7 +3258,7 @@ function redactarLibre(d) {
     ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en esta empresa: guardá el borrador y lo envía el administrador.</p>`}`;
   const tx = $("#mTx");
   // Menú "Más": se abre y se cierra con el botón, y se cierra al elegir algo o tocar afuera
-  const menu = $("#mMasM"), bm = $("#mMas");
+  const menu = $("#mMasM"), bm = $("#mMasB");
   const cerrarMenu = () => { menu.classList.add("oculto"); bm.setAttribute("aria-expanded", "false"); };
   bm.onclick = (e) => { e.stopPropagation(); const abrir = menu.classList.contains("oculto"); menu.classList.toggle("oculto", !abrir); bm.setAttribute("aria-expanded", String(abrir)); };
   menu.addEventListener("click", cerrarMenu);
@@ -3988,19 +3999,175 @@ function confirmarEnvio(d, st, r) {
 }
 
 // ---------- fotos al despachar ----------
+// ---------- Despacho: lo que hay que despachar y las etiquetas de MercadoLibre ----------
+const FORMATO_IMP = { pdf: "Impresora común (PDF, hoja A4)", zpl: "Impresora térmica de etiquetas (Zebra)" };
+const ZEBRA = ["http://localhost:9100", "https://localhost:9101"];
+// Programa de Zebra (Browser Print): deja que una página web vea y use las impresoras Zebra de la computadora
+async function zebraPedir(ruta, opciones = {}) {
+  for (const base of ZEBRA) {
+    try { const r = await fetch(base + ruta, { ...opciones, signal: AbortSignal.timeout(2500) }); if (r.ok) return r; } catch { /* probar la otra */ }
+  }
+  return null;
+}
+async function zebraImpresoras() {
+  const r = await zebraPedir("/available"); if (!r) return null;
+  const j = await r.json().catch(() => ({})); return (j.printer ?? []).filter((p) => p && p.name);
+}
+async function zebraImprimir(zpl, nombre) {
+  const lista = await zebraImpresoras(); if (!lista) return "sin_programa";
+  const dev = lista.find((p) => p.name === nombre) ?? lista[0]; if (!dev) return "sin_impresora";
+  const r = await zebraPedir("/write", { method: "POST", headers: { "content-type": "text/plain;charset=UTF-8" }, body: JSON.stringify({ device: dev, data: zpl }) });
+  return r ? "ok" : "error";
+}
+function bajarArchivo(nombre, blob) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+}
+const b64aBlob = (b, tipo) => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: tipo }); };
+const impLocal = (emp) => { try { return Number(localStorage.getItem(`mostrador_imp_${emp}`)) || null; } catch { return null; } };
+
+function plazoDespacho(c) {
+  if (!c.despachar_hasta) return "";
+  const d = new Date(c.despachar_hasta), hoy = new Date(), man = new Date(Date.now() + 86400_000);
+  const dia = d.toDateString() === hoy.toDateString() ? "hoy" : d.toDateString() === man.toDateString() ? "mañana" : diaMes(c.despachar_hasta);
+  return `Despachar hasta ${dia} a las ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`;
+}
+function grupoDespacho(c) {
+  if (!c.despachar_hasta) return "hoy";
+  const fin = new Date(); fin.setHours(23, 59, 59, 999);
+  return new Date(c.despachar_hasta) <= fin ? "hoy" : "proximos";
+}
+const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta todavía no disponible", "c-blo"] };
+
 VISTAS.despacho = async () => {
   const emp = empRec();
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Foto al despachar</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const l = await seguro(() => api("despachos", { empresa_id: emp })) ?? [];
-  if (S.tab !== "despacho") return;
-  $("#main").innerHTML = `${S.rol === "operador" ? `<button class="btn lin chico" id="dsVolver" type="button" style="margin-bottom:10px">‹ Devoluciones</button>` : ""}
-    <div class="cabecera"><div><h1>Foto al despachar</h1><p>Antes de cerrar la caja, escaneá la etiqueta del envío y sacá una foto del producto adentro. Si después el comprador dice que le llegó otra cosa o la caja vacía, la prueba ya está guardada en esa venta.</p></div></div>
-    <div class="rec-acc"><button class="btn pri grande" id="dsEsc">${ICONO_R.scan} Escanear etiqueta del envío</button></div>
-    <h2 class="eq-h" style="margin-top:20px">Últimas guardadas</h2>
-    <div class="rec-lista">${l.map((x) => `<div class="rec-it">${x.fotos[0]?.url ? `<img class="foto" src="${esc(x.fotos[0].url)}" alt="">` : foto(null)}<span class="rec-tx"><b>${esc(x.item_titulo ?? `Envío ${x.envio_id ?? ""}`)}</b><span class="peq mut">${x.cantidad} foto${x.cantidad > 1 ? "s" : ""} · ${fecha(x.created_at)}${x.orden_id ? ` · venta ${esc(x.orden_id)}` : ""}</span></span></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay fotos</b>Es opcional: sirve como prueba si después hay un problema con la venta.</div>`}</div>`;
-  $("#dsEsc").onclick = () => escanear("Escanear envío", (c) => buscarEtiqueta(c, "despacho"), (f) => leerEtiquetaFoto(f, "despacho"));
-  if ($("#dsVolver")) $("#dsVolver").onclick = () => ir("devoluciones");
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>${buscandoTxt("Buscando lo que hay que despachar")}</p></div></div>`;
+  const d = await seguro(() => api("despacho_lista", { empresa_id: emp }));
+  if (!d || S.tab !== "despacho") return;
+  const imps = d.impresoras ?? [];
+  let impId = (S.rol === "admin" ? impLocal(emp) : d.mia?.id) ?? null;
+  if (!imps.some((i) => i.id === impId)) impId = imps.length === 1 ? imps[0].id : null;
+  const env = d.envios ?? [], sel = new Set();
+  S.dsFiltro = S.dsFiltro ?? "hoy";
+  const cuenta = { hoy: env.filter((c) => grupoDespacho(c) === "hoy").length, proximos: env.filter((c) => grupoDespacho(c) === "proximos").length, todos: env.length };
+  const adminEmp = S.rol !== "operador";
+  const pintar = () => {
+    const vis = env.filter((c) => S.dsFiltro === "todos" || grupoDespacho(c) === S.dsFiltro);
+    for (const id of [...sel]) if (!vis.some((c) => c.id === id)) sel.delete(id);
+    $("#dsLista").innerHTML = vis.length ? vis.map((c) => {
+      const e = ETIQ_ESTADO[c.envio_subestado];
+      return `<label class="ds-it"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}>${foto(c.item_thumbnail)}
+        <span class="rec-tx"><b>${esc(nombreComp(c))}</b><span class="peq">${c.cantidad > 1 ? `${c.cantidad} × ` : ""}${esc(c.item_titulo ?? "")}</span>
+        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}</span></span></label>`;
+    }).join("") : `<div class="vacio"><p>${S.dsFiltro === "hoy" ? "No hay nada para despachar hoy." : "No hay envíos en esta lista."}</p></div>`;
+    $("#dsN").textContent = sel.size ? `Imprimir ${sel.size === 1 ? "1 etiqueta" : `${sel.size} etiquetas`}` : "Imprimir etiquetas";
+    $("#dsImp").disabled = !sel.size;
+    $("#dsTodas").textContent = vis.length && vis.every((c) => sel.has(c.id)) ? "Quitar selección" : "Elegir todas";
+    $("#dsTodas").disabled = !vis.length;
+  };
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despacha tu empresa (Flex, Turbo, colecta y punto de despacho). Elegí cuáles y se imprimen las etiquetas de MercadoLibre.</p></div></div>
+    <div class="ds-imp">${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
+      <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "zpl" ? "térmica" : "común"}</option>`).join("")}</select>`
+      : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
+    <div class="m-fil" role="group" aria-label="Qué envíos ver">${[["hoy", "Para hoy"], ["proximos", "Próximos días"], ["todos", "Todos"]].map(([k, t]) => `<button type="button" data-f="${k}" class="${S.dsFiltro === k ? "on" : ""}">${t} <span class="n">${cuenta[k]}</span></button>`).join("")}</div>
+    <div class="rec-lista" id="dsLista"></div>
+    <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button><button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
+  pintar();
+  $("#main .m-fil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (!b) return; S.dsFiltro = b.dataset.f; $("#main .m-fil").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); pintar(); };
+  $("#dsLista").onchange = (e) => { const i = e.target.closest("[data-id]"); if (!i) return; const id = Number(i.dataset.id); i.checked ? sel.add(id) : sel.delete(id); pintar(); };
+  $("#dsTodas").onclick = () => { const vis = env.filter((c) => S.dsFiltro === "todos" || grupoDespacho(c) === S.dsFiltro); const todas = vis.every((c) => sel.has(c.id)); vis.forEach((c) => todas ? sel.delete(c.id) : sel.add(c.id)); pintar(); };
+  if ($("#dsIrImp")) $("#dsIrImp").onclick = () => ir("impresoras");
+  if ($("#dsSelImp")) $("#dsSelImp").onchange = async (e) => {
+    impId = Number(e.target.value) || null;
+    if (S.rol === "admin") { try { localStorage.setItem(`mostrador_imp_${emp}`, String(impId ?? "")); } catch {} return; }
+    if (await seguro(() => api("impresora_elegir", { empresa_id: emp, impresora_id: impId }))) aviso("Impresora guardada");
+  };
+  $("#dsImp").onclick = async () => {
+    const imp = imps.find((i) => i.id === impId);
+    if (imps.length && !imp) return aviso("Elegí en qué impresora imprimís");
+    const formato = imp?.formato ?? "pdf", ids = [...sel];
+    const ventana = formato === "pdf" ? window.open("", "_blank") : null; // se abre ya, si no el navegador la bloquea
+    $("#dsImp").disabled = true; $("#dsN").textContent = "Pidiendo las etiquetas…";
+    const r = await seguro(() => api("despacho_etiquetas", { empresa_id: emp, ids, formato }));
+    $("#dsImp").disabled = false; pintar();
+    if (!r) { ventana?.close(); return; }
+    for (const e of r.errores ?? []) aviso(e);
+    if (!r.archivos?.length) { ventana?.close(); return; }
+    if (formato === "pdf") {
+      const blobs = r.archivos.map((a) => b64aBlob(a.base64, "application/pdf"));
+      if (ventana) ventana.location = URL.createObjectURL(blobs[0]); else bajarArchivo(r.archivos[0].nombre, blobs[0]);
+      blobs.slice(1).forEach((b, i) => bajarArchivo(r.archivos[i + 1].nombre, b));
+      aviso("Etiquetas listas: imprimilas desde la ventana que se abrió");
+    } else {
+      const zpl = r.archivos.map((a) => a.texto).join("\n");
+      const res = await zebraImprimir(zpl, imp.nombre);
+      if (res === "ok") aviso(`Etiquetas enviadas a ${imp.nombre}`);
+      else {
+        bajarArchivo("etiquetas-zebra.txt", new Blob([zpl], { type: "text/plain" }));
+        aviso(res === "sin_programa" ? "No encontramos el programa de Zebra (Browser Print) en esta computadora: bajamos el archivo para imprimirlo a mano" : "La impresora Zebra no respondió: bajamos el archivo para imprimirlo a mano");
+      }
+    }
+    setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho(); }, 4000);
+  };
 };
+
+// ---------- Impresoras (Empresa → Impresoras): las carga el administrador y le asigna una a cada persona ----------
+VISTAS.impresoras = async () => {
+  const emp = empRec();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  const d = await seguro(() => api("impresoras", { empresa_id: emp }));
+  if (!d || S.tab !== "impresoras") return;
+  const imps = d.impresoras ?? [], personas = d.personas ?? [];
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Las impresoras donde se imprimen las etiquetas de envío. Cargalas acá y asignale una a cada persona; cada uno puede cambiarla por otra de esta lista desde Despacho.</p></div></div>
+    <div class="panel"><h3 style="margin-top:0">Impresoras de la empresa</h3>
+      ${imps.length ? `<div class="imp-lista">${imps.map((i) => `<div class="imp-it"><span><b>${esc(i.nombre)}</b><span class="peq mut">${FORMATO_IMP[i.formato]}</span></span>
+        <span class="imp-acc"><button class="btn lin chico" type="button" data-ed="${i.id}">Editar</button><button class="btn lin chico" type="button" data-bo="${i.id}">Borrar</button></span></div>`).join("")}</div>`
+        : `<p class="mut">Todavía no cargaste ninguna.</p>`}
+      <form id="impF" class="imp-form"><input type="hidden" id="impId">
+        <div><label class="et" for="impNom">Nombre</label><input id="impNom" maxlength="80" placeholder="Por ejemplo: Zebra del depósito" required></div>
+        <div><label class="et" for="impFmt">Tipo</label><select id="impFmt">${Object.entries(FORMATO_IMP).map(([k, t]) => `<option value="${k}">${t}</option>`).join("")}</select></div>
+        <div class="imp-bt"><button class="btn pri" type="submit" id="impG">Agregar impresora</button><button class="btn lin oculto" type="button" id="impCan">Cancelar</button></div>
+      </form>
+      <p class="peq mut" style="display:flex;align-items:center;gap:6px;margin:12px 0 0"><button class="btn lin chico" type="button" id="impZeb">Buscar impresoras Zebra en esta computadora</button>
+        ${ayuda("Por seguridad, una página web no puede ver las impresoras instaladas en la computadora: por eso se cargan a mano. Las impresoras Zebra sí se pueden encontrar si en la computadora está instalado el programa gratuito de Zebra llamado Browser Print; con ese programa, además, las etiquetas salen directo, sin abrir ninguna ventana.")}</p>
+    </div>
+    <div class="panel"><h3 style="margin-top:0">Impresora de cada persona</h3>
+      ${!imps.length ? `<p class="mut">Primero cargá al menos una impresora.</p>` : personas.map((p) => {
+        const propia = p.impresora_propia && p.impresora_propia !== p.impresora_id ? imps.find((i) => i.id === p.impresora_propia) : null;
+        return `<div class="imp-per"><span><b>${esc(p.nombre)}</b>${propia ? `<span class="peq mut">Eligió usar ${esc(propia.nombre)}</span>` : ""}</span>
+          <select data-per="${esc(p.usuario_id)}" aria-label="Impresora de ${esc(p.nombre)}"><option value="">Sin asignar</option>${imps.map((i) => `<option value="${i.id}" ${i.id === p.impresora_id ? "selected" : ""}>${esc(i.nombre)}</option>`).join("")}</select></div>`;
+      }).join("")}
+    </div>`;
+  const form = $("#impF");
+  const limpiar = () => { $("#impId").value = ""; $("#impNom").value = ""; $("#impFmt").value = "pdf"; $("#impG").textContent = "Agregar impresora"; $("#impCan").classList.add("oculto"); };
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    if (await seguro(() => api("impresora_guardar", { empresa_id: emp, id: Number($("#impId").value) || null, nombre: $("#impNom").value, formato: $("#impFmt").value }))) { aviso("Impresora guardada"); VISTAS.impresoras(); }
+  };
+  $("#impCan").onclick = limpiar;
+  $("#main").querySelectorAll("[data-ed]").forEach((b) => b.onclick = () => {
+    const i = imps.find((x) => x.id === Number(b.dataset.ed)); $("#impId").value = i.id; $("#impNom").value = i.nombre; $("#impFmt").value = i.formato;
+    $("#impG").textContent = "Guardar cambios"; $("#impCan").classList.remove("oculto"); $("#impNom").focus();
+  });
+  $("#main").querySelectorAll("[data-bo]").forEach((b) => b.onclick = async () => {
+    const i = imps.find((x) => x.id === Number(b.dataset.bo));
+    if (!confirm(`¿Borrar la impresora "${i.nombre}"? Las personas que la tenían quedan sin impresora asignada.`)) return;
+    if (await seguro(() => api("impresora_borrar", { empresa_id: emp, id: i.id }))) { aviso("Impresora borrada"); VISTAS.impresoras(); }
+  });
+  $("#main").querySelectorAll("[data-per]").forEach((s) => s.onchange = async () => {
+    if (await seguro(() => api("impresora_asignar", { empresa_id: emp, usuario_id: s.dataset.per, impresora_id: Number(s.value) || null }))) aviso("Impresora asignada");
+  });
+  $("#impZeb").onclick = async () => {
+    $("#impZeb").disabled = true; const l = await zebraImpresoras(); $("#impZeb").disabled = false;
+    if (!l) return aviso("No encontramos el programa de Zebra (Browser Print) en esta computadora");
+    const nuevas = l.filter((p) => !imps.some((i) => i.nombre === p.name));
+    if (!nuevas.length) return aviso(l.length ? "Las impresoras Zebra de esta computadora ya están cargadas" : "El programa de Zebra no encontró impresoras conectadas");
+    for (const p of nuevas) await seguro(() => api("impresora_guardar", { empresa_id: emp, nombre: p.name, formato: "zpl" }));
+    aviso(`Se agregaron ${nuevas.length === 1 ? "1 impresora" : `${nuevas.length} impresoras`}`); VISTAS.impresoras();
+  };
+};
+
 function fotosDespacho(env) {
   const fotos = [];
   const v = cajon(`<div class="cajon-cab"><div class="prod">${foto(env.item_foto)}<div><h2 style="margin:0">${esc(env.item_titulo ?? "Envío " + env.envio_id)}</h2><p class="peq mut" style="margin:2px 0 0">${esc(env.comprador ?? "")}${env.orden_id ? ` · venta ${esc(env.orden_id)}` : ""}</p></div></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
@@ -4036,10 +4203,10 @@ function abrirDesdeEnlace(h) {
 function vistasPermitidas() {
   const mods = modsActuales();
   let l;
-  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas", "despacho"];
+  if (S.rol === "operador") l = [...TABS_OP.map((t) => t[0]), "preguntas"];
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
   else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
-  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || !["devoluciones", "despacho"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
+  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
 }
 navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
 </script>
