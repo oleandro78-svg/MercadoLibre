@@ -651,6 +651,9 @@ h3 .te{font-size:13px;margin-left:4px}
 .m-fil .fx{display:inline-flex;align-items:center;gap:5px}.m-fil .fx svg{width:14px;height:14px}
 .fx-per-l{display:grid;gap:2px}.fx-per-o{display:flex;gap:10px;align-items:flex-start;padding:8px 6px;border-radius:10px;cursor:pointer}.fx-per-o:hover{background:var(--sup2)}.fx-per-o input{margin-top:3px;accent-color:var(--pino)}.fx-per-o>span{display:flex;flex-direction:column;gap:1px}
 .fx-fechas{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}.fx-fechas label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;flex:1 1 140px}.fx-fechas input{width:100%}
+#mFil .fx-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;padding:6px 4px;color:var(--tinta)}#mFil .fx-bt svg{width:18px;height:18px;margin:0!important}#mFil .fx-bt.on{color:var(--pino-t)}
+#mFil{align-items:center;gap:6px 16px}.per-m{min-width:260px}.per-m [data-dias]{display:flex!important;flex-direction:column;align-items:flex-start;gap:2px}.per-m [aria-checked="true"] b{color:var(--cielo,#3b6ef5)}
+.per-fechas{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:8px 12px 12px}.per-fechas label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;flex:1 1 110px}.per-fechas input{width:100%}
 .fx-act .fx-per{background:var(--sup2)!important;color:var(--tinta)!important}
 .fx-act{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}.fx-act button{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--cielo-2,#e6f0fb);color:var(--cielo)}.fx-act button:focus-visible{outline:2px solid var(--cielo)}
 .fx-cuerpo{display:grid;gap:14px;max-height:62vh;overflow:auto;padding-right:4px}
@@ -3087,18 +3090,22 @@ function hojaFiltros(emp) {
     ${k === "dias" ? "" : `<label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>`}
     ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
-  const h = abrirHoja(`<div class="cajon-cab"><h2>Filtros</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+  const L = S.msjLista ?? {};
+  const rapidos = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", L.pendientes], ["urgentes", "Urgentes", L.urgentes], ["reclamos", "Con reclamo", L.reclamos], ...(L.con_asignaciones ? [["mias", "Para mí"]] : [])];
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
-      ${FX.slice(0, 6).map(grupo).join("")}
+      <fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops">${rapidos.map(([k, t, n]) => `<label><input type="radio" name="fxq" value="${k}" ${(S.msjFil ?? "todas") === k ? "checked" : ""}><span>${t}${n ? ` · ${n}` : ""}</span></label>`).join("")}</div></fieldset>
+      <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_MSJ.map(([k, t]) => `<label><input type="radio" name="fxo" value="${k}" ${(f.orden ?? "") === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
+      ${FX.filter(([k]) => k !== "dias").slice(0, 5).map(grupo).join("")}
       <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       <fieldset class="fx-g"><legend>Producto</legend>
         <button class="btn lin ds-ord" type="button" id="fxProdB" aria-expanded="false">${ICONO_CAJA}<span id="fxProdT"></span> ▾</button>
         <div class="fx-prod oculto" id="fxProdP"><input type="search" id="fxProdQ" placeholder="Buscar producto" aria-label="Buscar producto"><div class="ds-prodl" id="fxProdL"></div>
           <button class="lnk" type="button" id="fxProdN">Todos los productos</button></div></fieldset>
-      ${FX.slice(6).map(grupo).join("")}
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" id="fxLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="fxAplicar">Aplicar</button></div>`);
-  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFx = { dias: S.msjFx?.dias ?? DIAS_DEF, ...(S.msjFx?.orden ? { orden: S.msjFx.orden } : {}) }; cargarHilos(emp); };
+  const periodoDe = (x) => Object.fromEntries(["dias", "desde", "hasta", "desde_iso", "hasta_iso"].filter((k) => x?.[k] != null).map((k) => [k, x[k]]));
+  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFil = "todas"; S.msjFx = { dias: DIAS_DEF, ...periodoDe(S.msjFx) }; cargarHilos(emp); };
   // Productos: lista con foto, buscador y cantidad de ventas; se pueden elegir varios
   let elegidos = prodsElegidos(f);
   const ponerT = () => { const t = !elegidos.length ? "Todos los productos" : elegidos.length === 1 ? (prods.find((p) => p.id === elegidos[0])?.titulo ?? "1 producto") : `${elegidos.length} productos`; h.querySelector("#fxProdT").textContent = t.length > 40 ? t.slice(0, 38) + "…" : t; h.querySelector("#fxProdB").classList.toggle("on", elegidos.length > 0); };
@@ -3119,14 +3126,9 @@ function hojaFiltros(emp) {
     for (const [k] of FX_SI) if (h.querySelector(`input[name="fxs_${k}"]`)?.checked) n[k] = true;
     if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
     if (elegidos.length) n.producto = [...elegidos];
-    if (n.dias === "custom") {
-      const d = h.querySelector("#fxDesde").value, ha = h.querySelector("#fxHasta").value;
-      if (!d || !ha) return aviso("Elegí la fecha de inicio y la de fin");
-      if (d > ha) return aviso("La fecha de inicio es posterior a la de fin");
-      n.desde = d; n.hasta = ha;
-      n.desde_iso = new Date(d + "T00:00").toISOString(); n.hasta_iso = new Date(new Date(ha + "T00:00").getTime() + 86400_000).toISOString();
-    }
-    if (S.msjFx?.orden) n.orden = S.msjFx.orden;
+    Object.assign(n, periodoDe(S.msjFx));
+    const o = h.querySelector('input[name="fxo"]:checked')?.value; if (o) n.orden = o;
+    S.msjFil = h.querySelector('input[name="fxq"]:checked')?.value ?? "todas";
     h.remove(); S.msjFx = n; cargarHilos(emp);
   };
 }
@@ -3148,17 +3150,31 @@ async function cargarHilos(emp, mas = false) {
     const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["reclamos", "Con reclamo", r.reclamos], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
     const act = filtrosActivos().filter(([k]) => k !== "dias");
     const per = S.msjFx.dias === "custom" ? textoRango(S.msjFx) : FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
-    $("#mFil").innerHTML = fil.map(([k, t, n]) => `<button type="button" data-f="${k}" aria-pressed="${S.msjFil === k}" class="${S.msjFil === k ? "on" : ""}">${t}${n ? ` · ${n}` : ""}</button>`).join("")
-      + `<button type="button" id="mFx" class="fx ${act.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtros${act.length ? ` · ${act.length}` : ""}</button>`
-      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx ${S.msjFx?.orden ? "on" : ""}" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar">${ICONO_ORDEN} ${ORDEN_MSJ.find(([k]) => k === (S.msjFx?.orden ?? ""))?.[1]} ▾</button>
-        <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${(S.msjFx?.orden ?? "") === k}">${t}</button>`).join("")}</span></span>`
-      + `<div class="fx-act"><button type="button" class="fx-per" data-per aria-label="Cambiar el período: ${esc(per)}">${ICONO_CAL}${esc(per)}</button>${act.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>`;
+    const elegidos = [...(S.msjFil && S.msjFil !== "todas" ? [["__fil", fil.find(([k]) => k === S.msjFil)?.[1] ?? ""]] : []),
+      ...(S.msjFx?.orden ? [["orden", ORDEN_MSJ.find(([k]) => k === S.msjFx.orden)?.[1] ?? ""]] : []), ...act];
+    const opsPer = FX.find(([k]) => k === "dias")[2];
+    $("#mFil").innerHTML = `<span class="mas-caja"><button type="button" id="mPer" class="fx-bt" aria-expanded="false" aria-controls="mPerM">${ICONO_CAL}${esc(per)} <span aria-hidden="true">⌄</span></button>
+        <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
+          <span class="per-fechas oculto" id="mPerF"><label>Desde<input type="date" id="mPerD" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.desde ?? "")}"></label><label>Hasta<input type="date" id="mPerH" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.hasta ?? new Date().toLocaleDateString("en-CA"))}"></label><button class="btn pri chico" type="button" id="mPerOk">Aplicar</button></span></span></span>`
+      + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar y ordenar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
+      + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
-      const b = e.target.closest("[data-f]"); if (b) { S.msjFil = b.dataset.f; cargarHilos(emp); return; }
-      if (e.target.closest("#mFx") || e.target.closest("[data-per]")) { hojaFiltros(emp); return; }
+      if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
+      if (e.target.closest("#mPer")) { e.stopPropagation(); const m = $("#mPerM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mPer").setAttribute("aria-expanded", String(ab)); return; }
+      const dd = e.target.closest("[data-dias]");
+      if (dd) { e.stopPropagation(); if (dd.dataset.dias === "custom") { $("#mPerF").classList.remove("oculto"); $("#mPerD").focus(); return; }
+        S.msjFx = { ...S.msjFx, dias: dd.dataset.dias }; delete S.msjFx.desde; delete S.msjFx.hasta; delete S.msjFx.hasta_iso; cargarHilos(emp); return; }
+      if (e.target.closest("#mPerOk")) {
+        const d = $("#mPerD").value, ha = $("#mPerH").value;
+        if (!d || !ha) return aviso("Elegí la fecha de inicio y la de fin");
+        if (d > ha) return aviso("La fecha de inicio es posterior a la de fin");
+        S.msjFx = { ...S.msjFx, dias: "custom", desde: d, hasta: ha, desde_iso: new Date(d + "T00:00").toISOString(), hasta_iso: new Date(new Date(ha + "T00:00").getTime() + 86400_000).toISOString() };
+        cargarHilos(emp); return;
+      }
+      if (e.target.closest("#mPerM")) { e.stopPropagation(); return; }
       if (e.target.closest("#mOrd")) { e.stopPropagation(); const m = $("#mOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mOrd").setAttribute("aria-expanded", String(ab)); return; }
       const o = e.target.closest("[data-ord]"); if (o) { S.msjFx = { ...(S.msjFx ?? {}) }; if (o.dataset.ord) S.msjFx.orden = o.dataset.ord; else delete S.msjFx.orden; cargarHilos(emp); return; }
-      const q = e.target.closest("[data-qx]"); if (q) { delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
+      const q = e.target.closest("[data-qx]"); if (q) { if (q.dataset.qx === "__fil") S.msjFil = "todas"; else delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
     $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
     $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
