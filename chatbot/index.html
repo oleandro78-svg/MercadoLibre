@@ -3868,7 +3868,15 @@ function elegirDevolucion(lista, titulo) {
 function mostrarResultado(r, modo, sinNada) {
   if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
-  if (r.tipo === "envio") { if (modo === "despacho") return fotosDespacho(r); aviso("Ese envío no tiene una devolución abierta"); return; }
+  if (r.tipo === "envio") {
+    if (modo === "despacho") return fotosDespacho(r);
+    // No hay una devolución para revisar (ya se procesó o es otra etiqueta): se abre la venta en Ventas
+    if (r.conversacion_id && modsActuales().has("mensajes")) {
+      aviso(r.es_devolucion ? "Esa devolución ya no está para revisar: te abro la venta" : "Ese envío no tiene una devolución: te abro la venta");
+      S.msjEmp = r.empresa_id ?? S.msjEmp; S.msjId = r.conversacion_id; S.msjBus = ""; ir("mensajes"); return;
+    }
+    aviso("Ese envío no tiene una devolución abierta"); return;
+  }
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
