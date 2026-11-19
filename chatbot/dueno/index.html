@@ -626,7 +626,8 @@ input[type=file]{max-width:100%}
 .linea-t{position:relative;padding-left:18px;font-size:13.5px}
 .linea-t div{position:relative;padding:0 0 12px}
 .linea-t div::before{content:"";position:absolute;left:-18px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--linea)}
-.linea-t div.si::before{background:var(--pino)}
+.linea-t div.si::before{background:var(--pino)}.linea-t div.lt-mal::before{background:var(--ladrillo)}
+.lt-det,.lt-cod{display:block;font-size:12.5px;color:var(--piz);margin-top:1px}.lt-cod .nw{white-space:nowrap}
 .linea-t::before{content:"";position:absolute;left:4px;top:8px;bottom:14px;width:1px;background:var(--linea)}
 .resumen-movil{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:10px 14px 0;padding:8px 12px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);font-size:13px}
 .venta-f{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;gap:2px;padding:10px 12px;border:1px solid var(--linea);border-radius:var(--r-m);margin-bottom:8px}
@@ -3227,7 +3228,7 @@ async function ventaPorFoto(emp, file) {
   ventaEncontrada(emp, r, r?.por_nombre ?? r?.leido?.numeros?.[0] ?? "");
 }
 async function abrirConv(id) {
-  S.msjId = id;
+  S.msjId = id; S.recDatos = {};
   try { history.replaceState(null, "", "#mensajes/" + id); } catch {}
   const caja = $(".msj"); if (!caja) return;
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
@@ -3381,9 +3382,14 @@ function pestConv(t) {
 }
 const QUIEN_REC = { comprador: "Comprador", vendedor: "Vos", mercadolibre: "MercadoLibre" };
 const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+// Se pide una sola vez por venta abierta: lo usan la pestaña Reclamo y la línea de tiempo
+function datosReclamo(id) {
+  S.recDatos = S.recDatos ?? {};
+  return S.recDatos[id] ??= api("venta_reclamos", { id }).catch((e) => { delete S.recDatos[id]; throw e; });
+}
 async function cargarReclamo(id) {
   const caja = $("#cRec"); caja.dataset.listo = "1";
-  const r = await api("venta_reclamos", { id }).catch((e) => ({ error: e.message }));
+  const r = await datosReclamo(id).catch((e) => ({ error: e.message }));
   if (S.msjId !== id || !$("#cRec")) return;
   if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el reclamo: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cRecOtra">Probar de nuevo</button>`; $("#cRecOtra").onclick = () => cargarReclamo(id); return; }
   const lista = r.reclamos ?? [];
@@ -3581,8 +3587,8 @@ function pintarVenta(d) {
     ${c.pagado != null && Number(c.pagado) !== Number(c.total) ? `<div class="dv"><span>Total de productos</span><span>${plata(c.total, c.moneda)}</span></div>` : ""}
     ${Number(c.devuelto) > 0 ? `<div class="dv"><span>Devuelto al comprador</span><span style="color:var(--ladrillo)">${plata(c.devuelto, c.moneda)}</span></div>` : ""}
     ${c.estado_orden && c.estado_orden !== "paid" ? `<div class="dv"><span>Estado</span><span${c.estado_orden === "cancelled" ? ' style="color:var(--ladrillo);font-weight:600"' : ""}>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden)}</span></div>` : ""}
-    <h3>Envío ${tipoEnvio(c) || "—"}</h3>
-    ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
+    <h3 id="mLineaT">Envío ${tipoEnvio(c) || "—"}</h3>
+    ${c.envio_id ? `<div class="linea-t" id="mLinea">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button> · <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></p>`
@@ -3590,7 +3596,16 @@ function pintarVenta(d) {
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
   $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
+  if (c.mediacion || c.reclamo_ids?.length) historiaVenta(c);
 }
+// Venta con reclamo: la línea de tiempo suma todo lo que pasó (reclamo, mediación, devolución, reintegros), con sus números
+async function historiaVenta(c) {
+  const r = await datosReclamo(c.id).catch(() => null);
+  if (!r?.historia?.length || S.msjId !== c.id || !$("#mVen")) return;
+  const html = r.historia.map((e) => `<div class="si ${e.tono === "mal" ? "lt-mal" : ""}"><b>${esc(e.titulo)}</b><span class="mut"> · ${fecha(e.fecha)}</span>${e.detalle ? `<span class="lt-det">${esc(e.detalle)}</span>` : ""}${e.codigos?.length ? `<span class="lt-cod">${e.codigos.map(([k, v]) => `<span class="nw">${esc(k)} n.º ${esc(v)}</span>`).join(" · ")}</span>` : ""}</div>`).join("");
+  const t = $("#mLineaT"); if (t) t.textContent = "Historia de la venta";
+  const l = $("#mLinea");
+  if (l) l.innerHTML = html; else t?.insertAdjacentHTML("afterend", `<div class="linea-t" id="mLinea">${html}</div>`);}
 
 async function buscarVenta(emp, inicial = "") {
   const v = cajon(`<div class="cajon-cab"><h2>Buscar una venta en MercadoLibre</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
