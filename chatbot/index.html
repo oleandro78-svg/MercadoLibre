@@ -514,6 +514,10 @@ input[type=file]{max-width:100%}
 .hilo .ult.nl{color:var(--tinta);font-weight:600}
 .hilo .tags{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .punto{width:9px;height:9px;border-radius:50%;background:var(--cielo);display:inline-block;margin-left:6px;flex:none}
+.urg-x{padding-right:4px}.urg-x button{border:0;background:transparent;color:inherit;font:700 15px/1 var(--fuente);width:22px;height:22px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0}
+.urg-x button:hover{background:rgba(0,0,0,.08)}.urg-x button:focus-visible{outline:2px solid currentColor}
+.urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
+.urg-marcar:hover{color:var(--ladrillo)}
 .c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
 .m-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
 .m-vacio{margin:auto;text-align:center;color:var(--piz);display:grid;gap:4px}
@@ -3187,7 +3191,8 @@ function pintarChat(d) {
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
       <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${c.envio_logistica ? tipoEnvio(c) : esc(c.envio_id ? "Envío" : "Sin envío")}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
       <div class="n acc-cab">
-        <button class="btn lin chico" type="button" id="mUrg" aria-pressed="${!!c.urgente}">${c.urgente ? "Quitar urgente" : "Marcar urgente"}</button>
+        ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
+          : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
