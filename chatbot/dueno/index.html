@@ -1260,6 +1260,7 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas"
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
+  try { rtSincronizar(); } catch {}
   $("#recargarTodos")?.classList.toggle("oculto", S.rol !== "admin");
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
   const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0) : 0;
@@ -3301,7 +3302,7 @@ async function ventaPorFoto(emp, file) {
   ventaEncontrada(emp, r, r?.por_nombre ?? r?.leido?.numeros?.[0] ?? "");
 }
 async function abrirConv(id) {
-  S.msjId = id; S.recDatos = {};
+  S.msjId = id; S.recDatos = {}; S.convAbiertaAt = Date.now();
   try { history.replaceState(null, "", "#mensajes/" + id); } catch {}
   const caja = $(".msj"); if (!caja) return;
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
@@ -3468,6 +3469,7 @@ function irA(origen, ref) {
 }
 async function panelNotas(caja, origen, ref, alContar) {
   if (!caja) return;
+  NOTAS_ABIERTAS.set(caja, { origen, ref, alContar });
   const r = await api("notas_lista", { origen, ref }).catch((e) => ({ error: e.message }));
   if (!caja.isConnected) return;
   if (r.error) { caja.innerHTML = `<p class="mut">No se pudieron traer las notas: ${esc(r.error)}</p>`; return; }
@@ -4044,6 +4046,65 @@ function avisosMensajes(m) {
 }
 // Al tocar el aviso de un mensaje, se abre esa conversación
 // Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
+// ================= TIEMPO REAL: el servidor avisa al instante "hay novedades en tal lugar" =================
+// Por el canal no viaja el contenido: la pantalla lo pide después con sus permisos. Si la conexión se corta, siguen las consultas periódicas.
+const RT = { canales: new Map(), ok: false, listo: false, t: {} };
+const NOTAS_ABIERTAS = new Map();
+function rtSincronizar() {
+  const uid = S.yo?.usuario?.id; if (!uid || !sb.channel) return;
+  const quiero = new Set([`mostrador:u:${uid}`, ...(S.yo.empresas ?? []).map((e) => `mostrador:e:${e.id}`), ...(S.soporte ? [`mostrador:e:${S.soporte}`] : []), ...(S.empSel ? [`mostrador:e:${S.empSel}`] : [])]);
+  for (const [k, ch] of RT.canales) if (!quiero.has(k)) { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); }
+  for (const k of quiero) if (!RT.canales.has(k)) {
+    try {
+      const ch = sb.channel(k).on("broadcast", { event: "*" }, (m) => rtEvento(m.event, m.payload ?? {})).subscribe((st) => {
+        if (st === "SUBSCRIBED") { const volvio = !RT.ok && RT.listo; RT.ok = true; RT.listo = true; if (volvio) rtPonerAlDia(); }
+        else if (st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") RT.ok = false;
+      });
+      RT.canales.set(k, ch);
+    } catch {}
+  }
+}
+const rtLuego = (k, f, ms = 250) => { clearTimeout(RT.t[k]); RT.t[k] = setTimeout(f, ms); };
+function rtEvento(ev, p) {
+  const yo = S.yo?.usuario?.id;
+  if (ev === "chat") {
+    if (S.tab === "chat") { if (S.chatId === p.chat && S.chatTraer) rtLuego("chatm", () => S.chatTraer(true), 30); rtLuego("chatl", cargarChats, 300); }
+    if (p.autor_id !== yo && !(S.tab === "chat" && S.chatId === p.chat && !document.hidden)) { sonar(); aviso(p.nuevo ? `${p.autor} te sumó a ${p.grupo}` : p.grupo ? `${p.autor} escribió en ${p.grupo}` : `${p.autor} te escribió`); }
+    rtLuego("chatc", contarChat, 400);
+  } else if (ev === "cita") {
+    sonar(); aviso(`${p.autor} te citó en una nota`); rtLuego("chatc", contarChat, 400);
+    if (S.tab === "chat" && S.chatCitas) rtLuego("cit", abrirCitas, 300);
+  } else if (ev === "calendario") {
+    if (S.tab === "calendario" && !document.querySelector(".velo")) rtLuego("cal", () => VISTAS.calendario(), 300);
+    if (p.autor && p.autor_id !== yo) aviso(`${p.autor} te invitó: ${p.titulo}`);
+  } else if (ev === "preguntas") {
+    rtLuego("av", revisarAvisos, 200);
+  } else if (ev === "ventas") {
+    rtLuego("av", revisarAvisos, 200);
+    if (S.tab === "mensajes") {
+      rtLuego("hil", () => cargarHilos(empMsj()), 400);
+      if (S.msjId && p.conv === S.msjId && Date.now() - (S.convAbiertaAt ?? 0) > 5000) rtLuego("conv", () => refrescarConv(S.msjId), 500);
+    }
+  } else if (ev === "despacho") {
+    if (S.tab === "despacho" && !document.querySelector("#dsResM:not(.oculto)") && !document.querySelector(".velo")) rtLuego("desp", () => VISTAS.despacho({ rapido: true }), 400);
+  } else if (ev === "devoluciones") {
+    if (S.tab === "devoluciones" && !S.devId) rtLuego("dev", () => VISTAS.devoluciones(), 400);
+  } else if (ev === "notas") {
+    for (const [caja, a] of NOTAS_ABIERTAS) {
+      if (!caja.isConnected) { NOTAS_ABIERTAS.delete(caja); continue; }
+      if (caja.contains(document.activeElement) && caja.querySelector("textarea")?.value) continue; // está escribiendo una nota
+      rtLuego(`nt${a.origen}${a.ref}`, () => panelNotas(caja, a.origen, a.ref, a.alContar), 300);
+    }
+  }
+}
+// Al volver la conexión (por ejemplo, el celular recuperó señal) se pone al día todo
+function rtPonerAlDia() {
+  revisarAvisos(); contarChat();
+  if (S.tab === "chat" && S.chatTraer) S.chatTraer();
+  if (S.tab === "mensajes") cargarHilos(empMsj());
+  if (S.tab === "despacho") VISTAS.despacho({ rapido: true });
+}
+
 // ================= CHAT DEL EQUIPO y CALENDARIO =================
 const empChat = () => S.rol === "admin" ? S.empSel || S.soporte || null : (S.empresaId || S.res?.empresas?.[0]?.id || S.yo?.empresas?.[0]?.id || null);
 const horaCorta = (f) => { const d = new Date(f), hoy = new Date(); return d.toDateString() === hoy.toDateString() ? d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
@@ -4250,8 +4311,9 @@ async function abrirChat(id) {
       pintar(primera || bajar);
       if (r.mensajes.length) { setTimeout(contarChat, 300); }
     }
-    S.chatTimer = setTimeout(traer, document.hidden ? 15000 : 3000);
+    S.chatTimer = setTimeout(traer, RT.ok ? 30000 : document.hidden ? 15000 : 3000);
   };
+  S.chatTraer = traer;
   await traer(true);
   tx.focus();
 }
@@ -4990,7 +5052,7 @@ function vigilarDespacho(emp) {
         S.dsFirma = r.firma;
       }
     }
-    setTimeout(tick, 6000);
+    setTimeout(tick, RT.ok ? 30000 : 6000);
   };
   setTimeout(tick, 1500);
 }
