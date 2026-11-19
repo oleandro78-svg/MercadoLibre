@@ -598,9 +598,10 @@ input[type=file]{max-width:100%}
 .nt-form{display:grid;gap:8px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:12px 14px}
 .nt-form textarea{width:100%;min-height:72px;resize:vertical}
 .nt-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.nt-acc .n{margin-left:auto}
-.nt-men{display:flex;gap:6px;flex-wrap:wrap}.nt-men button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea)}.nt-men button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}.nt-men button:focus-visible{outline:2px solid var(--cielo)}
+.nt-men{display:flex;gap:6px;flex-wrap:wrap}.nt-men button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--cielo)}.nt-men button:hover{background:var(--sup2)}.nt-men button:focus-visible{outline:2px solid var(--cielo)}
+.nt-cita{color:var(--cielo)}
 .c-nota{background:var(--ambar-2);color:var(--ambar-t)}
-.nt-men[hidden],.nt-ref[hidden],.c-tabs .chip[hidden]{display:none}
+.nt-ref[hidden],.c-tabs .chip[hidden]{display:none}
 .c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
 .rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
 .rec-ficha{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:14px 16px;display:grid;gap:8px;font-size:14px}
@@ -3417,12 +3418,14 @@ async function panelNotas(caja, origen, ref, alContar) {
   const r = await api("notas_lista", { origen, ref }).catch((e) => ({ error: e.message }));
   if (!caja.isConnected) return;
   if (r.error) { caja.innerHTML = `<p class="mut">No se pudieron traer las notas: ${esc(r.error)}</p>`; return; }
-  const st = { corrige: null, menciones: new Set() };
+  const st = { corrige: null };
   const notas = r.notas ?? [];
   alContar?.(notas.length);
   const porId = new Map(notas.map((n) => [n.id, n]));
   const corregidas = new Set(notas.map((n) => n.corrige_id).filter(Boolean));
   const fh = (f) => new Date(f).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const nombres = [...(r.equipo ?? []).map((m) => m.nombre), "Todos"].sort((a, b) => b.length - a.length);
+  const citas = (t) => { let h = esc(t); for (const n of nombres) h = h.replace(new RegExp(`@${esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "gi"), (x) => `<b class="nt-cita">${x}</b>`); return h; };
   const TIPO = { pregunta: "Preguntó", venta: "Compró", devolucion: "Devolución" };
   const donde = (o, rf, txt) => o === origen && String(rf) === String(ref) ? `<span class="nt-donde">acá</span>` : `<button type="button" class="nt-ir" data-nir="${o}:${esc(rf)}">en la ${esc(txt ?? o)}</button>`;
   const tarjeta = (n) => {
@@ -3430,7 +3433,7 @@ async function panelNotas(caja, origen, ref, alContar) {
     return `<div class="nt ${n.aqui ? "" : "nt-otra"}" id="nt-${n.id}">
       <div class="nt-cab"><b>${esc(n.autor)}</b><span>${fh(n.fecha)}</span>${donde(n.origen, n.ref, n.ref_txt)}${n.para?.length ? `<span>para ${esc(n.para.join(", "))}</span>` : ""}</div>
       ${c ? `<div class="nt-ref">Corrige la nota de ${esc(c.autor)} del ${fh(c.fecha)}</div>` : ""}
-      <div class="nt-tx">${esc(n.texto)}</div>
+      <div class="nt-tx">${citas(n.texto)}</div>
       ${corregidas.has(n.id) ? `<div class="peq mut">Tiene una corrección más abajo.</div>` : ""}
       <div class="nt-pie"><button class="urg-marcar" type="button" data-ncorr="${n.id}">Corregir</button></div></div>`;
   };
@@ -3443,15 +3446,18 @@ async function panelNotas(caja, origen, ref, alContar) {
     <div class="nt-form">
       <div class="nt-ref" data-ncorr-ver hidden></div>
       <textarea placeholder="Escribí una nota para el equipo" aria-label="Nota interna" maxlength="4000"></textarea>
-      <div class="nt-men" hidden>${(r.equipo ?? []).filter((m) => m.id !== r.yo).map((m) => `<button type="button" aria-pressed="false" data-nmen="${esc(m.id)}">${esc(m.nombre)}</button>`).join("") || `<span class="peq mut">No hay otras personas en el equipo.</span>`}</div>
-      <div class="nt-acc"><button class="btn lin chico" type="button" data-nmen-abrir>Avisarle a alguien</button>
+      <div class="nt-acc"><span class="nt-men" aria-label="Citar a alguien del equipo">${[...(r.equipo ?? []).filter((m) => m.id !== r.yo).map((m) => m.nombre), ...((r.equipo ?? []).length > 1 ? ["Todos"] : [])].map((n) => `<button type="button" data-nmen="${esc(n)}" title="Citarlo en la nota: le llega un aviso">@${esc(n)}</button>`).join("")}</span>
         <span class="n"><button class="btn pri chico" type="button" data-nguardar>Guardar nota</button></span></div>
     </div>`;
-  const tx = caja.querySelector("textarea"), men = caja.querySelector(".nt-men"), ver = caja.querySelector("[data-ncorr-ver]");
+  const tx = caja.querySelector("textarea"), ver = caja.querySelector("[data-ncorr-ver]");
   caja.onclick = async (e) => {
     const ira = e.target.closest("[data-nir]"); if (ira) { const [o, rf] = ira.dataset.nir.split(":"); irA(o, rf); return; }
-    const ab = e.target.closest("[data-nmen-abrir]"); if (ab) { men.hidden = !men.hidden; return; }
-    const m = e.target.closest("[data-nmen]"); if (m) { const on = !st.menciones.has(m.dataset.nmen); on ? st.menciones.add(m.dataset.nmen) : st.menciones.delete(m.dataset.nmen); m.setAttribute("aria-pressed", on); return; }
+    const m = e.target.closest("[data-nmen]"); if (m) {
+      // Cita a la persona en el texto, donde está el cursor
+      const a = tx.selectionStart ?? tx.value.length, b = tx.selectionEnd ?? a, antes = tx.value.slice(0, a);
+      const ins = `${antes && !/\s$/.test(antes) ? " " : ""}@${m.dataset.nmen} `;
+      tx.value = antes + ins + tx.value.slice(b); tx.focus(); tx.selectionStart = tx.selectionEnd = a + ins.length; return;
+    }
     const co = e.target.closest("[data-ncorr]"); if (co) {
       const n = porId.get(Number(co.dataset.ncorr)); st.corrige = n.id;
       ver.hidden = false; ver.innerHTML = `Vas a corregir la nota de ${esc(n.autor)} del ${fh(n.fecha)}. La original queda como está. <button class="urg-marcar" type="button" data-ncorr-no style="padding:0 0 0 6px">No corregir</button>`;
@@ -3461,9 +3467,9 @@ async function panelNotas(caja, origen, ref, alContar) {
     const g = e.target.closest("[data-nguardar]"); if (g) {
       if (!tx.value.trim()) return aviso("Escribí la nota");
       g.disabled = true; g.textContent = "Guardando…";
-      const ok = await seguro(() => api("nota_agregar", { origen, ref, texto: tx.value, corrige_id: st.corrige, menciones: [...st.menciones] }));
+      const ok = await seguro(() => api("nota_agregar", { origen, ref, texto: tx.value, corrige_id: st.corrige }));
       g.disabled = false; g.textContent = "Guardar nota";
-      if (ok) { aviso(st.menciones.size ? "Nota guardada y avisada" : "Nota guardada"); panelNotas(caja, origen, ref, alContar); }
+      if (ok) { aviso(/(^|\s)@\S/.test(tx.value) ? "Nota guardada y avisada" : "Nota guardada"); panelNotas(caja, origen, ref, alContar); }
     }
   };
 }
