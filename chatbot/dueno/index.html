@@ -621,6 +621,11 @@ input[type=file]{max-width:100%}
 .ch-comp{background:var(--sup);border-top:1px solid var(--linea);padding:10px 22px 14px;position:relative}
 .ch-fila{display:flex;gap:8px;align-items:flex-end}.ch-fila textarea{flex:1;min-height:42px;max-height:160px;resize:none}
 .ch-ref{font-size:18px;font-weight:700;width:42px;height:42px;padding:0}
+.ch-emo{position:absolute;bottom:100%;left:22px;width:min(360px,calc(100vw - 24px));background:var(--sup);border:1px solid var(--linea);border-radius:12px;box-shadow:var(--sombra);z-index:6;display:flex;flex-direction:column;max-height:300px}.ch-emo[hidden]{display:none}
+.emo-tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--linea)}.emo-tabs button{all:unset;cursor:pointer;font-size:20px;padding:4px 8px;border-radius:8px;opacity:.55}.emo-tabs button[aria-selected="true"]{opacity:1;background:var(--sup2)}.emo-tabs button:focus-visible{outline:2px solid var(--cielo)}
+.emo-grid{overflow:auto;padding:6px 8px 10px}.emo-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}.emo-g[hidden]{display:none}.emo-t{grid-column:1/-1;font-size:12px;color:var(--piz);padding:2px 2px 4px}
+.emo-g button{all:unset;cursor:pointer;font-size:24px;line-height:1;text-align:center;padding:5px 0;border-radius:8px}.emo-g button:hover,.emo-g button:focus-visible{background:var(--sup2)}
+.ch-emo-solo{font-size:38px;line-height:1.2}
 .ch-refs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.ch-refs .ficha{max-width:320px}
 .ch-men{position:absolute;bottom:100%;left:70px;background:var(--sup);border:1px solid var(--linea);border-radius:10px;box-shadow:var(--sombra);padding:6px;display:flex;flex-direction:column;gap:2px;z-index:5}.ch-men[hidden]{display:none}.ch-men button{all:unset;cursor:pointer;padding:6px 12px;border-radius:6px;color:var(--cielo)}.ch-men button:hover,.ch-men button:focus-visible{background:var(--sup2)}
 .ficha{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;background:var(--papel);border:1px solid var(--linea);border-radius:10px;padding:6px 10px 6px 6px;max-width:100%;position:relative}.ficha:hover{border-color:var(--cielo)}.ficha:focus-visible{outline:2px solid var(--cielo)}
@@ -4211,6 +4216,35 @@ async function abrirCitas() {
   armarNav(); setTimeout(contarChat, 500); cargarChats();
 }
 
+// Emojis del chat: los más usados por la persona quedan primero (se recuerdan en ese dispositivo)
+const EMOJIS = [
+  ["Caras", "😀 😃 😄 😁 😆 😅 😂 🤣 😊 🙂 😉 😍 🥰 😘 😎 🤩 🥳 😇 🤗 🤔 🤨 😐 😑 🙄 😏 😬 😮 😯 😲 😳 🥺 😢 😭 😤 😠 😡 🤯 😱 😴 🤒 🤕 🤢 🤮 😷 🤐 🫡 🫠"],
+  ["Gestos", "👍 👎 👌 ✌️ 🤞 🤝 👏 🙌 🙏 💪 👋 🤙 👉 👈 👆 👇 ☝️ ✋ 🤚 🖐️ 🫶 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💔 💯 🔥 ✨ ⭐ 🎉 🎊"],
+  ["Trabajo", "📦 🚚 🚛 🏷️ 🧾 📋 📝 ✏️ 📌 📎 🗂️ 📁 📊 📈 📉 💰 💵 💳 🏦 🧮 📅 🗓️ ⏰ ⌛ ⏳ 📞 📱 💻 🖨️ 📷 🔍 🔧 🛠️ 🔑 🏪 🛒 🎁"],
+  ["Símbolos", "✅ ☑️ ✔️ ❌ ❎ ⚠️ ❗ ❓ ‼️ ⁉️ 🆗 🆕 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ ➡️ ⬅️ ⬆️ ⬇️ 🔄 🔁 ⏸️ ▶️ 🚫 ⛔ 💤"],
+].map(([t, l]) => [t, l.split(" ")]);
+function emojisUsados(nuevo) {
+  let l = []; try { l = JSON.parse(localStorage.getItem("mostrador_emojis") ?? "[]"); } catch {}
+  if (nuevo) { l = [nuevo, ...l.filter((x) => x !== nuevo)].slice(0, 24); try { localStorage.setItem("mostrador_emojis", JSON.stringify(l)); } catch {} }
+  return l;
+}
+function selectorEmojis(caja, tx) {
+  const usados = emojisUsados();
+  const grupos = usados.length ? [["Más usados", usados], ...EMOJIS] : EMOJIS;
+  caja.innerHTML = `<div class="emo-tabs" role="tablist">${grupos.map(([t, l], i) => `<button type="button" role="tab" data-emo-tab="${i}" aria-selected="${i === 0}" title="${t}">${l[0]}</button>`).join("")}</div>
+    <div class="emo-grid">${grupos.map(([t, l], i) => `<div class="emo-g" data-emo-g="${i}" ${i ? "hidden" : ""}><span class="emo-t">${t}</span>${l.map((e) => `<button type="button" data-emo="${e}" aria-label="${e}">${e}</button>`).join("")}</div>`).join("")}</div>`;
+  caja.onclick = (e) => {
+    const t = e.target.closest("[data-emo-tab]"); if (t) { caja.querySelectorAll("[data-emo-tab]").forEach((x) => x.setAttribute("aria-selected", x === t)); caja.querySelectorAll("[data-emo-g]").forEach((g) => g.hidden = g.dataset.emoG !== t.dataset.emoTab); return; }
+    const b = e.target.closest("[data-emo]"); if (!b) return;
+    const a = tx.selectionStart ?? tx.value.length, z = tx.selectionEnd ?? a;
+    tx.value = tx.value.slice(0, a) + b.dataset.emo + tx.value.slice(z);
+    tx.selectionStart = tx.selectionEnd = a + b.dataset.emo.length; tx.dispatchEvent(new Event("input")); tx.focus();
+    emojisUsados(b.dataset.emo);
+  };
+}
+// Mensaje que es solo emojis (hasta 3): se ve más grande, como en WhatsApp
+const soloEmojis = (t) => /^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic}|\p{Emoji_Modifier})*\s*){1,3}$/u.test(String(t ?? "").trim());
+
 async function abrirChat(id) {
   S.chatId = id; S.chatCitas = false; clearTimeout(S.chatTimer);
   try { history.replaceState(null, "", location.pathname + location.search + "#chat/" + id); } catch {}
@@ -4220,7 +4254,8 @@ async function abrirChat(id) {
   $("#chConv").innerHTML = `<div class="chat-cab">${anchoMovil() ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver">${ICONO_M.atras}</button>` : ""}<div class="t"><b id="chNom">…</b><span class="mut peq" id="chMiem"></span></div><div class="n" id="chAcc"></div></div>
     <div class="ch-msjs" id="chMsjs"><p class="mut">Cargando…</p></div>
     <div class="ch-comp"><div id="chResp"></div><div id="chRefs" class="ch-refs"></div><div id="chMen" class="ch-men" hidden></div>
-      <div class="ch-fila"><button type="button" class="btn lin chico ch-ref" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación">#</button>
+      <div class="ch-emo" id="chEmoP" hidden></div>
+      <div class="ch-fila"><button type="button" class="btn lin chico ch-ref" id="chEmo" title="Emojis" aria-label="Emojis" aria-expanded="false">😊</button><button type="button" class="btn lin chico ch-ref" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación">#</button>
       <textarea id="chTx" rows="1" placeholder="Escribí un mensaje" aria-label="Mensaje"></textarea><button type="button" class="btn pri" id="chEnv">Enviar</button></div></div>`;
   if ($("#chConv .m-atras")) $("#chConv .m-atras").onclick = volverChats;
   const tx = $("#chTx");
@@ -4241,6 +4276,7 @@ async function abrirChat(id) {
     if (!m) { men.hidden = true; return; }
     const q = m[2].toLowerCase(), lista = [...(st.miembros ?? []).filter((x) => x.id !== S.chatYo?.id).map((x) => x.nombre), ...((st.miembros?.length ?? 0) > 2 ? ["Todos"] : [])].filter((n) => n.toLowerCase().startsWith(q));
     men.hidden = !lista.length;
+    if (lista.length) $("#chEmoP").hidden = true;
     men.innerHTML = lista.map((n) => `<button type="button" data-men="${esc(n)}">@${esc(n)}</button>`).join("");
   };
   $("#chMen").onclick = (e) => {
@@ -4254,9 +4290,11 @@ async function abrirChat(id) {
     const ok = await seguro(() => api("chat_enviar", { empresa_id: empChat(), chat_id: id, texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null }));
     $("#chEnv").disabled = false;
     if (!ok) return;
-    tx.value = ""; ajustar(); st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs(); traer(true);
+    tx.value = ""; ajustar(); $("#chEmoP").hidden = true; st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs(); traer(true);
   };
   $("#chEnv").onclick = enviar;
+  $("#chEmo").onclick = () => { const p = $("#chEmoP"), abrir = p.hidden; if (abrir) selectorEmojis(p, tx); p.hidden = !abrir; $("#chEmo").setAttribute("aria-expanded", abrir); };
+  if (!window.__emoDoc) window.__emoDoc = document.addEventListener("click", (e) => { const p = $("#chEmoP"); if (p && !p.hidden && !e.target.closest("#chEmoP,#chEmo")) { p.hidden = true; $("#chEmo")?.setAttribute("aria-expanded", "false"); } }) || true;
   tx.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !anchoMovil()) { e.preventDefault(); enviar(); } };
   $("#chMsjs").onclick = async (e) => {
     const rb = e.target.closest("[data-responder]"); if (rb) {
@@ -4282,7 +4320,7 @@ async function abrirChat(id) {
     return `${sep}<div class="ch-b ${m.mio ? "mio" : ""}" id="cm-${m.id}">
       ${grupo && !m.mio && (!ant || ant.autor !== m.autor || ant.aviso) ? `<span class="ch-autor">${esc(m.autor)}</span>` : ""}
       ${m.respuesta ? `<button type="button" class="ch-cita-resp mini" data-ir-msj="${m.respuesta.id}"><b>${esc(m.respuesta.autor_nombre)}</b><br>${esc(String(m.respuesta.texto).slice(0, 100))}</button>` : ""}
-      ${m.texto ? `<div class="ch-tx">${textoChat(m.texto, nombres)}</div>` : ""}
+      ${m.texto ? `<div class="ch-tx ${soloEmojis(m.texto) ? "ch-emo-solo" : ""}">${textoChat(m.texto, nombres)}</div>` : ""}
       ${(m.fichas ?? []).map((f) => fichaHtml(f)).join("")}
       <span class="ch-pie"><button type="button" class="ch-acc" data-responder="${m.id}">Responder</button><button type="button" class="ch-acc" data-agendar="${m.id}">Agendar</button><span>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>${tilde(m)}</span></div>`;
   };
