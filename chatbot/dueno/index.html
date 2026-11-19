@@ -581,6 +581,18 @@ input[type=file]{max-width:100%}
 @keyframes pres{0%,80%,100%{opacity:.25}40%{opacity:1}}@media (prefers-reduced-motion:reduce){.pres-p i{animation:none}}
 .mod-x{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ladrillo)}
 .redactar{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px 16px}
+.c-pane{display:flex;flex-direction:column;flex:1;min-height:0}.c-pane[hidden]{display:none}
+.c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
+.rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
+.rec-ficha{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:14px 16px;display:grid;gap:8px;font-size:14px}
+.rec-ficha h4{margin:0;font-size:16px}.rec-ficha p{margin:0}.rec-ficha .dv{display:flex;justify-content:space-between;gap:12px;font-size:13.5px}.rec-ficha .dv>span:first-child{color:var(--piz)}.rec-ficha .dv>span:last-child{text-align:right}
+.rec-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rec-cab .mut{font-size:13px}
+.rec-msjs{display:flex;flex-direction:column;gap:10px}
+.rec-msjs .b{max-width:78%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
+.rec-msjs .b small{display:block;font-size:11.5px;color:var(--piz);margin-top:4px}
+.rec-msjs .quien{display:block;font-size:12px;font-weight:700;margin-bottom:2px;color:var(--piz)}
+.b-ml{align-self:flex-start;background:var(--cielo-2,var(--sup2));border-bottom-left-radius:4px}
+.rec-pie{background:var(--sup);border-top:1px solid var(--linea);padding:12px 22px;font-size:13.5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .redactar textarea{width:100%;min-height:96px;resize:vertical}
 .tx-caja{position:relative}.tx-caja textarea{display:block}.tx-caja .cont{display:block;text-align:right;margin-top:3px;font-size:12px;color:var(--piz)}.tx-caja .cont.pasado{color:var(--ladrillo);font-weight:700}
 .tx-ia{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--cielo);margin:0 0 4px}.tx-ia svg{width:14px;height:14px}
@@ -2956,7 +2968,7 @@ function puedeReclamar(c) {
 function plazoDev(c) {
   // Venta cancelada o envío que no se entregó: no hay plazo de devolución que mostrar
   if (c.estado_orden === "cancelled" || ["not_delivered", "cancelled"].includes(c.envio_estado)) return null;
-  if (c.mediacion || c.reclamo_ids?.length) return { c: "mal", t: "Tiene un reclamo o devolución abierta", s: "Se gestiona desde MercadoLibre" };
+  if (c.mediacion) return { c: "mal", t: "Tiene un reclamo o devolución abierta", s: "Lo ves en la pestaña Reclamo" };
   const r = recibida(c);
   if (!r) return c.envio_id ? { c: "", t: "Todavía no lo recibió", s: "Los 30 días para devolver empiezan cuando lo reciba" } : null;
   const lim = new Date(new Date(r).getTime() + 30 * 86400000), dias = Math.ceil((lim - Date.now()) / 86400000);
@@ -3311,6 +3323,7 @@ function pintarChat(d) {
   const urg = c.urgente && !c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>Atención:</b> ${esc(c.urgente_motivo ?? "posible reclamo")}. Respondé cuanto antes.</span></div>` : "";
   const avisos = (d.avisos ?? []).map((a) => `<div class="estado e-mot">${ICONO_M.info}<span>${esc(a)}</span></div>`).join("");
   const env = c.envio ?? {};
+  const conRec = !!(c.mediacion || c.reclamo_ids?.length);
   $("#mChat").innerHTML = `
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
@@ -3319,9 +3332,14 @@ function pintarChat(d) {
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
+    ${conRec ? `<div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
+      <button type="button" role="tab" data-ct="chat">Chat con el comprador</button>
+      <button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button></div>` : ""}
+    <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
-    <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div>`;
+    <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div></div>
+    ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}`;
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
     e.stopPropagation(); avisoCerrado(b.dataset.cerrarAviso, true);
@@ -3346,6 +3364,83 @@ function pintarChat(d) {
   if (c.conv_estado === "active") redactarLibre(d);
   else if (c.con_motivo) redactarMotivo(d);
   else $("#mRed").remove();
+  if (conRec) {
+    $("#mChat").querySelectorAll("[data-ct]").forEach((b) => b.onclick = () => pestConv(b.dataset.ct));
+    S.convTab = S.convTab ?? {};
+    pestConv(S.convTab[c.id] ?? (c.mediacion ? "reclamo" : "chat"));
+  }
+}
+// Venta con reclamo: una pestaña con el chat del comprador y otra con el reclamo
+function pestConv(t) {
+  const c = S.msjConv?.conversacion; if (!c || !$("#cpRec")) return;
+  S.convTab = S.convTab ?? {}; S.convTab[c.id] = t;
+  $("#mChat").querySelectorAll("[data-ct]").forEach((b) => { const on = b.dataset.ct === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  $("#cpChat").hidden = t !== "chat"; $("#cpRec").hidden = t !== "reclamo";
+  if (t === "chat") { const bur = $("#mBur"); if (bur) bur.scrollTop = bur.scrollHeight; }
+  if (t === "reclamo" && !$("#cRec").dataset.listo) cargarReclamo(c.id);
+}
+const QUIEN_REC = { comprador: "Comprador", vendedor: "Vos", mercadolibre: "MercadoLibre" };
+const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+async function cargarReclamo(id) {
+  const caja = $("#cRec"); caja.dataset.listo = "1";
+  const r = await api("venta_reclamos", { id }).catch((e) => ({ error: e.message }));
+  if (S.msjId !== id || !$("#cRec")) return;
+  if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el reclamo: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cRecOtra">Probar de nuevo</button>`; $("#cRecOtra").onclick = () => cargarReclamo(id); return; }
+  const lista = r.reclamos ?? [];
+  const abierto = lista.some((x) => x.abierto);
+  const est = $("#cRecEst"); if (est) { est.textContent = abierto ? "Abierto" : "Cerrado"; est.className = `chip ${abierto ? "c-urg" : "c-blo"}`; }
+  caja.innerHTML = lista.map((x) => fichaReclamo(x)).join("") || `<p class="mut">MercadoLibre no informa reclamos para esta venta.</p>`;
+  const pie = lista.find((x) => x.abierto);
+  $("#cpRec").querySelector(".rec-pie")?.remove();
+  if (pie) $("#cpRec").insertAdjacentHTML("beforeend", `<div class="rec-pie">${ICONO_M.info}<span style="flex:1;min-width:200px">${pie.acciones?.length ? "Para responder en el reclamo, entrá a MercadoLibre." : "Por ahora MercadoLibre no te pide nada en este reclamo."}</span><a class="btn chico" href="${esc(pie.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></div>`);
+  caja.querySelectorAll("[data-rdev]").forEach((b) => b.onclick = () => { S.devId = Number(b.dataset.rdev); ir("devoluciones"); });
+  caja.onclick = async (e) => {
+    const b = e.target.closest("[data-radj]"); if (!b) return;
+    b.disabled = true; const a = await seguro(() => api("reclamo_adjunto", { id, reclamo: b.dataset.rec, archivo: b.dataset.radj, nombre: b.dataset.nom })); b.disabled = false;
+    if (a) abrirArchivo(a);
+  };
+}
+function fichaReclamo(x) {
+  if (x.error) return `<div class="rec-ficha"><b>Reclamo ${esc(x.id)}</b><p class="mut">${esc(x.error)}</p></div>`;
+  const f = (v) => v ? `${diaMes(v)} a las ${new Date(v).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}` : "";
+  const fila = (k, v) => v ? `<div class="dv"><span>${k}</span><span>${v}</span></div>` : "";
+  const res = x.resolucion, dev = x.devolucion;
+  const favor = res?.a_favor?.length ? res.a_favor.map((q) => q === "vendedor" ? "vos" : q === "comprador" ? "el comprador" : q).join(" y ") : "";
+  const urgente = x.abierto && x.acciones?.find((a) => a.obligatoria);
+  let dia = "";
+  const msjs = (x.mensajes ?? []).map((m) => {
+    const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const sep = d !== dia ? `<div class="dia">${esc(d)}</div>` : ""; dia = d;
+    const clase = m.de === "vendedor" ? "b-vend" : m.de === "mercadolibre" ? "b-ml" : "b-comp";
+    const quien = m.de === "vendedor" ? `Vos${m.para === "mercadolibre" ? " a MercadoLibre" : m.para === "comprador" ? " al comprador" : ""}` : `${QUIEN_REC[m.de] ?? m.de}${m.de === "mercadolibre" && m.para === "comprador" ? " al comprador" : ""}`;
+    const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj" data-radj="${esc(a.id)}" data-rec="${esc(x.id)}" data-nom="${esc(a.nombre)}">${ICONO_M.clip}<span class="adj-t"><span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</span></button>`).join("");
+    return `${sep}<div class="b ${clase}"><span class="quien">${esc(quien)}</span>${m.texto ? negritas(m.texto) : ""}${adj}${m.moderado ? `<div class="mod-x">${m.moderado === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}</div>` : ""}<small>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</small></div>`;
+  }).join("");
+  return `<div class="rec-ficha">
+      <div class="rec-cab"><h4>${esc(x.tipo)} n.º ${esc(x.id)}</h4><span class="chip ${x.abierto ? "c-urg" : "c-blo"}">${x.abierto ? "Abierto" : "Cerrado"}</span></div>
+      ${x.titulo ? `<p><b>${esc(x.titulo)}</b></p>` : ""}${x.descripcion ? `<p class="peq">${negritas(x.descripcion)}</p>` : ""}
+      ${urgente ? `<p class="peq" style="color:var(--ladrillo);font-weight:600">Tenés que responder${urgente.vence ? ` antes del ${esc(f(urgente.vence))}` : ""}.</p>` : ""}
+      ${fila("Motivo del comprador", esc(x.motivo ?? ""))}
+      ${fila("Etapa", x.abierto ? esc(x.etapa ?? "") : "")}
+      ${fila("Abierto", esc(f(x.abierto_at)))}
+      ${res ? fila("Cerrado", esc(f(res.fecha))) : ""}
+      ${res?.texto ? fila("Resolución", esc(res.texto)) : ""}
+      ${favor ? fila("A favor de", esc(favor)) : ""}
+      ${res?.cobertura ? fila("Costo", "Lo cubrió MercadoLibre") : ""}
+      ${fila("Reputación", esc(x.reputacion ?? ""))}
+      ${dev?.estado ? fila("Devolución", esc(dev.estado)) : ""}
+      ${dev?.envio_id ? fila("Envío de vuelta", `${esc(dev.envio_id)}${dev.envio_estado ? ` · ${esc(dev.envio_estado)}` : ""}`) : ""}
+      ${dev?.revision_id && modsActuales().has("devoluciones") ? `<p class="peq"><button class="urg-marcar" style="padding:0" type="button" data-rdev="${esc(dev.revision_id)}">Ver la revisión de la devolución</button></p>` : ""}
+      <p class="peq"><a href="${esc(x.url)}" target="_blank" rel="noopener">Ver la venta en MercadoLibre</a></p>
+    </div>
+    ${msjs ? `<div class="rec-msjs">${msjs}</div>` : `<p class="mut peq">No hay mensajes en este reclamo.</p>`}`;
+}
+function abrirArchivo(r) {
+  const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
+  const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener";
+  if (!/^image\/|pdf|text\/plain/.test(r.tipo)) a.download = r.nombre;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 function redactarLibre(d) {
@@ -3471,10 +3566,11 @@ function pintarVenta(d) {
     ${c.envio_id ? `<div class="linea-t">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
-    ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a> · número ${esc(c.mediacion.id)}</p>`
-      : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0;color:var(--ladrillo)">Hay un reclamo abierto. Se gestiona desde MercadoLibre.</p>` : ""}
+    ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button> · <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></p>`
+      : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0">Tuvo un reclamo que ya está cerrado. <button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
+  $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
 }
 
 async function buscarVenta(emp, inicial = "") {
