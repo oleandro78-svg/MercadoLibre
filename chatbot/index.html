@@ -601,6 +601,54 @@ input[type=file]{max-width:100%}
 .nt-men{display:flex;gap:6px;flex-wrap:wrap}.nt-men button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--cielo)}.nt-men button:hover{background:var(--sup2)}.nt-men button:focus-visible{outline:2px solid var(--cielo)}
 .nt-cita{color:var(--cielo)}
 .c-nota{background:var(--ambar-2);color:var(--ambar-t)}
+.cht{display:grid;grid-template-columns:340px minmax(0,1fr);height:100vh;min-width:0}
+.cht .m-chat{min-height:0}
+.ch-lista{overflow:auto;flex:1}
+.ch-it{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--linea);cursor:pointer}
+.ch-it:hover{background:var(--sup2)}.ch-it.on{background:var(--cielo-2)}.ch-it:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}
+.ch-tx{flex:1;min-width:0;display:grid;gap:2px}.ch-l1{display:flex;justify-content:space-between;gap:8px}.ch-l1 b,.ch-ult{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch-ult{font-size:13px}
+.av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;background:var(--pino-2);color:var(--pino-t)}.av.av-g{background:var(--cielo-2);color:var(--cielo)}.av.av-n{background:var(--ambar-2);color:var(--ambar-t);font-size:17px}
+.ch-msjs{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:6px}
+.ch-b{max-width:72%;align-self:flex-start;background:var(--sup);border-radius:14px;border-bottom-left-radius:4px;padding:7px 12px 5px;box-shadow:var(--sombra);font-size:14.5px;line-height:1.45;display:grid;gap:4px;overflow-wrap:anywhere}
+.ch-b.mio{align-self:flex-end;background:var(--pino-2);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.ch-autor{font-size:12.5px;font-weight:700;color:var(--cielo)}
+.ch-tx a{color:var(--cielo);text-decoration:underline;word-break:break-all}
+.ch-pie{display:flex;gap:8px;justify-content:flex-end;align-items:center;font-size:11.5px;color:var(--piz)}
+.ch-acc{all:unset;cursor:pointer;font-size:11.5px;color:var(--piz);opacity:0;text-decoration:underline}.ch-b:hover .ch-acc,.ch-acc:focus-visible{opacity:1}@media (hover:none){.ch-acc{opacity:1}}
+.tilde{font-weight:700;letter-spacing:-2px}.tilde.leido{color:var(--cielo)}
+.ch-aviso{align-self:center;font-size:12.5px;color:var(--piz);background:var(--sup2);border-radius:999px;padding:3px 12px;margin:4px 0}
+.ch-cita-resp{all:unset;box-sizing:border-box;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;background:var(--sup2);border-left:3px solid var(--cielo);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--piz);margin-bottom:6px}.ch-cita-resp.mini{cursor:pointer;margin:0;display:block}
+.ch-comp{background:var(--sup);border-top:1px solid var(--linea);padding:10px 22px 14px;position:relative}
+.ch-fila{display:flex;gap:8px;align-items:flex-end}.ch-fila textarea{flex:1;min-height:42px;max-height:160px;resize:none}
+.ch-ref{font-size:18px;font-weight:700;width:42px;height:42px;padding:0}
+.ch-refs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.ch-refs .ficha{max-width:320px}
+.ch-men{position:absolute;bottom:100%;left:70px;background:var(--sup);border:1px solid var(--linea);border-radius:10px;box-shadow:var(--sombra);padding:6px;display:flex;flex-direction:column;gap:2px;z-index:5}.ch-men[hidden]{display:none}.ch-men button{all:unset;cursor:pointer;padding:6px 12px;border-radius:6px;color:var(--cielo)}.ch-men button:hover,.ch-men button:focus-visible{background:var(--sup2)}
+.ficha{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;background:var(--papel);border:1px solid var(--linea);border-radius:10px;padding:6px 10px 6px 6px;max-width:100%;position:relative}.ficha:hover{border-color:var(--cielo)}.ficha:focus-visible{outline:2px solid var(--cielo)}
+.ficha img,.ficha-sin{flex:none;width:44px;height:44px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.ficha-tx{display:grid;min-width:0;font-size:13px;gap:1px}.ficha-tx b,.ficha-tx .mut{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ficha-t{font-size:11.5px;color:var(--piz)}
+.ficha-x{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--tinta);color:var(--papel);display:grid;place-items:center;font-size:14px;cursor:pointer}
+.nt.nt-nueva{border-color:var(--ambar)}
+.ch-it .cuenta-n{flex:none;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--pino);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;box-sizing:border-box}
+.co-lista,.nc-lista{display:grid;gap:4px;max-height:50vh;overflow:auto}.co-it,.nc-it{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;cursor:pointer}.co-it:hover,.nc-it:hover{background:var(--sup2)}.co-it:focus-visible{outline:2px solid var(--cielo)}
+.cal-nav{display:flex;align-items:center;gap:10px;margin:0 0 12px}.cal-nav h2{margin:0;min-width:200px;text-align:center;text-transform:capitalize}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--linea);border-left:1px solid var(--linea)}
+.cal-dsem{padding:6px 8px;font-size:12.5px;color:var(--piz);text-transform:capitalize;border-right:1px solid var(--linea);border-bottom:1px solid var(--linea);background:var(--sup2)}
+.cal-d{min-height:104px;padding:4px 5px;border-right:1px solid var(--linea);border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:3px;cursor:pointer;background:var(--sup);min-width:0}.cal-d:hover{background:var(--sup2)}
+.cal-d.fuera{background:transparent;color:var(--piz)}.cal-n{font-size:13px;font-weight:600;align-self:flex-start;padding:1px 6px;border-radius:999px}.cal-d.hoy .cal-n{background:var(--tinta);color:var(--papel)}
+.cal-ev{all:unset;cursor:pointer;font-size:12px;background:var(--cielo-2);color:var(--cielo);border-radius:6px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-ev:focus-visible{outline:2px solid var(--cielo)}
+.cal-mas{font-size:12px;color:var(--piz);text-decoration:underline}
+.cal-prox{display:grid;gap:6px}.cal-pi{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:14px;align-items:center;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 14px}.cal-pi:hover{border-color:var(--cielo)}.cal-pi:focus-visible{outline:2px solid var(--cielo)}
+.cal-pf{display:grid;min-width:92px;font-size:13px;text-transform:capitalize}.cal-pt{display:grid;min-width:0;gap:2px}
+.ev-form{display:grid;gap:12px}.ev-form label{display:grid;gap:4px;font-size:13px}.ev-form input,.ev-form select,.ev-form textarea{width:100%}.ev-fila{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}.ev-form .ev-chk{display:flex;align-items:center;gap:8px}.ev-form .ev-chk input{width:auto}
+.nt-men button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+@media (max-width:960px){
+  .cht{grid-template-columns:minmax(0,1fr);height:calc(100dvh - 57px)}
+  .cht.ver-lista .m-chat{display:none}.cht.ver-chat .m-lista{display:none}
+  .ch-b{max-width:86%}.ch-msjs{padding:12px}.ch-comp{padding:8px 10px 10px}
+  .cal-d{min-height:64px}.cal-ev{font-size:0;height:6px;padding:0;border-radius:3px;background:var(--cielo)}
+  .ev-fila{grid-template-columns:1fr 1fr}.ev-fila label:first-child{grid-column:1/-1}
+}
+
 .nt-ref[hidden],.c-tabs .chip[hidden]{display:none}
 .c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
 .rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
@@ -1199,7 +1247,7 @@ async function recargar() {
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"],
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
@@ -1208,13 +1256,13 @@ const SUBTABS = {
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["numeros", "Mis números"]];
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"], ["numeros", "Mis números"]];
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
   $("#recargarTodos")?.classList.toggle("oculto", S.rol !== "admin");
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
-  const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : 0;
+  const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0) : 0;
   const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
@@ -1263,8 +1311,9 @@ function ir(t) {
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
   if (t !== "mensajes") S.msjId = null;
   if (t !== "devoluciones") S.devId = null;
+  if (t !== "chat") { S.chatId = null; S.chatCitas = false; clearTimeout(S.chatTimer); }
   // La pantalla actual queda en la dirección: al actualizar la página se vuelve a la misma
-  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
+  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : t === "chat" && S.chatId ? `#chat/${S.chatId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
@@ -2136,8 +2185,10 @@ async function detalle(id) {
     ${refs.length ? `<div class="bloque"><details><summary>Las ${refs.length} respuestas anteriores que usó como referencia</summary>
       <p class="peq mut">Si alguna está mal, marcala: el bot deja de usarla en todas las cuentas del cliente.</p>
       ${refs.map((x) => `<div class="ref"><div class="o">${esc(x.origen)}${x.fecha ? ", " + fecha(x.fecha) : ""}</div><b>${esc(x.pregunta)}</b><div>${esc(x.respuesta)}</div>${x.id ? `<button class="btn lin chico" style="margin-top:6px" data-hmal="${x.i}">Marcar como incorrecta</button>` : ""}</div>`).join("")}</details></div>` : ""}
+    <div class="bloque"><button class="btn lin chico" type="button" id="pCompartir">Compartir en el chat</button></div>
     <div class="bloque"><h3>Notas internas</h3><div class="notas" id="pNot"><p class="mut">Cargando las notas…</p></div></div>`);
   panelNotas($("#pNot", v), "pregunta", p.id);
+  $("#pCompartir", v).onclick = () => compartirEnChat("pregunta", p.id);
   v.addEventListener("click", (e) => {
     const i = e.target.dataset?.hmal; if (i == null) return;
     const h = histPlano(ctx.historial)[Number(i)];
@@ -3354,6 +3405,7 @@ function pintarChat(d) {
       <div class="n acc-cab">
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
+        <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat con el comprador</button>
@@ -3375,6 +3427,7 @@ function pintarChat(d) {
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
   if ($(".chat-alertas")) $(".chat-alertas").onclick = (e) => { if (!e.target.closest("a")) e.currentTarget.classList.toggle("abierta"); };
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
+  $("#mCompartir").onclick = () => compartirEnChat("venta", c.id);
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
   bur.onclick = async (e) => {
     const b = e.target.closest("[data-adj]"); if (!b) return;
@@ -3991,6 +4044,338 @@ function avisosMensajes(m) {
 }
 // Al tocar el aviso de un mensaje, se abre esa conversación
 // Al tocar un aviso (en el celular o la PC) se abre esa pregunta o esa conversación
+// ================= CHAT DEL EQUIPO y CALENDARIO =================
+const empChat = () => S.rol === "admin" ? S.empSel || S.soporte || null : (S.empresaId || S.res?.empresas?.[0]?.id || S.yo?.empresas?.[0]?.id || null);
+const horaCorta = (f) => { const d = new Date(f), hoy = new Date(); return d.toDateString() === hoy.toDateString() ? d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
+// Links que se ven como link (se abren en otra pestaña) y citas resaltadas
+function textoChat(t, nombres = []) {
+  let h = esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]"'])/g, (u) => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
+  for (const n of [...nombres, "Todos"].sort((a, b) => b.length - a.length)) h = h.replace(new RegExp(`(^|\\s)@${esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "gi"), (x, a) => `${a}<b class="nt-cita">${x.trim()}</b>`);
+  return h.replace(/\n/g, "<br>");
+}
+const ORIGEN_TXT = { venta: "Venta", pregunta: "Pregunta", devolucion: "Devolución", publicacion: "Publicación" };
+function fichaHtml(f, quitar = false) {
+  if (!f) return "";
+  return `<button type="button" class="ficha" data-ficha="${f.origen}:${esc(f.ref)}"${f.url ? ` data-url="${esc(f.url)}"` : ""}>${f.foto ? `<img src="${esc(f.foto)}" alt="" loading="lazy">` : `<span class="ficha-sin"></span>`}
+    <span class="ficha-tx"><span class="ficha-t">${ORIGEN_TXT[f.origen] ?? ""}${f.num ? ` · ${esc(f.num)}` : ""}${f.estado ? ` · <b>${esc(f.estado)}</b>` : ""}</span><b>${esc(f.titulo ?? "")}</b>${f.sub ? `<span class="mut">${esc(f.sub)}</span>` : ""}</span>${quitar ? `<span class="ficha-x" data-quitar-ficha="${f.origen}:${esc(f.ref)}" aria-label="Quitar">×</span>` : ""}</button>`;
+}
+function abrirFicha(el) {
+  const [o, r] = el.dataset.ficha.split(":");
+  if (o === "publicacion") { if (el.dataset.url) window.open(el.dataset.url, "_blank", "noopener"); return; }
+  irA(o, r);
+}
+document.addEventListener("click", (e) => {
+  const f = e.target.closest(".ficha[data-ficha]"); if (!f || e.target.closest("[data-quitar-ficha]") || f.closest(".ficha-elegir")) return;
+  e.preventDefault(); abrirFicha(f);
+});
+
+// Buscador de referencias ("#"): ventas, preguntas, devoluciones y publicaciones
+function elegirFicha(emp, alElegir) {
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Hacer referencia a…</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <input type="search" id="fiBus" placeholder="Comprador, producto, número de venta, envío o reclamo" style="width:100%">
+    <div id="fiRes" class="ficha-elegir" style="margin-top:12px;display:grid;gap:8px"><p class="mut">Cargando…</p></div>`);
+  let t0;
+  const buscar = async () => {
+    const r = await api("chat_buscar_refs", { empresa_id: emp, q: $("#fiBus", v).value }).catch((e) => ({ error: e.message }));
+    if (!v.isConnected) return;
+    $("#fiRes", v).innerHTML = r.error ? `<p class="mut">${esc(r.error)}</p>` : r.fichas.map((f) => fichaHtml(f)).join("") || `<p class="mut">No encontré nada con eso.</p>`;
+  };
+  $("#fiBus", v).oninput = () => { clearTimeout(t0); t0 = setTimeout(buscar, 300); };
+  $("#fiRes", v).onclick = (e) => { const f = e.target.closest("[data-ficha]"); if (!f) return; const [o, r] = f.dataset.ficha.split(":"); v.remove(); alElegir({ origen: o, ref: r }); };
+  buscar();
+}
+
+// Compartir una venta, pregunta o devolución en un chat
+async function compartirEnChat(origen, ref) {
+  const emp = empChat(); if (!emp) return aviso("Elegí una empresa");
+  const r = await seguro(() => api("chat_lista", { empresa_id: emp })); if (!r) return;
+  const [f] = (await api("chat_fichas", { empresa_id: emp, refs: [{ origen, ref }] }).catch(() => ({ fichas: [] }))).fichas ?? [];
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Compartir en el chat</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <div class="ficha-elegir">${fichaHtml(f)}</div>
+    <label class="peq" style="display:block;margin:12px 0 4px">Mensaje (opcional)</label><textarea id="coTx" style="width:100%;min-height:60px"></textarea>
+    <p class="peq mut" style="margin:12px 0 6px">Elegí el chat</p><div class="co-lista">${r.chats.map((c) => `<button type="button" class="co-it" data-chat="${c.id}">${avatar(c.nombre, c.tipo)}<span>${esc(c.nombre)}</span></button>`).join("")}</div>`);
+  v.querySelector(".co-lista").onclick = async (e) => {
+    const b = e.target.closest("[data-chat]"); if (!b) return;
+    b.disabled = true;
+    if (await seguro(() => api("chat_enviar", { empresa_id: emp, chat_id: Number(b.dataset.chat), texto: $("#coTx", v).value, refs: [{ origen, ref }] }))) { v.remove(); aviso("Compartido en el chat"); }
+    else b.disabled = false;
+  };
+}
+const avatar = (n, tipo) => `<i class="av ${tipo === "directo" ? "" : "av-g"}" aria-hidden="true">${tipo === "general" ? "★" : esc(iniciales(n))}</i>`;
+
+// Contador del menú: mensajes sin leer y citas en notas
+async function contarChat() {
+  const emp = empChat(); if (!emp || !S.rol || (S.rol === "admin" && !S.soporte)) return;
+  const r = await api("chat_contador", { empresa_id: emp }).catch(() => null); if (!r) return;
+  const n = (r.chat ?? 0) + (r.citas ?? 0);
+  if (n > (S.chatN ?? 0) && S.chatN != null && S.tab !== "chat") sonar?.();
+  if (S.chatN !== n) { S.chatN = n; armarNav(); if (S.tab === "chat" && !S.chatAbierto) cargarChats(); }
+}
+setInterval(contarChat, 20000); setTimeout(contarChat, 3000);
+
+VISTAS.chat = async () => {
+  const emp = empChat();
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Chat</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  $("#main").classList.add("lleno");
+  $("#main").innerHTML = `<div class="cht ${S.chatId || S.chatCitas ? "ver-chat" : "ver-lista"}">
+    <aside class="m-lista"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Chat</h1><div class="n"><button class="btn pri chico" id="chNuevo" type="button">Nuevo chat</button></div></div></div><div id="chLista" class="ch-lista"><p class="mut" style="padding:16px">Cargando…</p></div></aside>
+    <section class="m-chat" id="chConv"><div class="m-vacio"><b>Elegí un chat</b><span>o empezá uno nuevo</span></div></section></div>`;
+  $("#chNuevo").onclick = () => nuevoChat(emp);
+  await cargarChats();
+  if (S.chatCitas) abrirCitas(); else if (S.chatId) abrirChat(S.chatId);
+};
+async function cargarChats() {
+  const emp = empChat(); const r = await api("chat_lista", { empresa_id: emp }).catch((e) => ({ error: e.message }));
+  if (S.tab !== "chat" || !$("#chLista")) return;
+  if (r.error) { $("#chLista").innerHTML = `<p class="mut" style="padding:16px">${esc(r.error)}</p>`; return; }
+  S.chatEq = r.equipo; S.chatYo = r.yo;
+  $("#chLista").innerHTML = `<button type="button" class="ch-it ${S.chatCitas ? "on" : ""}" data-citas="1"><i class="av av-n" aria-hidden="true">@</i><span class="ch-tx"><b>Te citaron en notas</b><span class="mut">Notas internas donde te nombraron</span></span>${r.citas ? `<span class="cuenta-n">${r.citas}</span>` : ""}</button>
+    ${r.chats.map((c) => `<button type="button" class="ch-it ${c.id === S.chatId ? "on" : ""}" data-chat="${c.id}">${avatar(c.nombre, c.tipo)}<span class="ch-tx"><span class="ch-l1"><b>${esc(c.nombre)}</b><span class="mut peq" style="flex:none">${c.ultimo ? horaCorta(c.ultimo.fecha) : ""}</span></span><span class="mut ch-ult">${c.ultimo ? `${c.tipo !== "directo" || c.ultimo.autor === "Vos" ? `${esc(c.ultimo.autor)}: ` : ""}${esc(c.ultimo.texto || "Ficha compartida")}` : c.tipo === "general" ? "Todo el equipo" : "Sin mensajes todavía"}</span></span>${c.no_leidos ? `<span class="cuenta-n">${c.no_leidos}</span>` : ""}</button>`).join("")}`;
+  $("#chLista").onclick = (e) => { const b = e.target.closest("[data-chat],[data-citas]"); if (!b) return; if (b.dataset.citas) abrirCitas(); else abrirChat(Number(b.dataset.chat)); };
+  S.chatListaDatos = r;
+}
+function marcarLista(sel) { document.querySelectorAll("#chLista .ch-it").forEach((x) => x.classList.toggle("on", x.matches(sel))); const c = $(".cht"); if (c) { c.classList.add("ver-chat"); c.classList.remove("ver-lista"); } }
+function volverChats() { S.chatId = null; S.chatCitas = false; clearTimeout(S.chatTimer); const c = $(".cht"); if (c) { c.classList.remove("ver-chat"); c.classList.add("ver-lista"); } try { history.replaceState(null, "", location.pathname + location.search + "#chat"); } catch {} cargarChats(); }
+
+async function abrirCitas() {
+  S.chatCitas = true; S.chatId = null; clearTimeout(S.chatTimer); marcarLista("[data-citas]");
+  const emp = empChat();
+  $("#chConv").innerHTML = `<div class="chat-cab">${anchoMovil() ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver">${ICONO_M.atras}</button>` : ""}<div class="t"><b>Te citaron en notas</b><span class="mut peq">Notas internas donde te nombraron</span></div></div><div class="ch-msjs" id="chCitas"><p class="mut">Cargando…</p></div>`;
+  if ($("#chConv .m-atras")) $("#chConv .m-atras").onclick = volverChats;
+  const r = await api("chat_citas", { empresa_id: emp }).catch((e) => ({ error: e.message }));
+  if (!$("#chCitas")) return;
+  $("#chCitas").innerHTML = r.error ? `<p class="mut">${esc(r.error)}</p>` : r.citas.map((n) => `<div class="nt ${n.nueva ? "nt-nueva" : ""}"><div class="nt-cab"><b>${esc(n.autor)}</b><span>${fecha(n.fecha)}</span>${n.nueva ? `<span class="chip c-nota">Nueva</span>` : ""}</div><div class="nt-tx">${textoChat(n.texto, (S.chatEq ?? []).map((m) => m.nombre).concat(S.chatListaDatos?.yo?.nombre ?? []))}</div>${n.ficha ? `<div data-cita-ir="${n.origen}:${esc(n.ref)}">${fichaHtml(n.ficha)}</div>` : ""}</div>`).join("") || `<div class="m-vacio"><b>Nadie te citó todavía</b><span>Cuando alguien te nombre con @ en una nota, aparece acá.</span></div>`;
+  // La ficha de una cita abre directamente las notas de ese lugar
+  $("#chCitas").onclick = (e) => { const w = e.target.closest("[data-cita-ir]"); if (!w) return; e.stopPropagation(); e.preventDefault(); const [o, rf] = w.dataset.citaIr.split(":"); S.irNotas = true; if (o === "venta") { S.convTab = S.convTab ?? {}; S.convTab[Number(rf)] = "notas"; } irA(o, rf); };
+  armarNav(); setTimeout(contarChat, 500); cargarChats();
+}
+
+async function abrirChat(id) {
+  S.chatId = id; S.chatCitas = false; clearTimeout(S.chatTimer);
+  try { history.replaceState(null, "", location.pathname + location.search + "#chat/" + id); } catch {}
+  marcarLista(`[data-chat="${id}"]`);
+  const st = { refs: [], resp: null, ultimo: 0, msjs: [] };
+  S.chatSt = st;
+  $("#chConv").innerHTML = `<div class="chat-cab">${anchoMovil() ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver">${ICONO_M.atras}</button>` : ""}<div class="t"><b id="chNom">…</b><span class="mut peq" id="chMiem"></span></div><div class="n" id="chAcc"></div></div>
+    <div class="ch-msjs" id="chMsjs"><p class="mut">Cargando…</p></div>
+    <div class="ch-comp"><div id="chResp"></div><div id="chRefs" class="ch-refs"></div><div id="chMen" class="ch-men" hidden></div>
+      <div class="ch-fila"><button type="button" class="btn lin chico ch-ref" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación">#</button>
+      <textarea id="chTx" rows="1" placeholder="Escribí un mensaje" aria-label="Mensaje"></textarea><button type="button" class="btn pri" id="chEnv">Enviar</button></div></div>`;
+  if ($("#chConv .m-atras")) $("#chConv .m-atras").onclick = volverChats;
+  const tx = $("#chTx");
+  const ajustar = () => { tx.style.height = "auto"; tx.style.height = Math.min(tx.scrollHeight, 160) + "px"; };
+  const pintarRefs = async () => {
+    if (!st.refs.length) { $("#chRefs").innerHTML = ""; return; }
+    const r = await api("chat_fichas", { empresa_id: empChat(), refs: st.refs }).catch(() => ({ fichas: [] }));
+    $("#chRefs").innerHTML = (r.fichas ?? []).map((f) => fichaHtml(f, true)).join("");
+  };
+  $("#chRefs").onclick = (e) => { const q = e.target.closest("[data-quitar-ficha]"); if (!q) return; e.stopPropagation(); const [o, r] = q.dataset.quitarFicha.split(":"); st.refs = st.refs.filter((x) => !(x.origen === o && x.ref === r)); pintarRefs(); };
+  $("#chRef").onclick = () => elegirFicha(empChat(), (f) => { if (!st.refs.some((x) => x.origen === f.origen && x.ref === f.ref)) st.refs.push(f); pintarRefs(); tx.focus(); });
+  // "@" muestra la gente del chat para citarla; "#" abre el buscador de referencias
+  tx.oninput = () => {
+    ajustar();
+    const antes = tx.value.slice(0, tx.selectionStart), m = antes.match(/(^|\s)@([^\s@]*)$/);
+    const men = $("#chMen");
+    if (/(^|\s)#$/.test(antes)) { tx.value = tx.value.slice(0, tx.selectionStart - 1) + tx.value.slice(tx.selectionStart); $("#chRef").click(); return; }
+    if (!m) { men.hidden = true; return; }
+    const q = m[2].toLowerCase(), lista = [...(st.miembros ?? []).filter((x) => x.id !== S.chatYo?.id).map((x) => x.nombre), ...((st.miembros?.length ?? 0) > 2 ? ["Todos"] : [])].filter((n) => n.toLowerCase().startsWith(q));
+    men.hidden = !lista.length;
+    men.innerHTML = lista.map((n) => `<button type="button" data-men="${esc(n)}">@${esc(n)}</button>`).join("");
+  };
+  $("#chMen").onclick = (e) => {
+    const b = e.target.closest("[data-men]"); if (!b) return;
+    const pos = tx.selectionStart, antes = tx.value.slice(0, pos).replace(/@[^\s@]*$/, `@${b.dataset.men} `);
+    tx.value = antes + tx.value.slice(pos); tx.focus(); tx.selectionStart = tx.selectionEnd = antes.length; $("#chMen").hidden = true;
+  };
+  const enviar = async () => {
+    const t = tx.value.trim(); if (!t && !st.refs.length) return;
+    $("#chEnv").disabled = true;
+    const ok = await seguro(() => api("chat_enviar", { empresa_id: empChat(), chat_id: id, texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null }));
+    $("#chEnv").disabled = false;
+    if (!ok) return;
+    tx.value = ""; ajustar(); st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs(); traer(true);
+  };
+  $("#chEnv").onclick = enviar;
+  tx.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey && !anchoMovil()) { e.preventDefault(); enviar(); } };
+  $("#chMsjs").onclick = async (e) => {
+    const rb = e.target.closest("[data-responder]"); if (rb) {
+      const m = st.msjs.find((x) => x.id === Number(rb.dataset.responder)); st.resp = m;
+      $("#chResp").innerHTML = `<div class="ch-cita-resp"><span><b>Respondiendo a ${esc(m.mio ? "vos" : m.autor)}</b><br>${esc(m.texto.slice(0, 120))}</span><button type="button" class="aviso-x" id="chRespX" aria-label="No responder">×</button></div>`;
+      $("#chRespX").onclick = () => { st.resp = null; $("#chResp").innerHTML = ""; }; tx.focus(); return;
+    }
+    const ag = e.target.closest("[data-agendar]"); if (ag) { const m = st.msjs.find((x) => x.id === Number(ag.dataset.agendar)); agendarMensaje(m, st.miembros); return; }
+    const ir2 = e.target.closest("[data-ir-msj]"); if (ir2) { $(`#cm-${ir2.dataset.irMsj}`)?.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  };
+  const tilde = (m) => {
+    if (!m.mio || m.aviso) return "";
+    const otros = (st.miembros ?? []).filter((x) => x.id !== S.chatYo?.id);
+    const leyeron = otros.filter((x) => x.leido_hasta >= m.id).length;
+    return `<span class="tilde ${otros.length && leyeron === otros.length ? "leido" : ""}" title="${leyeron === otros.length ? "Leído" : leyeron ? `Leído por ${leyeron} de ${otros.length}` : "Enviado"}">${leyeron === otros.length && otros.length ? "✓✓" : "✓"}</span>`;
+  };
+  const burbuja = (m, ant) => {
+    const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const sep = !ant || new Date(ant.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }) !== d ? `<div class="dia">${esc(d)}</div>` : "";
+    if (m.aviso) return `${sep}<div class="ch-aviso">${esc(m.texto)}</div>`;
+    const grupo = st.chat?.tipo !== "directo";
+    const nombres = (st.miembros ?? []).map((x) => x.nombre);
+    return `${sep}<div class="ch-b ${m.mio ? "mio" : ""}" id="cm-${m.id}">
+      ${grupo && !m.mio && (!ant || ant.autor !== m.autor || ant.aviso) ? `<span class="ch-autor">${esc(m.autor)}</span>` : ""}
+      ${m.respuesta ? `<button type="button" class="ch-cita-resp mini" data-ir-msj="${m.respuesta.id}"><b>${esc(m.respuesta.autor_nombre)}</b><br>${esc(String(m.respuesta.texto).slice(0, 100))}</button>` : ""}
+      ${m.texto ? `<div class="ch-tx">${textoChat(m.texto, nombres)}</div>` : ""}
+      ${(m.fichas ?? []).map((f) => fichaHtml(f)).join("")}
+      <span class="ch-pie"><button type="button" class="ch-acc" data-responder="${m.id}">Responder</button><button type="button" class="ch-acc" data-agendar="${m.id}">Agendar</button><span>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>${tilde(m)}</span></div>`;
+  };
+  const pintar = (todo) => {
+    const box = $("#chMsjs"); if (!box) return;
+    const abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    box.innerHTML = st.msjs.map((m, i) => burbuja(m, st.msjs[i - 1])).join("") || `<div class="m-vacio"><b>Todavía no hay mensajes</b><span>Escribí el primero.</span></div>`;
+    if (todo || abajo) box.scrollTop = box.scrollHeight;
+  };
+  const traer = async (bajar) => {
+    clearTimeout(S.chatTimer);
+    if (S.chatId !== id || S.tab !== "chat") return;
+    const r = await api("chat_mensajes", { empresa_id: empChat(), chat_id: id, desde_id: st.ultimo || null }).catch((e) => ({ error: e.message }));
+    if (S.chatId !== id || !$("#chMsjs")) return;
+    if (r.error) { if (!st.ultimo) $("#chMsjs").innerHTML = `<p class="mut">${esc(r.error)}</p>`; }
+    else {
+      const primera = !st.ultimo;
+      st.chat = r.chat; st.miembros = r.miembros;
+      if (r.mensajes.length) { st.msjs = [...st.msjs, ...r.mensajes]; st.ultimo = r.mensajes[r.mensajes.length - 1].id; }
+      $("#chNom").textContent = r.chat.nombre;
+      $("#chMiem").textContent = r.chat.tipo === "directo" ? "Chat de a dos" : r.miembros.map((x) => x.id === S.chatYo?.id ? "Vos" : x.nombre).join(", ");
+      if (primera) {
+        $("#chAcc").innerHTML = r.chat.tipo === "grupo" ? `<button class="btn lin chico" type="button" id="chGrupo">Grupo</button>` : "";
+        if ($("#chGrupo")) $("#chGrupo").onclick = () => opcionesGrupo(r.chat, st.miembros);
+      }
+      pintar(primera || bajar);
+      if (r.mensajes.length) { setTimeout(contarChat, 300); }
+    }
+    S.chatTimer = setTimeout(traer, document.hidden ? 15000 : 3000);
+  };
+  await traer(true);
+  tx.focus();
+}
+
+function nuevoChat(emp) {
+  const eq = S.chatEq ?? [];
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Nuevo chat</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 10px">Elegí una persona para un chat de a dos, o varias para armar un grupo.</p>
+    <div class="nc-lista">${eq.map((m) => `<label class="nc-it"><input type="checkbox" value="${esc(m.id)}">${avatar(m.nombre, "directo")}<span>${esc(m.nombre)}</span></label>`).join("") || `<p class="mut">No hay otras personas en el equipo.</p>`}</div>
+    <div id="ncGrupo" hidden style="margin-top:12px"><label class="peq" for="ncNom">Nombre del grupo</label><input id="ncNom" maxlength="60" style="width:100%" placeholder="Por ejemplo: Despacho"></div>
+    <div class="fila" style="margin-top:14px"><div class="n"><button class="btn pri" id="ncOk" type="button" disabled>Empezar</button></div></div>`);
+  const sel = () => [...v.querySelectorAll(".nc-lista input:checked")].map((x) => x.value);
+  v.querySelector(".nc-lista").onchange = () => { const n = sel().length; $("#ncGrupo", v).hidden = n < 2; $("#ncOk", v).disabled = !n; $("#ncOk", v).textContent = n > 1 ? "Crear grupo" : "Empezar"; };
+  $("#ncOk", v).onclick = async () => {
+    const r = await seguro(() => api("chat_nuevo", { empresa_id: emp, miembros: sel(), nombre: $("#ncNom", v).value })); if (!r) return;
+    v.remove(); await cargarChats(); abrirChat(r.id);
+  };
+}
+function opcionesGrupo(chat, miembros) {
+  const fuera = (S.chatEq ?? []).filter((m) => !miembros.some((x) => x.id === m.id));
+  const v = abrirHoja(`<div class="cajon-cab"><h2>${esc(chat.nombre)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 6px">Integrantes</p><p style="margin:0 0 14px">${miembros.map((x) => esc(x.id === S.chatYo?.id ? "Vos" : x.nombre)).join(", ")}</p>
+    <label class="peq" for="ogNom">Nombre</label><div class="ch-fila" style="margin-bottom:14px"><input id="ogNom" maxlength="60" value="${esc(chat.nombre)}" style="flex:1"><button class="btn lin chico" id="ogRen" type="button">Cambiar</button></div>
+    ${fuera.length ? `<p class="peq mut" style="margin:0 0 6px">Sumar personas</p><div class="nc-lista">${fuera.map((m) => `<label class="nc-it"><input type="checkbox" value="${esc(m.id)}">${avatar(m.nombre, "directo")}<span>${esc(m.nombre)}</span></label>`).join("")}</div><button class="btn lin chico" id="ogSum" type="button" style="margin-top:8px">Sumar</button>` : ""}
+    <div class="fila" style="margin-top:18px"><div class="n"><button class="btn pel chico" id="ogSal" type="button">Salir del grupo</button></div></div>`);
+  $("#ogRen", v).onclick = async () => { if (await seguro(() => api("chat_renombrar", { empresa_id: empChat(), chat_id: chat.id, nombre: $("#ogNom", v).value }))) { v.remove(); abrirChat(chat.id); cargarChats(); } };
+  if ($("#ogSum", v)) $("#ogSum", v).onclick = async () => { const l = [...v.querySelectorAll(".nc-lista input:checked")].map((x) => x.value); if (!l.length) return; if (await seguro(() => api("chat_agregar", { empresa_id: empChat(), chat_id: chat.id, miembros: l }))) { v.remove(); abrirChat(chat.id); } };
+  $("#ogSal", v).onclick = async () => { if (!confirm("¿Salir del grupo? Ya no vas a ver sus mensajes.")) return; if (await seguro(() => api("chat_salir", { empresa_id: empChat(), chat_id: chat.id }))) { v.remove(); volverChats(); } };
+}
+
+// ---------- Calendario ----------
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const DIAS_SEM = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
+const RECORDAR = [["", "Sin aviso"], ["0", "A la hora"], ["10", "10 minutos antes"], ["30", "30 minutos antes"], ["60", "1 hora antes"], ["1440", "1 día antes"]];
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const hmCal = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+VISTAS.calendario = async () => {
+  const emp = empChat();
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Calendario</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  const hoy = new Date(); S.calMes = S.calMes ?? new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const m0 = S.calMes, ini = new Date(m0); ini.setDate(1 - ((m0.getDay() + 6) % 7));
+  const fin = new Date(ini); fin.setDate(ini.getDate() + 42);
+  const r = await seguro(() => api("cal_lista", { empresa_id: emp, desde: ini.toISOString(), hasta: new Date(Math.max(fin, Date.now() + 62 * 86400000)).toISOString() }));
+  if (!r || S.tab !== "calendario") return;
+  S.calDatos = r;
+  const porDia = new Map(); for (const e of r.eventos) { const k = ymd(new Date(e.inicio)); porDia.set(k, [...(porDia.get(k) ?? []), e]); }
+  const celdas = Array.from({ length: 42 }, (_, i) => { const d = new Date(ini); d.setDate(ini.getDate() + i); return d; });
+  const proximos = r.eventos.filter((e) => new Date(e.inicio) >= new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())).slice(0, 30);
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Calendario</h1><p>Eventos del equipo. A la hora del aviso les llega una notificación a los invitados.</p></div><div class="n"><button class="btn pri" id="calNuevo" type="button">Nuevo evento</button></div></div>
+    <div class="cal-nav"><button class="btn lin chico" id="calAnt" type="button" aria-label="Mes anterior">‹</button><h2>${MESES[m0.getMonth()]} ${m0.getFullYear()}</h2><button class="btn lin chico" id="calSig" type="button" aria-label="Mes siguiente">›</button><button class="btn lin chico" id="calHoy" type="button">Hoy</button></div>
+    <div class="cal-grid" role="grid">${DIAS_SEM.map((d) => `<div class="cal-dsem">${d}</div>`).join("")}${celdas.map((d) => { const k = ymd(d), ev = porDia.get(k) ?? []; return `<div class="cal-d ${d.getMonth() !== m0.getMonth() ? "fuera" : ""} ${k === ymd(hoy) ? "hoy" : ""}" data-dia="${k}" role="gridcell"><span class="cal-n">${d.getDate()}</span>${ev.slice(0, 3).map((e) => `<button type="button" class="cal-ev" data-ev="${e.id}">${e.todo_dia ? "" : `<b>${hmCal(new Date(e.inicio))}</b> `}${esc(e.titulo)}</button>`).join("")}${ev.length > 3 ? `<span class="cal-mas">+${ev.length - 3} más</span>` : ""}</div>`; }).join("")}</div>
+    <h2 style="margin:28px 0 10px">Próximos</h2>
+    <div class="cal-prox">${proximos.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><b>${new Date(e.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}</b><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${esc(e.titulo)}</b><span class="mut peq">${esc(e.invitados_nombres.join(", "))}${e.recordatorio_min != null ? ` · aviso ${esc((RECORDAR.find((x) => x[0] === String(e.recordatorio_min)) ?? ["", `${e.recordatorio_min} min antes`])[1].toLowerCase())}` : ""}</span></span></button>`).join("") || `<p class="mut">No hay eventos próximos.</p>`}</div>`;
+  $("#calAnt").onclick = () => { S.calMes = new Date(m0.getFullYear(), m0.getMonth() - 1, 1); VISTAS.calendario(); };
+  $("#calSig").onclick = () => { S.calMes = new Date(m0.getFullYear(), m0.getMonth() + 1, 1); VISTAS.calendario(); };
+  $("#calHoy").onclick = () => { S.calMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1); VISTAS.calendario(); };
+  $("#calNuevo").onclick = () => editarEvento({});
+  $("#main").onclick = (e) => {
+    const ev = e.target.closest("[data-ev]"); if (ev) { editarEvento(r.eventos.find((x) => x.id === Number(ev.dataset.ev))); return; }
+    // Un día sin eventos: se crea uno; con eventos: se ven los de ese día
+    const d = e.target.closest("[data-dia]"); if (!d) return;
+    const [y, mo, da] = d.dataset.dia.split("-").map(Number), evs = porDia.get(d.dataset.dia) ?? [];
+    if (evs.length) verDia(new Date(y, mo - 1, da), evs); else editarEvento({ inicio: new Date(y, mo - 1, da, 10, 0).toISOString() });
+  };
+  if (S.calAbrir) { const e = r.eventos.find((x) => x.id === S.calAbrir); S.calAbrir = null; if (e) editarEvento(e); }
+};
+function verDia(d, evs) {
+  const v = abrirHoja(`<div class="cajon-cab"><h2>${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <div class="cal-prox">${evs.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${esc(e.titulo)}</b></span></button>`).join("")}</div>
+    <div class="fila" style="margin-top:14px"><div class="n"><button class="btn pri chico" type="button" data-nuevo-dia>Nuevo evento este día</button></div></div>`);
+  v.onclick = (e) => {
+    const b = e.target.closest("[data-ev]"); if (b) { v.remove(); editarEvento(evs.find((x) => x.id === Number(b.dataset.ev))); return; }
+    if (e.target.closest("[data-nuevo-dia]")) { v.remove(); const f = new Date(d); f.setHours(10, 0, 0, 0); editarEvento({ inicio: f.toISOString() }); }
+  };
+}
+// Crear o cambiar un evento. "previo" puede venir del chat (título, fecha, ficha, invitados)
+async function editarEvento(ev, previo = {}) {
+  const emp = empChat();
+  const eq = S.calDatos?.equipo ?? (await api("cal_lista", { empresa_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] }))).equipo ?? [];
+  const yo = S.calDatos?.yo ?? S.chatYo?.id;
+  const e = { invitados: [yo], recordatorio_min: 10, ...previo, ...ev };
+  const nuevo = !e.id, puede = nuevo || e.puede_editar;
+  const ini = e.inicio ? new Date(e.inicio) : new Date(Date.now() + 3600000);
+  const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { empresa_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
+  const v = abrirHoja(`<div class="cajon-cab"><h2>${nuevo ? "Nuevo evento" : puede ? "Evento" : esc(e.titulo)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    ${!nuevo ? `<p class="peq mut" style="margin:0 0 10px">Lo creó ${esc(e.creado_nombre ?? "")}</p>` : ""}
+    <div class="ev-form">
+      <label>Título<input id="evT" maxlength="200" value="${esc(e.titulo ?? "")}" ${puede ? "" : "disabled"}></label>
+      <div class="ev-fila"><label>Fecha<input type="date" id="evF" value="${ymd(ini)}" ${puede ? "" : "disabled"}></label>
+        <label>Hora<input type="time" id="evH" value="${hmCal(ini)}" ${e.todo_dia || !puede ? "disabled" : ""}></label>
+        <label>Hasta<input type="time" id="evHf" value="${e.fin ? hmCal(new Date(e.fin)) : ""}" ${e.todo_dia || !puede ? "disabled" : ""}></label></div>
+      <label class="ev-chk"><input type="checkbox" id="evTd" ${e.todo_dia ? "checked" : ""} ${puede ? "" : "disabled"}> Todo el día</label>
+      <label>Aviso<select id="evR" ${puede ? "" : "disabled"}>${RECORDAR.map(([k, t]) => `<option value="${k}" ${String(e.recordatorio_min ?? "") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <div><span class="peq">Invitados</span><div class="nt-men" id="evI">${eq.map((m) => `<button type="button" aria-pressed="${(e.invitados ?? []).includes(m.id)}" data-inv="${esc(m.id)}" ${puede ? "" : "disabled"}>${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}${puede ? `<button type="button" data-inv-todos>Todos</button>` : ""}</div></div>
+      <label>Detalle<textarea id="evD" maxlength="2000" ${puede ? "" : "disabled"}>${esc(e.detalle ?? "")}</textarea></label>
+      ${ficha ? `<div><span class="peq">Referencia</span>${fichaHtml(ficha)}</div>` : ""}
+    </div>
+    ${puede ? `<div class="fila" style="margin-top:14px">${!nuevo ? `<div class="n"><button class="btn pel chico" id="evB" type="button">Borrar</button></div>` : ""}<div class="n" style="margin-left:auto"><button class="btn pri" id="evG" type="button">Guardar</button></div></div>` : ""}`);
+  $("#evTd", v).onchange = (x) => { $("#evH", v).disabled = $("#evHf", v).disabled = x.target.checked; };
+  $("#evI", v).onclick = (x) => {
+    const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
+    if (x.target.closest("[data-inv-todos]")) v.querySelectorAll("[data-inv]").forEach((y) => y.setAttribute("aria-pressed", "true"));
+  };
+  if ($("#evG", v)) $("#evG", v).onclick = async () => {
+    const td = $("#evTd", v).checked, f = $("#evF", v).value, h = td ? "09:00" : $("#evH", v).value || "09:00", hf = $("#evHf", v).value;
+    const inicio = new Date(`${f}T${h}`), fin = !td && hf ? new Date(`${f}T${hf}`) : null;
+    const r = await seguro(() => api("cal_guardar", { empresa_id: emp, id: e.id ?? null, titulo: $("#evT", v).value, detalle: $("#evD", v).value, inicio: inicio.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: td,
+      invitados: [...v.querySelectorAll('[data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv), recordatorio_min: $("#evR", v).value === "" ? null : Number($("#evR", v).value), ref: e.ref ?? null, chat_mensaje_id: e.chat_mensaje_id ?? null }));
+    if (!r) return;
+    v.remove(); aviso(nuevo ? "Evento agendado" : "Evento guardado");
+    if (S.tab === "calendario") VISTAS.calendario();
+  };
+  if ($("#evB", v)) $("#evB", v).onclick = async () => { if (!confirm("¿Borrar este evento?")) return; if (await seguro(() => api("cal_borrar", { empresa_id: emp, id: e.id }))) { v.remove(); aviso("Evento borrado"); if (S.tab === "calendario") VISTAS.calendario(); } };
+}
+// "Agendar" en un mensaje del chat: la IA propone título, fecha y hora; la persona revisa y guarda
+async function agendarMensaje(m, miembros) {
+  const espera = abrirHoja(`<div style="padding:24px;text-align:center"><b>Preparando el evento…</b></div>`);
+  const r = await api("cal_sugerir", { empresa_id: empChat(), texto: m.texto || (m.fichas?.[0]?.titulo ?? "") }).catch(() => null);
+  espera.remove();
+  const f = r?.fecha ? new Date(`${r.fecha}T${r.hora || "09:00"}`) : new Date(Date.now() + 86400000);
+  const fin = r?.hora && r?.duracion_min ? new Date(f.getTime() + r.duracion_min * 60000) : null;
+  editarEvento({}, { titulo: r?.titulo ?? m.texto.slice(0, 80), inicio: f.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: !!r?.todo_dia, detalle: m.texto, invitados: (miembros ?? []).map((x) => x.id), ref: m.fichas?.[0] ? { origen: m.fichas[0].origen, ref: m.fichas[0].ref } : null, chat_mensaje_id: m.id });
+}
+
 // ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, se informa a ML con fotos) y fotos al despachar =================
 const empRec = () => S.rol === "admin" ? S.empSel : (S.empresaId || S.res?.empresas?.[0]?.id || null);
 const ICONO_R = {
@@ -4177,8 +4562,9 @@ VISTAS.devoluciones = async () => {
 async function detalleDevolucion(id) {
   await detalleDevolucion0(id);
   if (S.tab !== "devoluciones" || S.devId !== id || $("#dNot")) return;
-  $("#main").insertAdjacentHTML("beforeend", `<section class="panel" style="margin-top:16px"><h2 class="rec-h" style="margin-top:0">Notas internas</h2><div class="notas" id="dNot"><p class="mut">Cargando las notas…</p></div></section>`);
+  $("#main").insertAdjacentHTML("beforeend", `<section class="panel" style="margin-top:16px"><div class="fila" style="align-items:center"><h2 class="rec-h" style="margin:0">Notas internas</h2><div class="n"><button class="btn lin chico" type="button" id="dCompartir">Compartir en el chat</button></div></div><div class="notas" id="dNot" style="margin-top:10px"><p class="mut">Cargando las notas…</p></div></section>`);
   panelNotas($("#dNot"), "devolucion", id);
+  $("#dCompartir").onclick = () => compartirEnChat("devolucion", id);
 }
 async function detalleDevolucion0(id) {
   const r = await seguro(() => api("devolucion", { id })); if (!r || S.tab !== "devoluciones" || S.devId !== id) return;
@@ -4687,6 +5073,9 @@ function abrirDesdeEnlace(h) {
   const t = String(h || "");
   const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.replace(/^#reclamos$/, "#devoluciones").match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/); // "reclamos": enlaces viejos
   if (!S.rol) return false;
+  const mch = t.match(/#chat\/(\d+)/), mca = t.match(/#calendario\/(\d+)/);
+  if (mch) { S.chatId = Number(mch[1]); ir("chat"); return true; }
+  if (mca) { S.calAbrir = Number(mca[1]); ir("calendario"); return true; }
   // Aviso de una nota en la que citaron a la persona: se abre directo en las notas
   if (/\/notas$/.test(t)) { S.irNotas = true; if (mm) { S.convTab = S.convTab ?? {}; S.convTab[Number(mm[1])] = "notas"; } }
   if (mr) { if (!modsActuales().has("devoluciones")) return false; S.devId = Number(mr[1]); ir("devoluciones"); return true; }
