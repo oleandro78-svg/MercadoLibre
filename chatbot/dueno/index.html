@@ -248,6 +248,8 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .acciones{grid-column:2;display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
 .acciones .cuenta-c{margin-left:auto;font-size:12.5px;color:var(--piz)}
 
+.rg-texto .panel{margin-bottom:14px;max-width:820px}.rg-texto p,.rg-texto li{line-height:1.6}.rg-texto ul,.rg-texto ol{padding-left:20px;margin:8px 0}.rg-texto li{margin:6px 0}
+.rg-barra{display:grid;grid-template-columns:minmax(0,1fr) 120px 56px;gap:10px;align-items:center;font-size:14px;padding:5px 0}.rg-barra i{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--tinta) var(--v),var(--linea) var(--v))}.rg-barra b{text-align:right;font-variant-numeric:tabular-nums}
 .medidas{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--linea);border-radius:var(--r-l);background:var(--sup);overflow:hidden}
 .medida{padding:16px 18px;border-right:1px solid var(--linea)}
 .medida:last-child{border-right:0}
@@ -1291,7 +1293,7 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas"
   ["numeros", "Mis números"]];
 // Operador: secciones que el administrador le habilitó (Equipo → Permisos)
 const permOp = (sec) => (S.yo?.empresas ?? []).filter((e) => !S.empresaId || e.id === S.empresaId).some((e) => (e.permisos ?? []).includes(sec));
-const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
+const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["regulador", "Regulador de IA"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
   try { rtSincronizar(); } catch {}
@@ -2894,6 +2896,70 @@ VISTAS.config = async () => {
     if (cambios.modo === "automatico" && !confirm("En automático el bot publica en MercadoLibre, sin revisión, lo que sabe responder. ¿Confirmás?")) return;
     if (await seguro(() => api("config_guardar", { nivel, id, valores: cambios }))) { aviso("Configuración guardada"); await recargar(); armarNav(); VISTAS.config(); }
   };
+};
+
+// ================= REGULADOR DE IA (solo el dueño de la app) =================
+const RG_ACC = { pregunta_respuesta: "Respuestas a preguntas", venta_borrador: "Borradores de mensajes de venta" };
+const RG_PAQ = { ficha: "Ficha del producto", seccion: "Sección del catálogo", todo: "Catálogo completo" };
+const RG_TEMA = { envio_entrega: "Envío y entrega", medidas_compatibilidad: "Medidas y compatibilidad", caracteristicas: "Características", uso_instalacion: "Uso e instalación", precio_stock_pago: "Precio, stock y pago", garantia_factura: "Garantía y factura", estado_pedido: "Estado del pedido", problema_devolucion: "Problema o devolución", otra_variante: "Otra medida o modelo", otro_producto: "Otro producto", saludo_cierre: "Saludo o agradecimiento", sin_mensaje: "Sin mensaje del comprador", otro: "Otro" };
+const RG_FUENTE = { datos_publicacion: "Datos de la publicación", ficha_catalogo: "Ficha del catálogo", otros_productos: "Otros productos del catálogo", otras_publicaciones: "Listado de otras publicaciones", historial_publicacion: "Respuestas anteriores en la publicación", historial_otras: "Respuestas en otras publicaciones", correcciones: "Correcciones del vendedor", instrucciones: "Instrucciones de la cuenta", notas: "Notas del equipo", conversacion: "Conversación con el comprador" };
+VISTAS.regulador = async () => {
+  if (!dueno()) { $("#main").innerHTML = `<div class="vacio"><b>Sección del dueño de la app</b></div>`; return; }
+  S.rgVista = S.rgVista ?? "como";
+  const cab = `<div class="cabecera"><div><h1>Regulador de IA</h1><p>Decide cuánta información recibe la IA en cada respuesta para gastar menos sin responder peor.</p></div></div>
+    <div class="pestanas" role="tablist">${[["como", "Cómo funciona"], ["indicadores", "Indicadores"]].map(([k, t]) => `<button role="tab" type="button" data-rg="${k}" aria-selected="${S.rgVista === k}" class="${S.rgVista === k ? "on" : ""}">${t}</button>`).join("")}</div>`;
+  const pintar = (html) => { $("#main").innerHTML = cab + html; $("#main .pestanas").onclick = (e) => { const b = e.target.closest("[data-rg]"); if (b) { S.rgVista = b.dataset.rg; VISTAS.regulador(); } }; };
+  if (S.rgVista === "como") {
+    pintar(`<div class="rg-texto">
+      <div class="panel"><h2>La idea</h2>
+        <p>Cada vez que la IA redacta algo (una respuesta a una pregunta o un borrador de mensaje de venta) se le manda información: las instrucciones de la cuenta, el catálogo, los datos de la publicación, respuestas anteriores. Cuanto más se manda, más cuesta. Pero no todas las preguntas necesitan todo: para contestar si se hace envío a Paraná no hace falta el catálogo de lámparas.</p>
+        <p>El regulador decide en cada caso cuánto mandar, mide si la respuesta salió bien y con eso aprende. Funciona igual para todas las empresas, sin configurar nada, y se ajusta solo con el tiempo.</p></div>
+      <div class="panel"><h2>Los tres paquetes de información</h2>
+        <p>Las instrucciones de la cuenta, las correcciones del vendedor y los datos en vivo de la publicación (precio, stock, envío) van siempre. Lo que cambia es la parte del catálogo:</p>
+        <ul><li><b>Ficha del producto:</b> la ficha del producto de la publicación, los datos comunes de su sección y lo general (entrega, retiro, lo que no se vende). De los demás productos de la sección, solo el nombre.</li>
+        <li><b>Sección del catálogo:</b> todas las fichas de la sección y el listado de publicaciones de la misma categoría.</li>
+        <li><b>Catálogo completo:</b> todo, como funcionaba antes, y el listado de todas las publicaciones.</li></ul></div>
+      <div class="panel"><h2>Cómo decide</h2>
+        <ol><li><b>Clasifica el mensaje.</b> Un modelo muy barato (Haiku, unos US$0,00005 por mensaje) lee la pregunta y anota el tema (envío, medidas, otra variante, otro producto…) y el mínimo de información que necesita. Si preguntan por otro producto, nunca se manda menos que el catálogo completo.</li>
+        <li><b>Mira la experiencia.</b> Para ese tema guarda cuántas veces salió bien y cuántas mal cada paquete, en cuatro capas: toda la app, la empresa, la categoría y la publicación. Una empresa nueva arranca con lo aprendido en general y se va diferenciando a medida que tiene volumen propio.</li>
+        <li><b>Elige.</b> Toma el paquete más barato cuya calidad estimada no sea peor que la del mejor (con una tolerancia de 3 puntos).</li>
+        <li><b>Prueba, con cuidado.</b> Cuando la respuesta la va a revisar una persona antes de publicarse, a veces prueba con otro paquete para seguir aprendiendo (método de Thompson). Cuando el bot publica solo, no prueba: usa lo que ya sabe que funciona.</li></ol></div>
+      <div class="panel"><h2>Cómo mide si salió bien</h2>
+        <ul><li><b>Bien:</b> la persona publicó el borrador sin cambios o con cambios chicos de redacción. Si lo publicó el bot y el comprador no volvió a preguntar, cuenta como bien pero con la mitad de peso.</li>
+        <li><b>Mal:</b> la persona cambió mucho el borrador, el comprador volvió a preguntar en la misma publicación, o la IA avisó que le faltó información.</li>
+        <li><b>Arreglo inmediato:</b> si la IA avisa que le faltó información y no tenía el catálogo completo, se vuelve a pedir enseguida con todo. La persona o el comprador siempre reciben la versión completa.</li></ul>
+        <p>Además, la IA anota qué partes del contexto usó de verdad. Eso se ve en Indicadores y muestra qué información sirve y cuál se manda de más.</p></div>
+      <div class="panel"><h2>Lo que no hace</h2>
+        <ul><li>No sacrifica calidad por ahorro: un error pesa el doble que un acierto del bot sin revisión y hace subir de paquete enseguida. Volver a un paquete más chico requiere que ese paquete vuelva a acumular respuestas buenas, y eso solo se prueba en respuestas que revisa una persona.</li>
+        <li>No cambia instrucciones, catálogo ni respuestas: solo elige qué parte se manda.</li>
+        <li>Las pruebas desde el panel ("Probar el bot") no le enseñan nada.</li></ul></div>
+    </div>`);
+    return;
+  }
+  pintar(`<div class="vacio">Cargando…</div>`);
+  const d = await seguro(() => api("regulador", { dias: 30 })); if (!d || S.tab !== "regulador" || S.rgVista !== "indicadores") return;
+  const pctTxt = (v) => v == null ? "—" : `${String(v).replace(".", ",")} %`;
+  const bloque = (a) => {
+    const usadosTop = [...a.fuentes].filter((f) => f.pct != null).sort((x, y) => y.pct - x.pct);
+    return `<div class="panel" style="margin-bottom:16px"><h2>${esc(RG_ACC[a.accion] ?? a.accion)}</h2>
+      <div class="medidas" style="margin:10px 0 16px">
+        <div class="medida"><b>${num(a.n)}</b><span>decisiones en ${d.dias} días</span></div>
+        <div class="medida"><b>${a.tokens_prom != null ? num(Math.round(a.tokens_prom)) : "—"}</b><span>tokens de entrada por llamada (promedio)</span></div>
+        <div class="medida"><b>${a.tokens_ahorrados != null ? num(a.tokens_ahorrados) : "—"}</b><span>tokens ahorrados frente a mandar siempre el catálogo completo (estimado)</span></div>
+        <div class="medida"><b>${num(a.reintentos)}</b><span>reintentos con todo porque faltó información</span></div>
+      </div>
+      <div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Paquete</th><th>Veces</th><th>Probando</th><th>Tokens promedio</th><th>Con resultado</th><th>Salieron bien</th><th>Faltó información</th></tr>
+      ${a.paquetes.map((p) => `<tr><td>${esc(RG_PAQ[p.paquete])}</td><td>${num(p.n)}</td><td>${num(p.exploradas)}</td><td>${p.tokens_prom != null ? num(Math.round(p.tokens_prom)) : "—"}</td><td>${num(p.resueltas)}</td><td>${pctTxt(p.buenas_pct)}</td><td>${num(p.falta_info)}</td></tr>`).join("")}</table></div>
+      <div class="grilla g2" style="margin-top:16px;align-items:start">
+        <div><h3>Por tema</h3>${a.temas.length ? `<div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Tema</th><th>Veces</th><th>Paquetes usados</th><th>Bien</th></tr>
+          ${a.temas.map((t) => `<tr><td>${esc(RG_TEMA[t.tema] ?? t.tema)}</td><td>${num(t.n)}</td><td class="peq">${Object.entries(t.paquetes).map(([k, v]) => `${esc(RG_PAQ[k] ?? k)}: ${num(v)}`).join(", ")}</td><td>${pctTxt(t.buenas_pct)}</td></tr>`).join("")}</table></div>` : `<p class="mut">Todavía sin datos.</p>`}</div>
+        <div><h3>Qué información usó la IA</h3><p class="mut peq" style="margin-top:0">Porcentaje de las respuestas en que la IA dijo haber usado cada parte. Lo que casi nunca se usa es candidato a no mandarse.</p>
+          ${usadosTop.length ? usadosTop.map((f) => `<div class="rg-barra"><span>${esc(RG_FUENTE[f.fuente] ?? f.fuente)}</span><i style="--v:${Math.min(100, f.pct)}%"></i><b>${pctTxt(f.pct)}</b></div>`).join("") : `<p class="mut">Todavía sin datos.</p>`}</div>
+      </div>
+      ${a.empresas.length > 1 ? `<h3 style="margin-top:16px">Por empresa</h3><div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Empresa</th><th>Decisiones</th><th>Tokens promedio</th><th>Costo de IA</th></tr>${a.empresas.map((e) => `<tr><td>${esc(e.empresa)}</td><td>${num(e.n)}</td><td>${e.tokens_prom != null ? num(Math.round(e.tokens_prom)) : "—"}</td><td>${usd(e.costo_usd, 2)}</td></tr>`).join("")}</table></div>` : ""}
+    </div>`;
+  };
+  pintar(d.acciones.length ? d.acciones.map(bloque).join("") : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando la IA responda preguntas o arme borradores de mensajes.</div>`);
 };
 
 // ================= USO =================
