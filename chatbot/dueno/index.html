@@ -1884,7 +1884,7 @@ VISTAS.misnotif = async () => {
 };
 
 // ---------- Equipo → Actividad (registro de lo que hizo cada persona) ----------
-const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Devoluciones", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], app: ["App", "m-s"] };
+const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Devoluciones", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], chat: ["Chat", "m-s"], configuracion: ["Configuración", "m-s"], app: ["App", "m-s"] };
 const ACT_PER = [["hoy", "Hoy"], ["ayer", "Ayer"], ["7d", "Últimos 7 días"], ["30d", "Últimos 30 días"]];
 const colorDe = (lista, id) => PALETA[Math.max(0, lista.findIndex((x) => x.id === id)) % PALETA.length];
 const avAct = (p, c) => `<span class="av-m" style="width:32px;height:32px;background:${c}22;color:${c};box-shadow:inset 0 0 0 2px ${c}" aria-hidden="true">${esc(iniciales(p?.nombre ?? "?"))}</span>`;
@@ -3594,10 +3594,9 @@ function hojaFiltros(emp) {
   const prods = S.msjProductos ?? [];
   const L = S.msjLista ?? {};
   const rapidos = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", L.pendientes], ["urgentes", "Urgentes", L.urgentes], ["reclamos", "Con reclamo", L.reclamos], ["favoritas", "Favoritas", L.favoritas], ...(L.con_asignaciones ? [["mias", "Para mí"]] : [])];
-  const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
       <fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops">${rapidos.map(([k, t, n]) => `<label><input type="radio" name="fxq" value="${k}" ${(S.msjFil ?? "todas") === k ? "checked" : ""}><span>${t}${n ? ` · ${n}` : ""}</span></label>`).join("")}</div></fieldset>
-      <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_MSJ.map(([k, t]) => `<label><input type="radio" name="fxo" value="${k}" ${(f.orden ?? ORDEN_MSJ_DEF) === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       ${FX.filter(([k]) => k !== "dias").slice(0, 5).map(grupo).join("")}
       <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       <fieldset class="fx-g"><legend>Producto</legend>
@@ -3607,7 +3606,7 @@ function hojaFiltros(emp) {
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" id="fxLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="fxAplicar">Aplicar</button></div>`);
   const periodoDe = (x) => Object.fromEntries(["dias", "desde", "hasta", "desde_iso", "hasta_iso"].filter((k) => x?.[k] != null).map((k) => [k, x[k]]));
-  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFil = "todas"; S.msjFx = { dias: DIAS_DEF, ...periodoDe(S.msjFx) }; cargarHilos(emp); };
+  h.querySelector("#fxLimpiar").onclick = () => { h.remove(); S.msjFil = "todas"; S.msjFx = { dias: DIAS_DEF, ...periodoDe(S.msjFx), ...(S.msjFx?.orden ? { orden: S.msjFx.orden } : {}) }; cargarHilos(emp); };
   // Productos: lista con foto, buscador y cantidad de ventas; se pueden elegir varios
   let elegidos = prodsElegidos(f);
   const ponerT = () => { const t = !elegidos.length ? "Todos los productos" : elegidos.length === 1 ? (prods.find((p) => p.id === elegidos[0])?.titulo ?? "1 producto") : `${elegidos.length} productos`; h.querySelector("#fxProdT").textContent = t.length > 40 ? t.slice(0, 38) + "…" : t; h.querySelector("#fxProdB").classList.toggle("on", elegidos.length > 0); };
@@ -3629,7 +3628,7 @@ function hojaFiltros(emp) {
     if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
     if (elegidos.length) n.producto = [...elegidos];
     Object.assign(n, periodoDe(S.msjFx));
-    const o = h.querySelector('input[name="fxo"]:checked')?.value; if (o) n.orden = o;
+    if (S.msjFx?.orden) n.orden = S.msjFx.orden;
     S.msjFil = h.querySelector('input[name="fxq"]:checked')?.value ?? "todas";
     h.remove(); S.msjFx = n; cargarHilos(emp);
   };
@@ -3654,12 +3653,15 @@ async function cargarHilos(emp, mas = false) {
     const act = filtrosActivos().filter(([k]) => k !== "dias");
     const per = S.msjFx.dias === "custom" ? textoRango(S.msjFx) : FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
     const elegidos = [...(S.msjFil && S.msjFil !== "todas" ? [["__fil", fil.find(([k]) => k === S.msjFil)?.[1] ?? ""]] : []),
-      ...(S.msjFx?.orden && S.msjFx.orden !== ORDEN_MSJ_DEF ? [["orden", ORDEN_MSJ.find(([k]) => k === S.msjFx.orden)?.[1] ?? ""]] : []), ...act];
+      ...act];
+    const ordT = ORDEN_MSJ.find(([k]) => k === S.msjFx.orden)?.[1] ?? "";
     const opsPer = FX.find(([k]) => k === "dias")[2];
     $("#mFil").innerHTML = `<span class="mas-caja"><button type="button" id="mPer" class="fx-bt" aria-expanded="false" aria-controls="mPerM">${ICONO_CAL}${esc(per)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
           <span class="per-fechas oculto" id="mPerF"><label>Desde<input type="date" id="mPerD" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.desde ?? "")}"></label><label>Hasta<input type="date" id="mPerH" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.hasta ?? new Date().toLocaleDateString("en-CA"))}"></label><button class="btn pri chico" type="button" id="mPerOk">Aplicar</button></span></span></span>`
-      + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar y ordenar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
+      + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
+      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ordT)} <span aria-hidden="true">⌄</span></button>
+        <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
@@ -5767,7 +5769,10 @@ VISTAS.despacho = async (op = {}) => {
     const elegidos = [...(F.mio ? [["mio", "Para mí"]] : []), ...F.tipos.map((k) => [`ti:${k}`, LOGISTICA[k] ?? k]),
       ...(F.etiqueta !== "todas" ? [["et", F.etiqueta === "impresas" ? "Impresas" : "Sin imprimir"]] : []),
       ...F.productos.map((p) => [`pr:${p}`, p.length > 40 ? p.slice(0, 38) + "…" : p]),
-      ...(F.orden !== "plazo" ? [["ord", ORDEN_DS.find(([k]) => k === F.orden)[1]]] : [])];
+      ];
+    $("#dsOrdT").textContent = ORDEN_DS.find(([k]) => k === F.orden)[1];
+    $("#dsOrd").setAttribute("aria-label", `Ordenar: ${ORDEN_DS.find(([k]) => k === F.orden)[1]}`);
+    $("#dsOrdM").querySelectorAll("[data-dord]").forEach((b) => b.setAttribute("aria-checked", String(F.orden === b.dataset.dord)));
     $("#dsFxN").textContent = elegidos.length ? ` · ${elegidos.length}` : "";
     $("#dsFx").classList.toggle("on", elegidos.length > 0);
     $("#dsAct").innerHTML = elegidos.map(([k, t]) => `<button type="button" data-qd="${esc(k)}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("");
@@ -5780,7 +5785,9 @@ VISTAS.despacho = async (op = {}) => {
     <div class="m-fil ds-barra" id="dsBarra">
       <span class="mas-caja"><button type="button" id="dsPl" class="fx-bt" aria-expanded="false" aria-controls="dsPlM">${ICONO_CAL}<span id="dsPlT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto per-m" id="dsPlM" role="menu" style="top:calc(100% + 6px);bottom:auto">${[["hoy", "Para hoy", "Hay que despacharlos hoy"], ["proximos", "Próximos días", "Se despachan de mañana en adelante"], ["todos", "Todos los plazos", "Todo lo que falta despachar"]].map(([k, t, x]) => `<button type="button" role="menuitemradio" data-pl="${k}"><b>${t} · <span class="n"></span></b><span class="peq mut">${x}</span></button>`).join("")}</span></span>
-      <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar y ordenar<span id="dsFxN"></span></button>
+      <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar<span id="dsFxN"></span></button>
+      <span class="mas-caja"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
+        <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
       <div class="fx-act" id="dsAct"></div></div>
     <div class="rec-lista" id="dsLista"></div>
     <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button>
@@ -5792,23 +5799,24 @@ VISTAS.despacho = async (op = {}) => {
   $("#dsBarra").onclick = (e) => {
     if (e.target.closest("#dsPl")) { e.stopPropagation(); const m = $("#dsPlM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsPl").setAttribute("aria-expanded", String(ab)); return; }
     const pl = e.target.closest("[data-pl]"); if (pl) { $("#dsPlM").classList.add("oculto"); F.plazo = pl.dataset.pl; pintar(); return; }
+    if (e.target.closest("#dsOrd")) { e.stopPropagation(); const m = $("#dsOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsOrd").setAttribute("aria-expanded", String(ab)); return; }
+    const od = e.target.closest("[data-dord]"); if (od) { $("#dsOrdM").classList.add("oculto"); $("#dsOrd").setAttribute("aria-expanded", "false"); F.orden = od.dataset.dord; pintar(); return; }
     if (e.target.closest("#dsFx")) { hojaDespacho(); return; }
     const q = e.target.closest("[data-qd]"); if (!q) return;
     const k = q.dataset.qd;
-    if (k === "mio") F.mio = false; else if (k === "et") F.etiqueta = "todas"; else if (k === "ord") F.orden = "plazo";
+    if (k === "mio") F.mio = false; else if (k === "et") F.etiqueta = "todas";
     else if (k.startsWith("ti:")) F.tipos = F.tipos.filter((x) => x !== k.slice(3)); else if (k.startsWith("pr:")) F.productos = F.productos.filter((x) => x !== k.slice(3));
     pintar();
   };
-  // Hoja "Filtrar y ordenar": se arma sobre una copia y se aplica al tocar Aplicar
+  // Hoja "Filtrar": se arma sobre una copia y se aplica al tocar Aplicar
   function hojaDespacho() {
     const G = { ...F, tipos: [...F.tipos], productos: [...F.productos] };
     const cuenta = (fn, sin) => { const F0 = { ...F }; Object.assign(F, G); const n = env.filter((c) => pasa(c, sin) && fn(c)).length; Object.assign(F, F0); return n; };
-    const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
       <div class="fx-cuerpo">
         ${d.con_asignaciones ? `<fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops"><label><input type="radio" name="dmio" value="" ${!G.mio ? "checked" : ""}><span>Todos</span></label><label><input type="radio" name="dmio" value="1" ${G.mio ? "checked" : ""}><span>Para mí</span></label></div></fieldset>` : ""}
         <fieldset class="fx-g"><legend>Tipo de envío</legend><div class="fx-ops">${tiposHay.map((k) => `<label><input type="checkbox" name="dti" value="${esc(k)}" ${G.tipos.includes(k) ? "checked" : ""}><span>${esc(LOGISTICA[k] ?? k)} · ${cuenta((c) => c.envio_logistica === k, "tipos")}</span></label>`).join("")}</div></fieldset>
         <fieldset class="fx-g"><legend>Etiqueta</legend><div class="fx-ops">${[["todas", "Todas"], ["sin", "Sin imprimir"], ["impresas", "Impresas"]].map(([k, t]) => `<label><input type="radio" name="det" value="${k}" ${G.etiqueta === k ? "checked" : ""}><span>${t}${k === "todas" ? "" : ` · ${cuenta((c) => (k === "impresas") === impresa(c), "etiqueta")}`}</span></label>`).join("")}</div></fieldset>
-        <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_DS.map(([k, t]) => `<label><input type="radio" name="dord" value="${k}" ${G.orden === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
         <fieldset class="fx-g"><legend>Producto</legend><input type="search" id="dpQ" placeholder="Buscar producto" aria-label="Buscar producto" style="width:100%;margin-bottom:6px"><div class="ds-prodl" id="dpL"></div></fieldset>
       </div>
       <div class="fx-pie"><button class="btn lin" type="button" id="dLimpiar">Limpiar filtros</button><button class="btn pri" type="button" id="dAplicar">Aplicar</button></div>`);
@@ -5823,12 +5831,11 @@ VISTAS.despacho = async (op = {}) => {
     listar();
     h.querySelector("#dpQ").oninput = listar;
     h.querySelector("#dpL").onchange = (e) => { const i = e.target.closest("[data-pp]"); if (i) G.productos = i.checked ? [...G.productos, i.dataset.pp] : G.productos.filter((x) => x !== i.dataset.pp); };
-    h.querySelector("#dLimpiar").onclick = () => { h.remove(); Object.assign(F, { tipos: [], etiqueta: "todas", productos: [], mio: false, orden: "plazo" }); pintar(); };
+    h.querySelector("#dLimpiar").onclick = () => { h.remove(); Object.assign(F, { tipos: [], etiqueta: "todas", productos: [], mio: false }); pintar(); };
     h.querySelector("#dAplicar").onclick = () => {
       G.mio = !!h.querySelector('input[name="dmio"]:checked')?.value;
       G.tipos = [...h.querySelectorAll('input[name="dti"]:checked')].map((x) => x.value);
       G.etiqueta = h.querySelector('input[name="det"]:checked')?.value ?? "todas";
-      G.orden = h.querySelector('input[name="dord"]:checked')?.value ?? "plazo";
       h.remove(); Object.assign(F, G); pintar();
     };
   }
