@@ -3220,7 +3220,8 @@ function rangoPeriodo(f) {
 function textoRango(f) { const { a, b } = rangoPeriodo(f), anio = a.getFullYear() !== b.getFullYear(); return `${fCorta(a, anio)} al ${fCorta(b, anio)}`; }
 // En Ventas siempre hay un período elegido (por defecto, el último mes)
 const DIAS_DEF = "30";
-const ORDEN_MSJ = [["", "Actividad reciente"], ["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]];
+const ORDEN_MSJ = [["recientes", "Ventas más recientes"], ["actividad", "Actividad reciente"], ["antiguas", "Ventas más antiguas"]];
+const ORDEN_MSJ_DEF = "recientes";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
 const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"],
   ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
@@ -3246,7 +3247,7 @@ function hojaFiltros(emp) {
   const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
       <fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops">${rapidos.map(([k, t, n]) => `<label><input type="radio" name="fxq" value="${k}" ${(S.msjFil ?? "todas") === k ? "checked" : ""}><span>${t}${n ? ` · ${n}` : ""}</span></label>`).join("")}</div></fieldset>
-      <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_MSJ.map(([k, t]) => `<label><input type="radio" name="fxo" value="${k}" ${(f.orden ?? "") === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
+      <fieldset class="fx-g"><legend>Ordenar por</legend><div class="fx-ops">${ORDEN_MSJ.map(([k, t]) => `<label><input type="radio" name="fxo" value="${k}" ${(f.orden ?? ORDEN_MSJ_DEF) === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       ${FX.filter(([k]) => k !== "dias").slice(0, 5).map(grupo).join("")}
       <fieldset class="fx-g"><legend>Más</legend><div class="fx-ops">${FX_SI.map(([k, t, ayuda]) => `<label title="${esc(ayuda ?? "")}"><input type="checkbox" name="fxs_${k}" ${f[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></fieldset>
       <fieldset class="fx-g"><legend>Producto</legend>
@@ -3286,6 +3287,7 @@ function hojaFiltros(emp) {
 
 async function cargarHilos(emp, mas = false) {
   if (!S.msjFx?.dias) S.msjFx = { ...(S.msjFx ?? {}), dias: DIAS_DEF };
+  if (!S.msjFx.orden) S.msjFx.orden = ORDEN_MSJ_DEF;
   if (S.msjFx.dias !== "custom") { S.msjFx.desde_iso = rangoPeriodo(S.msjFx).a.toISOString(); delete S.msjFx.hasta_iso; }
   if (mas && S.msjTrayendo) return null;
   S.msjTrayendo = true;
@@ -3302,7 +3304,7 @@ async function cargarHilos(emp, mas = false) {
     const act = filtrosActivos().filter(([k]) => k !== "dias");
     const per = S.msjFx.dias === "custom" ? textoRango(S.msjFx) : FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
     const elegidos = [...(S.msjFil && S.msjFil !== "todas" ? [["__fil", fil.find(([k]) => k === S.msjFil)?.[1] ?? ""]] : []),
-      ...(S.msjFx?.orden ? [["orden", ORDEN_MSJ.find(([k]) => k === S.msjFx.orden)?.[1] ?? ""]] : []), ...act];
+      ...(S.msjFx?.orden && S.msjFx.orden !== ORDEN_MSJ_DEF ? [["orden", ORDEN_MSJ.find(([k]) => k === S.msjFx.orden)?.[1] ?? ""]] : []), ...act];
     const opsPer = FX.find(([k]) => k === "dias")[2];
     $("#mFil").innerHTML = `<span class="mas-caja"><button type="button" id="mPer" class="fx-bt" aria-expanded="false" aria-controls="mPerM">${ICONO_CAL}${esc(per)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
