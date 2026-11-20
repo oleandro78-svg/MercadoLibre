@@ -3743,7 +3743,6 @@ function pieHilos(emp, r) {
   else if (r.importando || S.msjBuscando) pie = `<div class="m-pie"><span class="mut peq">${buscandoTxt(r.importando ? "Trayendo tus ventas de los últimos 30 días" : "Buscando en ventas anteriores")}</span></div>`;
   else if (admin && ["todas", "con_mensajes"].includes(S.msjFil) && !S.msjBus) pie = `<div class="m-pie"><button class="btn lin chico" id="mCargar" type="button">Buscar en ventas anteriores</button>
         <span class="mut peq">${hasta ? `La lista llega hasta las ventas del ${esc(hasta)}.` : "Trae ventas más viejas."} Tarda unos minutos.</span></div>`;
-  else if (S.msjBus && !r.total) pie = `<div class="m-pie"><button class="btn lin chico" id="mEnML" type="button">Buscar “${esc(S.msjBus)}” en MercadoLibre</button></div>`;
   const viejo = $("#mHilos .m-pie"); if (viejo) viejo.remove();
   $("#mHilos").insertAdjacentHTML("beforeend", pie);
   if (quedan) {
@@ -3752,7 +3751,6 @@ function pieHilos(emp, r) {
     S.msjObs.observe($("#mMas"));
   }
   if ((r.importando || S.msjBuscando) && !quedan) { clearTimeout(S.msjEspera); S.msjEspera = setTimeout(() => S.tab === "mensajes" && cargarHilos(emp), r.importando ? 8000 : 20000); }
-  if ($("#mEnML")) $("#mEnML").onclick = () => buscarVenta(emp, S.msjBus);
   if ($("#mCargar")) $("#mCargar").onclick = async () => {
     const b = $("#mCargar"); b.disabled = true; b.innerHTML = buscandoTxt();
     if (await seguro(() => api("mensajes_cargar", { cliente_id: emp }))) {
@@ -3899,7 +3897,8 @@ async function cargarHilos(emp, mas = false) {
       const q = e.target.closest("[data-qx]"); if (q) { if (q.dataset.qx === "__fil") S.msjFil = "todas"; else delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
     $("#mHilos").onclick = (e) => { const f = e.target.closest("[data-fav]"); if (f) { cambiarFavorita(Number(f.dataset.fav)); return; } const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
-    $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "favoritas" ? "Todavía no marcaste ventas como favoritas" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
+    $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : S.msjBus ? `<div class="vacio" style="margin:18px" id="mFuera"><b>No está en tu lista</b><span>${buscandoTxt("Buscando en tus cuentas")}</span></div>` : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "favoritas" ? "Todavía no marcaste ventas como favoritas" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
+    if (!r.filas.length && !r.importando && S.msjBus) buscarFuera(emp, S.msjBus);
   }
   S.msjCargadas += r.filas.length;
   if (r.completando_nombres && !mas) {
@@ -4398,6 +4397,25 @@ async function historiaVenta(c) {
   const l = $("#mLinea");
   if (l) l.innerHTML = html; else t?.insertAdjacentHTML("afterend", `<div class="linea-t" id="mLinea">${html}</div>`);}
 
+// Lo buscado no está en la lista: se busca solo en todas las cuentas del negocio (MercadoLibre y las demás plataformas conectadas)
+async function buscarFuera(emp, texto) {
+  const r = await api("mensajes_ventas", { cliente_id: emp, buscar: texto }).catch(() => null);
+  const caja = $("#mFuera"); if (!caja || S.msjBus !== texto) return;
+  const vs = r?.ventas ?? [];
+  if (!r) { caja.innerHTML = `<b>No está en tu lista</b><span>No se pudo buscar en tus cuentas. Probá de nuevo en un momento.</span>`; return; }
+  if (!vs.length) { caja.innerHTML = `<b>No encontré ventas con eso</b><span>Ni en tu lista ni en tus cuentas.</span>`; return; }
+  caja.classList.remove("vacio"); caja.style.margin = "12px 14px";
+  caja.innerHTML = `<p class="peq mut" style="margin:0 0 8px">No estaba en tu lista. Lo encontré en tus cuentas:</p>` + vs.map((x, i) => `<button type="button" class="venta-f" data-vf="${i}"><b>${esc(x.titulo ?? "Venta")}${x.productos > 1 ? ` y ${x.productos - 1} más` : ""}</b>
+    <span class="mut peq">${esc(x.comprador ?? "")} · ${fecha(x.fecha)} · ${plata(x.total, x.moneda)}${x.estado === "cancelled" ? " · cancelada" : ""}</span>
+    <span class="mut peq">Venta #${esc(x.pack_id)} · ${esc(x.cuenta ?? "")} · ${esc(x.plataforma ?? "MercadoLibre")}</span></button>`).join("");
+  caja.onclick = async (e) => {
+    const b = e.target.closest("[data-vf]"); if (!b) return;
+    const x = vs[Number(b.dataset.vf)]; b.disabled = true;
+    const id = x.conversacion_id ?? (await seguro(() => api("mensajes_abrir", { cliente_id: emp, cuenta_id: x.cuenta_id, pack_id: x.pack_id })))?.id;
+    if (!id) { b.disabled = false; return; }
+    abrirConv(id);
+  };
+}
 async function buscarVenta(emp, inicial = "") {
   const v = cajon(`<div class="cajon-cab"><h2>Buscar una venta en MercadoLibre</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <p class="mut peq">Elegí una venta para abrir su conversación. Si el comprador todavía no escribió, MercadoLibre pide elegir un motivo.</p>
