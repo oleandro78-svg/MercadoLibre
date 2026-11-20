@@ -1044,8 +1044,9 @@ async function entrarUsuario() {
   // Dos links: el de empresas y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
   // (la sesión es la misma, así que entra directo).
   const link = window.MOSTRADOR_LINK;
-  if (link === "app" && S.yo.usuario?.admin_app) { location.replace("dueno/"); return new Promise(() => {}); }
-  if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../"); return new Promise(() => {}); }
+  // Al pasar de un link al otro se conserva lo que venía después de "#" (por ejemplo, la venta de un aviso)
+  if (link === "app" && S.yo.usuario?.admin_app) { location.replace("dueno/" + location.hash); return new Promise(() => {}); }
+  if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../" + location.hash); return new Promise(() => {}); }
   if (S.yo.usuario?.admin_app) {
     S.rol = "admin";
     // Al refrescar la página se sigue dentro de la empresa en la que se estaba dando soporte
@@ -5254,6 +5255,16 @@ function fotosDespacho(env) {
 
 function abrirDesdeEnlace(h) {
   const t = String(h || "");
+  // El dueño de la app ve lo de una empresa entrando como soporte: un aviso de una venta, pregunta, devolución,
+  // despacho, chat o calendario lo hace entrar solo, en la empresa de la que es parte, y después abre lo avisado
+  if (S.rol === "admin" && !S.soporte && /^#(mensajes|pregunta|devoluciones|reclamos|despacho|chat|calendario)\b/.test(t)) {
+    const em = (S.yo?.empresas ?? []).find((x) => x.rol === "admin") ?? (S.yo?.empresas ?? [])[0];
+    if (!em) return false;
+    S.soporte = em.id; S.soporteNom = em.nombre; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
+    try { sessionStorage.setItem("mostrador_soporte", JSON.stringify({ id: em.id, nombre: em.nombre })); } catch {}
+    (async () => { await recargar(); armarNav(); pintarSoporte(); if (!abrirDesdeEnlace(t)) ir(inicio()); })();
+    return true;
+  }
   const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.replace(/^#reclamos$/, "#devoluciones").match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/); // "reclamos": enlaces viejos
   if (!S.rol) return false;
   const mch = t.match(/#chat\/(\d+)/), mca = t.match(/#calendario\/(\d+)/);
