@@ -254,6 +254,10 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .imp-sal{display:grid;gap:8px}.imp-sal-it{all:unset;cursor:pointer;display:grid;gap:2px;padding:12px 14px;border:1px solid var(--linea);border-radius:var(--r-m,10px);background:var(--sup)}.imp-sal-it:hover{border-color:var(--tinta)}.imp-sal-it:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}.imp-ok{color:var(--pino-t);font-size:12px;font-weight:600}
 .ver-res{display:grid;gap:2px;padding:12px 14px;border-radius:var(--r-m,10px);margin:10px 0}.ver-res.ok{background:color-mix(in srgb,var(--pino-t) 14%,transparent)}.ver-res.mal{background:color-mix(in srgb,#c0392b 16%,transparent)}.ver-res b{font-size:17px}
 .tab-n{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:20px;background:var(--tinta);color:var(--papel);font-size:12px;font-weight:700;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}.tab-n[hidden]{display:none}
+.hilo-w{position:relative}.hilo-w .hilo .tags{padding-right:34px}
+.fav-h{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:transparent;line-height:0;flex:none}
+.fav-h svg path{stroke:var(--piz)}.fav-h:hover svg path{stroke:var(--ladrillo)}.fav-h.on{color:var(--ladrillo)}.fav-h.on svg path{stroke:var(--ladrillo)}
+.fav-h:focus-visible{outline:2px solid var(--cielo);outline-offset:1px}.hilo-w .fav-h{position:absolute;right:12px;bottom:8px}
 .medidas{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--linea);border-radius:var(--r-l);background:var(--sup);overflow:hidden}
 .medida{padding:16px 18px;border-right:1px solid var(--linea)}
 .medida:last-child{border-right:0}
@@ -3486,17 +3490,31 @@ VISTAS.mensajes = async () => {
 };
 
 const POR_PAGINA = 40;
+// Favoritas: cada persona marca con el corazón las ventas que quiere tener a mano
+const ICONO_COR = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const botonFav = (c, extra = "") => `<button type="button" class="fav-h ${c.favorita ? "on" : ""} ${extra}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICONO_COR}</button>`;
+async function cambiarFavorita(id) {
+  const fila = (S.msjLista?.filas ?? []).find((x) => x.id === id);
+  const on = !document.querySelector(`[data-fav="${id}"]`)?.classList.contains("on");
+  const pintar = (v) => document.querySelectorAll(`[data-fav="${id}"]`).forEach((b) => { b.classList.toggle("on", v); b.setAttribute("aria-pressed", String(v)); const t = v ? "Quitar de favoritas" : "Marcar como favorita"; b.setAttribute("aria-label", t); b.title = t; });
+  pintar(on); if (fila) fila.favorita = on;
+  const r = await seguro(() => api("venta_favorita", { empresa_id: empMsj(), id, on }));
+  if (!r) { pintar(!on); if (fila) fila.favorita = !on; return; }
+  if (S.msjLista) S.msjLista.favoritas = Math.max(0, (S.msjLista.favoritas ?? 0) + (on ? 1 : -1));
+  aviso(on ? "Venta marcada como favorita" : "Venta quitada de favoritas");
+  if (!on && S.msjFil === "favoritas") document.querySelector(`#mHilos [data-fav="${id}"]`)?.closest(".hilo-w")?.remove();
+}
 function hiloHTML(c) {
   const admin = S.rol !== "operador";
   const ec = estadoConv(c);
-  return `<button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
+  return `<div class="hilo-w"><button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${foto(c.item_thumbnail)}
       <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)}</span>
       <span class="h-prod">${esc(c.item_titulo ?? "")}</span>${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
       <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
       ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
       <span class="tags">${c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""}${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip ch-at">Atiende${c.asignados_nombres.length > 1 ? "n" : ""}:${c.asignados_nombres.map((n, i) => { const e = c.asignados_estado?.[i] ?? {}; const h = (x) => new Date(x).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-          return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó el aviso el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ningún aviso de esta venta`)}">${esc(n)}</span>`; }).join("")}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>`;
+          return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó el aviso el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ningún aviso de esta venta`)}">${esc(n)}</span>`; }).join("")}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>${botonFav(c)}</div>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
@@ -3575,7 +3593,7 @@ function hojaFiltros(emp) {
     ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
   const L = S.msjLista ?? {};
-  const rapidos = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", L.pendientes], ["urgentes", "Urgentes", L.urgentes], ["reclamos", "Con reclamo", L.reclamos], ...(L.con_asignaciones ? [["mias", "Para mí"]] : [])];
+  const rapidos = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", L.pendientes], ["urgentes", "Urgentes", L.urgentes], ["reclamos", "Con reclamo", L.reclamos], ["favoritas", "Favoritas", L.favoritas], ...(L.con_asignaciones ? [["mias", "Para mí"]] : [])];
   const h = abrirHoja(`<div class="cajon-cab"><h2>Filtrar y ordenar</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo">
       <fieldset class="fx-g"><legend>Mostrar</legend><div class="fx-ops">${rapidos.map(([k, t, n]) => `<label><input type="radio" name="fxq" value="${k}" ${(S.msjFil ?? "todas") === k ? "checked" : ""}><span>${t}${n ? ` · ${n}` : ""}</span></label>`).join("")}</div></fieldset>
@@ -3632,7 +3650,7 @@ async function cargarHilos(emp, mas = false) {
     S.msjCargadas = 0;
     if (r.productos) S.msjProductos = r.productos;
     if (S.msjFil === "con_mensajes") { S.msjFil = "todas"; (S.msjFx ??= {}).con_mensajes = true; }
-    const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["reclamos", "Con reclamo", r.reclamos], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
+    const fil = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", r.pendientes], ["urgentes", "Urgentes", r.urgentes], ["reclamos", "Con reclamo", r.reclamos], ["favoritas", "Favoritas", r.favoritas], ...(r.con_asignaciones ? [["mias", "Para mí"]] : [])];
     const act = filtrosActivos().filter(([k]) => k !== "dias");
     const per = S.msjFx.dias === "custom" ? textoRango(S.msjFx) : FX.find(([k]) => k === "dias")[2].find(([v]) => v === String(S.msjFx.dias))?.[1] ?? "";
     const elegidos = [...(S.msjFil && S.msjFil !== "todas" ? [["__fil", fil.find(([k]) => k === S.msjFil)?.[1] ?? ""]] : []),
@@ -3661,8 +3679,8 @@ async function cargarHilos(emp, mas = false) {
       const o = e.target.closest("[data-ord]"); if (o) { S.msjFx = { ...(S.msjFx ?? {}) }; if (o.dataset.ord) S.msjFx.orden = o.dataset.ord; else delete S.msjFx.orden; cargarHilos(emp); return; }
       const q = e.target.closest("[data-qx]"); if (q) { if (q.dataset.qx === "__fil") S.msjFil = "todas"; else delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
-    $("#mHilos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
-    $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
+    $("#mHilos").onclick = (e) => { const f = e.target.closest("[data-fav]"); if (f) { cambiarFavorita(Number(f.dataset.fav)); return; } const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
+    $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "favoritas" ? "Todavía no marcaste ventas como favoritas" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
   }
   S.msjCargadas += r.filas.length;
   if (r.completando_nombres && !mas) {
@@ -3801,7 +3819,7 @@ function pintarChat(d) {
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
       <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${c.envio_logistica ? tipoEnvio(c) : esc(c.envio_id ? "Envío" : "Sin envío")}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
-      <div class="n acc-cab">
+      <div class="n acc-cab">${botonFav(c, "fav-cab")}
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
@@ -3825,6 +3843,7 @@ function pintarChat(d) {
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
   if ($(".chat-alertas")) $(".chat-alertas").onclick = (e) => { if (!e.target.closest("a")) e.currentTarget.classList.toggle("abierta"); };
+  const favCab = document.querySelector("#mChat .fav-cab"); if (favCab) favCab.onclick = () => cambiarFavorita(c.id);
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
   $("#mCompartir").onclick = () => compartirEnChat("venta", c.id);
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
