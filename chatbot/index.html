@@ -752,6 +752,7 @@ input[type=file]{max-width:100%}
   .redactar textarea{min-height:80px}
   .mat{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.mat-b{white-space:nowrap}
   .m-venta{display:none}
+  #cpVen .m-venta{display:block;border-left:0;padding:16px 14px 40px;overflow:visible}
   .msj.ver-lista .m-chat{display:none}.msj.ver-chat .m-lista{display:none}
   .burbujas .b{max-width:85%}
   .chat-cab,.redactar,.burbujas{padding-left:14px;padding-right:14px}.chat-cab{flex-wrap:wrap}.chat-cab .t{flex:1 1 calc(100% - 110px)}
@@ -882,8 +883,9 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-prev{border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
 .etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:absolute;right:8px;top:6px}.etq-fila.cf .etq-esq{padding-right:30px}.etq-fila.cf .etq-r1{padding-right:30px}
 @media (max-width:560px){.etq-molde{grid-template-columns:76px minmax(0,1fr);grid-template-areas:"img r1" "img esq" "r2 r2" "r3 r3" "r4 r4" "mar mar"}}
-.m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:4px}#mFil .ord-der{justify-self:end;margin-left:0}#mFil .fx-act{grid-column:1/-1}#mFil .fx-bt{white-space:nowrap}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
+.m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{column-gap:4px;align-items:center}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
 @media (max-width:960px){#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
+@media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -4023,6 +4025,8 @@ function conX(html, convId) {
 
 function pintarChat(d) {
   const c = d.conversacion, movil = anchoMovil();
+  // En el celular el panel de la venta vive dentro de la solapa "Línea de tiempo": antes de redibujar el chat vuelve a su lugar
+  const ven0 = $("#mVen"); if (ven0 && $("#mChat").contains(ven0)) $(".msj").appendChild(ven0);
   let estado;
   if (c.conv_estado === "active") estado = "";
   else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
@@ -4042,15 +4046,18 @@ function pintarChat(d) {
         <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
-      <button type="button" role="tab" data-ct="chat">Chat con el comprador</button>
+      <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
       ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
-      <button type="button" role="tab" data-ct="notas">Notas internas<span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button></div>
+      <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
+      <button type="button" role="tab" data-ct="venta" class="solo-movil">Línea de tiempo</button></div>
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div></div>
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
-    <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>`;
+    <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
+    <div class="c-pane" id="cpVen" hidden></div>`;
+  if (movil) $("#cpVen").appendChild($("#mVen"));
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
     e.stopPropagation(); avisoCerrado(b.dataset.cerrarAviso, true);
@@ -4087,9 +4094,10 @@ function pintarChat(d) {
 function pestConv(t) {
   const c = S.msjConv?.conversacion; if (!c || !$("#cpChat")) return;
   if (t === "reclamo" && !$("#cpRec")) t = "chat";
+  if (t === "venta" && !anchoMovil()) t = "chat";
   S.convTab = S.convTab ?? {}; S.convTab[c.id] = t;
   $("#mChat").querySelectorAll("[data-ct]").forEach((b) => { const on = b.dataset.ct === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
-  $("#cpChat").hidden = t !== "chat"; if ($("#cpRec")) $("#cpRec").hidden = t !== "reclamo"; $("#cpNot").hidden = t !== "notas";
+  $("#cpChat").hidden = t !== "chat"; if ($("#cpRec")) $("#cpRec").hidden = t !== "reclamo"; $("#cpNot").hidden = t !== "notas"; if ($("#cpVen")) $("#cpVen").hidden = t !== "venta";
   if (t === "chat") { const bur = $("#mBur"); if (bur) bur.scrollTop = bur.scrollHeight; }
   if (t === "reclamo" && !$("#cRec").dataset.listo) cargarReclamo(c.id);
 }
