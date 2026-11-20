@@ -866,7 +866,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .cp-b{display:inline-block;font-size:11px;line-height:1;border:1px solid var(--linea);border-radius:5px;padding:2px 4px;margin-left:4px;cursor:pointer;color:var(--piz);vertical-align:1px}.cp-b:hover{background:var(--sup2)}
 .etq-tx{flex:1;min-width:0}.etq-r1{display:flex;gap:10px;justify-content:space-between;align-items:baseline;width:100%}.etq-esq{font-size:12px;color:var(--piz);white-space:nowrap;font-weight:400}
 .etq-l{display:block}.etq-tx .ds-meta:empty{display:none}
-.etq-bt{display:inline-flex!important;align-items:center;gap:6px;margin-left:auto}.etq-bt svg,#mEtq svg,#dsEtq svg{width:17px;height:17px}
+.etq-card{margin-bottom:14px}.etq-bt svg,#mEtq svg,#dsEtq svg{width:17px;height:17px}
 .etq-ed{display:grid;gap:10px}.etq-h{font-size:13px;color:var(--piz);margin:6px 0 0}.etq-pl{display:flex;gap:6px;flex-wrap:wrap}.etq-pl .on{background:var(--tinta);color:var(--sup);border-color:var(--tinta)}
 .etq-molde{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(90px,30%);grid-template-areas:"img r1 esq" "img r2 r2" "img r3 r3" ". r4 r4" ". mar mar";gap:12px 8px;padding:14px 12px 12px;border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
 .etq-slot{min-height:42px;border:2px dashed var(--linea);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;position:relative;background:var(--papel)}
@@ -1315,7 +1315,7 @@ const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
@@ -3864,11 +3864,9 @@ async function cargarHilos(emp, mas = false) {
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
       + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}Ordenar: ${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
-      + (etqPuede(emp) ? `<button type="button" id="mEtq" class="fx-bt" aria-haspopup="dialog">${ICONO_ETQ}Qué mostrar</button>` : "")
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
-      if (e.target.closest("#mEtq")) { etqEditor("ventas", emp, S.msjLista?.filas ?? [], () => cargarHilos(emp)); return; }
       if (e.target.closest("#mPer")) { e.stopPropagation(); const m = $("#mPerM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mPer").setAttribute("aria-expanded", String(ab)); return; }
       const dd = e.target.closest("[data-dias]");
       if (dd) { e.stopPropagation(); if (dd.dataset.dias === "custom") { $("#mPerF").classList.remove("oculto"); $("#mPerD").focus(); return; }
@@ -5321,11 +5319,11 @@ VISTAS.devoluciones = async () => {
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}${etqPuede(emp) ? `<button type="button" id="recEtq" class="etq-bt">${ICONO_ETQ}Qué mostrar</button>` : ""}</div>
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
-  $("#recFil").onclick = (e) => { if (e.target.closest("#recEtq")) { etqEditor("devoluciones", emp, lista, () => VISTAS.devoluciones()); return; } const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
+  $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
 };
 
@@ -5986,7 +5984,6 @@ VISTAS.despacho = async (op = {}) => {
       <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar<span id="dsFxN"></span></button>
       <span class="mas-caja"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
-      ${etqPuede(emp) ? `<button type="button" id="dsEtq" class="fx-bt" aria-haspopup="dialog">${ICONO_ETQ}Qué mostrar</button>` : ""}
       <div class="fx-act" id="dsAct"></div></div>
     <div class="rec-lista" id="dsLista"></div>
     <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button>
@@ -6001,7 +5998,6 @@ VISTAS.despacho = async (op = {}) => {
     if (e.target.closest("#dsOrd")) { e.stopPropagation(); const m = $("#dsOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsOrd").setAttribute("aria-expanded", String(ab)); return; }
     const od = e.target.closest("[data-dord]"); if (od) { $("#dsOrdM").classList.add("oculto"); $("#dsOrd").setAttribute("aria-expanded", "false"); F.orden = od.dataset.dord; pintar(); return; }
     if (e.target.closest("#dsFx")) { hojaDespacho(); return; }
-    if (e.target.closest("#dsEtq")) { etqEditor("despacho", emp, visibles(), pintar); return; }
     const q = e.target.closest("[data-qd]"); if (!q) return;
     const k = q.dataset.qd;
     if (k === "mio") F.mio = false; else if (k === "et") F.etiqueta = "todas";
@@ -6085,6 +6081,29 @@ function vigilarDespacho(emp) {
 
 // ---------- Impresoras (Empresa → Impresoras): las carga el administrador y le asigna una a cada persona ----------
 const resumenOpc = (i) => { const o = { ...OPC_IMP_DEF, ...(i.opciones ?? {}) }; return [o.control === "no" ? "Sin hoja de control" : o.control === "aparte" ? "Hoja de control aparte" : "Hoja de control al final", o.producto && "etiqueta de producto", o.armado && "lista de armado", o.ruta && "hoja de ruta", o.nota && "notas para el comprador"].filter(Boolean).join(", "); };
+// Empresa → Listas: qué datos se ven en cada fila de Ventas, Despacho y Devoluciones (solo el administrador de la empresa)
+VISTAS.listas = async () => {
+  const emp = empRec();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>${buscandoTxt("Cargando")}</p></div></div>`;
+  const mods = modsActuales();
+  const [cfg, rv, rd, rr] = await Promise.all([etqCargar(emp),
+    mods.has("mensajes") ? api("mensajes", { empresa_id: emp, filtro: "todas", desde: 0, limite: 2, filtros: {} }).catch(() => null) : null,
+    mods.has("despacho") ? api("despacho_lista", { empresa_id: emp, rapido: true }).catch(() => null) : null,
+    mods.has("devoluciones") ? api("devoluciones", { empresa_id: emp }).catch(() => null) : null]);
+  if (S.tab !== "listas") return;
+  if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador de la empresa elige qué se ve en las listas.</p></div></div>`; return; }
+  const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
+  const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
+  const plantillaDe = (k) => { const c = JSON.stringify(etqConfig(k, emp)); return ETQ[k].plantillas.find(([, x]) => JSON.stringify(x) === c)?.[0] ?? "Personalizada"; };
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que operan la empresa; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
+    ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
+      <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
+      <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+        || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
+      || `<div class="panel vacio">La empresa no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
+  $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
+};
 VISTAS.impresoras = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Elegí un cliente.</p></div></div>`; return; }
