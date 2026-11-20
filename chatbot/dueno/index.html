@@ -4999,9 +4999,10 @@ function mostrarResultado(r, modo, sinNada) {
     if (modo === "despacho") return fotosDespacho(r);
     // No hay una devolución para revisar (ya se procesó o es otra etiqueta): se abre la venta en Ventas
     if (r.conversacion_id && modsActuales().has("mensajes")) {
-      aviso(r.es_devolucion ? "Esa devolución ya no está para revisar: te abro la venta" : "Ese envío no tiene una devolución: te abro la venta");
+      aviso(r.devolucion_cerrada ? "Esa devolución está cerrada: te abro la venta" : r.es_devolucion ? "Esa devolución ya no está para revisar: te abro la venta" : "Ese envío no tiene una devolución abierta: te abro la venta");
       S.msjEmp = r.empresa_id ?? S.msjEmp; S.msjId = r.conversacion_id; S.msjBus = ""; ir("mensajes"); return;
     }
+    if (r.devolucion_cerrada) { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
     aviso(r.es_devolucion ? "Esa devolución ya no está abierta" : "Esa etiqueta es de un envío de una venta, no de una devolución"); return;
   }
   aviso(sinNada);
