@@ -916,7 +916,7 @@ h3 .te{font-size:13px;margin-left:4px}
     <!-- Código de invitación o de clave nueva -->
     <form id="fCodigo" class="oculto" autocomplete="on">
       <h2>Elegí tu clave</h2>
-      <p class="mut peq" style="margin:6px 0 10px">Usá el código que te pasó el administrador de tu empresa. Vale una sola vez.</p>
+      <p class="mut peq" style="margin:6px 0 10px">Usá el código que te pasó el administrador de tu negocio. Vale una sola vez.</p>
       <label class="et" for="cEmail">Email</label>
       <input id="cEmail" type="email" autocomplete="username" required>
       <label class="et" for="cCod">Código</label>
@@ -932,7 +932,7 @@ h3 .te{font-size:13px;margin-left:4px}
     <!-- Olvido de clave -->
     <div id="fOlvido" class="oculto" style="width:min(360px,100%)">
       <h2>Olvidé mi clave</h2>
-      <p class="mut" style="margin:8px 0 14px">Pedile un código nuevo al administrador de tu empresa: lo genera en la sección Equipo, al lado de tu nombre. Con ese código elegís una clave nueva.</p>
+      <p class="mut" style="margin:8px 0 14px">Pedile un código nuevo al administrador de tu negocio: lo genera en la sección Equipo, al lado de tu nombre. Con ese código elegís una clave nueva.</p>
       <button class="btn osc" type="button" style="width:100%;justify-content:center" data-modo="codigo">Ya tengo el código</button>
       <div class="enlaces"><button type="button" class="enlace" data-modo="usuario">Volver</button></div>
     </div>
@@ -1094,11 +1094,11 @@ $("#fCodigo").onsubmit = async (e) => {
   await entrarUsuario().catch((err) => { $("#cErr").textContent = err.message; sb.auth.signOut(); });
 };
 
-// Entrada con usuario: decide qué ve según sus empresas y su rol en cada una
+// Entrada con usuario: decide qué ve según sus clientes y su rol en cada una
 async function entrarUsuario() {
   S.modo = "usuario"; S.empresaId = "";
   S.yo = await api("yo");
-  // Dos links: el de empresas y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
+  // Dos links: el de clientes y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
   // (la sesión es la misma, así que entra directo).
   const link = window.MOSTRADOR_LINK;
   // Al pasar de un link al otro se conserva lo que venía después de "#" (por ejemplo, la venta de un aviso)
@@ -1106,11 +1106,11 @@ async function entrarUsuario() {
   if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../" + location.hash); return new Promise(() => {}); }
   if (S.yo.usuario?.admin_app) {
     S.rol = "admin";
-    // Al refrescar la página se sigue dentro de la empresa en la que se estaba dando soporte
+    // Al refrescar la página se sigue dentro del cliente en la que se estaba dando soporte
     try { const sp = JSON.parse(sessionStorage.getItem("mostrador_soporte") ?? "null"); if (sp?.id) { S.soporte = sp.id; S.soporteNom = sp.nombre; } } catch {}
   }
   else {
-    if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene empresas activas. Pedile a quien te invitó que te vuelva a sumar.");
+    if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene clientes activos. Pedile a quien te invitó que te vuelva a sumar.");
     let guardada = ""; try { guardada = localStorage.getItem("mostrador_empresa_sel") ?? ""; } catch {}
     const valida = guardada === "*" && S.yo.empresas.length > 1 || S.yo.empresas.some((x) => x.id === guardada);
     elegirEmpresa(valida ? guardada : (S.yo.empresas.find((x) => x.rol === "admin")?.id ?? (S.yo.empresas.length > 1 ? "*" : S.yo.empresas[0].id)));
@@ -1124,7 +1124,7 @@ async function entrarUsuario() {
   if (!abrirDesdeEnlace(location.hash)) ir(inicio());
   iniciarAvisos();
 }
-// "*" = todas mis empresas (bandeja unificada)
+// "*" = todos mis clientes (bandeja unificada)
 function elegirEmpresa(id) {
   const m = S.yo.empresas.find((x) => x.id === id);
   S.empresaId = id === "*" ? "" : id;
@@ -1144,7 +1144,7 @@ function armarSelector() {
   if (S.yo.empresas.length < 2) { sel.classList.add("oculto"); return; }
   sel.classList.remove("oculto");
   const actual = S.empresaId || "*";
-  sel.innerHTML = `<option value="*" ${actual === "*" ? "selected" : ""}>Todas mis empresas</option>` +
+  sel.innerHTML = `<option value="*" ${actual === "*" ? "selected" : ""}>Todos mis clientes</option>` +
     S.yo.empresas.map((e) => `<option value="${e.id}" ${e.id === actual ? "selected" : ""}>${esc(e.nombre)}${e.rol === "admin" ? " (administrás)" : ""}</option>`).join("");
   sel.onchange = async () => { elegirEmpresa(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
 }
@@ -1299,7 +1299,7 @@ sb.auth.getSession().then(({ data }) => { if (data?.session) entrarUsuario().cat
 
 async function recargar() {
   if (S.rol === "operador") {
-    // El operador no ve la configuración de la empresa: solo sus empresas y sus preguntas
+    // El operador no ve la configuración del cliente: solo sus clientes y sus preguntas
     S.yo = await api("yo");
     if (S.empresaId && !empresaYo(S.empresaId)) { elegirEmpresa(S.yo.empresas.length > 1 ? "*" : S.yo.empresas[0]?.id); armarSelector(); }
     S.res = { cuentas: [], empresas: S.yo.empresas, stats: {}, sitios: [] };
@@ -1307,12 +1307,12 @@ async function recargar() {
   }
   if (S.rol === "admin") S.empSel = S.soporte || "";
   S.res = await api("resumen", { empresa_id: S.empSel || null });
-  // El dueño de la app no elige empresa con un selector: entra a una empresa solo en modo soporte
+  // El dueño de la app no elige cliente con un selector: entra a un cliente solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-// Menú del administrador de la empresa: seis entradas; las pantallas de cada una van en solapas arriba del título
+// Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
 const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
-  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Empresa"]];
+  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Cliente"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
@@ -1325,7 +1325,7 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas"
   ["numeros", "Mis números"]];
 // Operador: secciones que el administrador le habilitó (Equipo → Permisos)
 const permOp = (sec) => (S.yo?.empresas ?? []).filter((e) => !S.empresaId || e.id === S.empresaId).some((e) => (e.permisos ?? []).includes(sec));
-const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Empresas"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["regulador", "Regulador de IA"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
+const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Clientes"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["regulador", "Regulador de IA"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
   try { rtSincronizar(); } catch {}
@@ -1341,7 +1341,7 @@ function armarNav() {
   $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
 }
-// Deja claro quién está mirando: dueño de la app, administrador de una empresa, operador o soporte
+// Deja claro quién está mirando: dueño de la app, administrador de un cliente, operador o soporte
 function pintarPerfil() {
   const app = $("#app"), caja = $("#perfil");
   app.classList.remove("p-dueno", "p-empresa", "p-operador", "p-soporte");
@@ -1349,7 +1349,7 @@ function pintarPerfil() {
   let clase, html, corto, color = "";
   if (S.rol === "admin" && !S.soporte) {
     clase = "p-dueno"; corto = "Administración de la app";
-    html = `<div><b>Administración de la app</b><span>Todas las empresas</span></div>`;
+    html = `<div><b>Administración de la app</b><span>Todos los clientes</span></div>`;
   } else if (S.rol === "admin") {
     const e = { nombre: S.soporteNom, color: S.plat?.empresas?.find((x) => x.id === S.soporte)?.color };
     clase = "p-soporte"; color = e.color; corto = e.nombre;
@@ -1358,11 +1358,11 @@ function pintarPerfil() {
     const r = S.res?.empresas?.[0] ?? {};
     const e = empresaYo(S.empresaId) ?? { nombre: r.nombre ?? S.empresa, color: r.color };
     clase = "p-empresa"; color = e.color; corto = e.nombre;
-    html = tarjeta(e, "Administrador de la empresa");
+    html = tarjeta(e, "Administrador del cliente");
   } else {
     const e = S.empresaId ? empresaYo(S.empresaId) : null;
-    clase = "p-operador"; color = e?.color ?? ""; corto = e ? e.nombre : "Todas mis empresas";
-    html = e ? tarjeta(e, "Operador") : `<div><b>Todas mis empresas</b><span>Operador</span></div>`;
+    clase = "p-operador"; color = e?.color ?? ""; corto = e ? e.nombre : "Todos mis clientes";
+    html = e ? tarjeta(e, "Operador") : `<div><b>Todos mis clientes</b><span>Operador</span></div>`;
   }
   app.classList.add(clase);
   caja.style.setProperty("--emp", color || "");
@@ -1500,7 +1500,7 @@ function tarjetaConv(p) {
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
     <div class="acciones">
-      ${puede ? `<button class="btn pri" data-pub="${p.id}">${multi && emp ? `Publicar como ${esc(emp.nombre)}` : "Publicar respuesta"}</button>` : `<span class="mut peq">En esta empresa tus respuestas las publica el administrador</span>`}
+      ${puede ? `<button class="btn pri" data-pub="${p.id}">${multi && emp ? `Publicar como ${esc(emp.nombre)}` : "Publicar respuesta"}</button>` : `<span class="mut peq">En este cliente tus respuestas las publica el administrador</span>`}
       <button class="btn lin" data-det="${p.id}">Ver detalle</button>
       <button class="btn pel" data-desc="${p.id}">Descartar</button>
       <span class="cuenta-c">${esc(cta?.nombre ?? "")}</span>
@@ -1545,18 +1545,18 @@ VISTAS.bandeja = async () => {
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
-      <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} empresas` : ""}. Primero van las que esperan hace más tiempo.</p></div>
+      <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} clientes` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
-    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por empresa"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
+    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por cliente"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
     <div style="margin:-4px 0 14px"><button class="btn lin chico" type="button" id="verHist">Ver todas las preguntas</button></div>
-    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de esta empresa." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
+    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de este cliente." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
   $("#main").querySelectorAll("[data-be]").forEach((x) => { x.onclick = () => { S.bandEmp = x.dataset.be; VISTAS.bandeja(); }; });
   $("#verHist").onclick = () => ir("preguntas");
   enlazarCola($("#cola"));
 };
 
-// ================= EQUIPO (administrador de la empresa) =================
+// ================= EQUIPO (administrador del cliente) =================
 const ESTADO_M = { activo: ["Activo", "respondida"], invitado: ["Invitado, todavía no entró", "borrador"], baja: ["Dado de baja", "descartada"] };
 // Íconos de aparatos (trazo, heredan el color del texto)
 const ICONO = {
@@ -1627,7 +1627,7 @@ VISTAS.equipo = async () => {
     </article>`;
   };
 
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de esta empresa, qué puede hacer cada uno y dónde le llegan las notificaciones.</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de este cliente, qué puede hacer cada uno y dónde le llegan las notificaciones.</p></div>
       <div><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
     <div class="eq-res">
       <div class="panel"><div class="eq-n"><b>${r.usados}</b><span>de ${r.limite} operadores${r.plan ? " del plan " + esc(r.plan) : ""}</span></div>
@@ -1652,7 +1652,7 @@ VISTAS.equipo = async () => {
     b.closest(".menu-p")?.removeAttribute("open");
     const a = b.dataset.a;
     if (a === "baja") {
-      if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de esta empresa. Lo que ya respondió queda en el historial.`)) return;
+      if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de este cliente. Lo que ya respondió queda en el historial.`)) return;
       if (await seguro(() => api("miembro_baja", { id: m.id }))) { aviso(`${quien} quedó dado de baja`); VISTAS.equipo(); }
     } else if (a === "quitar") {
       if (!confirm(`¿Quitar a ${quien} de la lista? Lo que haya respondido sigue en el historial con su nombre. Si más adelante querés sumarlo, lo invitás de nuevo.`)) return;
@@ -1787,7 +1787,7 @@ function autonomiaHTML(a) {
 // ================= DUDAS FRECUENTES (administrador) =================
 // ---------- Equipo → Permisos: quién puede agregar o borrar en Conocimiento, Documentación, Dudas y Probar, y sobre qué ----------
 const permTxt = (p, r) => !p ? "Sin acceso" : p.alcance === "todo" ? "Toda la cuenta" : p.alcance === "categorias" ? (p.categorias.length === 1 ? (r.categorias.find((c) => c.id === p.categorias[0])?.nombre ?? "1 categoría") : `${p.categorias.length} categorías`) : `${p.publicaciones.length} ${p.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
-// ---------- Notificaciones: configuración de la empresa (administrador) y de cada persona ----------
+// ---------- Notificaciones: configuración del cliente (administrador) y de cada persona ----------
 const NF_MOD = { preguntas: "preguntas", ventas: "mensajes", despacho: "despacho", devoluciones: "devoluciones" };
 const nfSeg = (sec, k, val, ops) => `<div class="seg" role="radiogroup">${ops.map(([v, t]) => `<button type="button" role="radio" aria-checked="${String(val) === String(v)}" class="${String(val) === String(v) ? "on" : ""}" data-sec="${sec}" data-k="${k}" data-v="${esc(String(v))}">${t}</button>`).join("")}</div>`;
 const nfSw = (attrs, on, dis = false) => `<button type="button" role="switch" aria-checked="${!!on}" class="nf-sw ${on ? "on" : ""}" ${dis ? "disabled" : ""} ${attrs}><span></span></button>`;
@@ -1797,7 +1797,7 @@ function nfGuardarLuego(fn) { clearTimeout(nfTimer); nfTimer = setTimeout(async 
 
 VISTAS.notificaciones = async () => {
   const emp = empRec();
-  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const r = await seguro(() => api("notif_empresa_ver", { empresa_id: emp })); if (!r || S.tab !== "notificaciones") return;
   const n = r.notif, mods = new Set(r.modulos);
   const esc_ = { min: r.escalar_min, a: r.escalar_a };
@@ -1824,7 +1824,7 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Me mencionan en una nota", "No se puede apagar: la mención es para notificar", nfSw("", true, true))}
       ${nfFila("Nota nueva en algo asignado", "A quien tiene asignada la venta o la pregunta", nfSw(`data-swsec="notas" data-swk="asignado"`, n.notas.asignado))}
       ${nfFila("Recordatorio de eventos", "Valor para los eventos nuevos", nfSeg("calendario", "recordatorio", n.calendario.recordatorio, [[0, "A la hora"], [10, "10 min antes"], [30, "30 min antes"], [60, "1 h antes"], [1440, "1 día antes"]]))}</section>`);
-    $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Qué notificaciones manda Mostrador y a quién. Solo aparecen los módulos que tiene la empresa: si un módulo no está contratado, nadie recibe notificaciones de ese módulo. Cada persona elige además, en "Mis notificaciones", cuándo recibirlas y cuáles apaga.</p></div></div>${b.join("")}`;
+    $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Qué notificaciones manda Mostrador y a quién. Solo aparecen los módulos que tiene el cliente: si un módulo no está contratado, nadie recibe notificaciones de ese módulo. Cada persona elige además, en "Mis notificaciones", cuándo recibirlas y cuáles apaga.</p></div></div>${b.join("")}`;
   };
   const guardar = () => nfGuardarLuego(() => api("notif_empresa_guardar", { empresa_id: emp, notif: n, escalar_min: esc_.min, escalar_a: esc_.a }));
   pintar();
@@ -1875,7 +1875,7 @@ VISTAS.misnotif = async () => {
     b.push(`<section class="panel nf-mod"><h2>Chat</h2>${nfFila("", "", nfSeg("_p", "chat", p.chat ?? "", [["", "Como el equipo"], ["todos", "Todos"], ["directos", "Directos y menciones"], ["nada", "Nada"]]))}
       ${r.grupos.map((g) => nfFila(esc(g.nombre), g.silenciado ? "Silenciado: solo te notifica si te nombran" : "", nfSw(`data-grupo="${g.id}"`, !g.silenciado))).join("")}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Notas y calendario</h2>${nfFila("Me mencionan en una nota", "No se puede apagar", nfSw("", true, true))}${tog("nota_asignado", "Nota nueva en algo asignado a mí")}${tog("cal_invitacion", "Invitaciones a eventos")}${tog("cal_recordatorio", "Recordatorios de eventos")}</section>`);
-    $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis notificaciones</h1><p>Lo que te llega a vos. Solo aparecen los módulos de tus empresas.</p></div></div>${b.join("")}`;
+    $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis notificaciones</h1><p>Lo que te llega a vos. Solo aparecen los módulos de tus clientes.</p></div></div>${b.join("")}`;
   };
   const guardar = () => nfGuardarLuego(() => api("notif_mias_guardar", { prefs: p }));
   pintar();
@@ -1928,7 +1928,7 @@ function rangoAct(k) {
 }
 VISTAS.actividad = async () => {
   const emp = empRec();
-  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Actividad</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Actividad</h1><p>Elegí un cliente.</p></div></div>`; return; }
   S.actPer ??= "hoy"; S.actQuien ??= ""; S.actMod ??= "";
   const r = await seguro(() => api("actividad_lista", { empresa_id: emp, ...rangoAct(S.actPer), usuario_id: S.actQuien || null, modulo: S.actMod || null }));
   if (!r || S.tab !== "actividad") return;
@@ -2030,7 +2030,7 @@ setInterval(() => {
 
 VISTAS.permisos = async () => {
   const emp = empRec();
-  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const r = await seguro(() => api("permisos_lista", { empresa_id: emp })); if (!r || S.tab !== "permisos") return;
   const secs = Object.entries(r.secciones);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Qué puede agregar o borrar cada operador en estas secciones, y sobre qué publicaciones. No dependen del horario. Los administradores pueden todo; un operador sin acceso no ve la sección.</p></div></div>
@@ -2119,7 +2119,7 @@ VISTAS.numeros = async () => {
   const d = await seguro(() => api("mis_numeros", { desde, hasta }));
   if (!d || S.tab !== "numeros") return;
   const y = d.yo, multi = d.por_empresa.length > 1;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} empresas` : ""}.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} clientes` : ""}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
       <div class="medida"><b>${num(y.respondidas)}</b><span>${y.respondidas === 1 ? "pregunta respondida" : "preguntas respondidas"}${y.asignadas ? ` de ${num(y.asignadas)} que te llegaron` : ""}</span></div>
       <div class="medida"><b>${dur(y.tiempo_mediana_seg)}</b><span>tardás en responder, en general (promedio ${dur(y.tiempo_prom_seg)})</span></div>
@@ -2127,7 +2127,7 @@ VISTAS.numeros = async () => {
       <div class="medida"><b>${num(y.descartadas)}</b><span>${y.descartadas === 1 ? "pregunta descartada" : "preguntas descartadas"}</span></div>
     </div>
     <div class="panel" style="margin-top:16px"><h2>Tus respuestas por día</h2>${grafDias(d.serie, ["yo"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
-    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por empresa</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Empresa</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
+    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por cliente</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Cliente</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
       ${d.por_empresa.map((e) => `<tr><td>${etiquetaEmpresa(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
     <div class="panel"><h2>Respuestas tuyas con repregunta</h2><p class="mut peq" style="margin:0 0 8px">El comprador volvió a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas. Mirá qué le faltaba a la respuesta.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, true)}</div>`;
@@ -2146,7 +2146,7 @@ function sumarPersona(emp, libres) {
   const v = cajon(`<div class="cajon-cab"><div><h2>Sumar persona</h2><p class="mut peq" style="margin:4px 0 0">${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`} para operadores.` : ""}</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <label class="et" for="sNom">Nombre</label><input id="sNom" autocomplete="off">
     <label class="et" for="sEm">Email</label><input id="sEm" type="email" autocomplete="off">
-    <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otra empresa en el panel, se le suma esta y entra con su misma clave.</p>
+    <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro cliente en el panel, se le suma esta y entra con su misma clave.</p>
     <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: responde las preguntas</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
     <label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="sPub" checked style="width:20px;height:20px"> Puede publicar respuestas sin que un administrador las apruebe</label>
     <button class="btn pri" style="margin-top:18px" id="sOk">Sumar</button>`, true);
@@ -2157,11 +2157,11 @@ function sumarPersona(emp, libres) {
     if (!r) return;
     v.remove(); VISTAS.equipo();
     if (r.nuevo) mostrarCodigo(nombre || email, r.email, r.codigo, true);
-    else aviso(`${nombre || email} ya tenía usuario: se le sumó esta empresa`);
+    else aviso(`${nombre || email} ya tenía usuario: se le sumó este cliente`);
   };
 }
 
-// ================= ASIGNACIONES (administrador de la empresa) =================
+// ================= ASIGNACIONES (administrador del cliente) =================
 // Quién atiende qué publicaciones y cuándo. Cada persona tiene un color y sus iniciales.
 const PALETA = ["#2E5BD0", "#A85A06", "#7A3EB1", "#0D7A64", "#B8336A", "#1F7A8C", "#6B6B10", "#C2410C"];
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -2331,7 +2331,7 @@ VISTAS.asignaciones = async () => {
           <div style="flex:1;min-width:0;${vencida(a) ? "opacity:.6" : ""}"><b>${esc(nomsA(a))}</b> · ${esc(alcTxt(a))}<div class="mut peq">${esc(cuandoTxt(a))}${vencida(a) ? " · <b>vencida</b>" : ""}</div></div><span class="asig-acc"><button class="btn lin chico" data-asig="${a.id}">${ICONO_E.lapiz} Editar</button><button class="btn pel chico" data-quitar-asig="${a.id}">${ICONO_E.tacho} Borrar</button></span></div>`).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay asignaciones con fecha. Se cargan desde "Nueva asignación", con la opción "Solo por un tiempo".</p>`}</div>
       <div class="panel"><div class="fila"><div><h2 style="margin:0">Ausencias y feriados</h2><p class="mut peq" style="margin:4px 0 8px">En esos días la persona no recibe preguntas. Un feriado deja el día sin nadie.</p></div><div class="n"><button class="btn lin chico" id="excNueva">Agregar</button></div></div>
         ${r.excepciones.length ? r.excepciones.map((x) => { const m = x.miembro_id ? r.m(x.miembro_id) : null; return `<div class="item-t">${m ? avatarM(m, 32) : `<span class="av-m" style="width:32px;height:32px;background:var(--sup2);color:var(--piz)" aria-hidden="true">F</span>`}
-          <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Toda la empresa"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
+          <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Todo el equipo"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
     </div>`;
   pestModulo("asigMod", VISTAS.asignaciones);
   $("#main").onclick = async (e) => {
@@ -2481,7 +2481,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
 function nuevaAusencia(emp, r) {
   const hoy = hoyISO();
   const v = cajon(`<div class="cajon-cab"><div><h2>Agregar ausencia o feriado</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    <label class="et" for="aQuien">Quién</label><select id="aQuien"><option value="">Toda la empresa (feriado)</option>${r.miembros.map((m) => `<option value="${m.id}">${esc(m.nombre)}</option>`).join("")}</select>
+    <label class="et" for="aQuien">Quién</label><select id="aQuien"><option value="">Todos (feriado)</option>${r.miembros.map((m) => `<option value="${m.id}">${esc(m.nombre)}</option>`).join("")}</select>
     <div class="g2" style="display:grid;gap:12px"><label><span class="et">Desde</span><input id="aDesde" type="date" value="${hoy}"></label><label><span class="et">Hasta</span><input id="aHasta" type="date" value="${hoy}"></label></div>
     <label class="et" for="aMot">Motivo (opcional)</label><input id="aMot" placeholder="Vacaciones, franco, feriado…" autocomplete="off">
     <button class="btn pri" style="margin-top:18px" id="aOk">Agregar</button>`, true);
@@ -2612,7 +2612,7 @@ function ofrecerVolver(caja, tx, antes, alertas = []) {
 }
 // Aprender de cada edición: si la persona cambió el contenido del borrador, se ofrece guardarlo como corrección
 function ofrecerAprender(id, e) {
-  const v = cajon(`<div class="cajon-cab"><div><h2>¿El bot tiene que aprender esto?</h2><p class="mut peq" style="margin:4px 0 0">${e.tipo === "nueva" ? "El bot no tenía respuesta para esta pregunta." : "Cambiaste el contenido de lo que había propuesto el bot."} Si lo guardás como corrección, la próxima vez responde así en todas las cuentas de la empresa.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+  const v = cajon(`<div class="cajon-cab"><div><h2>¿El bot tiene que aprender esto?</h2><p class="mut peq" style="margin:4px 0 0">${e.tipo === "nueva" ? "El bot no tenía respuesta para esta pregunta." : "Cambiaste el contenido de lo que había propuesto el bot."} Si lo guardás como corrección, la próxima vez responde así en todas las cuentas del cliente.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     ${e.resumen && e.tipo !== "nueva" ? `<div class="aprender-r">${esc(e.resumen)}</div>` : ""}
     <label class="et">Pregunta del comprador</label><div class="caja pre">${esc(e.pregunta)}</div>
     ${e.sugerida ? `<label class="et">Lo que propuso el bot</label><div class="caja pre tachada">${esc(e.sugerida)}</div>` : ""}
@@ -2951,7 +2951,7 @@ VISTAS.regulador = async () => {
     pintar(`<div class="rg-texto">
       <div class="panel"><h2>La idea</h2>
         <p>Cada vez que la IA redacta algo (una respuesta a una pregunta o un borrador de mensaje de venta) se le manda información: las instrucciones de la cuenta, el catálogo, los datos de la publicación, respuestas anteriores. Cuanto más se manda, más cuesta. Pero no todas las preguntas necesitan todo: para contestar si se hace envío a Paraná no hace falta el catálogo de lámparas.</p>
-        <p>El regulador decide en cada caso cuánto mandar, mide si la respuesta salió bien y con eso aprende. Funciona igual para todas las empresas, sin configurar nada, y se ajusta solo con el tiempo.</p></div>
+        <p>El regulador decide en cada caso cuánto mandar, mide si la respuesta salió bien y con eso aprende. Funciona igual para todos los clientes, sin configurar nada, y se ajusta solo con el tiempo.</p></div>
       <div class="panel"><h2>Los tres paquetes de información</h2>
         <p>Las instrucciones de la cuenta, las correcciones del vendedor y los datos en vivo de la publicación (precio, stock, envío) van siempre. Lo que cambia es la parte del catálogo:</p>
         <ul><li><b>Ficha del producto:</b> la ficha del producto de la publicación, los datos comunes de su sección y lo general (entrega, retiro, lo que no se vende). De los demás productos de la sección, solo el nombre.</li>
@@ -2959,7 +2959,7 @@ VISTAS.regulador = async () => {
         <li><b>Catálogo completo:</b> todo, como funcionaba antes, y el listado de todas las publicaciones.</li></ul></div>
       <div class="panel"><h2>Cómo decide</h2>
         <ol><li><b>Clasifica el mensaje.</b> Un modelo muy barato (Haiku, unos US$0,00005 por mensaje) lee la pregunta y anota el tema (envío, medidas, otra variante, otro producto…) y el mínimo de información que necesita. Si preguntan por otro producto, nunca se manda menos que el catálogo completo.</li>
-        <li><b>Mira la experiencia.</b> Para ese tema guarda cuántas veces salió bien y cuántas mal cada paquete, en cuatro capas: toda la app, la empresa, la categoría y la publicación. Una empresa nueva arranca con lo aprendido en general y se va diferenciando a medida que tiene volumen propio.</li>
+        <li><b>Mira la experiencia.</b> Para ese tema guarda cuántas veces salió bien y cuántas mal cada paquete, en cuatro capas: toda la app, el cliente, la categoría y la publicación. Un cliente nuevo arranca con lo aprendido en general y se va diferenciando a medida que tiene volumen propio.</li>
         <li><b>Elige.</b> Toma el paquete más barato cuya calidad estimada no sea peor que la del mejor (con una tolerancia de 3 puntos).</li>
         <li><b>Prueba, con cuidado.</b> Cuando la respuesta la va a revisar una persona antes de publicarse, a veces prueba con otro paquete para seguir aprendiendo (método de Thompson). Cuando el bot publica solo, no prueba: usa lo que ya sabe que funciona.</li></ol></div>
       <div class="panel"><h2>Cómo mide si salió bien</h2>
@@ -2994,7 +2994,7 @@ VISTAS.regulador = async () => {
         <div><h3>Qué información usó la IA</h3><p class="mut peq" style="margin-top:0">Porcentaje de las respuestas en que la IA dijo haber usado cada parte. Lo que casi nunca se usa es candidato a no mandarse.</p>
           ${usadosTop.length ? usadosTop.map((f) => `<div class="rg-barra"><span>${esc(RG_FUENTE[f.fuente] ?? f.fuente)}</span><i style="--v:${Math.min(100, f.pct)}%"></i><b>${pctTxt(f.pct)}</b></div>`).join("") : `<p class="mut">Todavía sin datos.</p>`}</div>
       </div>
-      ${a.empresas.length > 1 ? `<h3 style="margin-top:16px">Por empresa</h3><div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Empresa</th><th>Decisiones</th><th>Tokens promedio</th><th>Costo de IA</th></tr>${a.empresas.map((e) => `<tr><td>${esc(e.empresa)}</td><td>${num(e.n)}</td><td>${e.tokens_prom != null ? num(Math.round(e.tokens_prom)) : "—"}</td><td>${usd(e.costo_usd, 2)}</td></tr>`).join("")}</table></div>` : ""}
+      ${a.empresas.length > 1 ? `<h3 style="margin-top:16px">Por cliente</h3><div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Decisiones</th><th>Tokens promedio</th><th>Costo de IA</th></tr>${a.empresas.map((e) => `<tr><td>${esc(e.empresa)}</td><td>${num(e.n)}</td><td>${e.tokens_prom != null ? num(Math.round(e.tokens_prom)) : "—"}</td><td>${usd(e.costo_usd, 2)}</td></tr>`).join("")}</table></div>` : ""}
     </div>`;
   };
   pintar(d.acciones.length ? d.acciones.map(bloque).join("") : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando la IA responda preguntas o arme borradores de mensajes.</div>`);
@@ -3084,7 +3084,7 @@ VISTAS.plataforma = async () => {
     </div>
     <div class="grilla g2" style="margin-top:16px;align-items:start">
       <div class="panel"><h2>Para mirar</h2>${d.avisos.length ? d.avisos.map((a) => `<button class="alerta ${a.nivel}" data-emp="${a.empresa_id}">${esc(a.texto)}</button>`).join("")
-        : `<p class="mut" style="margin:8px 0 0">Nada urgente: ninguna empresa tiene preguntas trabadas ni cuentas desconectadas.</p>`}</div>
+        : `<p class="mut" style="margin:8px 0 0">Nada urgente: ningún cliente tiene preguntas trabadas ni cuentas desconectadas.</p>`}</div>
       <div class="panel" id="rk"></div>
     </div>`;
   enlazarPeriodo(VISTAS.plataforma);
@@ -3097,13 +3097,13 @@ function pintarRanking() {
   const lista = d.empresas.filter((e) => !S.rankPl || e.plan === S.rankPl)
     .sort((a, b) => { const x = c[2](a), y = c[2](b); if (x == null) return y == null ? 0 : 1; if (y == null) return -1; return (x - y) * c[3]; })
     .slice(0, S.rankN);
-  $("#rk").innerHTML = `<h2>Ranking de empresas</h2>
-    <div class="frase">Mostrame las <select id="rkN" aria-label="Cantidad">${[3, 5, 10, 20, 50].map((n) => `<option ${n === S.rankN ? "selected" : ""}>${n}</option>`).join("")}</select> empresas
+  $("#rk").innerHTML = `<h2>Ranking de clientes</h2>
+    <div class="frase">Mostrame las <select id="rkN" aria-label="Cantidad">${[3, 5, 10, 20, 50].map((n) => `<option ${n === S.rankN ? "selected" : ""}>${n}</option>`).join("")}</select> clientes
       <select id="rkC" aria-label="Criterio">${CRITERIOS.map((x) => `<option value="${x[0]}" ${x[0] === c[0] ? "selected" : ""}>${x[1]}</option>`).join("")}</select>
       con plan <select id="rkP" aria-label="Plan"><option value="">cualquier plan</option>${planes.map((p) => `<option ${p === S.rankPl ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></div>
     ${["lento", "rapido"].includes(c[0]) ? `<p class="mut peq" style="margin:0 0 6px">El tiempo lo calcula MercadoLibre sobre los últimos 14 días, sin importar el período elegido.</p>` : ""}
     ${lista.length ? lista.map((e, i) => `<button class="rank" data-emp="${e.id}"><span class="pos">${i + 1}</span>${avEmp(e)}<span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.nombre)}</b><span class="peq mut">${e.plan ? "Plan " + esc(e.plan) : "Sin plan"}${e.activa ? "" : ", pausada"}</span></span><span class="v">${c[2](e) == null ? "—" : c[4](c[2](e))}</span><i class="flecha" aria-hidden="true"></i></button>`).join("")
-      : `<div class="vacio"><b>No hay empresas con ese plan</b>Probá con otro plan o con cualquier plan.</div>`}`;
+      : `<div class="vacio"><b>No hay clientes con ese plan</b>Probá con otro plan o con cualquier plan.</div>`}`;
   $("#rkN").onchange = () => { S.rankN = Number($("#rkN").value); pintarRanking(); };
   $("#rkC").onchange = () => { S.rankC = $("#rkC").value; pintarRanking(); };
   $("#rkP").onchange = () => { S.rankPl = $("#rkP").value; pintarRanking(); };
@@ -3139,9 +3139,9 @@ async function vistaEmpresa(nuevos = true) {
       ${d.operadores.length ? `<table class="tabla apilable"><tr><th>Persona</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Tiempo</th><th>Ventas atendidas</th>" : ""}</tr>
       ${d.operadores.map((o) => `<tr><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}<div class="peq mut">${o.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Preguntas respondidas">${num(o.respondidas)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td data-et="Mensajes enviados">${num(o.mensajes)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_mensajes_seg)}</td><td data-et="Ventas atendidas">${num(o.conversaciones)}</td>` : ""}</tr>`).join("")}
       ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td data-et="Mensajes enviados">${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
-      : `<p class="mut" style="margin:6px 0 0">Esta empresa todavía no tiene usuarios.</p>`}</div>
+      : `<p class="mut" style="margin:6px 0 0">Este cliente todavía no tiene usuarios.</p>`}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
-    <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su empresa.</p>`;
+    <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su negocio.</p>`;
   enlazarPeriodo(vistaEmpresa);
   $("#volverPlat").onclick = () => { S.platEmp = ""; S.platFil = null; S.platVer = 30; ir("plataforma"); };
   if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaEmpresa(false); };
@@ -3151,7 +3151,7 @@ async function vistaEmpresa(nuevos = true) {
   document.querySelectorAll("#main .fila-click").forEach((tr) => { tr.onclick = () => elegir(tr); tr.onkeydown = (ev) => { if (ev.key === "Enter") elegir(tr); }; });
 }
 
-// Modo soporte: el dueño de la app ve el panel de una empresa como su administrador
+// Modo soporte: el dueño de la app ve el panel de un cliente como su administrador
 async function entrarSoporte(id, nombre) {
   S.soporte = id; S.soporteNom = nombre; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
   try { sessionStorage.setItem("mostrador_soporte", JSON.stringify({ id, nombre })); } catch {}
@@ -3177,13 +3177,13 @@ VISTAS.planes = async () => {
   if (!planes || !res) return;
   S.planes = planes;
   const nombres = Object.keys(planes);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Planes y módulos</h1><p>Cuántos operadores puede sumar cada empresa y qué módulos tiene. Cada módulo se cobra aparte.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Planes y módulos</h1><p>Cuántos operadores puede sumar cada cliente y qué módulos tiene. Cada módulo se cobra aparte.</p></div></div>
     <div class="grilla g2 g-planes" style="align-items:start">
-    <div class="panel"><h2>Operadores incluidos</h2><p class="mut peq" style="margin:0 0 6px">El administrador de la empresa no cuenta como operador.</p>
+    <div class="panel"><h2>Operadores incluidos</h2><p class="mut peq" style="margin:0 0 6px">El administrador del cliente no cuenta como operador.</p>
       <div id="plFilas">${nombres.map((n) => filaPlan(n, planes[n])).join("")}</div>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn lin" id="plMas">Agregar un plan</button><button class="btn pri" id="plG">Guardar planes</button></div></div>
-    <div class="panel" style="overflow-x:auto"><h2>Plan de cada empresa</h2><p class="mut peq" style="margin:0 0 6px">Si una empresa necesita más operadores que su plan, poné un límite propio.</p>
-      <table class="tabla apilable"><tr><th>Empresa</th><th>Plan</th><th>Límite propio</th><th></th></tr>
+    <div class="panel" style="overflow-x:auto"><h2>Plan de cada cliente</h2><p class="mut peq" style="margin:0 0 6px">Si un cliente necesita más operadores que su plan, poné un límite propio.</p>
+      <table class="tabla apilable"><tr><th>Cliente</th><th>Plan</th><th>Límite propio</th><th></th></tr>
       ${res.empresas.map((e) => `<tr data-e="${e.id}"><td><b>${esc(e.nombre)}</b></td><td><select class="ePl" style="min-width:130px"><option value="">Sin plan</option>${[...new Set([...nombres, e.plan].filter(Boolean))].map((n) => `<option ${n === e.plan ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></td>
         <td><input type="number" min="0" class="eLi" placeholder="Del plan" value="${e.limite_operadores ?? ""}" style="width:110px"></td><td><button class="btn lin chico eG">Guardar</button></td></tr>`).join("")}</table></div></div>`;
   $("#plMas").onclick = () => { $("#plFilas").insertAdjacentHTML("beforeend", filaPlan("", 1)); $("#plFilas .plan-f:last-child input").focus(); };
@@ -3195,7 +3195,7 @@ VISTAS.planes = async () => {
   };
   document.querySelectorAll("tr[data-e] .eG").forEach((b) => b.onclick = async () => {
     const tr = b.closest("tr");
-    if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.e, plan: $(".ePl", tr).value, limite_operadores: $(".eLi", tr).value }))) aviso("Plan de la empresa guardado");
+    if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.e, plan: $(".ePl", tr).value, limite_operadores: $(".eLi", tr).value }))) aviso("Plan del cliente guardado");
   });
   panelModulos(res);
 };
@@ -3204,7 +3204,7 @@ const filaPlan = (n, v) => `<div class="plan-f" style="margin-top:10px;display:g
 // ================= CLIENTES (admin) =================
 VISTAS.clientes = async () => {
   const es = (await api("resumen")).empresas;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Empresas</h1><p>Alta, datos y estado de cada empresa cliente. Sus números están en Inicio.</p></div><button class="btn osc" id="eW">Dar de alta una empresa</button></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Clientes</h1><p>Alta, datos y estado de cada cliente cliente. Sus números están en Inicio.</p></div><button class="btn osc" id="eW">Dar de alta un cliente</button></div>
     <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button></td></tr>`).join("")}</table></div>`;
   $("#eW").onclick = () => altaGuiada();
   $("#main").onclick = async (ev) => {
@@ -3259,7 +3259,7 @@ function altaGuiada() {
   const p1 = () => { pinta(`<label class="et" for="w1n">Nombre del cliente</label><input id="w1n"><label class="et" for="w1s">Identificador interno (sin espacios)</label><input id="w1s" placeholder="ej.: mitienda">
       <div class="fila"><div><label class="et" for="w1e">Email de contacto</label><input id="w1e"></div><div><label class="et" for="w1p">Plan</label><input id="w1p"></div></div>
       <div class="fila"><div><label class="et" for="w1an">Nombre de quien la administra</label><input id="w1an" autocomplete="off"></div><div><label class="et" for="w1ae">Su email (con eso entra al panel)</label><input id="w1ae" type="email" autocomplete="off"></div></div>
-      <p class="mut peq">Se le crea un usuario propio como administrador de la empresa. No hay claves compartidas: cada persona entra con su email y su clave.</p>
+      <p class="mut peq">Se le crea un usuario propio como administrador del cliente. No hay claves compartidas: cada persona entra con su email y su clave.</p>
       <button class="btn pri" style="margin-top:16px" id="w1g">Crear cliente y seguir</button>`);
     $("#w1g", v).onclick = async () => {
       const x = await seguro(() => api("empresa_guardar", { campos: { nombre: $("#w1n", v).value, slug: $("#w1s", v).value, contacto_email: $("#w1e", v).value || null, plan: $("#w1p", v).value || null, activa: true } })); if (!x) return;
@@ -3365,7 +3365,7 @@ VISTAS.motor = async () => {
   if (emps.length) verPrueba();
 };
 
-// Solapas de la sección (solo administrador de la empresa o dueño en modo soporte)
+// Solapas de la sección (solo administrador del cliente o dueño en modo soporte)
 function ponerSubtabs() {
   if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
   const ok = vistasPermitidas();
@@ -3388,7 +3388,7 @@ function titularTablas() {
 new MutationObserver(() => titularTablas()).observe(document.body, { childList: true, subtree: true });
 
 // ================= MÓDULOS =================
-// Cada empresa tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
+// Cada cliente tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
 const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Devoluciones", despacho: "Despacho" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
@@ -3403,7 +3403,7 @@ function modsActuales() {
   if (S.rol === "empresa" || S.soporte) return new Set(S.res?.empresas?.[0]?.modulos_efectivos ?? ["preguntas"]);
   return new Set(Object.keys(MODULOS));
 }
-// Pestañas Preguntas / Ventas arriba de Asignaciones y Rendimiento (solo si la empresa tiene los dos)
+// Pestañas Preguntas / Ventas arriba de Asignaciones y Rendimiento (solo si el cliente tiene los dos)
 function pestModulo(clave, volver, solo = null) {
   const m0 = modsActuales(), m = new Set([...m0].filter((k) => !solo || solo.includes(k)));
   const ks = Object.keys(MODULOS).filter((k) => m.has(k));
@@ -3415,7 +3415,7 @@ function pestModulo(clave, volver, solo = null) {
 }
 VISTAS.no_incluido = () => {
   const k = S.noMod || "mensajes";
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>${MODULOS[k]}</h1><p>Tu empresa no tiene contratado este módulo.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${MODULOS[k]}</h1><p>Tu plan no tiene contratado este módulo.</p></div></div>
     <div class="panel" style="max-width:640px"><h2>Qué hace</h2><p>${MOD_TXT[k]}</p>
     <p class="mut">Se contrata aparte. Para sumarlo, pedíselo a quien te da el servicio de Mostrador; cuando lo activen aparece en este menú sin que tengas que hacer nada.</p></div>`;
 };
@@ -3497,7 +3497,7 @@ const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
 VISTAS.mensajes = async () => {
   const emp = empMsj();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Elegí un cliente para ver sus ventas.</p></div></div>`; return; }
-  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Ninguna de tus empresas tiene el módulo Ventas.</p></div></div>`; return; }
+  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Ninguno de tus clientes tiene el módulo Ventas.</p></div></div>`; return; }
   S.msjFil ??= "todas";
   $("#main").classList.add("lleno");
   const movil = anchoMovil();
@@ -3535,8 +3535,8 @@ async function cambiarFavorita(id) {
   if (!on && S.msjFil === "favoritas") document.querySelector(`#mHilos [data-fav="${id}"]`)?.closest(".hilo-w")?.remove();
 }
 // ---------- Qué se ve en cada fila de las listas (Ventas, Despacho, Devoluciones) ----------
-// El administrador de la empresa arma la etiqueta de cada módulo: elige una plantilla y la ajusta arrastrando
-// los datos a los casilleros. Se guarda en la empresa y vale para todos los que la operan.
+// El administrador del cliente arma la etiqueta de cada módulo: elige una plantilla y la ajusta arrastrando
+// los datos a los casilleros. Se guarda en el cliente y vale para todos los que la operan.
 const ETQ_CASILLEROS = [["img", "Foto"], ["r1", "Renglón principal"], ["esq", "Esquina"], ["r2", "Renglón 2"], ["r3", "Renglón 3"], ["r4", "Renglón 4"], ["mar", "Etiquetas de color"]];
 const etqCopiar = (v) => v ? `<span class="cp-b" role="button" tabindex="0" data-copiar="${esc(v)}" title="Copiar" aria-label="Copiar ${esc(v)}">⧉</span>` : "";
 const etqFechaHora = (f) => f ? `${new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", "")} ${new Date(f).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} hs` : "";
@@ -3564,6 +3564,7 @@ const ETQ = {
   ventas: { titulo: "Ventas", datos: {
     foto: ["Foto", (c) => foto(c.item_thumbnail)],
     nombre: ["Nombre", (c) => esc(c.comprador_nombre || "")], nick: ["Usuario de ML", (c) => esc(c.comprador_nick || "")],
+    cuenta: ["Cuenta", (c) => esc(c.cuenta_nombre ?? "")],
     negocio: ["Negocio", (c) => c.comprador_negocio ? "Negocio" : ""],
     hace: ["Hace cuánto", (c) => haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)], fecha: ["Fecha y hora de la venta", (c) => etqFechaHora(c.fecha_venta)],
     prod: ["Producto", (c) => esc(c.item_titulo ?? "")], var: ["Variante", (c) => esc(c.item_variacion ?? "")], cant: ["Cantidad", etqCant],
@@ -3587,6 +3588,7 @@ const ETQ = {
   despacho: { titulo: "Despacho", datos: {
     foto: ["Foto", (c) => foto(c.item_thumbnail)],
     nombre: ["Nombre", (c) => esc(c.comprador_nombre || "")], nick: ["Usuario de ML", (c) => esc(c.comprador_nick || "")],
+    cuenta: ["Cuenta", (c) => esc(c.cuenta_nombre ?? "")],
     fecha: ["Fecha y hora de la venta", (c) => etqFechaHora(c.fecha_venta)], hace: ["Hace cuánto", (c) => haceVivo(c.fecha_venta)],
     prod: ["Producto", (c) => esc(c.item_titulo ?? "")], var: ["Variante", (c) => esc(c.item_variacion ?? "")],
     cant: ["Cantidad", (c) => Number(c.cantidad) > 1 ? `<b>${etqCant(c)}</b>` : etqCant(c)],
@@ -3606,6 +3608,7 @@ const ETQ = {
   devoluciones: { titulo: "Devoluciones", datos: {
     foto: ["Foto", (d) => foto(d.item_foto)],
     prod: ["Producto", (d) => esc(d.item_titulo ?? "Producto")], comprador: ["Comprador", (d) => esc(d.comprador ?? "")],
+    cuenta: ["Cuenta", (d) => esc(d.cuenta_nombre ?? "")],
     motivo: ["Por qué lo devolvió", (d) => esc(d.motivo_comprador_txt ?? "")],
     orden: ["N° de venta", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
     estado: ["Estado", (d) => d.est ? `<span class="chip ${d.est.c}">${esc(d.est.t)}</span>` : ""],
@@ -3616,7 +3619,7 @@ const ETQ = {
     ["Completa", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "orden"], r3: ["motivo"], r4: [], mar: ["estado", "notas", "asig"] }],
   ] },
 };
-// Configuración guardada de la empresa (se trae una vez por empresa)
+// Configuración guardada del cliente (se trae una vez por cliente)
 async function etqCargar(emp) {
   if (!emp) return null;
   S.etq ??= {};
@@ -3656,7 +3659,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
   let sel = null;
   const h = abrirHoja(`<div class="cajon-cab"><h2>Qué se ve en la lista de ${def.titulo}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo etq-ed">
-      <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que operan la empresa.</p>
+      <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que operan el cliente.</p>
       <div class="etq-pl" id="etqPl">${def.plantillas.map(([t], i) => `<button type="button" class="btn lin chico" data-pl="${i}">${t}</button>`).join("")}</div>
       <h3 class="etq-h">Etiqueta</h3><div class="etq-molde" id="etqMolde"></div>
       <h3 class="etq-h">Datos sin usar</h3><div class="etq-pal" id="etqPal" data-s="pal"></div>
@@ -4269,7 +4272,7 @@ function redactarLibre(d) {
         </div></div>
       <div class="der">
         ${c.puede_enviar ? `<button class="btn pri" type="button" id="mEnv">Enviar</button>` : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div></div>
-    ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en esta empresa: guardá el borrador y lo envía el administrador.</p>`}`;
+    ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en este cliente: guardá el borrador y lo envía el administrador.</p>`}`;
   const tx = $("#mTx");
   // Menú "Más": se abre y se cierra con el botón, y se cierra al elegir algo o tocar afuera
   const menu = $("#mMasM"), bm = $("#mMasB");
@@ -4637,8 +4640,8 @@ async function panelModulos(res) {
       <table class="tabla apilable"><tr><th>Plan</th>${Object.values(MODULOS).map((t) => `<th>${t}</th>`).join("")}</tr>
       ${planes.map((p) => `<tr data-pl="${esc(p)}"><td><b>${esc(p)}</b></td>${Object.keys(MODULOS).map((k) => `<td><input type="checkbox" aria-label="${esc(p)}: ${MODULOS[k]}" data-k="${k}" ${(pm[p] ?? ["preguntas"]).includes(k) ? "checked" : ""}></td>`).join("")}</tr>`).join("") || `<tr><td colspan="3" class="mut">Primero creá los planes.</td></tr>`}</table>
       <button class="btn pri" id="pmG" style="margin-top:12px">Guardar módulos de los planes</button></div>
-    <div class="panel" style="overflow-x:auto"><h2>Módulos de cada empresa</h2><p class="mut peq" style="margin:0 0 6px">Por defecto, los de su plan. Elegí “Propios” para venderle un módulo aparte.</p>
-      <table class="tabla apilable"><tr><th>Empresa</th><th>Módulos</th><th></th></tr>
+    <div class="panel" style="overflow-x:auto"><h2>Módulos de cada cliente</h2><p class="mut peq" style="margin:0 0 6px">Por defecto, los de su plan. Elegí “Propios” para venderle un módulo aparte.</p>
+      <table class="tabla apilable"><tr><th>Cliente</th><th>Módulos</th><th></th></tr>
       ${res.empresas.map((e) => { const propios = Array.isArray(e.modulos); const act = new Set(e.modulos_efectivos ?? []); return `<tr data-me="${e.id}"><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.plan ?? "Sin plan")}</div></td>
         <td><select class="meM" aria-label="Origen de los módulos"><option value="plan" ${propios ? "" : "selected"}>Los del plan</option><option value="propios" ${propios ? "selected" : ""}>Propios</option></select>
           <div class="meK" style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<label class="peq"><input type="checkbox" data-k="${k}" ${act.has(k) ? "checked" : ""} ${propios ? "" : "disabled"}> ${t}</label>`).join("")}</div></td>
@@ -4653,7 +4656,7 @@ async function panelModulos(res) {
     $(".meM", tr).onchange = () => tr.querySelectorAll(".meK input").forEach((x) => x.disabled = $(".meM", tr).value !== "propios");
     $(".meG", tr).onclick = async () => {
       const modulos = $(".meM", tr).value === "propios" ? [...tr.querySelectorAll(".meK input:checked")].map((x) => x.dataset.k) : null;
-      if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.me, modulos }))) aviso("Módulos de la empresa guardados");
+      if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.me, modulos }))) aviso("Módulos del cliente guardados");
     };
   });
 }
@@ -4788,7 +4791,7 @@ function elegirFicha(emp, alElegir) {
 
 // Compartir una venta, pregunta o devolución en un chat
 async function compartirEnChat(origen, ref) {
-  const emp = empChat(); if (!emp) return aviso("Elegí una empresa");
+  const emp = empChat(); if (!emp) return aviso("Elegí un cliente");
   const r = await seguro(() => api("chat_lista", { empresa_id: emp })); if (!r) return;
   const [f] = (await api("chat_fichas", { empresa_id: emp, refs: [{ origen, ref }] }).catch(() => ({ fichas: [] }))).fichas ?? [];
   const v = abrirHoja(`<div class="cajon-cab"><h2>Compartir en el chat</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
@@ -4827,7 +4830,7 @@ if (window.visualViewport) { visualViewport.addEventListener("resize", altoChat)
 addEventListener("resize", altoChat);
 VISTAS.chat = async () => {
   const emp = empChat();
-  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Chat</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Chat</h1><p>Elegí un cliente.</p></div></div>`; return; }
   $("#main").classList.add("lleno");
   $("#main").innerHTML = `<div class="cht ${S.chatId || S.chatCitas ? "ver-chat" : "ver-lista"}">
     <aside class="m-lista"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Chat</h1><div class="n"><button class="btn pri chico" id="chNuevo" type="button">Nuevo chat</button></div></div></div><div id="chLista" class="ch-lista"><p class="mut" style="padding:16px">Cargando…</p></div></aside>
@@ -5038,7 +5041,7 @@ const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0
 const hmCal = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 VISTAS.calendario = async () => {
   const emp = empChat();
-  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Calendario</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Calendario</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const hoy = new Date(); S.calMes = S.calMes ?? new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const m0 = S.calMes, ini = new Date(m0); ini.setDate(1 - ((m0.getDay() + 6) % 7));
   const fin = new Date(ini); fin.setDate(ini.getDate() + 42);
@@ -5125,7 +5128,19 @@ async function agendarMensaje(m, miembros) {
 }
 
 // ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, se informa a ML con fotos) y fotos al despachar =================
-const empRec = () => S.rol === "admin" ? S.empSel : (S.empresaId || S.res?.empresas?.[0]?.id || null);
+const clientesCon = (m) => (S.yo?.empresas ?? []).filter((e) => (e.modulos ?? []).includes(m));
+const empRec = () => {
+  if (S.rol === "admin") return S.empSel;
+  if (S.empresaId) return S.empresaId;
+  if (S.rol !== "operador") return S.res?.empresas?.[0]?.id || null;
+  const es = ["despacho", "devoluciones"].includes(S.tab) ? clientesCon(S.tab) : (S.yo?.empresas ?? []);
+  if (!es.some((e) => e.id === S.recEmp)) S.recEmp = es[0]?.id ?? "";
+  return S.recEmp || null;
+};
+// Botones para elegir el cliente (operador que trabaja para varios y tiene elegido "Todos mis clientes")
+const chipsClientes = (m, actual) => S.rol === "operador" && !S.empresaId && clientesCon(m).length > 1
+  ? `<div class="m-fil" id="cliChips" style="margin:0 0 12px">${clientesCon(m).map((e) => `<button type="button" data-cli="${e.id}" class="${e.id === actual ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : "";
+function escucharClientes(alCambiar) { const c = $("#cliChips"); if (c) c.onclick = (e) => { const b = e.target.closest("[data-cli]"); if (b) { S.recEmp = b.dataset.cli; alCambiar(); } }; }
 const ICONO_R = {
   cam: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>`,
   scan: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M7 12h10"/></svg>`,
@@ -5251,9 +5266,9 @@ function mostrarResultado(r, modo, sinNada) {
   if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
   if (r.tipo === "compra") {
-    // Etiqueta de algo que compró la empresa: no es una venta propia ni una devolución
+    // Etiqueta de algo que compró el cliente: no es una venta propia ni una devolución
     cajon(`<div class="cajon-cab"><div><h2>Es una compra, no una devolución</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-      <p>La etiqueta del envío ${esc(r.envio_id)} es de algo que <b>compró la empresa</b>${r.vendedor ? ` al vendedor <b>${esc(r.vendedor)}</b>` : ""}, no de una venta propia.${r.producto ? ` Producto: ${esc(r.producto)}.` : ""}</p>
+      <p>La etiqueta del envío ${esc(r.envio_id)} es de algo que <b>compró el cliente</b>${r.vendedor ? ` al vendedor <b>${esc(r.vendedor)}</b>` : ""}, no de una venta propia.${r.producto ? ` Producto: ${esc(r.producto)}.` : ""}</p>
       <p class="mut">Las compras no pasan por Devoluciones ni por Despacho. Para ver el estado de esa compra, entrá a Mis compras en MercadoLibre.</p>`, true);
     return;
   }
@@ -5327,11 +5342,12 @@ VISTAS.devoluciones = async () => {
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>${chipsClientes("devoluciones", emp)}
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
+  escucharClientes(() => VISTAS.devoluciones());
   $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
   $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
@@ -5984,7 +6000,7 @@ VISTAS.despacho = async (op = {}) => {
     $("#dsAct").innerHTML = elegidos.map(([k, t]) => `<button type="button" data-qd="${esc(k)}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("");
     $("#dsAct").classList.toggle("oculto", !elegidos.length);
   };
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despacha tu empresa (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despachás (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>${chipsClientes("despacho", emp)}
     <div class="ds-imp"><button class="btn lin" type="button" id="dsVer">Verificar paquete</button>${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
       <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "pdf" ? "común" : "térmica"}</option>`).join("")}</select>`
       : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
@@ -6002,6 +6018,7 @@ VISTAS.despacho = async (op = {}) => {
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
   if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
   pintar();
+  escucharClientes(() => { S.dsSel = new Set(); VISTAS.despacho(); });
   $("#dsBarra").onclick = (e) => {
     if (e.target.closest("#dsPl")) { e.stopPropagation(); const m = $("#dsPlM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsPl").setAttribute("aria-expanded", String(ab)); return; }
     const pl = e.target.closest("[data-pl]"); if (pl) { $("#dsPlM").classList.add("oculto"); F.plazo = pl.dataset.pl; pintar(); return; }
@@ -6089,9 +6106,9 @@ function vigilarDespacho(emp) {
   setTimeout(tick, 1500);
 }
 
-// ---------- Impresoras (Empresa → Impresoras): las carga el administrador y le asigna una a cada persona ----------
+// ---------- Impresoras (Cliente → Impresoras): las carga el administrador y le asigna una a cada persona ----------
 const resumenOpc = (i) => { const o = { ...OPC_IMP_DEF, ...(i.opciones ?? {}) }; return [o.control === "no" ? "Sin hoja de control" : o.control === "aparte" ? "Hoja de control aparte" : "Hoja de control al final", o.producto && "etiqueta de producto", o.armado && "lista de armado", o.ruta && "hoja de ruta", o.nota && "notas para el comprador"].filter(Boolean).join(", "); };
-// Empresa → Listas: qué datos se ven en cada fila de Ventas, Despacho y Devoluciones (solo el administrador de la empresa)
+// Cliente → Listas: qué datos se ven en cada fila de Ventas, Despacho y Devoluciones (solo el administrador del cliente)
 VISTAS.listas = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Elegí un cliente.</p></div></div>`; return; }
@@ -6102,16 +6119,16 @@ VISTAS.listas = async () => {
     mods.has("despacho") ? api("despacho_lista", { empresa_id: emp, rapido: true }).catch(() => null) : null,
     mods.has("devoluciones") ? api("devoluciones", { empresa_id: emp }).catch(() => null) : null]);
   if (S.tab !== "listas") return;
-  if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador de la empresa elige qué se ve en las listas.</p></div></div>`; return; }
+  if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del cliente elige qué se ve en las listas.</p></div></div>`; return; }
   const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
   const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
   const plantillaDe = (k) => { const c = JSON.stringify(etqConfig(k, emp)); return ETQ[k].plantillas.find(([, x]) => JSON.stringify(x) === c)?.[0] ?? "Personalizada"; };
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que operan la empresa; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que operan el cliente; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
       <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
         || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
-      || `<div class="panel vacio">La empresa no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
+      || `<div class="panel vacio">El cliente no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
 };
 VISTAS.impresoras = async () => {
@@ -6121,7 +6138,7 @@ VISTAS.impresoras = async () => {
   if (!d || S.tab !== "impresoras") return;
   const imps = d.impresoras ?? [], personas = d.personas ?? [];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Las impresoras donde se imprimen las etiquetas de envío. Cargalas acá y asignale una a cada persona; cada uno puede cambiarla por otra de esta lista desde Despacho.</p></div></div>
-    <div class="panel"><h3 style="margin-top:0">Impresoras de la empresa</h3>
+    <div class="panel"><h3 style="margin-top:0">Impresoras del cliente</h3>
       ${imps.length ? `<div class="imp-lista">${imps.map((i) => `<div class="imp-it"><span><b>${esc(i.nombre)}</b><span class="peq mut">${FORMATO_IMP[i.formato] ?? i.formato}</span><span class="peq mut">${esc(resumenOpc(i))}</span></span>
         <span class="imp-acc"><button class="btn lin chico" type="button" data-ed="${i.id}">Editar</button><button class="btn lin chico" type="button" data-bo="${i.id}">Borrar</button></span></div>`).join("")}</div>`
         : `<p class="mut">Todavía no cargaste ninguna.</p>`}
@@ -6205,8 +6222,8 @@ function fotosDespacho(env) {
 
 function abrirDesdeEnlace(h) {
   const t = String(h || "");
-  // El dueño de la app ve lo de una empresa entrando como soporte: un aviso de una venta, pregunta, devolución,
-  // despacho, chat o calendario lo hace entrar solo, en la empresa de la que es parte, y después abre lo avisado
+  // El dueño de la app ve lo de un cliente entrando como soporte: un aviso de una venta, pregunta, devolución,
+  // despacho, chat o calendario lo hace entrar solo, en el cliente de la que es parte, y después abre lo avisado
   if (S.rol === "admin" && !S.soporte && /^#(mensajes|pregunta|devoluciones|reclamos|despacho|chat|calendario)\b/.test(t)) {
     const em = (S.yo?.empresas ?? []).find((x) => x.rol === "admin") ?? (S.yo?.empresas ?? [])[0];
     if (!em) return false;
