@@ -4922,17 +4922,34 @@ async function lectorPropio() {
   pistas.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.QR_CODE, Z.BarcodeFormat.CODE_39, Z.BarcodeFormat.ITF, Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.DATA_MATRIX, Z.BarcodeFormat.PDF_417]);
   const lector = new Z.MultiFormatReader(); lector.setHints(pistas);
   const lienzo = document.createElement("canvas"), ctx = lienzo.getContext("2d", { willReadFrequently: true });
-  // Recorre por turnos la imagen entera y franjas horizontales (los códigos de barras se leen mejor en una franja que los contiene)
-  const zonas = [[0, 1], [0, 0.3], [0.15, 0.3], [0.3, 0.3], [0.45, 0.3], [0.6, 0.3], [0.75, 0.25]];
+  // Recorre por turnos la imagen entera y franjas horizontales y verticales (los códigos de barras se leen mejor en una
+  // franja que los contiene; las verticales sirven para etiquetas giradas)
+  const zonas = [[0, 0, 1, 1], [0, 0, 1, 0.3], [0, 0.15, 1, 0.3], [0, 0.3, 1, 0.3], [0, 0.45, 1, 0.3], [0, 0.6, 1, 0.3], [0, 0.75, 1, 0.25],
+    [0, 0, 0.3, 1], [0.2, 0, 0.3, 1], [0.35, 0, 0.3, 1], [0.5, 0, 0.3, 1], [0.7, 0, 0.3, 1]];
   let vuelta = 0;
   return (video) => {
     const w = video.videoWidth, h = video.videoHeight; if (!w || !h) return null;
-    const [y0, alto] = zonas[vuelta++ % zonas.length];
-    const sx = 0, sy = h * y0, sw = w, sh = h * alto;
+    const [x0, y0, ancho, alto] = zonas[vuelta++ % zonas.length];
+    const sx = w * x0, sy = h * y0, sw = w * ancho, sh = h * alto;
     const k = Math.min(1.5, 1100 / Math.max(sw, sh)); lienzo.width = Math.round(sw * k); lienzo.height = Math.round(sh * k);
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, lienzo.width, lienzo.height);
+    // Las franjas verticales se giran para que el código quede acostado
+    if (ancho < 1 && alto === 1) {
+      const g = document.createElement("canvas"); g.width = lienzo.height; g.height = lienzo.width;
+      const gc = g.getContext("2d"); gc.translate(g.width, 0); gc.rotate(Math.PI / 2); gc.drawImage(lienzo, 0, 0);
+      lienzo.width = g.width; lienzo.height = g.height; ctx.drawImage(g, 0, 0);
+    }
     try { return lector.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(lienzo)))).getText(); } catch { return null; } finally { lector.reset(); }
   };
+}
+// Qué tan útil es un código leído: 3 = de MercadoLibre (número de envío o QR de la etiqueta), 0 = seguimiento del correo
+function puntajeCodigo(c) {
+  const t = String(c ?? "").trim();
+  if (/^\{[\s\S]*"id"/.test(t)) return 3;
+  if (/^\d{10,12}$/.test(t)) return 3;
+  if (/^\d{13,}$/.test(t)) return 2;
+  if (/^[A-Z]{2}\d{9}([A-Z]{2})?$/i.test(t)) return 0; // seguimiento del correo (por ejemplo HC527671374AR)
+  return 1;
 }
 async function escanear(titulo, alLeer, alFoto) {
   const v = document.createElement("div");
@@ -4961,17 +4978,25 @@ async function escanear(titulo, alLeer, alFoto) {
     if ("BarcodeDetector" in window) {
       const formatos = (await BarcodeDetector.getSupportedFormats?.()) ?? ["qr_code", "code_128"];
       const det = new BarcodeDetector({ formats: formatos.filter((f) => ["qr_code", "code_128", "code_39", "ean_13", "data_matrix", "pdf417", "itf", "codabar"].includes(f)) });
-      leer = async () => { const r = await det.detect(video); return r?.[0]?.rawValue ?? null; };
+      leer = async () => (await det.detect(video) ?? []).map((x) => x.rawValue).filter(Boolean);
     } else {
       ayuda.textContent = "Preparando el lector…";
       const propio = await lectorPropio();
       ayuda.textContent = "Apuntá al código de barras o al QR de la etiqueta";
-      leer = async () => propio(video);
+      leer = async () => { const c = propio(video); return c ? [c] : []; };
     }
+    // Una etiqueta puede tener varios códigos (el del correo, el de MercadoLibre, el QR). Se toma enseguida el de
+    // MercadoLibre (número de envío o QR); si solo se ve otro, se espera un momento por si aparece el bueno.
+    let mejor = null, desde = 0;
     const mirar = async () => {
       if (!vivo) return;
-      try { const c = await leer(); if (c) return leido(c); } catch {}
-      setTimeout(mirar, 250);
+      try {
+        for (const c of await leer()) { const p = puntajeCodigo(c); if (!mejor || p > mejor.p) mejor = { c, p }; }
+        if (mejor && !desde) desde = Date.now();
+        if (mejor && (mejor.p >= 3 || Date.now() - desde > 1800)) return leido(mejor.c);
+        if (mejor) ayuda.textContent = "Leí otro código; buscando el de MercadoLibre…";
+      } catch {}
+      setTimeout(mirar, "BarcodeDetector" in window ? 120 : 60);
     };
     mirar();
   } catch (e) {
@@ -5009,8 +5034,9 @@ function mostrarResultado(r, modo, sinNada) {
 }
 async function buscarEtiqueta(codigo, modo) {
   const r = await seguro(() => api("devolucion_buscar", { empresa_id: empRec(), codigo }));
-  if (r) mostrarResultado(r, modo, "No encontré ninguna devolución con ese dato");
+  if (r) mostrarResultado(r, modo, puntajeCodigo(limpiarCod(codigo)) === 0 ? "Ese es el número de seguimiento del correo. Apuntá al código de barras con el número de envío de MercadoLibre (solo números) o al QR." : "No encontré ninguna devolución con ese dato");
 }
+const limpiarCod = (c) => String(c ?? "").trim().replace(/[^0-9A-Za-z{}":,]/g, "");
 async function leerEtiquetaFoto(file, modo) {
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Leyendo la etiqueta…</b></p><p class="peq" style="margin:0">Busco los números y nombres que se ven y pruebo cada uno.</p></div>`);
   const img = await achicar(file, 2000);
