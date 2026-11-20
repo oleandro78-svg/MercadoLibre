@@ -3570,6 +3570,8 @@ function rangoPeriodo(f) {
 function textoRango(f) { const { a, b } = rangoPeriodo(f), anio = a.getFullYear() !== b.getFullYear(); return `${fCorta(a, anio)} al ${fCorta(b, anio)}`; }
 // En Ventas siempre hay un período elegido (por defecto, el último mes)
 const DIAS_DEF = "30";
+// Texto corto del orden elegido, para el botón "Ordenar" de la barra
+const ORDEN_CORTO = { recientes: "más recientes", actividad: "actividad", antiguas: "más antiguas", plazo: "plazo", producto: "producto", tipo: "tipo de envío", zona: "zona" };
 const ORDEN_MSJ = [["recientes", "Ventas más recientes"], ["actividad", "Actividad reciente"], ["antiguas", "Ventas más antiguas"]];
 const ORDEN_MSJ_DEF = "recientes";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
@@ -3660,7 +3662,7 @@ async function cargarHilos(emp, mas = false) {
         <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
           <span class="per-fechas oculto" id="mPerF"><label>Desde<input type="date" id="mPerD" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.desde ?? "")}"></label><label>Hasta<input type="date" id="mPerH" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.hasta ?? new Date().toLocaleDateString("en-CA"))}"></label><button class="btn pri chico" type="button" id="mPerOk">Aplicar</button></span></span></span>`
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
-      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ordT)} <span aria-hidden="true">⌄</span></button>
+      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}Ordenar: ${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
@@ -5770,7 +5772,7 @@ VISTAS.despacho = async (op = {}) => {
       ...(F.etiqueta !== "todas" ? [["et", F.etiqueta === "impresas" ? "Impresas" : "Sin imprimir"]] : []),
       ...F.productos.map((p) => [`pr:${p}`, p.length > 40 ? p.slice(0, 38) + "…" : p]),
       ];
-    $("#dsOrdT").textContent = ORDEN_DS.find(([k]) => k === F.orden)[1];
+    $("#dsOrdT").textContent = `Ordenar: ${ORDEN_CORTO[F.orden] ?? ORDEN_DS.find(([k]) => k === F.orden)[1]}`;
     $("#dsOrd").setAttribute("aria-label", `Ordenar: ${ORDEN_DS.find(([k]) => k === F.orden)[1]}`);
     $("#dsOrdM").querySelectorAll("[data-dord]").forEach((b) => b.setAttribute("aria-checked", String(F.orden === b.dataset.dord)));
     $("#dsFxN").textContent = elegidos.length ? ` · ${elegidos.length}` : "";
