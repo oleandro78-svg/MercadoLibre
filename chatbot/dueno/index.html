@@ -253,6 +253,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .imp-opc{border:1px solid var(--linea);border-radius:var(--r-m,10px);padding:10px 14px;margin:4px 0 0;display:grid;gap:6px;grid-column:1/-1}.imp-opc legend{font-weight:600;padding:0 4px}.imp-opc .ck{display:flex;gap:8px;align-items:center;justify-content:flex-start;text-align:left}.imp-form .imp-opc .ck input{width:auto;flex:none;margin:0}.imp-opc select{max-width:340px}
 .imp-sal{display:grid;gap:8px}.imp-sal-it{all:unset;cursor:pointer;display:grid;gap:2px;padding:12px 14px;border:1px solid var(--linea);border-radius:var(--r-m,10px);background:var(--sup)}.imp-sal-it:hover{border-color:var(--tinta)}.imp-sal-it:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}.imp-ok{color:var(--pino-t);font-size:12px;font-weight:600}
 .ver-res{display:grid;gap:2px;padding:12px 14px;border-radius:var(--r-m,10px);margin:10px 0}.ver-res.ok{background:color-mix(in srgb,var(--pino-t) 14%,transparent)}.ver-res.mal{background:color-mix(in srgb,#c0392b 16%,transparent)}.ver-res b{font-size:17px}
+.tab-n{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:20px;background:var(--tinta);color:var(--papel);font-size:12px;font-weight:700;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}.tab-n[hidden]{display:none}
 .medidas{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--linea);border-radius:var(--r-l);background:var(--sup);overflow:hidden}
 .medida{padding:16px 18px;border-right:1px solid var(--linea)}
 .medida:last-child{border-right:0}
@@ -3808,7 +3809,7 @@ function pintarChat(d) {
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat con el comprador</button>
       ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
-      <button type="button" role="tab" data-ct="notas">Notas internas<span class="chip c-blo" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button></div>
+      <button type="button" role="tab" data-ct="notas">Notas internas<span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button></div>
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
