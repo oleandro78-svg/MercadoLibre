@@ -250,6 +250,9 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 
 .rg-texto .panel{margin-bottom:14px;max-width:820px}.rg-texto p,.rg-texto li{line-height:1.6}.rg-texto ul,.rg-texto ol{padding-left:20px;margin:8px 0}.rg-texto li{margin:6px 0}
 .rg-barra{display:grid;grid-template-columns:minmax(0,1fr) 120px 56px;gap:10px;align-items:center;font-size:14px;padding:5px 0}.rg-barra i{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--tinta) var(--v),var(--linea) var(--v))}.rg-barra b{text-align:right;font-variant-numeric:tabular-nums}
+.imp-opc{border:1px solid var(--linea);border-radius:var(--r-m,10px);padding:10px 14px;margin:4px 0 0;display:grid;gap:6px;grid-column:1/-1}.imp-opc legend{font-weight:600;padding:0 4px}.imp-opc .ck{display:flex;gap:8px;align-items:center;justify-content:flex-start;text-align:left}.imp-form .imp-opc .ck input{width:auto;flex:none;margin:0}.imp-opc select{max-width:340px}
+.imp-sal{display:grid;gap:8px}.imp-sal-it{all:unset;cursor:pointer;display:grid;gap:2px;padding:12px 14px;border:1px solid var(--linea);border-radius:var(--r-m,10px);background:var(--sup)}.imp-sal-it:hover{border-color:var(--tinta)}.imp-sal-it:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}.imp-ok{color:var(--pino-t);font-size:12px;font-weight:600}
+.ver-res{display:grid;gap:2px;padding:12px 14px;border-radius:var(--r-m,10px);margin:10px 0}.ver-res.ok{background:color-mix(in srgb,var(--pino-t) 14%,transparent)}.ver-res.mal{background:color-mix(in srgb,#c0392b 16%,transparent)}.ver-res b{font-size:17px}
 .medidas{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--linea);border-radius:var(--r-l);background:var(--sup);overflow:hidden}
 .medida{padding:16px 18px;border-right:1px solid var(--linea)}
 .medida:last-child{border-right:0}
@@ -4951,7 +4954,7 @@ function puntajeCodigo(c) {
   if (/^[A-Z]{2}\d{9}([A-Z]{2})?$/i.test(t)) return 0; // seguimiento del correo (por ejemplo HC527671374AR)
   return 1;
 }
-async function escanear(titulo, alLeer, alFoto) {
+async function escanear(titulo, alLeer, alFoto, opEsc = {}) {
   const v = document.createElement("div");
   v.className = "esc-velo";
   v.innerHTML = `<div class="esc-cab"><b>${esc(titulo)}</b><button class="btn lin chico" data-cerrar type="button">✕ Cerrar</button></div>
@@ -4993,7 +4996,7 @@ async function escanear(titulo, alLeer, alFoto) {
       try {
         for (const c of await leer()) { const p = puntajeCodigo(c); if (!mejor || p > mejor.p) mejor = { c, p }; }
         if (mejor && !desde) desde = Date.now();
-        if (mejor && (mejor.p >= 3 || Date.now() - desde > 1800)) return leido(mejor.c);
+        if (mejor && (mejor.p >= 3 || opEsc.inmediato || Date.now() - desde > 1800)) return leido(mejor.c);
         if (mejor) ayuda.textContent = "Leí otro código; buscando el de MercadoLibre…";
       } catch {}
       setTimeout(mirar, "BarcodeDetector" in window ? 120 : 60);
@@ -5283,7 +5286,340 @@ function confirmarEnvio(d, st, r) {
 
 // ---------- fotos al despachar ----------
 // ---------- Despacho: lo que hay que despachar y las etiquetas de MercadoLibre ----------
-const FORMATO_IMP = { pdf: "Impresora común (PDF, hoja A4)", zpl: "Impresora térmica de etiquetas (Zebra)" };
+const FORMATO_IMP = { pdf: "Impresora común (hoja A4, 3 etiquetas por hoja)", pdf10: "Impresora térmica con PDF (10x15)", zpl: "Impresora térmica Zebra (ZPL)" };
+// ---------- Impresión ampliada: se acomoda lo que entrega MercadoLibre según cada impresora ----------
+// MercadoLibre entrega las etiquetas según la configuración de la cuenta (troquel, hoja de control). Acá, en el navegador:
+// se quita el troquel, se separa la hoja de control, se arman hojas A4 con 3 etiquetas, se agrega una etiqueta con los
+// datos del producto y se arman la lista de armado, la hoja de ruta y las notas para el comprador.
+const OPC_IMP_DEF = { control: "aparte", troquel: "quitar", producto: false, armado: true, ruta: true, nota: false };
+const CONTROL_IMP = { no: "No imprimirla", con_etiquetas: "Con las etiquetas, al final", aparte: "Aparte, en una hoja A4" };
+const NOTA_DEF = "¡Gracias por tu compra, {nombre}! Esperamos que lo disfrutes. Si tenés cualquier consulta, escribinos por la mensajería de MercadoLibre.";
+const cargas = {};
+function cargarScript(url, global) {
+  if (window[global]) return Promise.resolve(window[global]);
+  return cargas[url] ??= new Promise((ok, mal) => { const sc = document.createElement("script"); sc.src = url; sc.onload = () => ok(window[global]); sc.onerror = () => { delete cargas[url]; mal(new Error("No se pudo cargar una herramienta de impresión. Revisá la conexión y probá de nuevo.")); }; document.head.appendChild(sc); });
+}
+const pdfLib = () => cargarScript("https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js", "PDFLib");
+const qrLib = () => cargarScript("https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js", "qrcode");
+// Las fuentes estándar de PDF solo tienen los caracteres latinos: el resto se reemplaza
+const txtPdf = (t) => String(t ?? "").replace(/[–—]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/…/g, "...").replace(/[•·]/g, "-").replace(/×/g, "x").normalize("NFC").replace(/[^\x20-\x7E\xA0-\xFF]/g, "");
+const ETQ_W = 283.465, ETQ_H = 425.197, A4 = [595.276, 841.89];
+
+// Separa el PDF de MercadoLibre: etiquetas (10x15 o 10x19 con troquel), hojas A4 de etiquetas y hojas de control
+async function separarPdf(bytes) {
+  const { PDFDocument } = await pdfLib();
+  const doc = await PDFDocument.load(bytes);
+  const paginas = doc.getPages().map((p, i) => {
+    const { width: w, height: h } = p.getSize();
+    const tipo = w < 400 ? "etiqueta" : w > h ? "hoja_etiquetas" : "control";
+    return { i, w, h, tipo, troquel: tipo === "etiqueta" && h > ETQ_H + 30 };
+  });
+  return { doc, paginas };
+}
+// Etiqueta extra con los datos del producto, del mismo tamaño que la de envío
+function dibujarProducto(pg, v, fuentes, x0 = 0, y0 = 0, esc = 1) {
+  const { reg, neg } = fuentes, W = ETQ_W * esc, mx = 16 * esc, ancho = W - 2 * mx;
+  let y = y0 + ETQ_H * esc - 22 * esc;
+  const linea = (t, f, tam, color) => {
+    const palabras = txtPdf(t).split(/\s+/); let l = "";
+    const salida = [];
+    for (const p of palabras) { const prueba = l ? `${l} ${p}` : p; if (f.widthOfTextAtSize(prueba, tam * esc) > ancho && l) { salida.push(l); l = p; } else l = prueba; }
+    if (l) salida.push(l);
+    for (const s of salida) { if (y < y0 + 30 * esc) return; pg.drawText(s, { x: x0 + mx, y, size: tam * esc, font: f, color }); y -= tam * esc * 1.25; }
+  };
+  const { rgb } = window.PDFLib, gris = rgb(0.35, 0.35, 0.35), negro = rgb(0, 0, 0);
+  pg.drawRectangle({ x: x0 + 6 * esc, y: y0 + 6 * esc, width: W - 12 * esc, height: ETQ_H * esc - 12 * esc, borderColor: negro, borderWidth: 1 * esc });
+  linea(`Venta ${v.pack_id ?? ""}`, neg, 11, negro);
+  linea(v.comprador ?? "", reg, 10, gris);
+  y -= 6 * esc;
+  for (const it of v.items ?? []) {
+    linea(`${it.cantidad ?? 1} x ${it.titulo ?? "Producto"}`, neg, 13, negro);
+    if (it.variacion) linea(it.variacion, reg, 10, negro);
+    if (it.sku) linea(`SKU: ${it.sku}`, reg, 10, negro);
+    y -= 6 * esc;
+  }
+  const pie = [LOGISTICA[v.logistica] ?? "", v.despachar_hasta ? `Despachar hasta ${new Date(v.despachar_hasta).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}` : ""].filter(Boolean).join(" - ");
+  if (pie) pg.drawText(txtPdf(pie), { x: x0 + mx, y: y0 + 16 * esc, size: 9 * esc, font: reg, color: gris });
+}
+// Arma el PDF de etiquetas para la impresora: 10x15 (térmica) u hojas A4 con 3 etiquetas (común)
+async function armarEtiquetasPdf(archivos, formato, op, datos) {
+  const { PDFDocument, StandardFonts } = await pdfLib();
+  const salida = await PDFDocument.create(), control = await PDFDocument.create();
+  const fuentes = { reg: await salida.embedFont(StandardFonts.Helvetica), neg: await salida.embedFont(StandardFonts.HelveticaBold) };
+  const porId = new Map((datos ?? []).map((v) => [v.id, v]));
+  const piezas = []; // en orden: { tipo: "pagina", doc, i, recorte } | { tipo: "producto", venta } | { tipo: "hoja", doc, i }
+  const controles = [];
+  let conTroquel = 0, hojasA4 = 0;
+  for (const a of archivos) {
+    const { doc, paginas } = await separarPdf(b64aBytes(a.base64));
+    const etqs = paginas.filter((p) => p.tipo === "etiqueta");
+    const mapa = etqs.length === (a.conv_ids ?? []).length; // una página por envío, en el mismo orden
+    etqs.forEach((p, k) => {
+      if (p.troquel) conTroquel++;
+      piezas.push({ tipo: "pagina", doc, i: p.i, recorte: p.troquel && op.troquel === "quitar" });
+      if (op.producto && mapa && porId.get(a.conv_ids[k])) piezas.push({ tipo: "producto", venta: porId.get(a.conv_ids[k]) });
+    });
+    if (op.producto && !mapa) for (const id of a.conv_ids ?? []) if (porId.get(id)) piezas.push({ tipo: "producto", venta: porId.get(id) });
+    for (const p of paginas.filter((p) => p.tipo === "hoja_etiquetas")) { hojasA4++; piezas.push({ tipo: "hoja", doc, i: p.i }); }
+    for (const p of paginas.filter((p) => p.tipo === "control")) controles.push({ doc, i: p.i });
+  }
+  const recorte = (pagina) => ({ left: 0, bottom: 0, right: pagina.getSize().width, top: ETQ_H });
+  if (formato === "pdf") {
+    // Hoja A4 apaisada con 3 lugares, como MercadoLibre
+    const [AH, AW] = A4, m = 12, lugarW = (AW - 2 * m) / 3;
+    let hoja = null, lugar = 3;
+    const nuevoLugar = () => { if (lugar >= 3) { hoja = salida.addPage([AW, AH]); lugar = 0; } return lugar++; };
+    for (const p of piezas) {
+      if (p.tipo === "hoja") { const [cp] = await salida.copyPages(p.doc, [p.i]); salida.addPage(cp); lugar = 3; continue; }
+      const k = nuevoLugar();
+      if (p.tipo === "producto") { const esc = Math.min(lugarW / ETQ_W, (AH - 2 * m) / ETQ_H); dibujarProducto(hoja, p.venta, fuentes, m + k * lugarW, AH - m - ETQ_H * esc, esc); continue; }
+      const orig = p.doc.getPage(p.i);
+      const emb = await salida.embedPage(orig, p.recorte ? recorte(orig) : undefined);
+      const esc = Math.min(lugarW / emb.width, (AH - 2 * m) / emb.height);
+      hoja.drawPage(emb, { x: m + k * lugarW + (lugarW - emb.width * esc) / 2, y: AH - m - emb.height * esc, xScale: esc, yScale: esc });
+    }
+  } else {
+    for (const p of piezas) {
+      if (p.tipo === "producto") { dibujarProducto(salida.addPage([ETQ_W, ETQ_H]), p.venta, fuentes); continue; }
+      const [cp] = await salida.copyPages(p.doc, [p.i]);
+      if (p.recorte) { cp.setMediaBox(0, 0, cp.getSize().width, ETQ_H); cp.setCropBox(0, 0, cp.getSize().width, ETQ_H); }
+      salida.addPage(cp);
+    }
+  }
+  for (const c of controles) {
+    if (op.control === "con_etiquetas") { const [cp] = await salida.copyPages(c.doc, [c.i]); salida.addPage(cp); }
+    else if (op.control === "aparte") { const [cp] = await control.copyPages(c.doc, [c.i]); control.addPage(cp); }
+  }
+  return { etiquetas: await salida.save(), control: control.getPageCount() ? await control.save() : null, controles: controles.length, conTroquel, hojasA4 };
+}
+// Etiqueta de producto para impresora Zebra (10x15 a 203 ppp)
+const zplTxt = (t) => String(t ?? "").replace(/[\^~\\]/g, " ").replace(/\s+/g, " ").trim();
+function zplProducto(v) {
+  let y = 40;
+  const campo = (t, alto, lineas = 1) => { const s = `^FO40,${y}^A0N,${alto},${alto}^FB730,${lineas},4,L^FD${zplTxt(t)}^FS`; y += Math.round(alto * 1.15) * lineas + 6; return s; };
+  const partes = ["^XA", "^CI28", "^PW812", "^LL1218", "^FO20,20^GB772,1178,3^FS", campo(`Venta ${v.pack_id ?? ""}`, 34), campo(v.comprador ?? "", 30)];
+  y += 14;
+  for (const it of v.items ?? []) {
+    if (y > 1050) break;
+    partes.push(campo(`${it.cantidad ?? 1} x ${it.titulo ?? "Producto"}`, 40, 3));
+    if (it.variacion) partes.push(campo(it.variacion, 30, 2));
+    if (it.sku) partes.push(campo(`SKU: ${it.sku}`, 30));
+    y += 12;
+  }
+  const pie = [LOGISTICA[v.logistica] ?? "", v.despachar_hasta ? `Despachar hasta ${new Date(v.despachar_hasta).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}` : ""].filter(Boolean).join(" - ");
+  if (pie) partes.push(`^FO40,1140^A0N,28,28^FD${zplTxt(pie)}^FS`);
+  partes.push("^XZ");
+  return partes.join("\n");
+}
+function armarZpl(archivos, op, datos) {
+  const porId = new Map((datos ?? []).map((v) => [v.id, v]));
+  let zpl = archivos.map((a) => a.texto).join("\n");
+  if (op.producto) zpl += "\n" + archivos.flatMap((a) => a.conv_ids ?? []).map((id) => porId.get(id)).filter(Boolean).map(zplProducto).join("\n");
+  return zpl;
+}
+async function unirControlesZpl(archivos) {
+  const con = archivos.filter((a) => a.control_base64); if (!con.length) return null;
+  const { PDFDocument } = await pdfLib(); const out = await PDFDocument.create();
+  for (const a of con) { const d = await PDFDocument.load(b64aBytes(a.control_base64)); for (const p of await out.copyPages(d, d.getPageIndices())) out.addPage(p); }
+  return await out.save();
+}
+
+// ---------- documentos en A4: lista de armado, hoja de ruta y notas para el comprador ----------
+const CSS_DOC = `body{font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:20px}h1{font-size:19px;margin:0 0 2px}h2{font-size:15px;margin:22px 0 6px}.m{color:#555;font-size:12px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border-bottom:1px solid #bbb;padding:7px 6px;text-align:left;vertical-align:top}th{font-size:11px;color:#444;text-transform:none}
+  .n{text-align:right;white-space:nowrap}.ck{width:22px}.ck span{display:inline-block;width:14px;height:14px;border:1.5px solid #111;border-radius:2px}
+  .f{width:44px}.f img{width:40px;height:40px;object-fit:contain;border:1px solid #ddd;border-radius:4px}.firma{width:150px}
+  .salto{page-break-before:always;break-before:page}.ruta{table-layout:fixed}.ruta td{word-wrap:break-word}button{font:inherit;padding:8px 14px;margin-top:14px}
+  @media print{body{margin:9mm}button{display:none}}`;
+function abrirDoc(titulo, cuerpo, css = "") {
+  const w = window.open("", "_blank"); if (!w) { aviso("El navegador bloqueó la ventana: permití las ventanas emergentes para esta página"); return; }
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>${CSS_DOC}${css}</style></head><body>${cuerpo}
+    <p><button onclick="print()">Imprimir o guardar en PDF</button></p><script>window.addEventListener("load",()=>setTimeout(()=>print(),400))<\/script></body></html>`);
+  w.document.close();
+}
+const nomEmpDoc = () => { try { return empNom(empRec()) ?? ""; } catch { return ""; } };
+const cabDoc = (t, extra) => `<h1>${esc(t)}</h1><div class="m">${esc(nomEmpDoc())} · ${esc(extra)} · ${new Date().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short", hourCycle: "h23" })}</div>`;
+// Lista de armado: todo lo que hay que sacar del depósito, agrupado por producto y variante
+function htmlArmado(ventas) {
+  const g = new Map();
+  for (const v of ventas) for (const it of v.items) {
+    const k = `${it.titulo}|${it.variacion ?? ""}|${it.sku ?? ""}`;
+    const x = g.get(k) ?? { ...it, u: 0, envios: new Set() }; x.u += it.cantidad || 1; x.envios.add(v.id); g.set(k, x);
+  }
+  const filas = [...g.values()].sort((a, b) => String(a.titulo).localeCompare(String(b.titulo)) || String(a.variacion ?? "").localeCompare(String(b.variacion ?? "")));
+  const tu = filas.reduce((n, x) => n + x.u, 0);
+  const carritos = ventas.filter((v) => v.items.length > 1 || v.items.some((i) => (i.cantidad || 1) > 1));
+  return `${cabDoc("Lista de armado", `${ventas.length} ${ventas.length === 1 ? "paquete" : "paquetes"}, ${tu} ${tu === 1 ? "unidad" : "unidades"}`)}
+    <table><thead><tr><th class="ck"></th><th class="f"></th><th>Producto</th><th>SKU</th><th class="n">Unidades</th><th class="n">Paquetes</th></tr></thead><tbody>
+    ${filas.map((x) => `<tr><td class="ck"><span></span></td><td class="f">${x.foto ? `<img src="${esc(x.foto)}" alt="">` : ""}</td><td><b>${esc(x.titulo)}</b>${x.variacion ? `<div class="m">${esc(x.variacion)}</div>` : ""}</td><td>${esc(x.sku ?? "")}</td><td class="n"><b>${x.u}</b></td><td class="n">${x.envios.size}</td></tr>`).join("")}
+    </tbody></table>
+    ${carritos.length ? `<h2>Paquetes con más de una unidad o más de un producto</h2><table><thead><tr><th class="ck"></th><th>Comprador</th><th>Venta</th><th>Qué lleva</th></tr></thead><tbody>
+      ${carritos.map((v) => `<tr><td class="ck"><span></span></td><td>${esc(v.comprador ?? "")}</td><td>${esc(v.pack_id ?? "")}</td><td>${v.items.map((i) => `<div><b>${i.cantidad || 1} ×</b> ${esc(i.titulo)}${i.variacion ? ` <span class="m">(${esc(i.variacion)})</span>` : ""}${i.sku ? ` <span class="m">SKU ${esc(i.sku)}</span>` : ""}</div>`).join("")}</td></tr>`).join("")}</tbody></table>` : ""}`;
+}
+// Hoja de ruta: los envíos Flex y Turbo ordenados por código postal y barrio, con lugar para la firma
+function htmlRuta(ventas) {
+  const r = ventas.filter((v) => ["self_service", "turbo"].includes(v.logistica) && v.destino)
+    .sort((a, b) => String(a.destino.cp ?? "").localeCompare(String(b.destino.cp ?? "")) || String(a.destino.barrio ?? "").localeCompare(String(b.destino.barrio ?? "")));
+  if (!r.length) return "";
+  return `${cabDoc("Hoja de ruta", `${r.length} ${r.length === 1 ? "entrega" : "entregas"} Flex y Turbo, por zona`)}
+    <table class="ruta"><colgroup><col style="width:4%"><col style="width:17%"><col style="width:25%"><col style="width:15%"><col style="width:21%"><col style="width:18%"></colgroup><thead><tr><th class="n">#</th><th>Recibe</th><th>Dirección</th><th>Zona</th><th>Qué lleva</th><th>Firma y aclaración</th></tr></thead><tbody>
+    ${r.map((v, i) => `<tr><td class="n">${i + 1}</td><td><b>${esc(v.destino.recibe || v.comprador || "")}</b><div class="m">${esc(LOGISTICA[v.logistica] ?? "")} · venta ${esc(v.pack_id ?? "")}</div></td>
+      <td>${esc(v.destino.direccion ?? "")}${v.destino.referencia ? `<div class="m">${esc(v.destino.referencia)}</div>` : ""}</td>
+      <td>${esc([v.destino.barrio, v.destino.ciudad].filter(Boolean).join(", "))}<div class="m">CP ${esc(v.destino.cp ?? "-")}</div></td>
+      <td>${v.items.map((it) => `<div>${it.cantidad || 1} × ${esc(it.titulo)}</div>`).join("")}</td><td></td></tr>`).join("")}</tbody></table>`;
+}
+// Notas para el comprador: 4 por hoja A4 (tamaño A6), para poner dentro de la caja
+async function htmlNotas(ventas, texto) {
+  let qr = null; try { qr = await qrLib(); } catch { qr = null; }
+  const svgQr = (url) => { if (!qr) return ""; const q = qr(0, "M"); q.addData(url); q.make(); return q.createSvgTag({ cellSize: 3, margin: 0, scalable: true }); };
+  const notas = ventas.map((v) => {
+    const nombre = String(v.comprador ?? "").split(" ")[0] || "";
+    const t = String(texto || NOTA_DEF).replace(/\{nombre\}/g, nombre).replace(/,\s*!/g, "!").replace(/\{producto\}/g, v.items[0]?.titulo ?? "");
+    const mat = v.items.flatMap((i) => i.material ?? [])[0];
+    return `<div class="nota"><p class="t">${esc(t)}</p><div class="pr">${v.items.map((i) => `<div>${i.cantidad || 1} × ${esc(i.titulo)}</div>`).join("")}</div>
+      ${mat ? `<div class="qr">${svgQr(mat.url)}<span>${esc(mat.titulo || "Manual del producto")}<br><small>Escaneá el código con la cámara del celular</small></span></div>` : ""}</div>`;
+  });
+  const hojas = []; for (let i = 0; i < notas.length; i += 4) hojas.push(`<div class="hoja ${i ? "salto" : ""}">${notas.slice(i, i + 4).join("")}</div>`);
+  return hojas.join("");
+}
+const CSS_NOTAS = `body{margin:0}.hoja{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:210mm;height:296mm;box-sizing:border-box}
+  .nota{border:1px dashed #999;padding:14mm 12mm;display:flex;flex-direction:column;gap:10px;box-sizing:border-box;overflow:hidden}.t{font-size:15px;line-height:1.45;margin:0}
+  .pr{font-size:12px;color:#444}.qr{display:flex;gap:10px;align-items:center;margin-top:auto;font-size:12px}.qr svg{width:26mm;height:26mm}small{color:#666}
+  @media print{body{margin:0}@page{size:A4;margin:0}}`;
+
+// Imprimir: aviso de reimpresión → qué imprimir (con las opciones de la impresora) → se prepara todo → un botón por impresora
+async function flujoImpresion(emp, lista, imp, alTerminar) {
+  const ya = lista.filter(impresa);
+  if (ya.length) {
+    const r = await new Promise((fin) => {
+      const nuevas = lista.length - ya.length;
+      const h = abrirHoja(`<div class="cajon-cab"><h2>${ya.length === lista.length ? (ya.length === 1 ? "Esa etiqueta ya se imprimió" : "Esas etiquetas ya se imprimieron") : `${ya.length} de las ${lista.length} ya se imprimieron`}</h2><button class="btn lin chico" data-cerrar type="button">Cancelar</button></div>
+        <div class="rec-lista" style="max-height:40vh;overflow:auto">${ya.map((c) => `<div class="rec-it">${foto(c.item_thumbnail)}<span class="rec-tx"><b>${esc(nombreComp(c))}</b><span class="peq mut">${esc(quienImprimio(c) || "Impresa desde MercadoLibre")}</span></span></div>`).join("")}</div>
+        <div class="fx-pie">${nuevas ? `<button class="btn lin" type="button" data-r="nuevas">Solo las nuevas (${nuevas})</button>` : ""}<button class="btn pri" type="button" data-r="todas">${nuevas ? "Imprimir todas" : "Reimprimir"}</button></div>`);
+      h.addEventListener("click", (e) => { const b = e.target.closest("[data-r]"); if (b) { h.remove(); fin(b.dataset.r); } });
+      new MutationObserver(() => { if (!h.isConnected) fin(null); }).observe(document.body, { childList: true });
+    });
+    if (!r) return;
+    if (r === "nuevas") lista = lista.filter((c) => !impresa(c));
+  }
+  const formato = imp?.formato ?? "pdf", base = { ...OPC_IMP_DEF, ...(imp?.opciones ?? {}) };
+  const conRuta = lista.filter((c) => ["self_service", "turbo"].includes(c.envio_logistica)).length;
+  const op = await new Promise((fin) => {
+    const h = abrirHoja(`<div class="cajon-cab"><h2>Qué imprimir</h2><button class="btn lin chico" data-cerrar type="button">Cancelar</button></div>
+      <p class="peq mut" style="margin:0 0 10px">${lista.length === 1 ? "1 envío" : `${lista.length} envíos`} en ${esc(imp?.nombre ?? "PDF")} (${esc(FORMATO_IMP[formato] ?? formato)}). Lo que marques acá vale solo para esta vez.</p>
+      <div class="fx-cuerpo">
+        <fieldset class="fx-g"><legend>Con las etiquetas</legend><div class="fx-ops">
+          <label><input type="checkbox" checked disabled><span>Etiquetas de envío de MercadoLibre</span></label>
+          <label><input type="checkbox" name="producto" ${base.producto ? "checked" : ""}><span>Etiqueta con los datos del producto (producto, variante, SKU y cantidad)</span></label>
+          ${formato !== "zpl" ? `<label><input type="checkbox" name="troquel" ${base.troquel === "quitar" ? "checked" : ""}><span>Quitar el troquel si MercadoLibre lo manda</span></label>` : ""}
+        </div></fieldset>
+        <fieldset class="fx-g"><legend>Hoja de control de MercadoLibre</legend><div class="fx-ops">${Object.entries(CONTROL_IMP).map(([k, t]) => `<label><input type="radio" name="control" value="${k}" ${base.control === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div>
+          <p class="peq mut" style="margin:6px 0 0">Sale solo si la cuenta la tiene activada en MercadoLibre.</p></fieldset>
+        <fieldset class="fx-g"><legend>Para el equipo, en hoja A4</legend><div class="fx-ops">
+          <label><input type="checkbox" name="armado" ${base.armado ? "checked" : ""}><span>Lista de armado, agrupada por producto</span></label>
+          <label><input type="checkbox" name="ruta" ${base.ruta && conRuta ? "checked" : ""} ${conRuta ? "" : "disabled"}><span>Hoja de ruta por zona${conRuta ? ` (${conRuta} Flex y Turbo)` : ": no hay envíos Flex ni Turbo"}</span></label>
+          <label><input type="checkbox" name="nota" ${base.nota ? "checked" : ""}><span>Notas para el comprador, para poner en la caja</span></label>
+        </div></fieldset>
+      </div>
+      <div class="fx-pie"><button class="btn pri" type="button" id="opImp">Preparar</button></div>`);
+    h.querySelector("#opImp").onclick = () => {
+      const v = (n) => !!h.querySelector(`input[name="${n}"]`)?.checked;
+      fin({ producto: v("producto"), troquel: formato === "zpl" ? "dejar" : v("troquel") ? "quitar" : "dejar", control: h.querySelector('input[name="control"]:checked')?.value ?? "aparte", armado: v("armado"), ruta: v("ruta"), nota: v("nota") });
+      h.remove();
+    };
+    new MutationObserver(() => { if (!h.isConnected) fin(null); }).observe(document.body, { childList: true });
+  });
+  if (!op) return;
+  const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Preparando…</b></p><p class="peq" style="margin:0" id="espT">Pidiendo las etiquetas a MercadoLibre</p></div>`);
+  const ids = lista.map((c) => c.id);
+  const necesitaDatos = op.producto || op.armado || op.ruta || op.nota;
+  const [r, dd] = await Promise.all([
+    seguro(() => api("despacho_etiquetas", { empresa_id: emp, ids, formato: formato === "zpl" ? "zpl" : "pdf", impresora_id: imp?.id ?? null })),
+    necesitaDatos ? seguro(() => api("despacho_datos", { empresa_id: emp, ids })) : Promise.resolve({ ventas: [] }),
+  ]);
+  alTerminar?.();
+  if (!r) { espera.remove(); return; }
+  for (const e of r.errores ?? []) aviso(e);
+  const ventas = dd?.ventas ?? [];
+  const salidas = [];
+  try {
+    if (espera.querySelector("#espT")) espera.querySelector("#espT").textContent = "Acomodando las etiquetas";
+    if (r.archivos?.length) {
+      if (formato === "zpl") {
+        const zpl = armarZpl(r.archivos, op, ventas);
+        salidas.push({ t: `Etiquetas en ${imp?.nombre ?? "la Zebra"}`, d: `${ids.length === 1 ? "1 etiqueta" : `${ids.length} etiquetas`}${op.producto ? " y las de producto" : ""}`, fn: async () => {
+          const res = await zebraImprimir(zpl, imp?.nombre);
+          if (res === "ok") return aviso(`Etiquetas enviadas a ${imp.nombre}`);
+          bajarArchivo("etiquetas-zebra.txt", new Blob([zpl], { type: "text/plain" }));
+          aviso(res === "sin_programa" ? "No encontramos el programa de Zebra (Browser Print) en esta computadora: bajamos el archivo para imprimirlo a mano" : "La impresora Zebra no respondió: bajamos el archivo para imprimirlo a mano");
+        } });
+        if (op.control !== "no") { const c = await unirControlesZpl(r.archivos); if (c) salidas.push({ t: "Hoja de control", d: "En una impresora común, hoja A4", pdf: c }); }
+      } else {
+        const a = await armarEtiquetasPdf(r.archivos, formato, op, ventas);
+        salidas.push({ t: "Etiquetas", d: `${formato === "pdf" ? "Hojas A4 con 3 etiquetas" : "Una etiqueta de 10x15 por hoja"}${op.producto ? ", con la de producto" : ""}${a.conTroquel && op.troquel === "quitar" ? ", sin troquel" : ""}${a.controles && op.control === "con_etiquetas" ? ", con la hoja de control al final" : ""}`, pdf: a.etiquetas });
+        if (a.control) salidas.push({ t: "Hoja de control", d: "En una impresora común, hoja A4", pdf: a.control });
+        if (a.hojasA4 && formato === "pdf10") aviso("La cuenta tiene configurado en MercadoLibre el formato A4: para la térmica conviene configurar PDF 10x15 en Preferencias de venta");
+      }
+    }
+    if (op.armado || op.ruta) {
+      const cuerpo = [op.armado ? htmlArmado(ventas) : "", op.ruta ? htmlRuta(ventas) : ""].filter(Boolean).map((x, i) => i ? `<div class="salto">${x}</div>` : x).join("");
+      if (cuerpo) salidas.push({ t: [op.armado && "Lista de armado", op.ruta && htmlRuta(ventas) && "hoja de ruta"].filter(Boolean).join(" y "), d: "En una impresora común, hoja A4", html: ["Armado y ruta", cuerpo] });
+    }
+    if (op.nota && ventas.length) salidas.push({ t: "Notas para el comprador", d: `${ventas.length === 1 ? "1 nota" : `${ventas.length} notas`}, 4 por hoja A4 (para cortar)`, html: ["Notas para el comprador", await htmlNotas(ventas, dd?.nota), CSS_NOTAS] });
+  } catch (e) { espera.remove(); aviso(e?.message || "No se pudieron preparar las etiquetas"); return; }
+  espera.remove();
+  if (!salidas.length) return aviso("MercadoLibre no entregó etiquetas para imprimir");
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Listo para imprimir</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 10px">Tocá cada uno para imprimirlo en su impresora.</p>
+    <div class="imp-sal">${salidas.map((s, i) => `<button type="button" class="imp-sal-it" data-s="${i}"><b>${esc(s.t)}</b><span class="peq mut">${esc(s.d)}</span><span class="imp-ok oculto">Abierto</span></button>`).join("")}</div>`);
+  h.querySelector(".imp-sal").onclick = async (e) => {
+    const b = e.target.closest("[data-s]"); if (!b) return;
+    const s = salidas[Number(b.dataset.s)];
+    if (s.pdf) { const w = window.open(URL.createObjectURL(new Blob([s.pdf], { type: "application/pdf" })), "_blank"); if (!w) bajarArchivo(`${s.t.toLowerCase().replace(/\s+/g, "-")}.pdf`, new Blob([s.pdf], { type: "application/pdf" })); }
+    else if (s.html) abrirDoc(s.html[0], s.html[1], s.html[2] ?? "");
+    else await s.fn();
+    b.querySelector(".imp-ok").classList.remove("oculto");
+  };
+}
+
+// Control al despachar: escanear la etiqueta y después el producto; si no coinciden, avisa antes de cerrar la caja
+async function verificarPaquete(emp) {
+  const codigo = await new Promise((fin) => escanear("Escaneá la etiqueta del paquete", fin));
+  if (!codigo) return;
+  const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><b>Buscando la venta…</b></div>`);
+  const r = await seguro(() => api("despacho_verificar", { empresa_id: emp, codigo }));
+  espera.remove();
+  if (!r) return;
+  const v = r.venta;
+  if (!v) return aviso("No encontré una venta con esa etiqueta");
+  const codigos = [...new Set(v.items.flatMap((i) => i.codigos ?? []))];
+  const norm = (x) => String(x ?? "").replace(/[^0-9A-Za-z]/g, "").replace(/^0+/, "").toUpperCase();
+  const pintar = (estado, leido) => `<div class="cajon-cab"><h2>Verificar paquete</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 8px">${esc(v.comprador ?? "")} · venta ${esc(v.pack_id ?? "")}</p>
+    <div class="rec-lista">${v.items.map((i) => `<div class="rec-it">${foto(i.foto)}<span class="rec-tx"><b>${i.cantidad || 1} × ${esc(i.titulo)}</b><span class="peq mut">${esc([i.variacion, i.sku ? `SKU ${i.sku}` : ""].filter(Boolean).join(" · "))}</span></span></div>`).join("")}</div>
+    ${estado === "ok" ? `<div class="ver-res ok"><b>Coincide</b><span>Leí ${esc(leido)}. Podés cerrar la caja.</span></div>`
+      : estado === "mal" ? `<div class="ver-res mal"><b>No coincide</b><span>Leí ${esc(leido)}, que no es de ${v.items.length === 1 ? "este producto" : "estos productos"}. Revisá antes de cerrar la caja.</span></div>` : ""}
+    ${!codigos.length ? `<p class="peq mut">La publicación no tiene código de barras (GTIN) ni SKU cargado: revisalo mirando la foto.</p>` : ""}
+    <div class="fx-pie">${codigos.length ? `<button class="btn ${estado ? "lin" : "pri"}" type="button" id="verEsc">${estado ? "Escanear de nuevo" : "Escanear el producto"}</button>` : ""}
+      ${!codigos.length ? `<button class="btn pri" type="button" id="verMan">Está bien</button>` : ""}
+      ${estado === "ok" || !codigos.length ? `<button class="btn lin" type="button" id="verFot">Sacar fotos</button>` : ""}</div>`;
+  const h = abrirHoja(pintar(null));
+  const guardar = (ok, leido) => seguro(() => api("despacho_verificar_guardar", { empresa_id: emp, conversacion_id: v.id, ok, codigo: leido ?? null, esperado: codigos.join(", ") }));
+  const enganchar = () => {
+    h.querySelector("#verEsc")?.addEventListener("click", async () => {
+      const leido = await new Promise((fin) => escanear("Escaneá el código del producto", fin, null, { inmediato: true }));
+      if (!leido) return;
+      const ok = codigos.some((c) => norm(c) === norm(leido));
+      try { navigator.vibrate?.(ok ? 80 : [80, 60, 80, 60, 200]); } catch {}
+      await guardar(ok, leido);
+      h.querySelector(".cajon").innerHTML = pintar(ok ? "ok" : "mal", leido); enganchar();
+    });
+    h.querySelector("#verMan")?.addEventListener("click", async () => { await guardar(true, null); aviso("Paquete marcado como revisado"); h.remove(); });
+    h.querySelector("#verFot")?.addEventListener("click", () => { h.remove(); fotosDespacho({ conversacion_id: v.id, cuenta_id: v.cuenta_id, item_id: v.items[0]?.item_id, envio_id: v.envio_id, item_titulo: v.items[0]?.titulo, item_foto: v.items[0]?.foto ?? v.foto, comprador: v.comprador, orden_id: v.pack_id }); });
+  };
+  enganchar();
+}
+
 const ZEBRA = ["http://localhost:9100", "https://localhost:9101"];
 // Programa de Zebra (Browser Print): deja que una página web vea y use las impresoras Zebra de la computadora
 async function zebraPedir(ruta, opciones = {}) {
@@ -5327,12 +5663,12 @@ document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) 
 const ICONO_CAL = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>`;
 const ICONO_CAJA = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>`;
 const ICONO_ORDEN = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>`;
-const ORDEN_DS = [["plazo", "Por plazo"], ["producto", "Por producto"], ["tipo", "Por tipo de envío"]];
+const ORDEN_DS = [["plazo", "Por plazo"], ["producto", "Por producto"], ["tipo", "Por tipo de envío"], ["zona", "Por zona (código postal)"]];
 const impresa = (c) => c.envio_subestado === "printed" || (c.impresiones ?? []).length > 0;
 const quienImprimio = (c) => (c.impresiones ?? []).length ? `Impresa por ${c.impresiones[0].quien} el ${new Date(c.impresiones[0].at).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}${c.impresiones.length > 1 ? ` (${c.impresiones.length} veces)` : ""}` : "";
 function ordenarDespacho(l, orden) {
   const t = (c) => c.despachar_hasta ? new Date(c.despachar_hasta).getTime() : Infinity;
-  const k = { plazo: (c) => [t(c), c.item_titulo ?? ""], producto: (c) => [c.item_titulo ?? "", t(c)], tipo: (c) => [LOGISTICA[c.envio_logistica] ?? c.envio_logistica, t(c), c.item_titulo ?? ""] }[orden];
+  const k = { plazo: (c) => [t(c), c.item_titulo ?? ""], producto: (c) => [c.item_titulo ?? "", t(c)], tipo: (c) => [LOGISTICA[c.envio_logistica] ?? c.envio_logistica, t(c), c.item_titulo ?? ""], zona: (c) => [c.destino?.cp ?? "~", c.destino?.barrio ?? "", t(c)] }[orden];
   return [...l].sort((a, b) => { const x = k(a), y = k(b); for (let i = 0; i < x.length; i++) { if (x[i] < y[i]) return -1; if (x[i] > y[i]) return 1; } return 0; });
 }
 // Resumen para imprimir o guardar en PDF: agrupado por producto, con cantidad y hasta cuándo hay que despachar
@@ -5393,11 +5729,11 @@ VISTAS.despacho = async (op = {}) => {
     let previo = null;
     $("#dsLista").innerHTML = vis.length ? vis.map((c) => {
       const e = ETIQ_ESTADO[c.envio_subestado], q = quienImprimio(c);
-      const grupo = F.orden === "producto" ? (c.item_titulo ?? "Producto") : F.orden === "tipo" ? (LOGISTICA[c.envio_logistica] ?? c.envio_logistica) : null;
+      const grupo = F.orden === "producto" ? (c.item_titulo ?? "Producto") : F.orden === "tipo" ? (LOGISTICA[c.envio_logistica] ?? c.envio_logistica) : F.orden === "zona" ? (c.destino?.cp ? `CP ${c.destino.cp}${c.destino.barrio || c.destino.ciudad ? ` · ${c.destino.barrio || c.destino.ciudad}` : ""}` : "Sin zona informada") : null;
       const cab = grupo && grupo !== previo ? `<h3 class="ds-grupo">${esc(grupo)}</h3>` : ""; previo = grupo;
       return `${cab}<label class="ds-it"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}>${foto(c.item_thumbnail)}
         <span class="rec-tx"><b>${esc(nombreComp(c))}</b><span class="peq">${c.cantidad > 1 ? `<b>${c.cantidad} ×</b> ` : ""}${esc(c.item_titulo ?? "")}</span>
-        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}${c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span>
+        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}${c.verificacion ? `<span class="chip ${c.verificacion.ok ? "c-ok" : "c-blo"}">${c.verificacion.ok ? "Verificado" : "No coincidía"}</span>` : ""}${c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span>
         ${q ? `<span class="peq mut">${esc(q)}</span>` : ""}</span></label>`;
     }).join("") : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
     $("#dsN").textContent = sel.size ? `Imprimir ${sel.size === 1 ? "1 etiqueta" : `${sel.size} etiquetas`}` : "Imprimir etiquetas";
@@ -5418,8 +5754,8 @@ VISTAS.despacho = async (op = {}) => {
     $("#dsAct").classList.toggle("oculto", !elegidos.length);
   };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despacha tu empresa (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>
-    <div class="ds-imp">${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
-      <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "zpl" ? "térmica" : "común"}</option>`).join("")}</select>`
+    <div class="ds-imp"><button class="btn lin" type="button" id="dsVer">Verificar paquete</button>${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
+      <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "pdf" ? "común" : "térmica"}</option>`).join("")}</select>`
       : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
     <div class="m-fil ds-barra" id="dsBarra">
       <span class="mas-caja"><button type="button" id="dsPl" class="fx-bt" aria-expanded="false" aria-controls="dsPlM">${ICONO_CAL}<span id="dsPlT"></span> <span aria-hidden="true">⌄</span></button>
@@ -5493,32 +5829,12 @@ VISTAS.despacho = async (op = {}) => {
     if (S.rol === "admin") { try { localStorage.setItem(`mostrador_imp_${emp}`, String(impId ?? "")); } catch {} return; }
     if (await seguro(() => api("impresora_elegir", { empresa_id: emp, impresora_id: impId }))) aviso("Impresora guardada");
   };
+  $("#dsVer").onclick = () => verificarPaquete(emp);
   $("#dsImp").onclick = async () => {
     const imp = imps.find((i) => i.id === impId);
     if (imps.length && !imp) return aviso("Elegí en qué impresora imprimís");
-    const formato = imp?.formato ?? "pdf", ids = visibles().filter((c) => sel.has(c.id)).map((c) => c.id); // en el orden de la lista
-    const ventana = formato === "pdf" ? window.open("", "_blank") : null; // se abre ya, si no el navegador la bloquea
-    $("#dsImp").disabled = true; $("#dsN").textContent = "Pidiendo las etiquetas…";
-    const r = await seguro(() => api("despacho_etiquetas", { empresa_id: emp, ids, formato, impresora_id: imp?.id ?? null }));
-    $("#dsImp").disabled = false; pintar();
-    if (!r) { ventana?.close(); return; }
-    for (const e of r.errores ?? []) aviso(e);
-    if (!r.archivos?.length) { ventana?.close(); return; }
-    if (formato === "pdf") {
-      const blobs = r.archivos.map((a) => b64aBlob(a.base64, "application/pdf"));
-      if (ventana) ventana.location = URL.createObjectURL(blobs[0]); else bajarArchivo(r.archivos[0].nombre, blobs[0]);
-      blobs.slice(1).forEach((b, i) => bajarArchivo(r.archivos[i + 1].nombre, b));
-      aviso("Etiquetas listas: imprimilas desde la ventana que se abrió");
-    } else {
-      const zpl = r.archivos.map((a) => a.texto).join("\n");
-      const res = await zebraImprimir(zpl, imp.nombre);
-      if (res === "ok") aviso(`Etiquetas enviadas a ${imp.nombre}`);
-      else {
-        bajarArchivo("etiquetas-zebra.txt", new Blob([zpl], { type: "text/plain" }));
-        aviso(res === "sin_programa" ? "No encontramos el programa de Zebra (Browser Print) en esta computadora: bajamos el archivo para imprimirlo a mano" : "La impresora Zebra no respondió: bajamos el archivo para imprimirlo a mano");
-      }
-    }
-    sel.clear(); setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); }, 3000);
+    const lista = visibles().filter((c) => sel.has(c.id)); // en el orden de la lista
+    await flujoImpresion(emp, lista, imp, () => { sel.clear(); pintar(); setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); }, 3000); });
   };
 };
 // Mientras Despacho está abierto, cada 6 segundos se pregunta si cambió algo (otra persona imprimió, MercadoLibre
@@ -5541,6 +5857,7 @@ function vigilarDespacho(emp) {
 }
 
 // ---------- Impresoras (Empresa → Impresoras): las carga el administrador y le asigna una a cada persona ----------
+const resumenOpc = (i) => { const o = { ...OPC_IMP_DEF, ...(i.opciones ?? {}) }; return [o.control === "no" ? "Sin hoja de control" : o.control === "aparte" ? "Hoja de control aparte" : "Hoja de control al final", o.producto && "etiqueta de producto", o.armado && "lista de armado", o.ruta && "hoja de ruta", o.nota && "notas para el comprador"].filter(Boolean).join(", "); };
 VISTAS.impresoras = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Elegí un cliente.</p></div></div>`; return; }
@@ -5549,17 +5866,29 @@ VISTAS.impresoras = async () => {
   const imps = d.impresoras ?? [], personas = d.personas ?? [];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Las impresoras donde se imprimen las etiquetas de envío. Cargalas acá y asignale una a cada persona; cada uno puede cambiarla por otra de esta lista desde Despacho.</p></div></div>
     <div class="panel"><h3 style="margin-top:0">Impresoras de la empresa</h3>
-      ${imps.length ? `<div class="imp-lista">${imps.map((i) => `<div class="imp-it"><span><b>${esc(i.nombre)}</b><span class="peq mut">${FORMATO_IMP[i.formato]}</span></span>
+      ${imps.length ? `<div class="imp-lista">${imps.map((i) => `<div class="imp-it"><span><b>${esc(i.nombre)}</b><span class="peq mut">${FORMATO_IMP[i.formato] ?? i.formato}</span><span class="peq mut">${esc(resumenOpc(i))}</span></span>
         <span class="imp-acc"><button class="btn lin chico" type="button" data-ed="${i.id}">Editar</button><button class="btn lin chico" type="button" data-bo="${i.id}">Borrar</button></span></div>`).join("")}</div>`
         : `<p class="mut">Todavía no cargaste ninguna.</p>`}
       <form id="impF" class="imp-form"><input type="hidden" id="impId">
         <div><label class="et" for="impNom">Nombre</label><input id="impNom" maxlength="80" placeholder="Por ejemplo: Zebra del depósito" required></div>
         <div><label class="et" for="impFmt">Tipo</label><select id="impFmt">${Object.entries(FORMATO_IMP).map(([k, t]) => `<option value="${k}">${t}</option>`).join("")}</select></div>
+        <fieldset class="imp-opc"><legend>Qué se imprime de entrada <span class="peq mut">(al imprimir se puede cambiar para esa vez)</span></legend>
+          <label class="et" for="impCtl">Hoja de control de MercadoLibre</label><select id="impCtl">${Object.entries(CONTROL_IMP).map(([k, t]) => `<option value="${k}">${t}</option>`).join("")}</select>
+          <label class="ck"><input type="checkbox" id="impTrq"><span>Quitar el troquel si MercadoLibre lo manda (solo PDF)</span></label>
+          <label class="ck"><input type="checkbox" id="impPrd"><span>Etiqueta con los datos del producto</span></label>
+          <label class="ck"><input type="checkbox" id="impArm"><span>Lista de armado (hoja A4)</span></label>
+          <label class="ck"><input type="checkbox" id="impRut"><span>Hoja de ruta de Flex y Turbo (hoja A4)</span></label>
+          <label class="ck"><input type="checkbox" id="impNot"><span>Notas para el comprador (hoja A4)</span></label>
+        </fieldset>
         <div class="imp-bt"><button class="btn pri" type="submit" id="impG">Agregar impresora</button><button class="btn lin oculto" type="button" id="impCan">Cancelar</button></div>
       </form>
       <p class="peq mut" style="display:flex;align-items:center;gap:6px;margin:12px 0 0"><button class="btn lin chico" type="button" id="impZeb">Buscar impresoras Zebra en esta computadora</button>
         ${ayuda("Por seguridad, una página web no puede ver las impresoras instaladas en la computadora: por eso se cargan a mano. Las impresoras Zebra sí se pueden encontrar si en la computadora está instalado el programa gratuito de Zebra llamado Browser Print; con ese programa, además, las etiquetas salen directo, sin abrir ninguna ventana.")}</p>
     </div>
+    ${S.rol !== "operador" ? `<div class="panel"><h3 style="margin-top:0">Nota para el comprador</h3>
+      <p class="peq mut" style="margin-top:0">Se imprime para poner dentro de la caja, con lo que lleva el paquete y un código QR al manual si la publicación tiene uno cargado en Documentación para enviar. Escribí {nombre} donde va el nombre del comprador.</p>
+      <textarea id="notaTx" rows="3" maxlength="600" style="width:100%">${esc(d.nota || NOTA_DEF)}</textarea>
+      <div style="margin-top:8px"><button class="btn pri" type="button" id="notaG">Guardar texto</button></div></div>` : ""}
     <div class="panel"><h3 style="margin-top:0">Impresora de cada persona</h3>
       ${!imps.length ? `<p class="mut">Primero cargá al menos una impresora.</p>` : personas.map((p) => {
         const propia = p.impresora_propia && p.impresora_propia !== p.impresora_id ? imps.find((i) => i.id === p.impresora_propia) : null;
@@ -5568,14 +5897,18 @@ VISTAS.impresoras = async () => {
       }).join("")}
     </div>`;
   const form = $("#impF");
-  const limpiar = () => { $("#impId").value = ""; $("#impNom").value = ""; $("#impFmt").value = "pdf"; $("#impG").textContent = "Agregar impresora"; $("#impCan").classList.add("oculto"); };
+  const ponerOpc = (o) => { o = { ...OPC_IMP_DEF, ...(o ?? {}) }; $("#impCtl").value = o.control; $("#impTrq").checked = o.troquel === "quitar"; $("#impPrd").checked = !!o.producto; $("#impArm").checked = !!o.armado; $("#impRut").checked = !!o.ruta; $("#impNot").checked = !!o.nota; };
+  const leerOpc = () => ({ control: $("#impCtl").value, troquel: $("#impTrq").checked ? "quitar" : "dejar", producto: $("#impPrd").checked, armado: $("#impArm").checked, ruta: $("#impRut").checked, nota: $("#impNot").checked });
+  const limpiar = () => { $("#impId").value = ""; $("#impNom").value = ""; $("#impFmt").value = "pdf"; ponerOpc(null); $("#impG").textContent = "Agregar impresora"; $("#impCan").classList.add("oculto"); };
+  ponerOpc(null);
+  if ($("#notaG")) $("#notaG").onclick = async () => { if (await seguro(() => api("despacho_nota_guardar", { empresa_id: emp, texto: $("#notaTx").value }))) aviso("Texto de la nota guardado"); };
   form.onsubmit = async (e) => {
     e.preventDefault();
-    if (await seguro(() => api("impresora_guardar", { empresa_id: emp, id: Number($("#impId").value) || null, nombre: $("#impNom").value, formato: $("#impFmt").value }))) { aviso("Impresora guardada"); VISTAS.impresoras(); }
+    if (await seguro(() => api("impresora_guardar", { empresa_id: emp, id: Number($("#impId").value) || null, nombre: $("#impNom").value, formato: $("#impFmt").value, opciones: leerOpc() }))) { aviso("Impresora guardada"); VISTAS.impresoras(); }
   };
   $("#impCan").onclick = limpiar;
   $("#main").querySelectorAll("[data-ed]").forEach((b) => b.onclick = () => {
-    const i = imps.find((x) => x.id === Number(b.dataset.ed)); $("#impId").value = i.id; $("#impNom").value = i.nombre; $("#impFmt").value = i.formato;
+    const i = imps.find((x) => x.id === Number(b.dataset.ed)); $("#impId").value = i.id; $("#impNom").value = i.nombre; $("#impFmt").value = i.formato; ponerOpc(i.opciones);
     $("#impG").textContent = "Guardar cambios"; $("#impCan").classList.remove("oculto"); $("#impNom").focus();
   });
   $("#main").querySelectorAll("[data-bo]").forEach((b) => b.onclick = async () => {
