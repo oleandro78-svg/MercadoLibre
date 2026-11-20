@@ -1110,7 +1110,7 @@ async function entrarUsuario() {
     try { const sp = JSON.parse(sessionStorage.getItem("mostrador_soporte") ?? "null"); if (sp?.id) { S.soporte = sp.id; S.soporteNom = sp.nombre; } } catch {}
   }
   else {
-    if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene clientes activos. Pedile a quien te invitó que te vuelva a sumar.");
+    if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene negocios activos. Pedile a quien te invitó que te vuelva a sumar.");
     let guardada = ""; try { guardada = localStorage.getItem("mostrador_empresa_sel") ?? ""; } catch {}
     const valida = guardada === "*" && S.yo.empresas.length > 1 || S.yo.empresas.some((x) => x.id === guardada);
     elegirEmpresa(valida ? guardada : (S.yo.empresas.find((x) => x.rol === "admin")?.id ?? (S.yo.empresas.length > 1 ? "*" : S.yo.empresas[0].id)));
@@ -1144,7 +1144,7 @@ function armarSelector() {
   if (S.yo.empresas.length < 2) { sel.classList.add("oculto"); return; }
   sel.classList.remove("oculto");
   const actual = S.empresaId || "*";
-  sel.innerHTML = `<option value="*" ${actual === "*" ? "selected" : ""}>Todos mis clientes</option>` +
+  sel.innerHTML = `<option value="*" ${actual === "*" ? "selected" : ""}>Todos mis negocios</option>` +
     S.yo.empresas.map((e) => `<option value="${e.id}" ${e.id === actual ? "selected" : ""}>${esc(e.nombre)}${e.rol === "admin" ? " (administrás)" : ""}</option>`).join("");
   sel.onchange = async () => { elegirEmpresa(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
 }
@@ -1312,7 +1312,7 @@ async function recargar() {
 }
 // Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
 const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
-  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Cliente"]];
+  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
@@ -1358,11 +1358,11 @@ function pintarPerfil() {
     const r = S.res?.empresas?.[0] ?? {};
     const e = empresaYo(S.empresaId) ?? { nombre: r.nombre ?? S.empresa, color: r.color };
     clase = "p-empresa"; color = e.color; corto = e.nombre;
-    html = tarjeta(e, "Administrador del cliente");
+    html = tarjeta(e, "Administrador");
   } else {
     const e = S.empresaId ? empresaYo(S.empresaId) : null;
-    clase = "p-operador"; color = e?.color ?? ""; corto = e ? e.nombre : "Todos mis clientes";
-    html = e ? tarjeta(e, "Operador") : `<div><b>Todos mis clientes</b><span>Operador</span></div>`;
+    clase = "p-operador"; color = e?.color ?? ""; corto = e ? e.nombre : "Todos mis negocios";
+    html = e ? tarjeta(e, "Operador") : `<div><b>Todos mis negocios</b><span>Operador</span></div>`;
   }
   app.classList.add(clase);
   caja.style.setProperty("--emp", color || "");
@@ -1500,7 +1500,7 @@ function tarjetaConv(p) {
       ${p.motivo ? `<div class="motivo">${esc(p.motivo)}</div>` : ""}
     </div>
     <div class="acciones">
-      ${puede ? `<button class="btn pri" data-pub="${p.id}">${multi && emp ? `Publicar como ${esc(emp.nombre)}` : "Publicar respuesta"}</button>` : `<span class="mut peq">En este cliente tus respuestas las publica el administrador</span>`}
+      ${puede ? `<button class="btn pri" data-pub="${p.id}">${multi && emp ? `Publicar como ${esc(emp.nombre)}` : "Publicar respuesta"}</button>` : `<span class="mut peq">En este negocio tus respuestas las publica el administrador</span>`}
       <button class="btn lin" data-det="${p.id}">Ver detalle</button>
       <button class="btn pel" data-desc="${p.id}">Descartar</button>
       <span class="cuenta-c">${esc(cta?.nombre ?? "")}</span>
@@ -1545,12 +1545,12 @@ VISTAS.bandeja = async () => {
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
-      <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} clientes` : ""}. Primero van las que esperan hace más tiempo.</p></div>
+      <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} negocios` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
-    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por cliente"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
+    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por negocio"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
     <div style="margin:-4px 0 14px"><button class="btn lin chico" type="button" id="verHist">Ver todas las preguntas</button></div>
-    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de este cliente." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
+    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de este negocio." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
   $("#main").querySelectorAll("[data-be]").forEach((x) => { x.onclick = () => { S.bandEmp = x.dataset.be; VISTAS.bandeja(); }; });
   $("#verHist").onclick = () => ir("preguntas");
   enlazarCola($("#cola"));
@@ -1627,7 +1627,7 @@ VISTAS.equipo = async () => {
     </article>`;
   };
 
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de este cliente, qué puede hacer cada uno y dónde le llegan las notificaciones.</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Quiénes pueden entrar al panel de tu negocio, qué puede hacer cada uno y dónde le llegan las notificaciones.</p></div>
       <div><button class="btn pri" id="eqSumar" ${libres ? "" : "disabled"}>Sumar persona</button></div></div>
     <div class="eq-res">
       <div class="panel"><div class="eq-n"><b>${r.usados}</b><span>de ${r.limite} operadores${r.plan ? " del plan " + esc(r.plan) : ""}</span></div>
@@ -1652,7 +1652,7 @@ VISTAS.equipo = async () => {
     b.closest(".menu-p")?.removeAttribute("open");
     const a = b.dataset.a;
     if (a === "baja") {
-      if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de este cliente. Lo que ya respondió queda en el historial.`)) return;
+      if (!confirm(`¿Dar de baja a ${quien}? Desde ese momento deja de ver todo lo de tu negocio. Lo que ya respondió queda en el historial.`)) return;
       if (await seguro(() => api("miembro_baja", { id: m.id }))) { aviso(`${quien} quedó dado de baja`); VISTAS.equipo(); }
     } else if (a === "quitar") {
       if (!confirm(`¿Quitar a ${quien} de la lista? Lo que haya respondido sigue en el historial con su nombre. Si más adelante querés sumarlo, lo invitás de nuevo.`)) return;
@@ -1824,7 +1824,7 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Me mencionan en una nota", "No se puede apagar: la mención es para notificar", nfSw("", true, true))}
       ${nfFila("Nota nueva en algo asignado", "A quien tiene asignada la venta o la pregunta", nfSw(`data-swsec="notas" data-swk="asignado"`, n.notas.asignado))}
       ${nfFila("Recordatorio de eventos", "Valor para los eventos nuevos", nfSeg("calendario", "recordatorio", n.calendario.recordatorio, [[0, "A la hora"], [10, "10 min antes"], [30, "30 min antes"], [60, "1 h antes"], [1440, "1 día antes"]]))}</section>`);
-    $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Qué notificaciones manda Mostrador y a quién. Solo aparecen los módulos que tiene el cliente: si un módulo no está contratado, nadie recibe notificaciones de ese módulo. Cada persona elige además, en "Mis notificaciones", cuándo recibirlas y cuáles apaga.</p></div></div>${b.join("")}`;
+    $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Qué notificaciones manda Mostrador y a quién. Solo aparecen los módulos que tiene el negocio: si un módulo no está contratado, nadie recibe notificaciones de ese módulo. Cada persona elige además, en "Mis notificaciones", cuándo recibirlas y cuáles apaga.</p></div></div>${b.join("")}`;
   };
   const guardar = () => nfGuardarLuego(() => api("notif_empresa_guardar", { empresa_id: emp, notif: n, escalar_min: esc_.min, escalar_a: esc_.a }));
   pintar();
@@ -1875,7 +1875,7 @@ VISTAS.misnotif = async () => {
     b.push(`<section class="panel nf-mod"><h2>Chat</h2>${nfFila("", "", nfSeg("_p", "chat", p.chat ?? "", [["", "Como el equipo"], ["todos", "Todos"], ["directos", "Directos y menciones"], ["nada", "Nada"]]))}
       ${r.grupos.map((g) => nfFila(esc(g.nombre), g.silenciado ? "Silenciado: solo te notifica si te nombran" : "", nfSw(`data-grupo="${g.id}"`, !g.silenciado))).join("")}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Notas y calendario</h2>${nfFila("Me mencionan en una nota", "No se puede apagar", nfSw("", true, true))}${tog("nota_asignado", "Nota nueva en algo asignado a mí")}${tog("cal_invitacion", "Invitaciones a eventos")}${tog("cal_recordatorio", "Recordatorios de eventos")}</section>`);
-    $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis notificaciones</h1><p>Lo que te llega a vos. Solo aparecen los módulos de tus clientes.</p></div></div>${b.join("")}`;
+    $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis notificaciones</h1><p>Lo que te llega a vos. Solo aparecen los módulos de tus negocios.</p></div></div>${b.join("")}`;
   };
   const guardar = () => nfGuardarLuego(() => api("notif_mias_guardar", { prefs: p }));
   pintar();
@@ -2119,7 +2119,7 @@ VISTAS.numeros = async () => {
   const d = await seguro(() => api("mis_numeros", { desde, hasta }));
   if (!d || S.tab !== "numeros") return;
   const y = d.yo, multi = d.por_empresa.length > 1;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} clientes` : ""}.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} negocios` : ""}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
       <div class="medida"><b>${num(y.respondidas)}</b><span>${y.respondidas === 1 ? "pregunta respondida" : "preguntas respondidas"}${y.asignadas ? ` de ${num(y.asignadas)} que te llegaron` : ""}</span></div>
       <div class="medida"><b>${dur(y.tiempo_mediana_seg)}</b><span>tardás en responder, en general (promedio ${dur(y.tiempo_prom_seg)})</span></div>
@@ -2127,7 +2127,7 @@ VISTAS.numeros = async () => {
       <div class="medida"><b>${num(y.descartadas)}</b><span>${y.descartadas === 1 ? "pregunta descartada" : "preguntas descartadas"}</span></div>
     </div>
     <div class="panel" style="margin-top:16px"><h2>Tus respuestas por día</h2>${grafDias(d.serie, ["yo"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
-    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por cliente</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Cliente</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
+    ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por negocio</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Negocio</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
       ${d.por_empresa.map((e) => `<tr><td>${etiquetaEmpresa(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
     <div class="panel"><h2>Respuestas tuyas con repregunta</h2><p class="mut peq" style="margin:0 0 8px">El comprador volvió a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas. Mirá qué le faltaba a la respuesta.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, true)}</div>`;
@@ -2146,7 +2146,7 @@ function sumarPersona(emp, libres) {
   const v = cajon(`<div class="cajon-cab"><div><h2>Sumar persona</h2><p class="mut peq" style="margin:4px 0 0">${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`} para operadores.` : ""}</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <label class="et" for="sNom">Nombre</label><input id="sNom" autocomplete="off">
     <label class="et" for="sEm">Email</label><input id="sEm" type="email" autocomplete="off">
-    <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro cliente en el panel, se le suma esta y entra con su misma clave.</p>
+    <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro negocio en el panel, se le suma este y entra con su misma clave.</p>
     <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: responde las preguntas</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
     <label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="sPub" checked style="width:20px;height:20px"> Puede publicar respuestas sin que un administrador las apruebe</label>
     <button class="btn pri" style="margin-top:18px" id="sOk">Sumar</button>`, true);
@@ -2157,7 +2157,7 @@ function sumarPersona(emp, libres) {
     if (!r) return;
     v.remove(); VISTAS.equipo();
     if (r.nuevo) mostrarCodigo(nombre || email, r.email, r.codigo, true);
-    else aviso(`${nombre || email} ya tenía usuario: se le sumó este cliente`);
+    else aviso(`${nombre || email} ya tenía usuario: se le sumó tu negocio`);
   };
 }
 
@@ -2550,7 +2550,7 @@ async function detalle(id) {
       <div class="dato"><b>${num(p.tokens_entrada)}</b><span>tokens nuevos</span></div>
       <div class="dato"><b>${num(p.tokens_cache_lectura)}</b><span>tokens desde memoria</span></div>` : ""}</div></div>
     ${refs.length ? `<div class="bloque"><details><summary>Las ${refs.length} respuestas anteriores que usó como referencia</summary>
-      <p class="peq mut">Si alguna está mal, marcala: el bot deja de usarla en todas las cuentas del cliente.</p>
+      <p class="peq mut">Si alguna está mal, marcala: el bot deja de usarla en todas las cuentas del negocio.</p>
       ${refs.map((x) => `<div class="ref"><div class="o">${esc(x.origen)}${x.fecha ? ", " + fecha(x.fecha) : ""}</div><b>${esc(x.pregunta)}</b><div>${esc(x.respuesta)}</div>${x.id ? `<button class="btn lin chico" style="margin-top:6px" data-hmal="${x.i}">Marcar como incorrecta</button>` : ""}</div>`).join("")}</details></div>` : ""}
     <div class="bloque"><button class="btn lin chico" type="button" id="pCompartir">Compartir en el chat</button></div>
     <div class="bloque"><h3>Notas internas</h3><div class="notas" id="pNot"><p class="mut">Cargando las notas…</p></div></div>`);
@@ -2612,7 +2612,7 @@ function ofrecerVolver(caja, tx, antes, alertas = []) {
 }
 // Aprender de cada edición: si la persona cambió el contenido del borrador, se ofrece guardarlo como corrección
 function ofrecerAprender(id, e) {
-  const v = cajon(`<div class="cajon-cab"><div><h2>¿El bot tiene que aprender esto?</h2><p class="mut peq" style="margin:4px 0 0">${e.tipo === "nueva" ? "El bot no tenía respuesta para esta pregunta." : "Cambiaste el contenido de lo que había propuesto el bot."} Si lo guardás como corrección, la próxima vez responde así en todas las cuentas del cliente.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+  const v = cajon(`<div class="cajon-cab"><div><h2>¿El bot tiene que aprender esto?</h2><p class="mut peq" style="margin:4px 0 0">${e.tipo === "nueva" ? "El bot no tenía respuesta para esta pregunta." : "Cambiaste el contenido de lo que había propuesto el bot."} Si lo guardás como corrección, la próxima vez responde así en todas las cuentas del negocio.</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     ${e.resumen && e.tipo !== "nueva" ? `<div class="aprender-r">${esc(e.resumen)}</div>` : ""}
     <label class="et">Pregunta del comprador</label><div class="caja pre">${esc(e.pregunta)}</div>
     ${e.sugerida ? `<label class="et">Lo que propuso el bot</label><div class="caja pre tachada">${esc(e.sugerida)}</div>` : ""}
@@ -2631,7 +2631,7 @@ function histPlano(h) {
 }
 function marcarIncorrecta(c) {
   const v = cajon(`<div class="cajon-cab"><h2>Marcar respuesta como incorrecta</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    <p class="mut">El bot deja de usarla como referencia. Si escribís la correcta, la toma como ejemplo validado en todas las cuentas del cliente.</p>
+    <p class="mut">El bot deja de usarla como referencia. Si escribís la correcta, la toma como ejemplo validado en todas las cuentas del negocio.</p>
     <label class="et">Pregunta</label><div class="caja pre">${esc(c.texto_pregunta)}</div>
     ${c.respuesta_incorrecta ? `<label class="et">Respuesta incorrecta</label><div class="caja pre">${esc(c.respuesta_incorrecta)}</div>` : ""}
     <label class="et" for="kC">Respuesta correcta (recomendado)</label><textarea id="kC" maxlength="2000">${esc(c.respuesta_correcta ?? "")}</textarea>
@@ -2665,7 +2665,7 @@ VISTAS.probar = () => {
 function empresaActual() { return S.rol === "empresa" ? null : (S.empSel || (S.res.empresas.length === 1 ? S.res.empresas[0].id : "")); }
 VISTAS.conocimiento = async () => {
   const t = S.conoc;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Conocimiento</h1><p>Lo que el bot sabe del negocio. Lo comparten todas las cuentas del cliente.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Conocimiento</h1><p>Lo que el bot sabe del negocio. Lo comparten todas las cuentas del negocio.</p></div></div>
     <div class="pestanas" id="cTabs">${[["documentos", "Instrucciones y catálogo"], ["correcciones", "Correcciones"], ["rapidas", "Respuestas rápidas"]].map(([k, n]) => `<button data-k="${k}" class="${k === t ? "on" : ""}">${n}</button>`).join("")}</div><div id="cCuerpo"></div>`;
   $("#cTabs").onclick = (e) => { const b = e.target.closest("button"); if (b) { S.conoc = b.dataset.k; VISTAS.conocimiento(); } };
   if (S.rol === "admin" && empresaActual() === "") { $("#cCuerpo").innerHTML = `<div class="panel vacio"><b>Elegí un cliente</b>Usá el selector de la izquierda.</div>`; return; }
@@ -2776,7 +2776,7 @@ async function conRapidas() {
 // ================= CUENTAS =================
 VISTAS.cuentas = () => {
   const r = S.res;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Cuentas de MercadoLibre</h1><p>Cada cuenta puede ser una razón social distinta que vende lo mismo. Todas comparten el conocimiento del cliente.</p></div><button class="btn osc" id="nueva">Agregar cuenta</button></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Cuentas de MercadoLibre</h1><p>Cada cuenta puede ser una razón social distinta que vende lo mismo. Todas comparten el conocimiento del negocio.</p></div><button class="btn osc" id="nueva">Agregar cuenta</button></div>
     <div class="cuentas">${r.cuentas.map((c) => `<div class="cta"><div><div class="nom">${esc(c.nombre)}</div><div class="mut peq">${esc(c.razon_social ?? "Sin razón social")}${S.rol === "admin" && !S.empSel ? ", " + esc(empNom(c.empresa_id)) : ""}</div></div>
       <div class="estado">${c.conectada ? `<span class="chip c-respondida">Conectada${c.ml_nickname ? " como " + esc(c.ml_nickname) : ""}</span>` : `<span class="chip c-error">Sin conectar</span>`}<span class="chip c-simulada">${MODOS[c.modo]}</span>${c.activa ? "" : `<span class="chip c-borrador">Pausada</span>`}</div>
       <div class="peq mut">${esc(r.sitios.find((s) => s.id === c.sitio)?.pais ?? c.sitio)}. ${num(r.publicaciones?.[c.id] ?? 0)} publicaciones y ${num(r.historial?.[c.id] ?? 0)} respuestas guardadas.</div>
@@ -2788,7 +2788,7 @@ VISTAS.cuentas = () => {
     if (d.ed) datosCuenta(r.cuentas.find((c) => c.id === d.ed));
     if (d.cf) { S.confCta = d.cf; S.confNivel = "cuenta"; ir("config"); }
     if (d.ap) {
-      if (!confirm(`El bot va a leer todas las publicaciones y preguntas respondidas de la cuenta y armar instrucciones y catálogo nuevos. Si el cliente ya tiene documentos activos, los nuevos quedan desactivados para que compares.${dueno() ? " Tiene un costo de IA." : ""} ¿Seguir?`)) return;
+      if (!confirm(`El bot va a leer todas las publicaciones y preguntas respondidas de la cuenta y armar instrucciones y catálogo nuevos. Si el negocio ya tiene documentos activos, los nuevos quedan desactivados para que compares.${dueno() ? " Tiene un costo de IA." : ""} ¿Seguir?`)) return;
       if (await seguro(() => api("aprender", { cuenta_id: d.ap }))) { aviso("Arrancó el armado de la base"); await recargar(); VISTAS.cuentas(); }
     }
     if (d.dudas) verDudas(d.dudas);
@@ -2845,7 +2845,7 @@ function datosCuenta(c) {
 // ================= CONFIGURACIÓN =================
 VISTAS.config = async () => {
   const r = S.res, adm = S.rol === "admin";
-  const niveles = [...(adm ? [["app", "App"]] : []), ["cliente", "Cliente"], ["cuenta", "Cuenta"]];
+  const niveles = [...(adm ? [["app", "App"]] : []), ["cliente", dueno() ? "Cliente" : "Mi negocio"], ["cuenta", "Cuenta"]];
   if (!S.confNivel || !niveles.some(([k]) => k === S.confNivel)) S.confNivel = "cuenta";
   if (!r.cuentas.length && S.confNivel === "cuenta") S.confNivel = adm ? "app" : "cliente";
   const nivel = S.confNivel;
@@ -2857,7 +2857,7 @@ VISTAS.config = async () => {
     : nivel === "cliente" ? (S.rol === "empresa" ? `<p class="mut" style="margin:0">Valen para todas tus cuentas, salvo que una cuenta tenga su propio valor.</p>`
       : `<select id="cfDest" style="width:auto">${r.empresas.map((e) => `<option value="${e.id}" ${e.id === empId ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>`)
     : `<select id="cfDest" style="width:auto">${optsCuentas(S.confCta)}</select>`;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Configuración</h1><p>Cada nivel hereda del anterior: Fábrica → App → Cliente → Cuenta. Lo que fijás en un nivel pisa lo heredado solo ahí.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Configuración</h1><p>Cada nivel hereda del anterior: ${dueno() ? "Fábrica → App → Cliente → Cuenta" : "Mi negocio → Cuenta"}. Lo que fijás en un nivel pisa lo heredado solo ahí.</p></div></div>
     <div class="filtros"><div class="seg" id="cfNiv">${niveles.map(([k, t]) => `<button data-n="${k}" class="${k === nivel ? "on" : ""}">${t}</button>`).join("")}</div>${destino}</div>
     <div id="cfCuerpo"><p class="mut">Cargando…</p></div>`;
   $("#cfNiv").onclick = (e) => { const b = e.target.closest("button"); if (b) { S.confNivel = b.dataset.n; VISTAS.config(); } };
@@ -2874,7 +2874,7 @@ VISTAS.config = async () => {
   if (!cv) return;
   const A = cv.ajustes, cambios = {};
   const enApp = sup1?.propios ?? {}, enCli = sup2?.propios ?? {};
-  const origen = (k) => k in enCli ? "Heredado del cliente" : k in enApp ? "Heredado de la App" : "Valor de fábrica";
+  const origen = (k) => k in enCli ? (dueno() ? "Heredado del cliente" : "Heredado de Mi negocio") : k in enApp ? "Heredado de la App" : "Valor de fábrica";
   const visibles = (k) => A[k].niveles.includes(nivel) && (adm || A[k].quien === "cliente");
   const fmt = (k, v) => {
     const a = A[k];
@@ -3497,7 +3497,7 @@ const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
 VISTAS.mensajes = async () => {
   const emp = empMsj();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Elegí un cliente para ver sus ventas.</p></div></div>`; return; }
-  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Ninguno de tus clientes tiene el módulo Ventas.</p></div></div>`; return; }
+  if (S.rol === "operador" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Ventas</h1><p>Ninguno de tus negocios tiene el módulo Ventas.</p></div></div>`; return; }
   S.msjFil ??= "todas";
   $("#main").classList.add("lleno");
   const movil = anchoMovil();
@@ -3659,7 +3659,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
   let sel = null;
   const h = abrirHoja(`<div class="cajon-cab"><h2>Qué se ve en la lista de ${def.titulo}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo etq-ed">
-      <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que operan el cliente.</p>
+      <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que trabajan en el negocio.</p>
       <div class="etq-pl" id="etqPl">${def.plantillas.map(([t], i) => `<button type="button" class="btn lin chico" data-pl="${i}">${t}</button>`).join("")}</div>
       <h3 class="etq-h">Etiqueta</h3><div class="etq-molde" id="etqMolde"></div>
       <h3 class="etq-h">Datos sin usar</h3><div class="etq-pal" id="etqPal" data-s="pal"></div>
@@ -4272,7 +4272,7 @@ function redactarLibre(d) {
         </div></div>
       <div class="der">
         ${c.puede_enviar ? `<button class="btn pri" type="button" id="mEnv">Enviar</button>` : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div></div>
-    ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en este cliente: guardá el borrador y lo envía el administrador.</p>`}`;
+    ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en este negocio: guardá el borrador y lo envía el administrador.</p>`}`;
   const tx = $("#mTx");
   // Menú "Más": se abre y se cierra con el botón, y se cierra al elegir algo o tocar afuera
   const menu = $("#mMasM"), bm = $("#mMasB");
@@ -5268,7 +5268,7 @@ function mostrarResultado(r, modo, sinNada) {
   if (r.tipo === "compra") {
     // Etiqueta de algo que compró el cliente: no es una venta propia ni una devolución
     cajon(`<div class="cajon-cab"><div><h2>Es una compra, no una devolución</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-      <p>La etiqueta del envío ${esc(r.envio_id)} es de algo que <b>compró el cliente</b>${r.vendedor ? ` al vendedor <b>${esc(r.vendedor)}</b>` : ""}, no de una venta propia.${r.producto ? ` Producto: ${esc(r.producto)}.` : ""}</p>
+      <p>La etiqueta del envío ${esc(r.envio_id)} es de algo que <b>compró tu negocio</b>${r.vendedor ? ` al vendedor <b>${esc(r.vendedor)}</b>` : ""}, no de una venta propia.${r.producto ? ` Producto: ${esc(r.producto)}.` : ""}</p>
       <p class="mut">Las compras no pasan por Devoluciones ni por Despacho. Para ver el estado de esa compra, entrá a Mis compras en MercadoLibre.</p>`, true);
     return;
   }
@@ -6119,16 +6119,16 @@ VISTAS.listas = async () => {
     mods.has("despacho") ? api("despacho_lista", { empresa_id: emp, rapido: true }).catch(() => null) : null,
     mods.has("devoluciones") ? api("devoluciones", { empresa_id: emp }).catch(() => null) : null]);
   if (S.tab !== "listas") return;
-  if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del cliente elige qué se ve en las listas.</p></div></div>`; return; }
+  if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del negocio elige qué se ve en las listas.</p></div></div>`; return; }
   const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
   const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
   const plantillaDe = (k) => { const c = JSON.stringify(etqConfig(k, emp)); return ETQ[k].plantillas.find(([, x]) => JSON.stringify(x) === c)?.[0] ?? "Personalizada"; };
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que operan el cliente; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que trabajan en el negocio; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
       <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
         || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
-      || `<div class="panel vacio">El cliente no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
+      || `<div class="panel vacio">Tu negocio no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
 };
 VISTAS.impresoras = async () => {
@@ -6138,7 +6138,7 @@ VISTAS.impresoras = async () => {
   if (!d || S.tab !== "impresoras") return;
   const imps = d.impresoras ?? [], personas = d.personas ?? [];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Las impresoras donde se imprimen las etiquetas de envío. Cargalas acá y asignale una a cada persona; cada uno puede cambiarla por otra de esta lista desde Despacho.</p></div></div>
-    <div class="panel"><h3 style="margin-top:0">Impresoras del cliente</h3>
+    <div class="panel"><h3 style="margin-top:0">Impresoras del negocio</h3>
       ${imps.length ? `<div class="imp-lista">${imps.map((i) => `<div class="imp-it"><span><b>${esc(i.nombre)}</b><span class="peq mut">${FORMATO_IMP[i.formato] ?? i.formato}</span><span class="peq mut">${esc(resumenOpc(i))}</span></span>
         <span class="imp-acc"><button class="btn lin chico" type="button" data-ed="${i.id}">Editar</button><button class="btn lin chico" type="button" data-bo="${i.id}">Borrar</button></span></div>`).join("")}</div>`
         : `<p class="mut">Todavía no cargaste ninguna.</p>`}
