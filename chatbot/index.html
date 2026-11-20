@@ -4792,6 +4792,13 @@ function elegirDevolucion(lista, titulo) {
 function mostrarResultado(r, modo, sinNada) {
   if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
+  if (r.tipo === "compra") {
+    // Etiqueta de algo que compró la empresa: no es una venta propia ni una devolución
+    cajon(`<div class="cajon-cab"><div><h2>Es una compra, no una devolución</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+      <p>La etiqueta del envío ${esc(r.envio_id)} es de algo que <b>compró la empresa</b>${r.vendedor ? ` al vendedor <b>${esc(r.vendedor)}</b>` : ""}, no de una venta propia.${r.producto ? ` Producto: ${esc(r.producto)}.` : ""}</p>
+      <p class="mut">Las compras no pasan por Devoluciones ni por Despacho. Para ver el estado de esa compra, entrá a Mis compras en MercadoLibre.</p>`, true);
+    return;
+  }
   if (r.tipo === "envio") {
     if (modo === "despacho") return fotosDespacho(r);
     // No hay una devolución para revisar (ya se procesó o es otra etiqueta): se abre la venta en Ventas
@@ -4799,7 +4806,7 @@ function mostrarResultado(r, modo, sinNada) {
       aviso(r.es_devolucion ? "Esa devolución ya no está para revisar: te abro la venta" : "Ese envío no tiene una devolución: te abro la venta");
       S.msjEmp = r.empresa_id ?? S.msjEmp; S.msjId = r.conversacion_id; S.msjBus = ""; ir("mensajes"); return;
     }
-    aviso("Ese envío no tiene una devolución abierta"); return;
+    aviso(r.es_devolucion ? "Esa devolución ya no está abierta" : "Esa etiqueta es de un envío de una venta, no de una devolución"); return;
   }
   aviso(sinNada);
 }
