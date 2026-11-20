@@ -257,7 +257,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .hilo-w{position:relative}.hilo-w .hilo .tags{padding-right:34px}
 .fav-h{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:transparent;line-height:0;flex:none}
 .fav-h svg path{stroke:var(--piz)}.fav-h:hover svg path{stroke:var(--ladrillo)}.fav-h.on{color:var(--ladrillo)}.fav-h.on svg path{stroke:var(--ladrillo)}
-.fav-h:focus-visible{outline:2px solid var(--cielo);outline-offset:1px}.hilo-w .fav-h{position:absolute;right:12px;bottom:8px}
+.fav-h:focus-visible{outline:2px solid var(--cielo);outline-offset:1px}.hilo-w .fav-h{position:absolute;right:8px;top:6px}.hilo-w.cf .hilo .hora{padding-right:30px}
 .medidas{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--linea);border-radius:var(--r-l);background:var(--sup);overflow:hidden}
 .medida{padding:16px 18px;border-right:1px solid var(--linea)}
 .medida:last-child{border-right:0}
@@ -880,8 +880,10 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-it.sel{outline:2px solid var(--cielo);outline-offset:2px}.etq-it.origen{opacity:.35}
 .etq-it.fantasma{position:fixed;pointer-events:none;z-index:99999;box-shadow:0 6px 18px rgba(22,32,42,.25);transform:rotate(-2deg)}
 .etq-prev{border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
-.etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:static;align-self:flex-end}
+.etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:absolute;right:8px;top:6px}.etq-fila.cf .etq-esq{padding-right:30px}.etq-fila.cf .etq-r1{padding-right:30px}
 @media (max-width:560px){.etq-molde{grid-template-columns:76px minmax(0,1fr);grid-template-areas:"img r1" "img esq" "r2 r2" "r3 r3" "r4 r4" "mar mar"}}
+.m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:4px}#mFil .ord-der{justify-self:end;margin-left:0}#mFil .fx-act{grid-column:1/-1}#mFil .fx-bt{white-space:nowrap}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
+@media (max-width:960px){#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 </style>
 </head>
 <body>
@@ -1350,8 +1352,8 @@ function pintarPerfil() {
     html = `<div><b>Administración de la app</b><span>Todas las empresas</span></div>`;
   } else if (S.rol === "admin") {
     const e = { nombre: S.soporteNom, color: S.plat?.empresas?.find((x) => x.id === S.soporte)?.color };
-    clase = "p-soporte"; color = e.color; corto = "Soporte: " + e.nombre;
-    html = tarjeta(e, "Soporte, como su administrador");
+    clase = "p-soporte"; color = e.color; corto = e.nombre;
+    html = tarjeta(e, "Como su administrador");
   } else if (S.rol === "empresa") {
     const r = S.res?.empresas?.[0] ?? {};
     const e = empresaYo(S.empresaId) ?? { nombre: r.nombre ?? S.empresa, color: r.color };
@@ -1366,7 +1368,12 @@ function pintarPerfil() {
   caja.style.setProperty("--emp", color || "");
   if (!color) caja.style.removeProperty("--emp");
   caja.innerHTML = html;
-  $(".barra-movil b").textContent = corto;
+  $(".barra-movil b").textContent = tituloPantalla(S.tab) || corto;
+}
+// Nombre de la pantalla para la barra de arriba del celular
+function tituloPantalla(t) {
+  const todas = [...TABS, ...TABS_OP, ...TABS_APP, ...Object.values(SUBTABS).flat()];
+  return t === "no_incluido" ? "" : (todas.find((x) => x[0] === t)?.[1] ?? "");
 }
 const VISTAS = {};
 // Lo elegido dentro de cada pantalla (solapa Preguntas o Mensajes, vista por persona, etc.) también se conserva al refrescar
@@ -1383,6 +1390,7 @@ function ir(t) {
   try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : t === "chat" && S.chatId ? `#chat/${S.chatId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
+  const tb = $(".barra-movil b"); if (tb && tituloPantalla(t)) tb.textContent = tituloPantalla(t);
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", t === "no_incluido" ? b.dataset.mod === S.noMod && b.dataset.t === "no_incluido" : b.dataset.t === t || (secciones && b.dataset.t === seccionDe(t))));
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
@@ -3159,7 +3167,7 @@ function pintarSoporte() {
   const b = $("#soporte");
   if (!S.soporte) { b.classList.add("oculto"); b.innerHTML = ""; return; }
   b.classList.remove("oculto");
-  b.innerHTML = `<span>Soporte</span><button class="enlace" id="soporteSalir" type="button">Volver a mi panel</button>`;
+  b.innerHTML = `<span>${esc(S.soporteNom ?? "")}</span><button class="enlace" id="soporteSalir" type="button">Volver a mi panel</button>`;
   $("#soporteSalir").onclick = salirSoporte;
 }
 
@@ -3524,7 +3532,6 @@ async function cambiarFavorita(id) {
   const r = await seguro(() => api("venta_favorita", { empresa_id: empMsj(), id, on }));
   if (!r) { pintar(!on); if (fila) fila.favorita = !on; return; }
   if (S.msjLista) S.msjLista.favoritas = Math.max(0, (S.msjLista.favoritas ?? 0) + (on ? 1 : -1));
-  aviso(on ? "Venta marcada como favorita" : "Venta quitada de favoritas");
   if (!on && S.msjFil === "favoritas") document.querySelector(`#mHilos [data-fav="${id}"]`)?.closest(".hilo-w")?.remove();
 }
 // ---------- Qué se ve en cada fila de las listas (Ventas, Despacho, Devoluciones) ----------
@@ -3572,10 +3579,10 @@ const ETQ = {
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
     asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", () => ""],
   }, plantillas: [
-    ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig", "fav"] }],
-    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl", "fav"] }],
-    ["Completa", { img: ["foto"], r1: ["nombre", "nick"], esq: ["fecha"], r2: ["prod", "var", "cant", "sku"], r3: ["pago", "envio", "estado", "llega"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig", "fav"] }],
-    ["Como MercadoLibre", { img: ["foto"], r1: ["nick"], esq: ["fecha"], r2: ["prod", "var"], r3: ["cant", "sku", "envio"], r4: ["estado", "llega", "nro", "orden"], mar: ["fav"] }],
+    ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig"] }],
+    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl"] }],
+    ["Completa", { img: ["foto"], r1: ["nombre", "nick"], esq: ["fecha", "fav"], r2: ["prod", "var", "cant", "sku"], r3: ["pago", "envio", "estado", "llega"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig"] }],
+    ["Como MercadoLibre", { img: ["foto"], r1: ["nick"], esq: ["fecha", "fav"], r2: ["prod", "var"], r3: ["cant", "sku", "envio"], r4: ["estado", "llega", "nro", "orden"], mar: [] }],
   ] },
   despacho: { titulo: "Despacho", datos: {
     foto: ["Foto", (c) => foto(c.item_thumbnail)],
@@ -3629,6 +3636,7 @@ function etqPartes(mod, c, cfg) {
   p.fav = (cfg.mar ?? []).includes("fav") || Object.values(cfg).flat().includes("fav");
   return p;
 }
+// El corazón se dibuja aparte, arriba a la derecha
 // Fila genérica (Despacho y Devoluciones): foto, renglones y etiquetas de color
 const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.esq ? `<span class="etq-esq">${p.esq}</span>` : ""}</span>` : ""}${["r2", "r3", "r4"].map((k) => p[k] ? `<span class="peq etq-l">${p[k]}</span>` : "").join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
 // Copiar un número sin abrir la venta
@@ -3644,6 +3652,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
   const def = ETQ[mod], D = def.datos;
   let cfg = JSON.parse(JSON.stringify(etqConfig(mod, emp)));
   for (const [k] of ETQ_CASILLEROS) cfg[k] ??= [];
+  if (Object.values(cfg).flat().includes("fav") && !cfg.esq.includes("fav")) { for (const k in cfg) cfg[k] = cfg[k].filter((x) => x !== "fav"); cfg.esq.push("fav"); }
   let sel = null;
   const h = abrirHoja(`<div class="cajon-cab"><h2>Qué se ve en la lista de ${def.titulo}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo etq-ed">
@@ -3663,11 +3672,12 @@ function etqEditor(mod, emp, filas, alGuardar) {
     if (sel) h.querySelector(`[data-i="${sel}"]`)?.classList.add("sel");
     h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", JSON.stringify(def.plantillas[b.dataset.pl][1]) === JSON.stringify(cfg)));
     h.querySelector("#etqPrev").innerHTML = muestra.length ? muestra.map((c) => { const p = etqPartes(mod, c, cfg);
-      return `<div class="etq-fila">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+      return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
       : `<p class="peq mut" style="padding:12px">Cuando haya ventas en la lista se ven acá de ejemplo.</p>`;
   };
   const mover = (k, dest, antes) => {
     if (dest !== "pal" && (k === "foto") !== (dest === "img")) { aviso(k === "foto" ? "La foto va en su casillero" : "En ese casillero va solo la foto"); sel = null; return pintar(); }
+    if (dest !== "pal" && k === "fav" && dest !== "esq") { aviso("El corazón va en la esquina"); sel = null; return pintar(); }
     for (const s in cfg) cfg[s] = cfg[s].filter((x) => x !== k);
     if (dest !== "pal") { const l = cfg[dest]; const i = antes ? l.indexOf(antes) : -1; i < 0 ? l.push(k) : l.splice(i, 0, k); }
     sel = null; pintar();
@@ -3709,7 +3719,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
 const ICONO_ETQ = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg>`;
 function hiloHTML(c) {
   const p = etqPartes("ventas", c, etqConfig("ventas", empMsj()));
-  return `<div class="hilo-w"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
+  return `<div class="hilo-w ${p.fav ? "cf" : ""}"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${p.img || "<span></span>"}
       <span class="h-nom"><b>${p.r1}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${p.esq}</span>
       ${p.r2 ? `<span class="h-l">${p.r2}</span>` : ""}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
@@ -3771,7 +3781,7 @@ function textoRango(f) { const { a, b } = rangoPeriodo(f), anio = a.getFullYear(
 // En Ventas siempre hay un período elegido (por defecto, el último mes)
 const DIAS_DEF = "30";
 // Texto corto del orden elegido, para el botón "Ordenar" de la barra
-const ORDEN_CORTO = { recientes: "más recientes", actividad: "actividad", antiguas: "más antiguas", plazo: "plazo", producto: "producto", tipo: "tipo de envío", zona: "zona" };
+const ORDEN_CORTO = { recientes: "Recientes", actividad: "Actividad", antiguas: "Antiguas", plazo: "Plazo", producto: "Producto", tipo: "Tipo de envío", zona: "Zona" };
 const ORDEN_MSJ = [["recientes", "Ventas más recientes"], ["actividad", "Actividad reciente"], ["antiguas", "Ventas más antiguas"]];
 const ORDEN_MSJ_DEF = "recientes";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
@@ -3862,8 +3872,8 @@ async function cargarHilos(emp, mas = false) {
         <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
           <span class="per-fechas oculto" id="mPerF"><label>Desde<input type="date" id="mPerD" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.desde ?? "")}"></label><label>Hasta<input type="date" id="mPerH" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.hasta ?? new Date().toLocaleDateString("en-CA"))}"></label><button class="btn pri chico" type="button" id="mPerOk">Aplicar</button></span></span></span>`
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
-      + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}Ordenar: ${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
-        <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
+      + `<span class="mas-caja ord-der"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
+        <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
@@ -5966,7 +5976,7 @@ VISTAS.despacho = async (op = {}) => {
       ...(F.etiqueta !== "todas" ? [["et", F.etiqueta === "impresas" ? "Impresas" : "Sin imprimir"]] : []),
       ...F.productos.map((p) => [`pr:${p}`, p.length > 40 ? p.slice(0, 38) + "…" : p]),
       ];
-    $("#dsOrdT").textContent = `Ordenar: ${ORDEN_CORTO[F.orden] ?? ORDEN_DS.find(([k]) => k === F.orden)[1]}`;
+    $("#dsOrdT").textContent = ORDEN_CORTO[F.orden] ?? ORDEN_DS.find(([k]) => k === F.orden)[1];
     $("#dsOrd").setAttribute("aria-label", `Ordenar: ${ORDEN_DS.find(([k]) => k === F.orden)[1]}`);
     $("#dsOrdM").querySelectorAll("[data-dord]").forEach((b) => b.setAttribute("aria-checked", String(F.orden === b.dataset.dord)));
     $("#dsFxN").textContent = elegidos.length ? ` · ${elegidos.length}` : "";
@@ -5982,7 +5992,7 @@ VISTAS.despacho = async (op = {}) => {
       <span class="mas-caja"><button type="button" id="dsPl" class="fx-bt" aria-expanded="false" aria-controls="dsPlM">${ICONO_CAL}<span id="dsPlT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto per-m" id="dsPlM" role="menu" style="top:calc(100% + 6px);bottom:auto">${[["hoy", "Para hoy", "Hay que despacharlos hoy"], ["proximos", "Próximos días", "Se despachan de mañana en adelante"], ["todos", "Todos los plazos", "Todo lo que falta despachar"]].map(([k, t, x]) => `<button type="button" role="menuitemradio" data-pl="${k}"><b>${t} · <span class="n"></span></b><span class="peq mut">${x}</span></button>`).join("")}</span></span>
       <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar<span id="dsFxN"></span></button>
-      <span class="mas-caja"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
+      <span class="mas-caja ord-der"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
       <div class="fx-act" id="dsAct"></div></div>
     <div class="rec-lista" id="dsLista"></div>
@@ -6099,7 +6109,7 @@ VISTAS.listas = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que operan la empresa; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
-      <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+      <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
         || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
       || `<div class="panel vacio">La empresa no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
