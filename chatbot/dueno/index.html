@@ -966,7 +966,7 @@ h3 .te{font-size:13px;margin-left:4px}
 const API = "https://lltewpywhctcqpegambl.supabase.co/functions/v1/ml-bot/panel";
 // Clave pública del proyecto (solo permite entrar con email y clave; los permisos los controla el servidor)
 const sb = window.supabase.createClient("https://lltewpywhctcqpegambl.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGV3cHl3aGN0Y3FwZWdhbWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1OTMwNTAsImV4cCI6MjExMDE2OTA1MH0.3kV1aF92-hSrbvt1dcY_fEddKbQqZsdP6J-DcLpvxmo");
-let S = { modo: "usuario", empresa: "", clave: "", rol: null, res: null, yo: null, empresaId: "", empSel: "", tab: "hoy", filtros: { estado: "", cuenta_id: "", buscar: "", desde: 0 }, confCta: "", confNivel: "", confEmp: "", conoc: "documentos", soporte: "", soporteNom: "", per: "30d", perDesde: "", perHasta: "", platEmp: "", platFil: null, platVer: 30, plat: null, planes: null, rankN: 5, rankC: "lento", rankPl: "" };
+let S = { modo: "usuario", cliente: "", clave: "", rol: null, res: null, yo: null, clienteId: "", empSel: "", tab: "hoy", filtros: { estado: "", cuenta_id: "", buscar: "", desde: 0 }, confCta: "", confNivel: "", confEmp: "", conoc: "documentos", soporte: "", soporteNom: "", per: "30d", perDesde: "", perHasta: "", platEmp: "", platFil: null, platVer: 30, plat: null, planes: null, rankN: 5, rankC: "lento", rankPl: "" };
 let sondeo = null;
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -1047,7 +1047,7 @@ async function api(accion, datos = {}) {
     const { data } = await sb.auth.getSession();
     if (!data?.session) { if (S.rol) { aviso("La sesión venció. Volvé a entrar."); salir(); } throw new Error("Tenés que entrar de nuevo"); }
     h.authorization = "Bearer " + data.session.access_token;
-    if (S.empresaId) h["x-empresa-id"] = S.empresaId;
+    if (S.clienteId) h["x-cliente-id"] = S.clienteId;
   }
   const r = await fetch(API, { method: "POST", headers: h, body: JSON.stringify({ accion, ...datos }) });
   const j = await r.json().catch(() => ({ error: "El servidor devolvió una respuesta inválida" }));
@@ -1096,7 +1096,7 @@ $("#fCodigo").onsubmit = async (e) => {
 
 // Entrada con usuario: decide qué ve según sus clientes y su rol en cada una
 async function entrarUsuario() {
-  S.modo = "usuario"; S.empresaId = "";
+  S.modo = "usuario"; S.clienteId = "";
   S.yo = await api("yo");
   // Dos links: el de clientes y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
   // (la sesión es la misma, así que entra directo).
@@ -1110,10 +1110,10 @@ async function entrarUsuario() {
     try { const sp = JSON.parse(sessionStorage.getItem("mostrador_soporte") ?? "null"); if (sp?.id) { S.soporte = sp.id; S.soporteNom = sp.nombre; } } catch {}
   }
   else {
-    if (!S.yo.empresas.length) throw new Error("Tu usuario no tiene negocios activos. Pedile a quien te invitó que te vuelva a sumar.");
-    let guardada = ""; try { guardada = localStorage.getItem("mostrador_empresa_sel") ?? ""; } catch {}
-    const valida = guardada === "*" && S.yo.empresas.length > 1 || S.yo.empresas.some((x) => x.id === guardada);
-    elegirEmpresa(valida ? guardada : (S.yo.empresas.find((x) => x.rol === "admin")?.id ?? (S.yo.empresas.length > 1 ? "*" : S.yo.empresas[0].id)));
+    if (!S.yo.clientes.length) throw new Error("Tu usuario no tiene negocios activos. Pedile a quien te invitó que te vuelva a sumar.");
+    let guardada = ""; try { guardada = localStorage.getItem("mostrador_cliente_sel") ?? localStorage.getItem("mostrador_empresa_sel") ?? ""; } catch {}
+    const valida = guardada === "*" && S.yo.clientes.length > 1 || S.yo.clientes.some((x) => x.id === guardada);
+    elegirCliente(valida ? guardada : (S.yo.clientes.find((x) => x.rol === "admin")?.id ?? (S.yo.clientes.length > 1 ? "*" : S.yo.clientes[0].id)));
   }
   $("#ingreso").classList.add("oculto"); $("#app").classList.remove("oculto");
   $("#quien").textContent = S.yo.usuario?.nombre || S.yo.usuario?.email || "";
@@ -1125,28 +1125,28 @@ async function entrarUsuario() {
   iniciarAvisos();
 }
 // "*" = todos mis clientes (bandeja unificada)
-function elegirEmpresa(id) {
-  const m = S.yo.empresas.find((x) => x.id === id);
-  S.empresaId = id === "*" ? "" : id;
-  S.rol = m?.rol === "admin" ? "empresa" : "operador";
-  try { localStorage.setItem("mostrador_empresa_sel", id); } catch {}
+function elegirCliente(id) {
+  const m = S.yo.clientes.find((x) => x.id === id);
+  S.clienteId = id === "*" ? "" : id;
+  S.rol = m?.rol === "admin" ? "cliente" : "operador";
+  try { localStorage.setItem("mostrador_cliente_sel", id); } catch {}
 }
-const inicio = () => S.rol === "operador" ? (modsActuales().has("preguntas") ? "bandeja" : "mensajes") : S.rol === "empresa" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
-const empresaYo = (id) => S.yo?.empresas.find((x) => x.id === id);
+const inicio = () => S.rol === "operador" ? (modsActuales().has("preguntas") ? "bandeja" : "mensajes") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
+const clienteYo = (id) => S.yo?.clientes.find((x) => x.id === id);
 const iniciales = (n) => { const w = String(n ?? "").replace(/\bS\.?R\.?L\.?|\bS\.?A\.?(?=\s|$)/gi, "").trim().split(/\s+/).filter(Boolean); return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "").slice(0, 2)).toUpperCase(); };
-function etiquetaEmpresa(id) {
-  const e = empresaYo(id); if (!e) return "";
+function etiquetaCliente(id) {
+  const e = clienteYo(id); if (!e) return "";
   return `<span class="emp-tag" style="color:${esc(e.color)}"><i style="background:${esc(e.color)}">${esc(iniciales(e.nombre))}</i>${esc(e.nombre)}</span>`;
 }
 function armarSelector() {
   const sel = $("#selEmp");
   if (!S.yo || S.yo.usuario?.admin_app) return;
-  if (S.yo.empresas.length < 2) { sel.classList.add("oculto"); return; }
+  if (S.yo.clientes.length < 2) { sel.classList.add("oculto"); return; }
   sel.classList.remove("oculto");
-  const actual = S.empresaId || "*";
+  const actual = S.clienteId || "*";
   sel.innerHTML = `<option value="*" ${actual === "*" ? "selected" : ""}>Todos mis negocios</option>` +
-    S.yo.empresas.map((e) => `<option value="${e.id}" ${e.id === actual ? "selected" : ""}>${esc(e.nombre)}${e.rol === "admin" ? " (administrás)" : ""}</option>`).join("");
-  sel.onchange = async () => { elegirEmpresa(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
+    S.yo.clientes.map((e) => `<option value="${e.id}" ${e.id === actual ? "selected" : ""}>${esc(e.nombre)}${e.rol === "admin" ? " (administrás)" : ""}</option>`).join("");
+  sel.onchange = async () => { elegirCliente(sel.value); S.filtros.cuenta_id = ""; S.confCta = ""; await recargar(); armarNav(); ir(inicio()); };
 }
 
 let saliendo = false;
@@ -1157,7 +1157,7 @@ async function salir() {
   try { const s = await suscripcionActual(); if (s) { await api("push_baja", { endpoint: s.endpoint }).catch(() => {}); await s.unsubscribe(); } } catch {}
   saliendo = false;
   sb.auth.signOut();
-  S = { ...S, clave: "", rol: null, res: null, yo: null, empresaId: "", soporte: "", empSel: "", platEmp: "", plat: null };
+  S = { ...S, clave: "", rol: null, res: null, yo: null, clienteId: "", soporte: "", empSel: "", platEmp: "", plat: null };
   pintarSoporte();
   $("#selEmp").classList.add("oculto");
   $("#app").classList.add("oculto"); $("#ingreso").classList.remove("oculto"); modoIngreso("usuario");
@@ -1301,12 +1301,12 @@ async function recargar() {
   if (S.rol === "operador") {
     // El operador no ve la configuración del cliente: solo sus clientes y sus preguntas
     S.yo = await api("yo");
-    if (S.empresaId && !empresaYo(S.empresaId)) { elegirEmpresa(S.yo.empresas.length > 1 ? "*" : S.yo.empresas[0]?.id); armarSelector(); }
-    S.res = { cuentas: [], empresas: S.yo.empresas, stats: {}, sitios: [] };
+    if (S.clienteId && !clienteYo(S.clienteId)) { elegirCliente(S.yo.clientes.length > 1 ? "*" : S.yo.clientes[0]?.id); armarSelector(); }
+    S.res = { cuentas: [], clientes: S.yo.clientes, stats: {}, sitios: [] };
     return;
   }
   if (S.rol === "admin") S.empSel = S.soporte || "";
-  S.res = await api("resumen", { empresa_id: S.empSel || null });
+  S.res = await api("resumen", { cliente_id: S.empSel || null });
   // El dueño de la app no elige cliente con un selector: entra a un cliente solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
@@ -1324,7 +1324,7 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas"
   ["conocimiento", "Conocimiento", 0, "preguntas", "conocimiento"], ["material", "Documentación para enviar", 0, "mensajes", "material"], ["dudas", "Dudas frecuentes", 0, "preguntas", "dudas"], ["probar", "Probar el bot", 0, "preguntas", "probar"],
   ["numeros", "Mis números"]];
 // Operador: secciones que el administrador le habilitó (Equipo → Permisos)
-const permOp = (sec) => (S.yo?.empresas ?? []).filter((e) => !S.empresaId || e.id === S.empresaId).some((e) => (e.permisos ?? []).includes(sec));
+const permOp = (sec) => (S.yo?.clientes ?? []).filter((e) => !S.clienteId || e.id === S.clienteId).some((e) => (e.permisos ?? []).includes(sec));
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Clientes"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["regulador", "Regulador de IA"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
 function armarNav() {
@@ -1344,23 +1344,23 @@ function armarNav() {
 // Deja claro quién está mirando: dueño de la app, administrador de un cliente, operador o soporte
 function pintarPerfil() {
   const app = $("#app"), caja = $("#perfil");
-  app.classList.remove("p-dueno", "p-empresa", "p-operador", "p-soporte");
+  app.classList.remove("p-dueno", "p-cliente", "p-operador", "p-soporte");
   const tarjeta = (e, rol) => `<i aria-hidden="true">${esc(iniciales(e.nombre))}</i><div><b>${esc(e.nombre)}</b><span>${rol}</span></div>`;
   let clase, html, corto, color = "";
   if (S.rol === "admin" && !S.soporte) {
     clase = "p-dueno"; corto = "Administración de la app";
     html = `<div><b>Administración de la app</b><span>Todos los clientes</span></div>`;
   } else if (S.rol === "admin") {
-    const e = { nombre: S.soporteNom, color: S.plat?.empresas?.find((x) => x.id === S.soporte)?.color };
+    const e = { nombre: S.soporteNom, color: S.plat?.clientes?.find((x) => x.id === S.soporte)?.color };
     clase = "p-soporte"; color = e.color; corto = e.nombre;
     html = tarjeta(e, "Como su administrador");
-  } else if (S.rol === "empresa") {
-    const r = S.res?.empresas?.[0] ?? {};
-    const e = empresaYo(S.empresaId) ?? { nombre: r.nombre ?? S.empresa, color: r.color };
-    clase = "p-empresa"; color = e.color; corto = e.nombre;
+  } else if (S.rol === "cliente") {
+    const r = S.res?.clientes?.[0] ?? {};
+    const e = clienteYo(S.clienteId) ?? { nombre: r.nombre ?? S.cliente, color: r.color };
+    clase = "p-cliente"; color = e.color; corto = e.nombre;
     html = tarjeta(e, "Administrador");
   } else {
-    const e = S.empresaId ? empresaYo(S.empresaId) : null;
+    const e = S.clienteId ? clienteYo(S.clienteId) : null;
     clase = "p-operador"; color = e?.color ?? ""; corto = e ? e.nombre : "Todos mis negocios";
     html = e ? tarjeta(e, "Operador") : `<div><b>Todos mis negocios</b><span>Operador</span></div>`;
   }
@@ -1398,7 +1398,7 @@ function ir(t) {
 }
 const cuentaDe = (id) => S.res.cuentas.find((c) => c.id === id);
 const cuentaNom = (id) => cuentaDe(id)?.nombre ?? "";
-const empNom = (id) => S.res.empresas.find((e) => e.id === id)?.nombre ?? "";
+const empNom = (id) => S.res.clientes.find((e) => e.id === id)?.nombre ?? "";
 const optsCuentas = (sel, vacia) => (vacia ? `<option value="">${vacia}</option>` : "") + S.res.cuentas.map((c) => `<option value="${c.id}" ${c.id === sel ? "selected" : ""}>${esc(c.nombre)}${c.razon_social ? " (" + esc(c.razon_social) + ")" : ""}</option>`).join("");
 function cajon(html, centro = false) {
   const v = document.createElement("div"); v.className = "velo" + (centro ? " centro" : "");
@@ -1415,8 +1415,8 @@ const foto = (u, cls = "foto") => u ? `<img class="${cls}" src="${esc(u)}" alt="
 VISTAS.hoy = async () => {
   await recargar(); armarNav();
   const [pend, borr] = await Promise.all([
-    seguro(() => api("preguntas", { empresa_id: S.empSel || null, estado: "pendiente_revision", limite: 30 })),
-    seguro(() => api("preguntas", { empresa_id: S.empSel || null, estado: "borrador", limite: 30 })),
+    seguro(() => api("preguntas", { cliente_id: S.empSel || null, estado: "pendiente_revision", limite: 30 })),
+    seguro(() => api("preguntas", { cliente_id: S.empSel || null, estado: "borrador", limite: 30 })),
   ]);
   const filas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
   const n = filas.length;
@@ -1482,13 +1482,13 @@ function bloqueTiempoML(c) {
 function tarjetaConv(p) {
   const cta = cuentaDe(p.cuenta_id);
   const duda = p.estado === "pendiente_revision";
-  const emp = S.yo ? empresaYo(p.empresa_id) : null;
-  const multi = (S.yo?.empresas.length ?? 0) > 1;
+  const emp = S.yo ? clienteYo(p.cliente_id) : null;
+  const multi = (S.yo?.clientes.length ?? 0) > 1;
   const puede = S.rol !== "operador" || emp?.puede_publicar !== false;
   return `<article class="conv" data-id="${p.id}" data-pres="preg:${p.id}" ${multi && emp ? `style="box-shadow:inset 4px 0 0 ${esc(emp.color)}"` : ""}>
     ${foto(p.item_thumbnail)}
     <div>
-      ${multi && emp ? `<div style="margin-bottom:4px">${etiquetaEmpresa(p.empresa_id)}</div>` : ""}
+      ${multi && emp ? `<div style="margin-bottom:4px">${etiquetaCliente(p.cliente_id)}</div>` : ""}
       <div class="cab"><b>${esc(p.item_titulo ?? p.ml_item_id ?? "Publicación")}</b><span>${haceVivo(p.fecha_pregunta ?? p.created_at)}</span></div>
       <div class="burbuja">${esc(p.texto_pregunta)}</div>
     </div>
@@ -1537,20 +1537,20 @@ VISTAS.bandeja = async () => {
   const todas = [...(pend?.filas ?? []), ...(borr?.filas ?? [])].sort((a, b) => new Date(a.fecha_pregunta ?? a.created_at) - new Date(b.fecha_pregunta ?? b.created_at));
   // El operador solo ve lo que le llega a él (o lo que todavía no tiene a nadie asignado); no ve horarios ni lo de los demás
   const conAsig = new Set([...(pend?.con_asignaciones ?? []), ...(borr?.con_asignaciones ?? [])]);
-  const filas = todas.filter((f) => f.es_mia || (!(f.asignados ?? []).length && !conAsig.has(f.empresa_id)));
+  const filas = todas.filter((f) => f.es_mia || (!(f.asignados ?? []).length && !conAsig.has(f.cliente_id)));
   S.pendOp = filas.length; armarNav();
   const n = filas.length, nombre = (S.yo?.usuario?.nombre ?? "").split(" ")[0];
-  const emps = S.empresaId ? [empresaYo(S.empresaId)] : (S.yo?.empresas ?? []);
+  const emps = S.clienteId ? [clienteYo(S.clienteId)] : (S.yo?.clientes ?? []);
   $("#main").innerHTML = `
     <div class="portada">
       <div class="contador ${n ? "" : "cero"}">${n}</div>
       <div><h1>${nombre ? `Hola, ${esc(nombre)}` : "Tu bandeja"}</h1>
       <p>${n === 0 ? "No tenés preguntas esperando" : n === 1 ? "Tenés una pregunta para responder" : `Tenés ${n} preguntas para responder`}${emps.length > 1 ? ` en ${emps.length} negocios` : ""}. Primero van las que esperan hace más tiempo.</p></div>
     </div>
-    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por negocio"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaEmpresa(e.id)}<b>${filas.filter((f) => f.empresa_id === e.id).length}</b></button>`).join("")}</div>` : ""}
+    ${emps.length > 1 ? `<div class="filtros" role="group" aria-label="Filtrar por negocio"><button type="button" class="emp-f ${S.bandEmp ? "" : "on"}" data-be="" aria-pressed="${!S.bandEmp}">Todas<b>${filas.length}</b></button>${emps.map((e) => `<button type="button" class="emp-f ${S.bandEmp === e.id ? "on" : ""}" data-be="${e.id}" aria-pressed="${S.bandEmp === e.id}" style="--emp:${esc(e.color)}">${etiquetaCliente(e.id)}<b>${filas.filter((f) => f.cliente_id === e.id).length}</b></button>`).join("")}</div>` : ""}
     ${cartelAvisos()}
     <div style="margin:-4px 0 14px"><button class="btn lin chico" type="button" id="verHist">Ver todas las preguntas</button></div>
-    <div id="cola">${filas.filter((f) => !S.bandEmp || f.empresa_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de este negocio." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
+    <div id="cola">${filas.filter((f) => !S.bandEmp || f.cliente_id === S.bandEmp).map(tarjetaConv).join("") || `<div class="vacio"><b>Todo al día</b>${S.bandEmp ? "No tenés preguntas de este negocio." : "Cuando entre una pregunta para vos, aparece acá."}</div>`}</div>`;
   $("#main").querySelectorAll("[data-be]").forEach((x) => { x.onclick = () => { S.bandEmp = x.dataset.be; VISTAS.bandeja(); }; });
   $("#verHist").onclick = () => ir("preguntas");
   enlazarCola($("#cola"));
@@ -1580,7 +1580,7 @@ function aparatoHTML(d, propio, esEste) {
 VISTAS.equipo = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Equipo</h1><p>Elegí un cliente arriba a la izquierda para ver y sumar a su equipo.</p></div></div>`; return; }
-  const [r, sub] = await Promise.all([seguro(() => api("equipo", { empresa_id: emp })), suscripcionActual().catch(() => null)]);
+  const [r, sub] = await Promise.all([seguro(() => api("equipo", { cliente_id: emp })), suscripcionActual().catch(() => null)]);
   if (!r || S.tab !== "equipo") return;
   const miFin = sub?.endpoint ? sub.endpoint.slice(-24) : "";
   const libres = Math.max(0, r.limite - r.usados);
@@ -1678,12 +1678,12 @@ VISTAS.equipo = async () => {
       const d = m.dispositivos.find((x) => x.id === Number(b.dataset.disp));
       if (!confirm(`¿Quitar los avisos de ${m.vos ? "tu" : "la"} ${(TIPO_AP[d?.tipo] ?? "dispositivo").toLowerCase()} ${d?.sistema ?? ""}${m.vos ? "" : " de " + quien}? Deja de recibir avisos ahí hasta que los vuelva a activar.`)) return;
       if (m.vos && d?.fin === miFin) { await desactivarAvisos(); VISTAS.equipo(); return; }
-      if (await seguro(() => api("push_quitar", { id: d.id, empresa_id: emp }))) { aviso("Dispositivo quitado"); VISTAS.equipo(); }
+      if (await seguro(() => api("push_quitar", { id: d.id, cliente_id: emp }))) { aviso("Dispositivo quitado"); VISTAS.equipo(); }
     }
   };
 };
 async function probarAvisos(emp, m) {
-  const x = await seguro(() => api("push_prueba_equipo", { empresa_id: emp, miembro_id: m?.id ?? null })); if (!x) return;
+  const x = await seguro(() => api("push_prueba_equipo", { cliente_id: emp, miembro_id: m?.id ?? null })); if (!x) return;
   const lista = (a) => a.map(esc).join(", ").replace(/, ([^,]*)$/, " y $1");
   if (m) return aviso(x.recibieron.length ? `Aviso de prueba enviado a ${m.nombre || m.email}` : `${m.nombre || m.email} no tiene avisos activados`);
   cajon(`<div class="cajon-cab"><div><h2>Notificación de prueba</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
@@ -1725,7 +1725,7 @@ VISTAS.rendimiento = async () => {
   if (S.rendVista === "comparativo") return rendimientoComparativo(emp ?? empRec());
   if (S.rendMod === "mensajes") return rendimientoMensajes(emp);
   const { desde, hasta } = rangoPer();
-  const [d, au] = await Promise.all([seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta })), seguro(() => api("autonomia", { empresa_id: emp }))]);
+  const [d, au] = await Promise.all([seguro(() => api("rendimiento", { cliente_id: emp, desde, hasta })), seguro(() => api("autonomia", { cliente_id: emp }))]);
   if (!d || S.tab !== "rendimiento") return;
   const t = d.totales;
   let k = 0; for (const p of d.personas) p.color = p.estado === "baja" ? "#8A96A3" : PALETA[k++ % PALETA.length];
@@ -1764,7 +1764,7 @@ VISTAS.rendimiento = async () => {
     const b = ev.target.closest("[data-auto]"); if (!b) return;
     const activar = b.dataset.on === "1", c = au.categorias.find((x) => x.id === b.dataset.auto);
     if (activar && !confirm(`¿Que el bot publique solo las respuestas de "${c.nombre}" sin esperar aprobación? Lo que no sepa lo sigue dejando para revisar.`)) return;
-    if (await seguro(() => api("auto_categoria", { empresa_id: emp, categoria: c.id, activar }))) { aviso(activar ? `El bot publica solo en ${c.nombre}` : `En ${c.nombre} vuelve a pedir aprobación`); VISTAS.rendimiento(); }
+    if (await seguro(() => api("auto_categoria", { cliente_id: emp, categoria: c.id, activar }))) { aviso(activar ? `El bot publica solo en ${c.nombre}` : `En ${c.nombre} vuelve a pedir aprobación`); VISTAS.rendimiento(); }
   };
 };
 
@@ -1798,7 +1798,7 @@ function nfGuardarLuego(fn) { clearTimeout(nfTimer); nfTimer = setTimeout(async 
 VISTAS.notificaciones = async () => {
   const emp = empRec();
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("notif_empresa_ver", { empresa_id: emp })); if (!r || S.tab !== "notificaciones") return;
+  const r = await seguro(() => api("notif_cliente_ver", { cliente_id: emp })); if (!r || S.tab !== "notificaciones") return;
   const n = r.notif, mods = new Set(r.modulos);
   const esc_ = { min: r.escalar_min, a: r.escalar_a };
   const pintar = () => {
@@ -1826,7 +1826,7 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Recordatorio de eventos", "Valor para los eventos nuevos", nfSeg("calendario", "recordatorio", n.calendario.recordatorio, [[0, "A la hora"], [10, "10 min antes"], [30, "30 min antes"], [60, "1 h antes"], [1440, "1 día antes"]]))}</section>`);
     $("#main").innerHTML = `<div class="cabecera"><div><h1>Notificaciones</h1><p>Qué notificaciones manda Mostrador y a quién. Solo aparecen los módulos que tiene el negocio: si un módulo no está contratado, nadie recibe notificaciones de ese módulo. Cada persona elige además, en "Mis notificaciones", cuándo recibirlas y cuáles apaga.</p></div></div>${b.join("")}`;
   };
-  const guardar = () => nfGuardarLuego(() => api("notif_empresa_guardar", { empresa_id: emp, notif: n, escalar_min: esc_.min, escalar_a: esc_.a }));
+  const guardar = () => nfGuardarLuego(() => api("notif_cliente_guardar", { cliente_id: emp, notif: n, escalar_min: esc_.min, escalar_a: esc_.a }));
   pintar();
   $("#main").onclick = (e) => {
     const s = e.target.closest("[data-sec]");
@@ -1930,7 +1930,7 @@ VISTAS.actividad = async () => {
   const emp = empRec();
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Actividad</h1><p>Elegí un cliente.</p></div></div>`; return; }
   S.actPer ??= "hoy"; S.actQuien ??= ""; S.actMod ??= "";
-  const r = await seguro(() => api("actividad_lista", { empresa_id: emp, ...rangoAct(S.actPer), usuario_id: S.actQuien || null, modulo: S.actMod || null }));
+  const r = await seguro(() => api("actividad_lista", { cliente_id: emp, ...rangoAct(S.actPer), usuario_id: S.actQuien || null, modulo: S.actMod || null }));
   if (!r || S.tab !== "actividad") return;
   const pers = r.personas;
   const nom = new Map(pers.map((p) => [p.id, p]));
@@ -1961,7 +1961,7 @@ VISTAS.actividad = async () => {
 // ---------- Equipo → Rendimiento → Comparativo ----------
 async function rendimientoComparativo(emp) {
   const { desde, hasta } = rangoPer();
-  const r = await seguro(() => api("rendimiento_comparativo", { empresa_id: emp, desde, hasta }));
+  const r = await seguro(() => api("rendimiento_comparativo", { cliente_id: emp, desde, hasta }));
   if (!r || S.tab !== "rendimiento" || S.rendVista !== "comparativo") return;
   const P = r.personas, mods = new Set(r.modulos);
   // Una fila: valores por persona, el mejor en verde y el que se aleja mucho del promedio, en rojo
@@ -2025,13 +2025,13 @@ function pestRend() {
 setInterval(() => {
   if (document.hidden || !S.rol || typeof api !== "function" || S.modo !== "usuario") return;
   if (S.rol === "admin" && !S.soporte) return;
-  api("conexion", { empresa_id: S.rol === "admin" ? S.soporte : null, dispositivo: /Mobi|Android/i.test(navigator.userAgent) ? "celular" : "computadora" }).catch(() => {});
+  api("conexion", { cliente_id: S.rol === "admin" ? S.soporte : null, dispositivo: /Mobi|Android/i.test(navigator.userAgent) ? "celular" : "computadora" }).catch(() => {});
 }, 60000);
 
 VISTAS.permisos = async () => {
   const emp = empRec();
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("permisos_lista", { empresa_id: emp })); if (!r || S.tab !== "permisos") return;
+  const r = await seguro(() => api("permisos_lista", { cliente_id: emp })); if (!r || S.tab !== "permisos") return;
   const secs = Object.entries(r.secciones);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Qué puede agregar o borrar cada operador en estas secciones, y sobre qué publicaciones. No dependen del horario. Los administradores pueden todo; un operador sin acceso no ve la sección.</p></div></div>
     ${r.personas.length ? `<div class="tabla-p" role="table"><div class="tp-fila tp-cab" role="row"><span role="columnheader">Persona</span>${secs.map(([, t]) => `<span role="columnheader">${esc(t)}</span>`).join("")}</div>
@@ -2064,7 +2064,7 @@ function editarPermiso(emp, r, pe, sec) {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.alc !== undefined) { st.alcance = b.dataset.alc || null; pintar(); }
     else if (b.id === "peOk") {
-      if (await seguro(() => api("permiso_guardar", { empresa_id: emp, usuario_id: pe.id, seccion: sec, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones }))) { v.remove(); aviso("Permiso guardado"); VISTAS.permisos(); }
+      if (await seguro(() => api("permiso_guardar", { cliente_id: emp, usuario_id: pe.id, seccion: sec, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones }))) { v.remove(); aviso("Permiso guardado"); VISTAS.permisos(); }
     }
   });
   v.addEventListener("change", (e) => {
@@ -2078,7 +2078,7 @@ function editarPermiso(emp, r, pe, sec) {
 VISTAS.dudas = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Dudas frecuentes</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
-  const d = await seguro(() => api("dudas_lista", { empresa_id: emp }));
+  const d = await seguro(() => api("dudas_lista", { cliente_id: emp }));
   if (!d || S.tab !== "dudas") return;
   S.dudas = d.publicaciones;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Dudas frecuentes</h1><p>Lo que los compradores preguntan una y otra vez en cada publicación. Si la publicación lo aclara sola, llegan menos preguntas y se pierden menos ventas.</p></div></div>
@@ -2118,8 +2118,8 @@ VISTAS.numeros = async () => {
   const { desde, hasta } = rangoPer();
   const d = await seguro(() => api("mis_numeros", { desde, hasta }));
   if (!d || S.tab !== "numeros") return;
-  const y = d.yo, multi = d.por_empresa.length > 1;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_empresa.length} negocios` : ""}.</p></div>${selPeriodo()}</div>
+  const y = d.yo, multi = d.por_cliente.length > 1;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis números</h1><p>Lo que respondiste. Período: ${esc(nombrePer())}${multi ? `, en tus ${d.por_cliente.length} negocios` : ""}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
       <div class="medida"><b>${num(y.respondidas)}</b><span>${y.respondidas === 1 ? "pregunta respondida" : "preguntas respondidas"}${y.asignadas ? ` de ${num(y.asignadas)} que te llegaron` : ""}</span></div>
       <div class="medida"><b>${dur(y.tiempo_mediana_seg)}</b><span>tardás en responder, en general (promedio ${dur(y.tiempo_prom_seg)})</span></div>
@@ -2128,7 +2128,7 @@ VISTAS.numeros = async () => {
     </div>
     <div class="panel" style="margin-top:16px"><h2>Tus respuestas por día</h2>${grafDias(d.serie, ["yo"]) || `<p class="mut" style="margin:6px 0 0">Elegí un período de más de un día para ver el gráfico.</p>`}</div>
     ${multi ? `<div class="panel" style="padding:16px 18px"><h2>Por negocio</h2><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Negocio</th><th>Respondiste</th><th>Tiempo típico</th><th>Repreguntas</th></tr>
-      ${d.por_empresa.map((e) => `<tr><td>${etiquetaEmpresa(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
+      ${d.por_cliente.map((e) => `<tr><td>${etiquetaCliente(e.id)}</td><td>${num(e.respondidas)}</td><td>${dur(e.tiempo_mediana_seg)}</td><td>${pctTxt(e.repreguntas_pct)}</td></tr>`).join("")}</table></div></div>` : ""}
     <div class="panel"><h2>Respuestas tuyas con repregunta</h2><p class="mut peq" style="margin:0 0 8px">El comprador volvió a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas. Mirá qué le faltaba a la respuesta.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, true)}</div>`;
   enlazarPeriodo(VISTAS.numeros);
@@ -2153,7 +2153,7 @@ function sumarPersona(emp, libres) {
   $("#sOk", v).onclick = async () => {
     const email = $("#sEm", v).value.trim(), nombre = $("#sNom", v).value.trim();
     if (!email) return aviso("Escribí el email");
-    const r = await seguro(() => api("miembro_invitar", { empresa_id: emp, email, nombre, rol: $("#sRol", v).value, puede_publicar: $("#sPub", v).checked }));
+    const r = await seguro(() => api("miembro_invitar", { cliente_id: emp, email, nombre, rol: $("#sRol", v).value, puede_publicar: $("#sPub", v).checked }));
     if (!r) return;
     v.remove(); VISTAS.equipo();
     if (r.nuevo) mostrarCodigo(nombre || email, r.email, r.codigo, true);
@@ -2219,8 +2219,8 @@ const datosAsig = (a, ids) => ({ id: a.id, miembro_ids: ids, alcance: a.alcance,
 // Saca a esas personas de una asignación (si no queda nadie, la borra)
 async function sacarDeAsig(emp, a, ids) {
   const quedan = a.miembro_ids.map(Number).filter((id) => !ids.includes(id));
-  if (!quedan.length) return api("asignacion_borrar", { empresa_id: emp, id: a.id });
-  return api("asignacion_guardar", { empresa_id: emp, modulo: S.asigMod, asignacion: { ...datosAsig(a, quedan), modulo: S.asigMod } });
+  if (!quedan.length) return api("asignacion_borrar", { cliente_id: emp, id: a.id });
+  return api("asignacion_guardar", { cliente_id: emp, modulo: S.asigMod, asignacion: { ...datosAsig(a, quedan), modulo: S.asigMod } });
 }
 function avisoAsig(r) {
   const nom = (ids) => ids.map((id) => r.m(id)?.corto).filter(Boolean).join(", ").replace(/, ([^,]*)$/, " y $1");
@@ -2260,7 +2260,7 @@ const cabSemana = `<div class="sem cab">${DIAS_C.map((d) => `<span>${d}</span>`)
 
 async function datosAsignaciones(emp) {
   S.asigMod ??= modsActuales().has("preguntas") ? "preguntas" : "mensajes";
-  const r = await seguro(() => api("asignaciones", { empresa_id: emp, modulo: S.asigMod })); if (!r) return null;
+  const r = await seguro(() => api("asignaciones", { cliente_id: emp, modulo: S.asigMod })); if (!r) return null;
   r.miembros.forEach((m, i) => { m.color = PALETA[i % PALETA.length]; m.fondo = m.color + "22"; m.ini = iniciales(m.nombre).slice(0, 2); m.corto = m.vos ? "Yo" : m.nombre.split(" ")[0]; });
   r.m = (id) => r.miembros.find((x) => x.id === Number(id));
   r.catNom = (id) => r.categorias.find((c) => c.id === id)?.nombre ?? id;
@@ -2358,12 +2358,12 @@ VISTAS.asignaciones = async () => {
       h.querySelectorAll("[data-una]").forEach((x) => x.onclick = () => { h.remove(); sacarUna(Number(x.dataset.una)); });
       h.querySelector("[data-todas]").onclick = async () => {
         h.remove();
-        if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { aviso("Asignación borrada"); VISTAS.asignaciones(); }
+        if (await seguro(() => api("asignacion_borrar", { cliente_id: emp, id: a.id }))) { aviso("Asignación borrada"); VISTAS.asignaciones(); }
       };
     }
     else if (b.dataset.nuevaCat) editarAsignacion(emp, r, null, { alcance: "categorias", categorias: [b.dataset.nuevaCat] });
     else if (b.dataset.nuevaM) editarAsignacion(emp, r, null, { miembro_ids: [Number(b.dataset.nuevaM)] });
-    else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { empresa_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.asignaciones(); } }
+    else if (b.dataset.borrar) { if (await seguro(() => api("excepcion_borrar", { cliente_id: emp, id: Number(b.dataset.borrar) }))) { aviso("Ausencia quitada"); VISTAS.asignaciones(); } }
     else if (b.id === "excNueva") nuevaAusencia(emp, r);
     else if (b.dataset.dejar) {
       const c = conflictosAsig(r.asignaciones)[Number(b.dataset.c)]; if (!c) return;
@@ -2373,7 +2373,7 @@ VISTAS.asignaciones = async () => {
     } else if (b.dataset.borrarVenc) {
       const vs = r.asignaciones.filter(vencida);
       b.disabled = true;
-      for (const a of vs) await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }));
+      for (const a of vs) await seguro(() => api("asignacion_borrar", { cliente_id: emp, id: a.id }));
       aviso(vs.length === 1 ? "Asignación vencida borrada" : "Asignaciones vencidas borradas"); VISTAS.asignaciones();
     }
   };
@@ -2436,7 +2436,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
     else if (b.dataset.dias) { st.dias = b.dataset.dias.split(",").map(Number); pintar(); }
     else if (b.id === "asBorrar" || b.id === "asBorrar2") {
       if (!confirm("¿Borrar esta asignación? Las preguntas que ya tenían asignadas siguen en la bandeja de esas personas.")) return;
-      if (await seguro(() => api("asignacion_borrar", { empresa_id: emp, id: a.id }))) { v.remove(); aviso("Asignación borrada"); VISTAS.asignaciones(); }
+      if (await seguro(() => api("asignacion_borrar", { cliente_id: emp, id: a.id }))) { v.remove(); aviso("Asignación borrada"); VISTAS.asignaciones(); }
     } else if (b.id === "asOk") {
       if (!st.miembro_ids.length) return aviso("Elegí al menos una persona");
       const datos = { id: a?.id, miembro_ids: st.miembro_ids, alcance: st.alcance, categorias: st.categorias, publicaciones: st.publicaciones, siempre: st.siempre, dias: st.dias, desde: st.desde, hasta: st.hasta,
@@ -2447,7 +2447,7 @@ function editarAsignacion(emp, r, a, pre = {}) {
       const incluyen = otras.filter((x) => ids.some((id) => x.miembro_ids.map(Number).includes(id)) && contiene(x, nueva));
       const incluidas = otras.filter((x) => ids.some((id) => x.miembro_ids.map(Number).includes(id)) && contiene(nueva, x) && !contiene(x, nueva));
       const guardar = async () => {
-        if (await seguro(() => api("asignacion_guardar", { empresa_id: emp, modulo: S.asigMod, asignacion: { ...datos, modulo: S.asigMod } }))) { v.remove(); aviso(a ? "Asignación actualizada" : "Asignación guardada"); VISTAS.asignaciones(); return true; }
+        if (await seguro(() => api("asignacion_guardar", { cliente_id: emp, modulo: S.asigMod, asignacion: { ...datos, modulo: S.asigMod } }))) { v.remove(); aviso(a ? "Asignación actualizada" : "Asignación guardada"); VISTAS.asignaciones(); return true; }
         return false;
       };
       if (!incluyen.length && !incluidas.length) return guardar();
@@ -2486,7 +2486,7 @@ function nuevaAusencia(emp, r) {
     <label class="et" for="aMot">Motivo (opcional)</label><input id="aMot" placeholder="Vacaciones, franco, feriado…" autocomplete="off">
     <button class="btn pri" style="margin-top:18px" id="aOk">Agregar</button>`, true);
   $("#aOk", v).onclick = async () => {
-    const d = { empresa_id: emp, miembro_id: $("#aQuien", v).value || null, desde: $("#aDesde", v).value, hasta: $("#aHasta", v).value, motivo: $("#aMot", v).value };
+    const d = { cliente_id: emp, miembro_id: $("#aQuien", v).value || null, desde: $("#aDesde", v).value, hasta: $("#aHasta", v).value, motivo: $("#aMot", v).value };
     if (await seguro(() => api("excepcion_guardar", d))) { v.remove(); aviso("Ausencia agregada"); VISTAS.asignaciones(); }
   };
 }
@@ -2495,7 +2495,7 @@ function nuevaAusencia(emp, r) {
 VISTAS.preguntas = async () => {
   const f = S.filtros;
   // Cuántas esperan a una persona: se muestran en las solapas y, al entrar, se abre la que necesita atención
-  const base = { empresa_id: S.empSel || null, cuenta_id: f.cuenta_id, limite: 1 };
+  const base = { cliente_id: S.empSel || null, cuenta_id: f.cuenta_id, limite: 1 };
   const [nTe, nAp] = await Promise.all(["pendiente_revision", "borrador"].map((e) => api("preguntas", { ...base, estado: e }).then((x) => x.total ?? 0).catch(() => 0)));
   if (f.elegir) { f.elegir = false; f.desde = 0; f.estado = nTe ? "pendiente_revision" : nAp ? "borrador" : ""; }
   const cant = { pendiente_revision: nTe, borrador: nAp };
@@ -2508,7 +2508,7 @@ VISTAS.preguntas = async () => {
   $("#fEst").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; f.estado = b.dataset.e; f.desde = 0; VISTAS.preguntas(); };
   if ($("#fCta")) $("#fCta").onchange = () => { f.cuenta_id = $("#fCta").value; f.desde = 0; VISTAS.preguntas(); };
   $("#fBus").onkeydown = (e) => { if (e.key === "Enter") { f.buscar = $("#fBus").value; f.desde = 0; VISTAS.preguntas(); } };
-  const r = await seguro(() => api("preguntas", { empresa_id: S.empSel || null, ...f, limite: 40 })); if (!r) return;
+  const r = await seguro(() => api("preguntas", { cliente_id: S.empSel || null, ...f, limite: 40 })); if (!r) return;
   $("#lista").innerHTML = r.filas.length ? `<div class="lista-p">${r.filas.map((p) => `<div class="item-p" data-id="${p.id}" tabindex="0" role="button">
       ${p.item_thumbnail ? `<img src="${esc(p.item_thumbnail)}" alt="" loading="lazy">` : `<div class="sinfoto"></div>`}
       <div><div class="q">${esc(p.texto_pregunta)}</div><div class="a">${esc(p.respuesta_enviada ?? p.respuesta_sugerida ?? p.error ?? "")}</div>
@@ -2537,7 +2537,7 @@ async function detalle(id) {
     ${p.respuesta_enviada && p.respuesta_sugerida && p.respondida_por === "mercadolibre" ? `<div class="bloque"><h3>Lo que había sugerido el bot</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : ""}
     ${editable ? `<div class="bloque" data-pres="preg:${p.id}"><h3>Respuesta a publicar</h3><select id="rapSel" style="margin-bottom:8px"><option value="">Insertar una respuesta rápida…</option></select>
       <textarea id="txR" maxlength="2000">${esc(p.respuesta_sugerida ?? "")}</textarea><div class="mej-fila"><p class="peq mut" id="cnt" style="margin:0"></p><span class="mej-bot"><button class="btn lin chico" type="button" id="regD">${ICONO.escudo}Revisar reglas</button><button class="btn lin chico" type="button" id="mejD">${ICONO.varita}Mejorar redacción</button></span></div><div id="mejDres"></div>
-      <div class="fila">${S.rol !== "operador" || empresaYo(p.empresa_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.empresas.length ?? 0) > 1 && empresaYo(p.empresa_id) ? "Publicar como " + esc(empresaYo(p.empresa_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
+      <div class="fila">${S.rol !== "operador" || clienteYo(p.cliente_id)?.puede_publicar !== false ? `<div class="n"><button class="btn pri" id="pub">${(S.yo?.clientes.length ?? 0) > 1 && clienteYo(p.cliente_id) ? "Publicar como " + esc(clienteYo(p.cliente_id).nombre) : "Publicar respuesta"}</button></div>` : ""}${S.rol !== "operador" ? `<div class="n"><button class="btn lin" id="rep">Generar de nuevo</button></div>` : ""}<div class="n"><button class="btn pel" id="desc">Descartar</button></div></div></div>`
       : (p.respuesta_sugerida && !p.respuesta_enviada ? `<div class="bloque"><h3>Respuesta sugerida</h3><div class="caja pre">${esc(p.respuesta_sugerida)}</div></div>` : "")}
     ${p.estado === "descartada" ? `<div class="bloque"><h3>Descartada</h3><p class="mut peq" style="margin:0">${p.descartada_nombre ? "La descartó " + esc(p.descartada_nombre) : "Descartada sin registro de quién"}${p.descartada_at ? ", " + fecha(p.descartada_at) : ""}</p></div>` : ""}
     ${p.motivo ? `<div class="bloque"><h3>Por qué decidió así</h3><div class="caja pre peq">${esc(p.motivo)}</div></div>` : ""}
@@ -2564,7 +2564,7 @@ async function detalle(id) {
   if ($("#malR", v)) $("#malR", v).onclick = () => marcarIncorrecta({ pregunta_id: p.id, ml_question_id: p.ml_question_id, ml_item_id: p.ml_item_id, texto_pregunta: p.texto_pregunta, respuesta_incorrecta: p.respuesta_enviada, respuesta_correcta: p.respondida_por === "mercadolibre" ? (p.respuesta_sugerida ?? "") : "" });
   if (editable) {
     const tx = $("#txR", v), cnt = () => $("#cnt", v).textContent = tx.value.length + " de 2000 caracteres"; tx.oninput = cnt; cnt();
-    seguro(() => api("rapidas", { empresa_id: p.empresa_id ?? cuentaDe(p.cuenta_id)?.empresa_id ?? S.empSel })).then((rs) => {
+    seguro(() => api("rapidas", { cliente_id: p.cliente_id ?? cuentaDe(p.cuenta_id)?.cliente_id ?? S.empSel })).then((rs) => {
       if (!rs) return; const sel = $("#rapSel", v);
       sel.innerHTML += rs.map((r, i) => `<option value="${i}">${esc(r.titulo)}</option>`).join("");
       sel.onchange = () => { if (sel.value === "") return; const t = rs[Number(sel.value)].texto; tx.value = tx.value.trim() ? tx.value.trim() + " " + t : t; sel.value = ""; cnt(); tx.focus(); };
@@ -2662,24 +2662,24 @@ VISTAS.probar = () => {
 };
 
 // ================= CONOCIMIENTO =================
-function empresaActual() { return S.rol === "empresa" ? null : (S.empSel || (S.res.empresas.length === 1 ? S.res.empresas[0].id : "")); }
+function clienteActual() { return S.rol === "cliente" ? null : (S.empSel || (S.res.clientes.length === 1 ? S.res.clientes[0].id : "")); }
 VISTAS.conocimiento = async () => {
   const t = S.conoc;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Conocimiento</h1><p>Lo que el bot sabe del negocio. Lo comparten todas las cuentas del negocio.</p></div></div>
     <div class="pestanas" id="cTabs">${[["documentos", "Instrucciones y catálogo"], ["correcciones", "Correcciones"], ["rapidas", "Respuestas rápidas"]].map(([k, n]) => `<button data-k="${k}" class="${k === t ? "on" : ""}">${n}</button>`).join("")}</div><div id="cCuerpo"></div>`;
   $("#cTabs").onclick = (e) => { const b = e.target.closest("button"); if (b) { S.conoc = b.dataset.k; VISTAS.conocimiento(); } };
-  if (S.rol === "admin" && empresaActual() === "") { $("#cCuerpo").innerHTML = `<div class="panel vacio"><b>Elegí un cliente</b>Usá el selector de la izquierda.</div>`; return; }
+  if (S.rol === "admin" && clienteActual() === "") { $("#cCuerpo").innerHTML = `<div class="panel vacio"><b>Elegí un cliente</b>Usá el selector de la izquierda.</div>`; return; }
   ({ documentos: conDocumentos, correcciones: conCorrecciones, rapidas: conRapidas })[t]();
 };
 async function conDocumentos() {
-  const emp = empresaActual();
-  const ds = await seguro(() => api("documentos", { empresa_id: emp })); if (!ds) return;
+  const emp = clienteActual();
+  const ds = await seguro(() => api("documentos", { cliente_id: emp })); if (!ds) return;
   $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch;min-width:min(280px,100%)">Las instrucciones dicen cómo responder; el catálogo, lo que las publicaciones no dicen. Precio, stock, envío, retiro, garantía y facturación llegan en vivo de MercadoLibre: no los cargues acá. Cada cambio guarda una versión.</p><div class="n"><button class="btn osc" id="dN">Nuevo documento</button></div></div>
     <div class="grilla g2">${ds.map((d) => `<button class="panel" style="text-align:left;cursor:pointer;display:block;width:100%;margin:0" data-id="${d.id}">
       <div class="fila" style="align-items:center"><h3>${esc(d.titulo)}</h3><div class="n">${d.activo ? `<span class="chip c-respondida">${d.tipo === "instrucciones" ? "Instrucciones" : "Catálogo"}</span>` : `<span class="chip">Inactivo</span>`}</div></div>
       <p class="mut peq" style="margin:6px 0 0">${num(d.contenido.length)} caracteres${d.cuenta_id ? ", solo para " + esc(cuentaNom(d.cuenta_id)) : ""}</p>
       <p class="peq" style="margin:8px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(d.contenido.slice(0, 300))}</p></button>`).join("") || `<div class="panel vacio"><b>Todavía no hay documentos</b>Creá las instrucciones y pegá el catálogo.</div>`}</div>`;
-  $("#dN").onclick = () => editarDoc({ tipo: "conocimiento", orden: 100, activo: true, empresa_id: emp });
+  $("#dN").onclick = () => editarDoc({ tipo: "conocimiento", orden: 100, activo: true, cliente_id: emp });
   $("#cCuerpo").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) editarDoc(ds.find((d) => String(d.id) === b.dataset.id)); };
 }
 function editarDoc(d) {
@@ -2692,7 +2692,7 @@ function editarDoc(d) {
     <div class="fila" style="margin-top:14px"><div class="n"><button class="btn pri" id="xG">Guardar documento</button></div>${d.id ? `<div class="n"><button class="btn lin" id="xV">Versiones anteriores</button></div><div class="n"><button class="btn pel" id="xB">Borrar</button></div>` : ""}</div><div id="xVer"></div>`);
   const tx = $("#xX", v), cnt = () => $("#xC", v).textContent = `(${num(tx.value.length)} caracteres)`; tx.oninput = cnt; cnt();
   $("#xG", v).onclick = async () => {
-    const doc = { id: d.id, cuenta_id: d.cuenta_id || null, empresa_id: d.empresa_id ?? (S.empSel || null), titulo: $("#xT", v).value, tipo: $("#xY", v).value, orden: Number($("#xO", v).value), activo: $("#xA", v).checked, contenido: tx.value };
+    const doc = { id: d.id, cuenta_id: d.cuenta_id || null, cliente_id: d.cliente_id ?? (S.empSel || null), titulo: $("#xT", v).value, tipo: $("#xY", v).value, orden: Number($("#xO", v).value), activo: $("#xA", v).checked, contenido: tx.value };
     if (await seguro(() => api("documento_guardar", { documento: doc }))) { aviso("Documento guardado"); v.remove(); VISTAS.conocimiento(); }
   };
   if (d.id) {
@@ -2705,8 +2705,8 @@ function editarDoc(d) {
   }
 }
 async function conCorrecciones() {
-  const emp = empresaActual();
-  const cs = await seguro(() => api("correcciones", { empresa_id: emp || null })); if (!cs) return;
+  const emp = clienteActual();
+  const cs = await seguro(() => api("correcciones", { cliente_id: emp || null })); if (!cs) return;
   $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;max-width:70ch;min-width:min(280px,100%)">Respuestas validadas por vos. El bot las sigue antes que cualquier respuesta vieja y deja de usar las que marcaste como incorrectas. Para encontrar errores, filtrá Preguntas por "A mano vs. bot".</p><div class="n"><button class="btn osc" id="kN">Nueva corrección</button></div></div>
     <div class="panel" style="padding:4px 18px">${cs.length ? cs.map((c) => `<div class="ref" style="padding:14px 0"><div class="fila" style="align-items:flex-start"><b>${esc(c.texto_pregunta)}</b><div class="n">${c.activa ? "" : `<span class="chip">Inactiva</span> `}<button class="btn lin chico" data-ed="${c.id}">Editar</button> <button class="btn pel chico" data-del="${c.id}">Borrar</button></div></div>
       ${c.respuesta_incorrecta ? `<div class="peq mut" style="text-decoration:line-through;margin-top:4px">${esc(c.respuesta_incorrecta)}</div>` : ""}
@@ -2721,7 +2721,7 @@ async function conCorrecciones() {
       <label class="check"><input type="checkbox" id="kA" ${c.activa !== false ? "checked" : ""}> Activa</label>
       <button class="btn pri" id="kG">Guardar corrección</button>`, true);
     $("#kG", v).onclick = async () => {
-      if (await seguro(() => api("correccion_guardar", { correccion: { id: c.id, empresa_id: c.empresa_id ?? emp, ml_question_id: c.ml_question_id, ml_item_id: c.ml_item_id, respuesta_incorrecta: c.respuesta_incorrecta,
+      if (await seguro(() => api("correccion_guardar", { correccion: { id: c.id, cliente_id: c.cliente_id ?? emp, ml_question_id: c.ml_question_id, ml_item_id: c.ml_item_id, respuesta_incorrecta: c.respuesta_incorrecta,
         texto_pregunta: $("#kP", v).value, respuesta_correcta: $("#kC", v).value, motivo: $("#kM", v).value, activa: $("#kA", v).checked } }))) { aviso("Corrección guardada"); v.remove(); VISTAS.conocimiento(); }
     };
   };
@@ -2733,8 +2733,8 @@ async function conCorrecciones() {
   };
 }
 async function conRapidas() {
-  const emp = empresaActual();
-  const rs = await seguro(() => api("rapidas", { empresa_id: emp })); if (!rs) return;
+  const emp = clienteActual();
+  const rs = await seguro(() => api("rapidas", { cliente_id: emp })); if (!rs) return;
   $("#cCuerpo").innerHTML = `<div class="fila" style="margin-bottom:14px"><p class="mut" style="margin:0;min-width:min(280px,100%)">Textos para insertar con un clic cuando respondés a mano. Las marcadas como <b>fijas</b> las usa el bot solo, sin gastar en el modelo grande, cuando la pregunta es exactamente eso.</p><div class="n"><button class="btn osc" id="rN">Nueva respuesta rápida</button></div></div>
     <div class="grilla g2">${rs.map((r) => `<div class="panel" style="margin:0"><div class="fila" style="align-items:center"><h3>${esc(r.titulo)}${r.fija ? ` <span class="chip c-ok">Fija · ${r.publicaciones?.length ? `${r.publicaciones.length} publicación${r.publicaciones.length > 1 ? "es" : ""}` : "todas"}</span>` : ""}</h3><div class="n"><button class="btn lin chico" data-ed="${r.id}">Editar</button> <button class="btn pel chico" data-del="${r.id}">Borrar</button></div></div><p class="pre peq" style="margin:8px 0 0">${esc(r.texto)}</p></div>`).join("") || `<div class="panel vacio"><b>Todavía no hay respuestas rápidas</b>Guardá las que más repetís: envíos, garantía, factura.</div>`}</div>`;
   const editar = (r) => {
@@ -2758,12 +2758,12 @@ async function conRapidas() {
         .sort((a, b) => Number(marcadas.has(b.id)) - Number(marcadas.has(a.id))).slice(0, 150);
       $("#qPL", v).innerHTML = lista.map((p) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:5px 0"><input type="checkbox" value="${esc(p.id)}" ${marcadas.has(p.id) ? "checked" : ""}> <span>${esc(p.titulo)}</span></label>`).join("") || `<p class="mut">No hay publicaciones con ese texto.</p>`;
     };
-    const cargarPubs = async () => { if (pubs) return; pubs = (await seguro(() => api("rapidas_publicaciones", { empresa_id: emp }))) ?? []; pintarPubs(); };
+    const cargarPubs = async () => { if (pubs) return; pubs = (await seguro(() => api("rapidas_publicaciones", { cliente_id: emp }))) ?? []; pintarPubs(); };
     if (r.fija) cargarPubs();
     $("#qF", v).onchange = () => { $("#qPubs", v).style.display = $("#qF", v).checked ? "" : "none"; if ($("#qF", v).checked) cargarPubs(); };
     $("#qPB", v).oninput = pintarPubs;
     $("#qPL", v).onchange = (e) => { const x = e.target; if (x.type === "checkbox") x.checked ? marcadas.add(x.value) : marcadas.delete(x.value); };
-    $("#qG", v).onclick = async () => { if (await seguro(() => api("rapida_guardar", { rapida: { id: r.id, empresa_id: emp, titulo: $("#qT", v).value, texto: $("#qX", v).value, fija: $("#qF", v).checked, publicaciones: [...marcadas] } }))) { aviso("Respuesta rápida guardada"); v.remove(); VISTAS.conocimiento(); } };
+    $("#qG", v).onclick = async () => { if (await seguro(() => api("rapida_guardar", { rapida: { id: r.id, cliente_id: emp, titulo: $("#qT", v).value, texto: $("#qX", v).value, fija: $("#qF", v).checked, publicaciones: [...marcadas] } }))) { aviso("Respuesta rápida guardada"); v.remove(); VISTAS.conocimiento(); } };
   };
   $("#rN").onclick = () => editar({});
   $("#cCuerpo").onclick = async (e) => {
@@ -2777,7 +2777,7 @@ async function conRapidas() {
 VISTAS.cuentas = () => {
   const r = S.res;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Cuentas de MercadoLibre</h1><p>Cada cuenta puede ser una razón social distinta que vende lo mismo. Todas comparten el conocimiento del negocio.</p></div><button class="btn osc" id="nueva">Agregar cuenta</button></div>
-    <div class="cuentas">${r.cuentas.map((c) => `<div class="cta"><div><div class="nom">${esc(c.nombre)}</div><div class="mut peq">${esc(c.razon_social ?? "Sin razón social")}${S.rol === "admin" && !S.empSel ? ", " + esc(empNom(c.empresa_id)) : ""}</div></div>
+    <div class="cuentas">${r.cuentas.map((c) => `<div class="cta"><div><div class="nom">${esc(c.nombre)}</div><div class="mut peq">${esc(c.razon_social ?? "Sin razón social")}${S.rol === "admin" && !S.empSel ? ", " + esc(empNom(c.cliente_id)) : ""}</div></div>
       <div class="estado">${c.conectada ? `<span class="chip c-respondida">Conectada${c.ml_nickname ? " como " + esc(c.ml_nickname) : ""}</span>` : `<span class="chip c-error">Sin conectar</span>`}<span class="chip c-simulada">${MODOS[c.modo]}</span>${c.activa ? "" : `<span class="chip c-borrador">Pausada</span>`}</div>
       <div class="peq mut">${esc(r.sitios.find((s) => s.id === c.sitio)?.pais ?? c.sitio)}. ${num(r.publicaciones?.[c.id] ?? 0)} publicaciones y ${num(r.historial?.[c.id] ?? 0)} respuestas guardadas.</div>
       ${c.conectada ? estadoBase(c.id, r.aprendizajes?.[c.id]) : ""}
@@ -2827,7 +2827,7 @@ function vigilarAltas() {
 function datosCuenta(c) {
   const adm = S.rol === "admin"; const v0 = c ?? { activa: true, sitio: "MLA", modo: "simulacion" };
   const v = cajon(`<div class="cajon-cab"><h2>${c ? "Datos de la cuenta" : "Agregar cuenta"}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    ${!c && adm ? `<label class="et" for="cE">Cliente</label><select id="cE">${S.res.empresas.map((e) => `<option value="${e.id}" ${e.id === S.empSel ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>` : ""}
+    ${!c && adm ? `<label class="et" for="cE">Cliente</label><select id="cE">${S.res.clientes.map((e) => `<option value="${e.id}" ${e.id === S.empSel ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>` : ""}
     <label class="et" for="cN">Nombre de la cuenta</label><input id="cN" value="${esc(v0.nombre ?? "")}" placeholder="Ej.: Cuenta principal">
     <label class="et" for="cRS">Razón social que vende con esta cuenta</label><input id="cRS" value="${esc(v0.razon_social ?? "")}">
     <label class="et" for="cS">País</label><select id="cS" ${c?.ml_user_id ? "disabled" : ""}>${S.res.sitios.map((s) => `<option value="${s.id}" ${s.id === v0.sitio ? "selected" : ""}>${esc(s.pais)}</option>`).join("")}</select>
@@ -2838,7 +2838,7 @@ function datosCuenta(c) {
   $("#cG", v).onclick = async () => {
     const campos = { nombre: $("#cN", v).value, razon_social: $("#cRS", v).value, activa: $("#cA", v).checked, notas: $("#cNo", v).value };
     if (!c?.ml_user_id) campos.sitio = $("#cS", v).value;
-    if (await seguro(() => api("cuenta_guardar", { id: c?.id, empresa_id: $("#cE", v)?.value ?? S.empSel ?? null, campos }))) { aviso("Cuenta guardada"); v.remove(); await recargar(); VISTAS.cuentas(); }
+    if (await seguro(() => api("cuenta_guardar", { id: c?.id, cliente_id: $("#cE", v)?.value ?? S.empSel ?? null, campos }))) { aviso("Cuenta guardada"); v.remove(); await recargar(); VISTAS.cuentas(); }
   };
 }
 
@@ -2850,12 +2850,12 @@ VISTAS.config = async () => {
   if (!r.cuentas.length && S.confNivel === "cuenta") S.confNivel = adm ? "app" : "cliente";
   const nivel = S.confNivel;
   if (nivel === "cuenta" && (!S.confCta || !cuentaDe(S.confCta))) S.confCta = r.cuentas[0]?.id ?? "";
-  const empId = S.rol === "empresa" ? null : (S.confEmp || S.empSel || r.empresas[0]?.id || "");
-  if (S.rol !== "empresa") S.confEmp = empId;
+  const empId = S.rol === "cliente" ? null : (S.confEmp || S.empSel || r.clientes[0]?.id || "");
+  if (S.rol !== "cliente") S.confEmp = empId;
   const id = nivel === "cuenta" ? S.confCta : nivel === "cliente" ? empId : null;
   const destino = nivel === "app" ? `<p class="mut" style="margin:0">Valores por defecto para todos los clientes y cuentas.</p>`
-    : nivel === "cliente" ? (S.rol === "empresa" ? `<p class="mut" style="margin:0">Valen para todas tus cuentas, salvo que una cuenta tenga su propio valor.</p>`
-      : `<select id="cfDest" style="width:auto">${r.empresas.map((e) => `<option value="${e.id}" ${e.id === empId ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>`)
+    : nivel === "cliente" ? (S.rol === "cliente" ? `<p class="mut" style="margin:0">Valen para todas tus cuentas, salvo que una cuenta tenga su propio valor.</p>`
+      : `<select id="cfDest" style="width:auto">${r.clientes.map((e) => `<option value="${e.id}" ${e.id === empId ? "selected" : ""}>${esc(e.nombre)}</option>`).join("")}</select>`)
     : `<select id="cfDest" style="width:auto">${optsCuentas(S.confCta)}</select>`;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Configuración</h1><p>Cada nivel hereda del anterior: ${dueno() ? "Fábrica → App → Cliente → Cuenta" : "Mi negocio → Cuenta"}. Lo que fijás en un nivel pisa lo heredado solo ahí.</p></div></div>
     <div class="filtros"><div class="seg" id="cfNiv">${niveles.map(([k, t]) => `<button data-n="${k}" class="${k === nivel ? "on" : ""}">${t}</button>`).join("")}</div>${destino}</div>
@@ -2863,9 +2863,9 @@ VISTAS.config = async () => {
   $("#cfNiv").onclick = (e) => { const b = e.target.closest("button"); if (b) { S.confNivel = b.dataset.n; VISTAS.config(); } };
   if ($("#cfDest")) $("#cfDest").onchange = () => { if (nivel === "cuenta") S.confCta = $("#cfDest").value; else S.confEmp = $("#cfDest").value; VISTAS.config(); };
   if (nivel === "cuenta" && !id) { $("#cfCuerpo").innerHTML = `<div class="panel vacio"><b>No hay cuentas</b>Agregá una en Cuentas.</div>`; return; }
-  if (nivel === "cliente" && S.rol !== "empresa" && !id) { $("#cfCuerpo").innerHTML = `<div class="panel vacio"><b>No hay clientes</b>Dalo de alta en Clientes.</div>`; return; }
+  if (nivel === "cliente" && S.rol !== "cliente" && !id) { $("#cfCuerpo").innerHTML = `<div class="panel vacio"><b>No hay clientes</b>Dalo de alta en Clientes.</div>`; return; }
   // Valores propios de los niveles de arriba, para decir de dónde sale cada valor heredado
-  const ctaEmp = nivel === "cuenta" ? cuentaDe(id)?.empresa_id : null;
+  const ctaEmp = nivel === "cuenta" ? cuentaDe(id)?.cliente_id : null;
   const [cv, sup1, sup2] = await Promise.all([
     seguro(() => api("config_ver", { nivel, id })),
     nivel === "app" ? null : api("config_ver", { nivel: "app" }).catch(() => null),
@@ -2994,7 +2994,7 @@ VISTAS.regulador = async () => {
         <div><h3>Qué información usó la IA</h3><p class="mut peq" style="margin-top:0">Porcentaje de las respuestas en que la IA dijo haber usado cada parte. Lo que casi nunca se usa es candidato a no mandarse.</p>
           ${usadosTop.length ? usadosTop.map((f) => `<div class="rg-barra"><span>${esc(RG_FUENTE[f.fuente] ?? f.fuente)}</span><i style="--v:${Math.min(100, f.pct)}%"></i><b>${pctTxt(f.pct)}</b></div>`).join("") : `<p class="mut">Todavía sin datos.</p>`}</div>
       </div>
-      ${a.empresas.length > 1 ? `<h3 style="margin-top:16px">Por cliente</h3><div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Decisiones</th><th>Tokens promedio</th><th>Costo de IA</th></tr>${a.empresas.map((e) => `<tr><td>${esc(e.empresa)}</td><td>${num(e.n)}</td><td>${e.tokens_prom != null ? num(Math.round(e.tokens_prom)) : "—"}</td><td>${usd(e.costo_usd, 2)}</td></tr>`).join("")}</table></div>` : ""}
+      ${a.clientes.length > 1 ? `<h3 style="margin-top:16px">Por cliente</h3><div style="overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Decisiones</th><th>Tokens promedio</th><th>Costo de IA</th></tr>${a.clientes.map((e) => `<tr><td>${esc(e.cliente)}</td><td>${num(e.n)}</td><td>${e.tokens_prom != null ? num(Math.round(e.tokens_prom)) : "—"}</td><td>${usd(e.costo_usd, 2)}</td></tr>`).join("")}</table></div>` : ""}
     </div>`;
   };
   pintar(d.acciones.length ? d.acciones.map(bloque).join("") : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando la IA responda preguntas o arme borradores de mensajes.</div>`);
@@ -3002,14 +3002,14 @@ VISTAS.regulador = async () => {
 
 // ================= USO =================
 VISTAS.uso = async () => {
-  const u = await seguro(() => api("uso", { empresa_id: S.empSel || null })); if (!u) return;
+  const u = await seguro(() => api("uso", { cliente_id: S.empSel || null })); if (!u) return;
   const conMsj = u.some((x) => x.conversaciones || x.mensajes_enviados) || modsActuales().has("mensajes") && S.rol !== "admin";
-  const emp = S.rol === "empresa" || S.soporte ? S.res?.empresas?.[0] : null;
+  const emp = S.rol === "cliente" || S.soporte ? S.res?.clientes?.[0] : null;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>${dueno() ? "Uso y costos" : "Plan y uso"}</h1><p>${dueno() ? "Mes a mes, por cliente. Sirve para facturar el servicio." : "Lo que incluye tu plan y lo que se usó cada mes."}</p></div></div>
     ${emp ? `<div class="panel" style="margin-bottom:16px"><div class="fila" style="align-items:center;flex-wrap:wrap;gap:12px"><div><b>Plan ${esc(emp.plan ?? "sin plan")}</b><div class="mut peq">Módulos contratados</div></div>
       <div class="n" style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<span class="chip ${(emp.modulos_efectivos ?? []).includes(k) ? "c-ok" : ""}">${t}${(emp.modulos_efectivos ?? []).includes(k) ? "" : ": no incluido"}</span>`).join("")}</div></div></div>` : ""}
     <div class="panel" style="padding:6px 18px;overflow-x:auto">${u.length ? `<table class="tabla apilable"><tr><th>Mes</th><th>Cliente</th><th>Preguntas</th><th>Respondidas por el bot</th><th>Fueron a revisión</th><th>Tiempo del bot</th>${conMsj ? "<th>Conversaciones</th><th>Mensajes enviados</th>" : ""}${dueno() ? `<th>IA preguntas</th>${conMsj ? "<th>IA mensajes</th>" : ""}` : ""}</tr>
-    ${u.map((x) => `<tr><td style="white-space:nowrap">${esc(new Date(x.mes).toLocaleDateString("es-AR", { month: "short", year: "numeric", timeZone: "UTC" }).replace(".", ""))}</td><td style="white-space:nowrap">${esc(x.empresa ?? empNom(x.empresa_id))}</td><td>${num(x.preguntas)}</td><td>${num(x.respondidas_por_bot)}</td><td>${num(x.en_revision)}</td><td>${dur(x.tiempo_bot_promedio_seg)}</td>${conMsj ? `<td>${num(x.conversaciones)}</td><td>${num(x.mensajes_enviados)}</td>` : ""}${dueno() ? `<td>${usd(x.costo_ia_usd, 2)}</td>${conMsj ? `<td>${usd(x.costo_mensajes_usd, 2)}</td>` : ""}` : ""}</tr>`).join("")}</table>` : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando el bot procese preguntas.</div>`}</div>`;
+    ${u.map((x) => `<tr><td style="white-space:nowrap">${esc(new Date(x.mes).toLocaleDateString("es-AR", { month: "short", year: "numeric", timeZone: "UTC" }).replace(".", ""))}</td><td style="white-space:nowrap">${esc(x.cliente ?? empNom(x.cliente_id))}</td><td>${num(x.preguntas)}</td><td>${num(x.respondidas_por_bot)}</td><td>${num(x.en_revision)}</td><td>${dur(x.tiempo_bot_promedio_seg)}</td>${conMsj ? `<td>${num(x.conversaciones)}</td><td>${num(x.mensajes_enviados)}</td>` : ""}${dueno() ? `<td>${usd(x.costo_ia_usd, 2)}</td>${conMsj ? `<td>${usd(x.costo_mensajes_usd, 2)}</td>` : ""}` : ""}</tr>`).join("")}</table>` : `<div class="vacio"><b>Todavía no hay datos</b>Aparecen cuando el bot procese preguntas.</div>`}</div>`;
 };
 
 // ================= DUEÑO DE LA APP: toda la plataforma =================
@@ -3069,21 +3069,21 @@ const CRITERIOS = [
 ];
 
 VISTAS.plataforma = async () => {
-  if (S.platEmp) return vistaEmpresa();
+  if (S.platEmp) return vistaCliente();
   const { desde, hasta } = rangoPer();
   const [d, planes] = await Promise.all([seguro(() => api("plataforma", { desde, hasta })), S.planes ? S.planes : seguro(() => api("planes"))]);
   if (!d || S.tab !== "plataforma" || S.platEmp) return;
   S.plat = d; S.planes = planes ?? {};
   const t = d.totales;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Toda la plataforma</h1><p>${num(t.empresas)} ${t.empresas === 1 ? "empresa activa" : "empresas activas"}; mostrando ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Toda la plataforma</h1><p>${num(t.clientes)} ${t.clientes === 1 ? "cliente activa" : "clientes activas"}; mostrando ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
-      <div class="medida"><b>${num(t.preguntas)}</b><span>preguntas de ${num(t.empresas_con_preguntas)} ${t.empresas_con_preguntas === 1 ? "empresa" : "empresas"}</span></div>
+      <div class="medida"><b>${num(t.preguntas)}</b><span>preguntas de ${num(t.clientes_con_preguntas)} ${t.clientes_con_preguntas === 1 ? "cliente" : "clientes"}</span></div>
       <div class="medida"><b style="color:var(--pino-t)">${pct(t.bot_pct)}</b><span>respondió el bot solo (${num(t.bot)} de ${num(t.respondidas)})</span></div>
       <div class="medida"><b>${durML(t.tiempo_ml_min)}</b><span>de respuesta según MercadoLibre (últimos 14 días). En el período: ${dur(t.tiempo_nuestro_seg)}</span></div>
       <div class="medida"><b>${usd(t.costo_usd, 2)}</b><span>de IA; ${t.preguntas ? usd(t.costo_usd / t.preguntas, 3) : "—"} por pregunta</span></div>
     </div>
     <div class="grilla g2" style="margin-top:16px;align-items:start">
-      <div class="panel"><h2>Para mirar</h2>${d.avisos.length ? d.avisos.map((a) => `<button class="alerta ${a.nivel}" data-emp="${a.empresa_id}">${esc(a.texto)}</button>`).join("")
+      <div class="panel"><h2>Para mirar</h2>${d.avisos.length ? d.avisos.map((a) => `<button class="alerta ${a.nivel}" data-emp="${a.cliente_id}">${esc(a.texto)}</button>`).join("")
         : `<p class="mut" style="margin:8px 0 0">Nada urgente: ningún cliente tiene preguntas trabadas ni cuentas desconectadas.</p>`}</div>
       <div class="panel" id="rk"></div>
     </div>`;
@@ -3093,8 +3093,8 @@ VISTAS.plataforma = async () => {
 };
 function pintarRanking() {
   const d = S.plat, c = CRITERIOS.find((x) => x[0] === S.rankC) ?? CRITERIOS[0];
-  const planes = [...new Set([...Object.keys(S.planes ?? {}), ...d.empresas.map((e) => e.plan).filter(Boolean)])];
-  const lista = d.empresas.filter((e) => !S.rankPl || e.plan === S.rankPl)
+  const planes = [...new Set([...Object.keys(S.planes ?? {}), ...d.clientes.map((e) => e.plan).filter(Boolean)])];
+  const lista = d.clientes.filter((e) => !S.rankPl || e.plan === S.rankPl)
     .sort((a, b) => { const x = c[2](a), y = c[2](b); if (x == null) return y == null ? 0 : 1; if (y == null) return -1; return (x - y) * c[3]; })
     .slice(0, S.rankN);
   $("#rk").innerHTML = `<h2>Ranking de clientes</h2>
@@ -3109,16 +3109,16 @@ function pintarRanking() {
   $("#rkP").onchange = () => { S.rankPl = $("#rkP").value; pintarRanking(); };
 }
 
-async function vistaEmpresa(nuevos = true) {
+async function vistaCliente(nuevos = true) {
   let d = S.platDet;
-  if (nuevos || !d || d.empresa.id !== S.platEmp) {
+  if (nuevos || !d || d.cliente.id !== S.platEmp) {
     const { desde, hasta } = rangoPer();
-    d = await seguro(() => api("plataforma_empresa", { empresa_id: S.platEmp, desde, hasta }));
+    d = await seguro(() => api("plataforma_cliente", { cliente_id: S.platEmp, desde, hasta }));
     if (!d) { S.platEmp = ""; return; }
     S.platDet = d;
   }
   if (S.tab !== "plataforma") return;
-  const e = d.empresa, t = d.totales, f = S.platFil;
+  const e = d.cliente, t = d.totales, f = S.platFil;
   const cta = f?.tipo === "cuenta" ? d.cuentas.find((c) => c.id === f.id) : null;
   const verN = S.platVer ?? 30;
   const conMsj = !!d.mensajes, m = d.mensajes ?? {};
@@ -3142,12 +3142,12 @@ async function vistaEmpresa(nuevos = true) {
       : `<p class="mut" style="margin:6px 0 0">Este cliente todavía no tiene usuarios.</p>`}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
     <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su negocio.</p>`;
-  enlazarPeriodo(vistaEmpresa);
+  enlazarPeriodo(vistaCliente);
   $("#volverPlat").onclick = () => { S.platEmp = ""; S.platFil = null; S.platVer = 30; ir("plataforma"); };
-  if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaEmpresa(false); };
-  if ($("#verMas")) $("#verMas").onclick = () => { S.platVer = verN + 30; vistaEmpresa(false); };
+  if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaCliente(false); };
+  if ($("#verMas")) $("#verMas").onclick = () => { S.platVer = verN + 30; vistaCliente(false); };
   $("#soporteIr").onclick = () => entrarSoporte(e.id, e.nombre);
-  const elegir = (tr) => { S.platFil = S.platFil?.id === tr.dataset.id ? null : { tipo: tr.dataset.fil, id: tr.dataset.id }; S.platVer = 30; vistaEmpresa(false); };
+  const elegir = (tr) => { S.platFil = S.platFil?.id === tr.dataset.id ? null : { tipo: tr.dataset.fil, id: tr.dataset.id }; S.platVer = 30; vistaCliente(false); };
   document.querySelectorAll("#main .fila-click").forEach((tr) => { tr.onclick = () => elegir(tr); tr.onkeydown = (ev) => { if (ev.key === "Enter") elegir(tr); }; });
 }
 
@@ -3184,7 +3184,7 @@ VISTAS.planes = async () => {
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn lin" id="plMas">Agregar un plan</button><button class="btn pri" id="plG">Guardar planes</button></div></div>
     <div class="panel" style="overflow-x:auto"><h2>Plan de cada cliente</h2><p class="mut peq" style="margin:0 0 6px">Si un cliente necesita más operadores que su plan, poné un límite propio.</p>
       <table class="tabla apilable"><tr><th>Cliente</th><th>Plan</th><th>Límite propio</th><th></th></tr>
-      ${res.empresas.map((e) => `<tr data-e="${e.id}"><td><b>${esc(e.nombre)}</b></td><td><select class="ePl" style="min-width:130px"><option value="">Sin plan</option>${[...new Set([...nombres, e.plan].filter(Boolean))].map((n) => `<option ${n === e.plan ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></td>
+      ${res.clientes.map((e) => `<tr data-e="${e.id}"><td><b>${esc(e.nombre)}</b></td><td><select class="ePl" style="min-width:130px"><option value="">Sin plan</option>${[...new Set([...nombres, e.plan].filter(Boolean))].map((n) => `<option ${n === e.plan ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></td>
         <td><input type="number" min="0" class="eLi" placeholder="Del plan" value="${e.limite_operadores ?? ""}" style="width:110px"></td><td><button class="btn lin chico eG">Guardar</button></td></tr>`).join("")}</table></div></div>`;
   $("#plMas").onclick = () => { $("#plFilas").insertAdjacentHTML("beforeend", filaPlan("", 1)); $("#plFilas .plan-f:last-child input").focus(); };
   $("#plFilas").onclick = (ev) => { if (ev.target.closest("[data-quitar]")) ev.target.closest(".plan-f").remove(); };
@@ -3195,7 +3195,7 @@ VISTAS.planes = async () => {
   };
   document.querySelectorAll("tr[data-e] .eG").forEach((b) => b.onclick = async () => {
     const tr = b.closest("tr");
-    if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.e, plan: $(".ePl", tr).value, limite_operadores: $(".eLi", tr).value }))) aviso("Plan del cliente guardado");
+    if (await seguro(() => api("cliente_plan", { cliente_id: tr.dataset.e, plan: $(".ePl", tr).value, limite_operadores: $(".eLi", tr).value }))) aviso("Plan del cliente guardado");
   });
   panelModulos(res);
 };
@@ -3203,7 +3203,7 @@ const filaPlan = (n, v) => `<div class="plan-f" style="margin-top:10px;display:g
 
 // ================= CLIENTES (admin) =================
 VISTAS.clientes = async () => {
-  const es = (await api("resumen")).empresas;
+  const es = (await api("resumen")).clientes;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Clientes</h1><p>Alta, datos y estado de cada cliente cliente. Sus números están en Inicio.</p></div><button class="btn osc" id="eW">Dar de alta un cliente</button></div>
     <div class="panel" style="padding:6px 18px;overflow-x:auto"><table class="tabla apilable"><tr><th>Cliente</th><th>Identificador</th><th>Plan</th><th>Estado</th><th></th></tr>${es.map((e) => `<tr><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.contacto_email ?? "")}</div></td><td>${esc(e.slug)}</td><td>${esc(e.plan ?? "—")}</td><td>${e.activa ? `<span class="chip c-respondida">Activo</span>` : `<span class="chip c-error">Suspendido</span>`}</td><td style="text-align:right;white-space:nowrap"><button class="btn lin chico" data-num="${e.id}">Ver números</button> <button class="btn lin chico" data-ed="${e.id}">Editar</button></td></tr>`).join("")}</table></div>`;
   $("#eW").onclick = () => altaGuiada();
@@ -3224,7 +3224,7 @@ function editarEmp(e) {
     <button class="btn pri" style="margin-top:14px" id="eG">Guardar cliente</button>`, true);
   $("#eG", v).onclick = async () => {
     const campos = { nombre: $("#eNo", v).value, slug: $("#eS", v).value, contacto_email: $("#eM", v).value || null, plan: $("#eP", v).value || null, activa: $("#eA", v).checked, notas: $("#eNt", v).value || null };
-    if (await seguro(() => api("empresa_guardar", { id: e?.id, campos }))) { aviso("Cliente guardado"); v.remove(); await recargar(); VISTAS.clientes(); }
+    if (await seguro(() => api("cliente_guardar", { id: e?.id, campos }))) { aviso("Cliente guardado"); v.remove(); await recargar(); VISTAS.clientes(); }
   };
 }
 const PLANTILLA = `ROL
@@ -3262,10 +3262,10 @@ function altaGuiada() {
       <p class="mut peq">Se le crea un usuario propio como administrador del cliente. No hay claves compartidas: cada persona entra con su email y su clave.</p>
       <button class="btn pri" style="margin-top:16px" id="w1g">Crear cliente y seguir</button>`);
     $("#w1g", v).onclick = async () => {
-      const x = await seguro(() => api("empresa_guardar", { campos: { nombre: $("#w1n", v).value, slug: $("#w1s", v).value, contacto_email: $("#w1e", v).value || null, plan: $("#w1p", v).value || null, activa: true } })); if (!x) return;
+      const x = await seguro(() => api("cliente_guardar", { campos: { nombre: $("#w1n", v).value, slug: $("#w1s", v).value, contacto_email: $("#w1e", v).value || null, plan: $("#w1p", v).value || null, activa: true } })); if (!x) return;
       st.emp = x.id;
       const ae = $("#w1ae", v).value.trim(), an = $("#w1an", v).value.trim();
-      if (ae) { const r = await seguro(() => api("miembro_invitar", { empresa_id: st.emp, email: ae, nombre: an, rol: "admin", puede_publicar: true })); if (r?.nuevo) mostrarCodigo(an || ae, r.email, r.codigo, true); }
+      if (ae) { const r = await seguro(() => api("miembro_invitar", { cliente_id: st.emp, email: ae, nombre: an, rol: "admin", puede_publicar: true })); if (r?.nuevo) mostrarCodigo(an || ae, r.email, r.codigo, true); }
       st.paso = 2; p2();
     };
   };
@@ -3273,7 +3273,7 @@ function altaGuiada() {
       <label class="et" for="w2s">País</label><select id="w2s">${S.res.sitios.map((s) => `<option value="${s.id}" ${s.id === "MLA" ? "selected" : ""}>${esc(s.pais)}</option>`).join("")}</select>
       <p class="mut peq">Arranca en Simulación. Si vende con varias cuentas, las demás se agregan después desde Cuentas. Todas usan el mismo conocimiento.</p>
       <button class="btn pri" style="margin-top:8px" id="w2g">Crear cuenta y seguir</button>`);
-    $("#w2g", v).onclick = async () => { const x = await seguro(() => api("cuenta_guardar", { empresa_id: st.emp, campos: { nombre: $("#w2n", v).value, razon_social: $("#w2r", v).value, sitio: $("#w2s", v).value, activa: true } })); if (!x) return; st.cta = x.id; st.paso = 3; p3(); };
+    $("#w2g", v).onclick = async () => { const x = await seguro(() => api("cuenta_guardar", { cliente_id: st.emp, campos: { nombre: $("#w2n", v).value, razon_social: $("#w2r", v).value, sitio: $("#w2s", v).value, activa: true } })); if (!x) return; st.cta = x.id; st.paso = 3; p3(); };
   };
   const p3 = () => { pinta(`<p>Hay que autorizar la app con el usuario de MercadoLibre de esta cuenta. Podés abrir el enlace acá o copiarlo y mandárselo al cliente; vence en una hora.</p>
       <div class="fila"><div class="n"><button class="btn osc" id="w3c">Abrir autorización</button></div><div class="n"><button class="btn lin" id="w3l">Copiar enlace</button></div></div>
@@ -3303,8 +3303,8 @@ function altaGuiada() {
       <button class="btn pri" style="margin-top:14px" id="w4g">Guardar y seguir</button>`);
     $("#w4g", v).onclick = async () => {
       if (/\[NOMBRE DEL NEGOCIO\]|: \.\.\./.test($("#w4i", v).value) && !confirm("La plantilla todavía tiene partes sin completar. ¿Guardar igual?")) return;
-      if (!await seguro(() => api("documento_guardar", { documento: { empresa_id: st.emp, tipo: "instrucciones", titulo: "Instrucciones", contenido: $("#w4i", v).value, orden: 10, activo: true } }))) return;
-      if ($("#w4c", v).value.trim()) await seguro(() => api("documento_guardar", { documento: { empresa_id: st.emp, tipo: "conocimiento", titulo: "Catálogo", contenido: $("#w4c", v).value, orden: 20, activo: true } }));
+      if (!await seguro(() => api("documento_guardar", { documento: { cliente_id: st.emp, tipo: "instrucciones", titulo: "Instrucciones", contenido: $("#w4i", v).value, orden: 10, activo: true } }))) return;
+      if ($("#w4c", v).value.trim()) await seguro(() => api("documento_guardar", { documento: { cliente_id: st.emp, tipo: "conocimiento", titulo: "Catálogo", contenido: $("#w4c", v).value, orden: 20, activo: true } }));
       st.paso = 5; p5();
     };
   };
@@ -3330,7 +3330,7 @@ VISTAS.motor = async () => {
     <div class="panel"><textarea id="mT" class="grande" style="min-height:560px">${esc(r.prompt)}</textarea></div>`;
   $("#mG").onclick = async () => { if (await seguro(() => api("motor", { prompt: $("#mT").value }))) aviso("Reglas guardadas"); };
   // Prueba de modelos: compara Sonnet con Haiku sobre preguntas reales ya respondidas, sin publicar nada
-  const emps = S.res?.empresas ?? [];
+  const emps = S.res?.clientes ?? [];
   $("#main").insertAdjacentHTML("beforeend", `<div class="panel" id="pmP" style="margin-top:20px">
     <h3 style="margin:0 0 4px">Probar un modelo más barato</h3>
     <p class="peq mut" style="margin:0 0 10px">Toma preguntas reales que ya se respondieron y genera la respuesta con Sonnet y con Haiku, sin publicar nada, para comparar. Haiku cuesta unas 20 veces menos. La prueba cuesta alrededor de US$ 0,05 por pregunta.</p>
@@ -3340,7 +3340,7 @@ VISTAS.motor = async () => {
     <div id="pmR" style="margin-top:12px"></div></div>`);
   const verPrueba = async () => {
     clearTimeout(S.pmTimer);
-    const r = await api("prueba_modelos_ver", { empresa_id: $("#pmE").value }).catch(() => null);
+    const r = await api("prueba_modelos_ver", { cliente_id: $("#pmE").value }).catch(() => null);
     if (!r || S.tab !== "motor" || !$("#pmR")) return;
     if (!r.tanda) { $("#pmR").innerHTML = `<p class="peq mut">Todavía no hay pruebas de este cliente.</p>`; return; }
     const f = r.filas, listas = f.filter((x) => x.haiku_respuesta != null || x.error), err = f.filter((x) => x.error).length;
@@ -3358,7 +3358,7 @@ VISTAS.motor = async () => {
   $("#pmG").onclick = async () => {
     if (!confirm(`Se van a generar ${$("#pmN").value} respuestas con cada modelo (cuesta alrededor de US$ ${(0.05 * Number($("#pmN").value)).toFixed(2).replace(".", ",")}). ¿Seguir?`)) return;
     $("#pmG").disabled = true;
-    const r = await seguro(() => api("prueba_modelos_iniciar", { empresa_id: $("#pmE").value, cantidad: Number($("#pmN").value) }));
+    const r = await seguro(() => api("prueba_modelos_iniciar", { cliente_id: $("#pmE").value, cantidad: Number($("#pmN").value) }));
     $("#pmG").disabled = false;
     if (r) { aviso(`Comparando ${r.preguntas} preguntas`); verPrueba(); }
   };
@@ -3397,10 +3397,10 @@ const MOD_TXT = {
 };
 function modsActuales() {
   if (S.rol === "operador") {
-    const es = S.empresaId ? [empresaYo(S.empresaId)].filter(Boolean) : (S.yo?.empresas ?? []);
+    const es = S.clienteId ? [clienteYo(S.clienteId)].filter(Boolean) : (S.yo?.clientes ?? []);
     return new Set(es.flatMap((e) => e.modulos ?? ["preguntas"]));
   }
-  if (S.rol === "empresa" || S.soporte) return new Set(S.res?.empresas?.[0]?.modulos_efectivos ?? ["preguntas"]);
+  if (S.rol === "cliente" || S.soporte) return new Set(S.res?.clientes?.[0]?.modulos_efectivos ?? ["preguntas"]);
   return new Set(Object.keys(MODULOS));
 }
 // Pestañas Preguntas / Ventas arriba de Asignaciones y Rendimiento (solo si el cliente tiene los dos)
@@ -3445,11 +3445,11 @@ const ICONO_M = {
 const pesoTxt = (b) => b == null ? "" : b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toFixed(1).replace(".", ",") + " MB";
 const plata = (n, m) => n == null ? "—" : (m === "ARS" || !m ? "$ " : m + " ") + Number(n).toLocaleString("es-AR", Number.isInteger(Number(n)) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const anchoMovil = () => matchMedia("(max-width:960px)").matches;
-function empresasMsj() { return (S.yo?.empresas ?? []).filter((e) => (e.modulos ?? []).includes("mensajes")); }
+function clientesMsj() { return (S.yo?.clientes ?? []).filter((e) => (e.modulos ?? []).includes("mensajes")); }
 function empMsj() {
   if (S.rol !== "operador") return S.empSel || null;
-  if (S.empresaId) return S.empresaId;
-  const es = empresasMsj();
+  if (S.clienteId) return S.clienteId;
+  const es = clientesMsj();
   if (!es.some((e) => e.id === S.msjEmp)) S.msjEmp = es[0]?.id ?? "";
   return S.msjEmp || null;
 }
@@ -3503,7 +3503,7 @@ VISTAS.mensajes = async () => {
   const movil = anchoMovil();
   $("#main").innerHTML = `<div class="msj ${S.msjId ? "ver-chat" : "ver-lista"}">
     <section class="m-lista" aria-label="Ventas"><div class="m-cab"><h1>Ventas</h1>
-      ${S.rol === "operador" && !S.empresaId && empresasMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${empresasMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
+      ${S.rol === "operador" && !S.clienteId && clientesMsj().length > 1 ? `<div class="m-fil" style="margin-top:10px">${clientesMsj().map((e) => `<button type="button" data-me="${e.id}" class="${e.id === emp ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : ""}
       <div class="m-bus-fila"><input type="search" id="mBus" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.msjBus ?? "")}" aria-label="Buscar">
         <button class="btn lin m-esc" type="button" id="mEsc" aria-label="Escanear la etiqueta del envío" title="Escanear la etiqueta del envío">${ICONO_R.scan}</button></div>
       <div class="m-fil" id="mFil" role="group" aria-label="Filtro"></div></div>
@@ -3529,7 +3529,7 @@ async function cambiarFavorita(id) {
   const on = !document.querySelector(`[data-fav="${id}"]`)?.classList.contains("on");
   const pintar = (v) => document.querySelectorAll(`[data-fav="${id}"]`).forEach((b) => { b.classList.toggle("on", v); b.setAttribute("aria-pressed", String(v)); const t = v ? "Quitar de favoritas" : "Marcar como favorita"; b.setAttribute("aria-label", t); b.title = t; });
   pintar(on); if (fila) fila.favorita = on;
-  const r = await seguro(() => api("venta_favorita", { empresa_id: empMsj(), id, on }));
+  const r = await seguro(() => api("venta_favorita", { cliente_id: empMsj(), id, on }));
   if (!r) { pintar(!on); if (fila) fila.favorita = !on; return; }
   if (S.msjLista) S.msjLista.favoritas = Math.max(0, (S.msjLista.favoritas ?? 0) + (on ? 1 : -1));
   if (!on && S.msjFil === "favoritas") document.querySelector(`#mHilos [data-fav="${id}"]`)?.closest(".hilo-w")?.remove();
@@ -3623,7 +3623,7 @@ const ETQ = {
 async function etqCargar(emp) {
   if (!emp) return null;
   S.etq ??= {};
-  if (!S.etq[emp]) { const r = await api("etiquetas", { empresa_id: emp }).catch(() => null); S.etq[emp] = r ?? { etiquetas: {}, puede_editar: false }; }
+  if (!S.etq[emp]) { const r = await api("etiquetas", { cliente_id: emp }).catch(() => null); S.etq[emp] = r ?? { etiquetas: {}, puede_editar: false }; }
   return S.etq[emp];
 }
 const etqConfig = (mod, emp) => S.etq?.[emp]?.etiquetas?.[mod] ?? ETQ[mod].plantillas[0][1];
@@ -3711,7 +3711,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
     const ident = { ventas: ["nombre", "nick", "prod", "nro", "orden"], despacho: ["nombre", "nick", "prod", "nro", "orden", "sku"], devoluciones: ["prod", "comprador", "orden"] }[mod];
     if (!Object.values(cfg).flat().some((k) => ident.includes(k))) return aviso("Dejá al menos un dato que identifique la venta (nombre, usuario, producto o número)");
     const b = h.querySelector("#etqOk"); b.disabled = true;
-    const r = await seguro(() => api("etiqueta_guardar", { empresa_id: emp, modulo: mod, config: cfg }));
+    const r = await seguro(() => api("etiqueta_guardar", { cliente_id: emp, modulo: mod, config: cfg }));
     b.disabled = false; if (!r) return;
     S.etq[emp] = { ...(S.etq[emp] ?? {}), etiquetas: r.etiquetas, puede_editar: true };
     h.remove(); aviso("Listo: la lista ya muestra los datos elegidos"); alGuardar?.();
@@ -3753,7 +3753,7 @@ function pieHilos(emp, r) {
   if ($("#mEnML")) $("#mEnML").onclick = () => buscarVenta(emp, S.msjBus);
   if ($("#mCargar")) $("#mCargar").onclick = async () => {
     const b = $("#mCargar"); b.disabled = true; b.innerHTML = buscandoTxt();
-    if (await seguro(() => api("mensajes_cargar", { empresa_id: emp }))) {
+    if (await seguro(() => api("mensajes_cargar", { cliente_id: emp }))) {
       S.msjBuscando = true;
       setTimeout(() => { S.msjBuscando = false; }, 90000);
       pieHilos(emp, r);
@@ -3856,7 +3856,7 @@ async function cargarHilos(emp, mas = false) {
   if (mas && S.msjTrayendo) return null;
   S.msjTrayendo = true;
   const desde = mas ? S.msjCargadas : 0;
-  const r = await seguro(() => api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde, limite: POR_PAGINA, filtros: S.msjFx ?? {}, con_productos: !S.msjProductos }));
+  const r = await seguro(() => api("mensajes", { cliente_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde, limite: POR_PAGINA, filtros: S.msjFx ?? {}, con_productos: !S.msjProductos }));
   S.msjTrayendo = false;
   if (!r || S.tab !== "mensajes") return null;
   S.msjLista = r; S.pendMsj = r.pendientes; armarNav();
@@ -3904,7 +3904,7 @@ async function cargarHilos(emp, mas = false) {
     clearTimeout(S.msjNombres);
     S.msjNombres = setTimeout(async () => {
       if (S.tab !== "mensajes") return;
-      const x = await api("mensajes", { empresa_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde: 0, limite: POR_PAGINA, filtros: S.msjFx ?? {} }).catch(() => null);
+      const x = await api("mensajes", { cliente_id: emp, filtro: S.msjFil, buscar: S.msjBus || "", desde: 0, limite: POR_PAGINA, filtros: S.msjFx ?? {} }).catch(() => null);
       for (const c of x?.filas ?? []) { const b = $(`#mHilos .hilo[data-c="${c.id}"] .h-nom b`); if (b) b.textContent = nombreComp(c); }
     }, 12000);
   }
@@ -3923,14 +3923,14 @@ async function ventaEncontrada(emp, r, texto) {
   aviso(r.leido ? (vi.length ? `Leí ${vi.slice(0, 4).join(", ")}, pero no encontré ninguna venta con esos datos` : "No pude leer datos en la foto. Probá con más luz o más cerca.") : "No encontré ninguna venta con ese código");
 }
 async function ventaPorCodigo(emp, codigo) {
-  const r = await seguro(() => api("venta_codigo", { empresa_id: emp, codigo }));
+  const r = await seguro(() => api("venta_codigo", { cliente_id: emp, codigo }));
   let k = String(codigo ?? "").trim(); try { const j = JSON.parse(k); k = String(j.id ?? k); } catch {}
   ventaEncontrada(emp, r, k.replace(/[^0-9A-Za-z]/g, ""));
 }
 async function ventaPorFoto(emp, file) {
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Leyendo la etiqueta…</b></p><p class="peq" style="margin:0">Busco los números y nombres que se ven y pruebo cada uno.</p></div>`);
   const img = await achicar(file, 2000);
-  const r = await seguro(() => api("venta_leer_etiqueta", { empresa_id: emp, imagen: img.datos, tipo: img.tipo }));
+  const r = await seguro(() => api("venta_leer_etiqueta", { cliente_id: emp, imagen: img.datos, tipo: img.tipo }));
   espera.remove();
   ventaEncontrada(emp, r, r?.por_nombre ?? r?.leido?.numeros?.[0] ?? "");
 }
@@ -4396,14 +4396,14 @@ async function buscarVenta(emp, inicial = "") {
     <input type="search" id="vBus" placeholder="Número de venta o usuario del comprador" style="width:100%" value="${esc(inicial)}">
     <div id="vRes" style="margin-top:12px"><p class="mut">Cargando ventas recientes…</p></div>`);
   const cargar = async () => {
-    const r = await seguro(() => api("mensajes_ventas", { empresa_id: emp, buscar: $("#vBus", v).value.trim() }));
+    const r = await seguro(() => api("mensajes_ventas", { cliente_id: emp, buscar: $("#vBus", v).value.trim() }));
     if (!r) return;
     $("#vRes", v).innerHTML = r.ventas.map((x, i) => `<button type="button" class="venta-f" data-i="${i}"><b>${esc(x.titulo ?? "Venta")}</b><span class="mut peq">${esc(x.comprador ?? "")} · ${fecha(x.fecha)} · ${plata(x.total, x.moneda)}${x.estado === "cancelled" ? " · cancelada" : ""}</span>${x.conversacion_id ? `<span class="chip c-ok">Abierta</span>` : ""}</button>`).join("") || `<p class="mut">No encontré ventas con eso.</p>`;
     $("#vRes", v).onclick = async (e) => {
       const b = e.target.closest("[data-i]"); if (!b) return;
       const x = r.ventas[Number(b.dataset.i)];
       b.disabled = true;
-      const id = x.conversacion_id ?? (await seguro(() => api("mensajes_abrir", { empresa_id: emp, cuenta_id: x.cuenta_id, pack_id: x.pack_id })))?.id;
+      const id = x.conversacion_id ?? (await seguro(() => api("mensajes_abrir", { cliente_id: emp, cuenta_id: x.cuenta_id, pack_id: x.pack_id })))?.id;
       if (!id) { b.disabled = false; return; }
       v.remove(); S.msjFil = "todas"; await cargarHilos(emp); abrirConv(id);
     };
@@ -4421,12 +4421,12 @@ const ICONO_TIPO = (m) => m.tipo === "enlace" ? "🔗" : /^image\//.test(m.mime 
 VISTAS.material = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Documentación para enviar</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("material_lista", { empresa_id: emp }));
+  const r = await seguro(() => api("material_lista", { cliente_id: emp }));
   if (!r || S.tab !== "material") return;
   // Quién puede editar: el administrador todo; un operador, lo que le dio el permiso de "Documentación para enviar"
   S.matEdit = r.editables === "todo" ? "todo" : new Set(r.editables ?? []);
   const admin = S.matEdit === "todo" || S.matEdit.size > 0;
-  const sg = admin ? await api("docs_sugeridos", { empresa_id: emp }).catch(() => null) : null;
+  const sg = admin ? await api("docs_sugeridos", { cliente_id: emp }).catch(() => null) : null;
   if (S.tab !== "material") return;
   S.matPubs = r.publicaciones; S.docsSug = sg;
   const cargados = new Map(); for (const m of r.materiales ?? []) cargados.set(m.publicacion_id, [...(cargados.get(m.publicacion_id) ?? []), m]);
@@ -4502,10 +4502,10 @@ function hojaProducto(emp, pubId) {
   v.addEventListener("change", (e) => { if (e.target.closest(".dsug")) contar(); });
   v.addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.vers) { e.preventDefault(); b.disabled = true; const x = await seguro(() => api("docs_ver", { empresa_id: emp, clave: b.dataset.vers })); b.disabled = false; if (x) abrirArchivoB64(x); return; }
-    if (b.dataset.ver) { const x = await seguro(() => api("material_link", { empresa_id: emp, id: Number(b.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); return; }
+    if (b.dataset.vers) { e.preventDefault(); b.disabled = true; const x = await seguro(() => api("docs_ver", { cliente_id: emp, clave: b.dataset.vers })); b.disabled = false; if (x) abrirArchivoB64(x); return; }
+    if (b.dataset.ver) { const x = await seguro(() => api("material_link", { cliente_id: emp, id: Number(b.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); return; }
     if (b.dataset.cop) { v.remove(); copiarMaterial(emp, cargados.find((m) => m.id === Number(b.dataset.cop))); return; }
-    if (b.dataset.bor) { if (confirm("¿Quitar este documento de este producto?") && await seguro(() => api("material_borrar", { empresa_id: emp, id: Number(b.dataset.bor) }))) { aviso("Documento quitado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); } return; }
+    if (b.dataset.bor) { if (confirm("¿Quitar este documento de este producto?") && await seguro(() => api("material_borrar", { cliente_id: emp, id: Number(b.dataset.bor) }))) { aviso("Documento quitado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); } return; }
   });
   if (btnAgr) btnAgr.onclick = async () => {
     const elegidos = sugeridos.filter((d) => v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked);
@@ -4514,7 +4514,7 @@ function hojaProducto(emp, pubId) {
     let ok = 0;
     for (const [i, d] of elegidos.entries()) {
       btnAgr.textContent = `Agregando ${i + 1} de ${elegidos.length}…`;
-      const x = await seguro(() => api("docs_agregar", { empresa_id: emp, clave: d.clave, titulo: d.titulo || d.nombre.replace(/\.[a-z0-9]{2,4}$/i, ""), publicaciones: [pubId], cuando: $("#hjEnt", v)?.checked ? "entrega" : "mano" }));
+      const x = await seguro(() => api("docs_agregar", { cliente_id: emp, clave: d.clave, titulo: d.titulo || d.nombre.replace(/\.[a-z0-9]{2,4}$/i, ""), publicaciones: [pubId], cuando: $("#hjEnt", v)?.checked ? "entrega" : "mano" }));
       if (x) ok++;
     }
     aviso(ok === 1 ? "Agregado: ya se puede mandar" : `Agregados ${ok}: ya se pueden mandar`);
@@ -4524,7 +4524,7 @@ function hojaProducto(emp, pubId) {
     const no = sugeridos.filter((d) => !v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked).map((d) => d.clave);
     if (!no.length) return aviso("Están todos marcados");
     if (!confirm(`¿Descartar ${no.length === 1 ? "el archivo no marcado" : `los ${no.length} archivos no marcados`}? No se vuelven a sugerir para este producto.`)) return;
-    if (await seguro(() => api("docs_descartar", { empresa_id: emp, claves: no, publicacion_id: pubId }))) { aviso("Listo"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
+    if (await seguro(() => api("docs_descartar", { cliente_id: emp, claves: no, publicacion_id: pubId }))) { aviso("Listo"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
   };
   if ($("#hjSub", v)) $("#hjSub", v).onclick = () => formSubir(emp, pubId, v);
 }
@@ -4562,7 +4562,7 @@ function formSubir(emp, pubId, v) {
       m.archivo = { nombre: f.name, mime: f.type, datos: await leerB64(f) };
     } else m.url = $("#maUrl", v).value.trim();
     const b = $("#maG", v); b.disabled = true; b.textContent = "Guardando…";
-    const ok = await seguro(() => api("material_guardar", { empresa_id: emp, material: m }));
+    const ok = await seguro(() => api("material_guardar", { cliente_id: emp, material: m }));
     b.disabled = false; b.textContent = "Guardar";
     if (ok) { aviso("Documento guardado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
   };
@@ -4606,7 +4606,7 @@ function copiarMaterial(emp, m) {
   $("#cpBus", v).oninput = pintar; pintar();
   $("#cpG", v).onclick = async () => {
     if (!elegidas.size) return aviso("Elegí al menos un producto");
-    const r = await seguro(() => api("material_copiar", { empresa_id: emp, id: m.id, publicaciones: [...elegidas] }));
+    const r = await seguro(() => api("material_copiar", { cliente_id: emp, id: m.id, publicaciones: [...elegidas] }));
     if (r) { v.remove(); aviso(`Copiado a ${r.copiadas} producto${r.copiadas === 1 ? "" : "s"}`); await VISTAS.material(); hojaProducto(emp, S.matPub); }
   };
 }
@@ -4614,7 +4614,7 @@ function copiarMaterial(emp, m) {
 // ================= RENDIMIENTO DE MENSAJES =================
 async function rendimientoMensajes(emp) {
   const { desde, hasta } = rangoPer();
-  const d = await seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta, modulo: "mensajes" }));
+  const d = await seguro(() => api("rendimiento", { cliente_id: emp, desde, hasta, modulo: "mensajes" }));
   if (!d || S.tab !== "rendimiento") return;
   const t = d.totales;
   const gente = d.personas.filter((p) => p.estado !== "baja" || p.enviados);
@@ -4642,7 +4642,7 @@ async function panelModulos(res) {
       <button class="btn pri" id="pmG" style="margin-top:12px">Guardar módulos de los planes</button></div>
     <div class="panel" style="overflow-x:auto"><h2>Módulos de cada cliente</h2><p class="mut peq" style="margin:0 0 6px">Por defecto, los de su plan. Elegí “Propios” para venderle un módulo aparte.</p>
       <table class="tabla apilable"><tr><th>Cliente</th><th>Módulos</th><th></th></tr>
-      ${res.empresas.map((e) => { const propios = Array.isArray(e.modulos); const act = new Set(e.modulos_efectivos ?? []); return `<tr data-me="${e.id}"><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.plan ?? "Sin plan")}</div></td>
+      ${res.clientes.map((e) => { const propios = Array.isArray(e.modulos); const act = new Set(e.modulos_efectivos ?? []); return `<tr data-me="${e.id}"><td><b>${esc(e.nombre)}</b><div class="peq mut">${esc(e.plan ?? "Sin plan")}</div></td>
         <td><select class="meM" aria-label="Origen de los módulos"><option value="plan" ${propios ? "" : "selected"}>Los del plan</option><option value="propios" ${propios ? "selected" : ""}>Propios</option></select>
           <div class="meK" style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">${Object.entries(MODULOS).map(([k, t]) => `<label class="peq"><input type="checkbox" data-k="${k}" ${act.has(k) ? "checked" : ""} ${propios ? "" : "disabled"}> ${t}</label>`).join("")}</div></td>
         <td><button class="btn lin chico meG">Guardar</button></td></tr>`; }).join("")}</table></div>`;
@@ -4656,7 +4656,7 @@ async function panelModulos(res) {
     $(".meM", tr).onchange = () => tr.querySelectorAll(".meK input").forEach((x) => x.disabled = $(".meM", tr).value !== "propios");
     $(".meG", tr).onclick = async () => {
       const modulos = $(".meM", tr).value === "propios" ? [...tr.querySelectorAll(".meK input:checked")].map((x) => x.dataset.k) : null;
-      if (await seguro(() => api("empresa_plan", { empresa_id: tr.dataset.me, modulos }))) aviso("Módulos del cliente guardados");
+      if (await seguro(() => api("cliente_plan", { cliente_id: tr.dataset.me, modulos }))) aviso("Módulos del cliente guardados");
     };
   });
 }
@@ -4687,7 +4687,7 @@ const RT = { canales: new Map(), ok: false, listo: false, t: {} };
 const NOTAS_ABIERTAS = new Map();
 function rtSincronizar() {
   const uid = S.yo?.usuario?.id; if (!uid || !sb.channel) return;
-  const quiero = new Set([`mostrador:u:${uid}`, ...(S.yo.empresas ?? []).map((e) => `mostrador:e:${e.id}`), ...(S.soporte ? [`mostrador:e:${S.soporte}`] : []), ...(S.empSel ? [`mostrador:e:${S.empSel}`] : [])]);
+  const quiero = new Set([`mostrador:u:${uid}`, ...(S.yo.clientes ?? []).map((e) => `mostrador:e:${e.id}`), ...(S.soporte ? [`mostrador:e:${S.soporte}`] : []), ...(S.empSel ? [`mostrador:e:${S.empSel}`] : [])]);
   for (const [k, ch] of RT.canales) if (!quiero.has(k)) { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); }
   for (const k of quiero) if (!RT.canales.has(k)) {
     try {
@@ -4749,7 +4749,7 @@ function rtPonerAlDia() {
 }
 
 // ================= CHAT DEL EQUIPO y CALENDARIO =================
-const empChat = () => S.rol === "admin" ? S.empSel || S.soporte || null : (S.empresaId || S.res?.empresas?.[0]?.id || S.yo?.empresas?.[0]?.id || null);
+const empChat = () => S.rol === "admin" ? S.empSel || S.soporte || null : (S.clienteId || S.res?.clientes?.[0]?.id || S.yo?.clientes?.[0]?.id || null);
 const horaCorta = (f) => { const d = new Date(f), hoy = new Date(); return d.toDateString() === hoy.toDateString() ? d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
 // Links que se ven como link (se abren en otra pestaña) y citas resaltadas
 function textoChat(t, nombres = []) {
@@ -4780,7 +4780,7 @@ function elegirFicha(emp, alElegir) {
     <div id="fiRes" class="ficha-elegir" style="margin-top:12px;display:grid;gap:8px"><p class="mut">Cargando…</p></div>`);
   let t0;
   const buscar = async () => {
-    const r = await api("chat_buscar_refs", { empresa_id: emp, q: $("#fiBus", v).value }).catch((e) => ({ error: e.message }));
+    const r = await api("chat_buscar_refs", { cliente_id: emp, q: $("#fiBus", v).value }).catch((e) => ({ error: e.message }));
     if (!v.isConnected) return;
     $("#fiRes", v).innerHTML = r.error ? `<p class="mut">${esc(r.error)}</p>` : r.fichas.map((f) => fichaHtml(f)).join("") || `<p class="mut">No encontré nada con eso.</p>`;
   };
@@ -4792,8 +4792,8 @@ function elegirFicha(emp, alElegir) {
 // Compartir una venta, pregunta o devolución en un chat
 async function compartirEnChat(origen, ref) {
   const emp = empChat(); if (!emp) return aviso("Elegí un cliente");
-  const r = await seguro(() => api("chat_lista", { empresa_id: emp })); if (!r) return;
-  const [f] = (await api("chat_fichas", { empresa_id: emp, refs: [{ origen, ref }] }).catch(() => ({ fichas: [] }))).fichas ?? [];
+  const r = await seguro(() => api("chat_lista", { cliente_id: emp })); if (!r) return;
+  const [f] = (await api("chat_fichas", { cliente_id: emp, refs: [{ origen, ref }] }).catch(() => ({ fichas: [] }))).fichas ?? [];
   const v = abrirHoja(`<div class="cajon-cab"><h2>Compartir en el chat</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <div class="ficha-elegir">${fichaHtml(f)}</div>
     <label class="peq" style="display:block;margin:12px 0 4px">Mensaje (opcional)</label><textarea id="coTx" style="width:100%;min-height:60px"></textarea>
@@ -4801,7 +4801,7 @@ async function compartirEnChat(origen, ref) {
   v.querySelector(".co-lista").onclick = async (e) => {
     const b = e.target.closest("[data-chat]"); if (!b) return;
     b.disabled = true;
-    if (await seguro(() => api("chat_enviar", { empresa_id: emp, chat_id: Number(b.dataset.chat), texto: $("#coTx", v).value, refs: [{ origen, ref }] }))) { v.remove(); aviso("Compartido en el chat"); }
+    if (await seguro(() => api("chat_enviar", { cliente_id: emp, chat_id: Number(b.dataset.chat), texto: $("#coTx", v).value, refs: [{ origen, ref }] }))) { v.remove(); aviso("Compartido en el chat"); }
     else b.disabled = false;
   };
 }
@@ -4810,7 +4810,7 @@ const avatar = (n, tipo) => `<i class="av ${tipo === "directo" ? "" : "av-g"}" a
 // Contador del menú: mensajes sin leer y citas en notas
 async function contarChat() {
   const emp = empChat(); if (!emp || !S.rol || (S.rol === "admin" && !S.soporte)) return;
-  const r = await api("chat_contador", { empresa_id: emp }).catch(() => null); if (!r) return;
+  const r = await api("chat_contador", { cliente_id: emp }).catch(() => null); if (!r) return;
   const n = (r.chat ?? 0) + (r.citas ?? 0);
   if (n > (S.chatN ?? 0) && S.chatN != null && S.tab !== "chat") sonar?.();
   if (S.chatN !== n) { S.chatN = n; armarNav(); if (S.tab === "chat" && !S.chatAbierto) cargarChats(); }
@@ -4841,7 +4841,7 @@ VISTAS.chat = async () => {
   if (S.chatCitas) abrirCitas(); else if (S.chatId) abrirChat(S.chatId);
 };
 async function cargarChats() {
-  const emp = empChat(); const r = await api("chat_lista", { empresa_id: emp }).catch((e) => ({ error: e.message }));
+  const emp = empChat(); const r = await api("chat_lista", { cliente_id: emp }).catch((e) => ({ error: e.message }));
   if (S.tab !== "chat" || !$("#chLista")) return;
   if (r.error) { $("#chLista").innerHTML = `<p class="mut" style="padding:16px">${esc(r.error)}</p>`; return; }
   S.chatEq = r.equipo; S.chatYo = r.yo;
@@ -4858,7 +4858,7 @@ async function abrirCitas() {
   const emp = empChat();
   $("#chConv").innerHTML = `<div class="chat-cab">${anchoMovil() ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver">${ICONO_M.atras}</button>` : ""}<div class="t"><b>Te citaron en notas</b><span class="mut peq">Notas internas donde te nombraron</span></div></div><div class="ch-msjs" id="chCitas"><p class="mut">Cargando…</p></div>`;
   if ($("#chConv .m-atras")) $("#chConv .m-atras").onclick = volverChats;
-  const r = await api("chat_citas", { empresa_id: emp }).catch((e) => ({ error: e.message }));
+  const r = await api("chat_citas", { cliente_id: emp }).catch((e) => ({ error: e.message }));
   if (!$("#chCitas")) return;
   $("#chCitas").innerHTML = r.error ? `<p class="mut">${esc(r.error)}</p>` : r.citas.map((n) => `<div class="nt ${n.nueva ? "nt-nueva" : ""}"><div class="nt-cab"><b>${esc(n.autor)}</b><span>${fecha(n.fecha)}</span>${n.nueva ? `<span class="chip c-nota">Nueva</span>` : ""}</div><div class="nt-tx">${textoChat(n.texto, (S.chatEq ?? []).map((m) => m.nombre).concat(S.chatListaDatos?.yo?.nombre ?? []))}</div>${n.ficha ? `<div data-cita-ir="${n.origen}:${esc(n.ref)}">${fichaHtml(n.ficha)}</div>` : ""}</div>`).join("") || `<div class="m-vacio"><b>Nadie te citó todavía</b><span>Cuando alguien te nombre con @ en una nota, aparece acá.</span></div>`;
   // La ficha de una cita abre directamente las notas de ese lugar
@@ -4912,7 +4912,7 @@ async function abrirChat(id) {
   const ajustar = () => { tx.style.height = "auto"; tx.style.height = Math.min(tx.scrollHeight, 160) + "px"; };
   const pintarRefs = async () => {
     if (!st.refs.length) { $("#chRefs").innerHTML = ""; return; }
-    const r = await api("chat_fichas", { empresa_id: empChat(), refs: st.refs }).catch(() => ({ fichas: [] }));
+    const r = await api("chat_fichas", { cliente_id: empChat(), refs: st.refs }).catch(() => ({ fichas: [] }));
     $("#chRefs").innerHTML = (r.fichas ?? []).map((f) => fichaHtml(f, true)).join("");
   };
   $("#chRefs").onclick = (e) => { const q = e.target.closest("[data-quitar-ficha]"); if (!q) return; e.stopPropagation(); const [o, r] = q.dataset.quitarFicha.split(":"); st.refs = st.refs.filter((x) => !(x.origen === o && x.ref === r)); pintarRefs(); };
@@ -4937,7 +4937,7 @@ async function abrirChat(id) {
   const enviar = async () => {
     const t = tx.value.trim(); if (!t && !st.refs.length) return;
     $("#chEnv").disabled = true;
-    const ok = await seguro(() => api("chat_enviar", { empresa_id: empChat(), chat_id: id, texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null }));
+    const ok = await seguro(() => api("chat_enviar", { cliente_id: empChat(), chat_id: id, texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null }));
     $("#chEnv").disabled = false;
     if (!ok) return;
     tx.value = ""; ajustar(); $("#chEmoP").hidden = true; st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs(); traer(true);
@@ -4983,7 +4983,7 @@ async function abrirChat(id) {
   const traer = async (bajar) => {
     clearTimeout(S.chatTimer);
     if (S.chatId !== id || S.tab !== "chat") return;
-    const r = await api("chat_mensajes", { empresa_id: empChat(), chat_id: id, desde_id: st.ultimo || null }).catch((e) => ({ error: e.message }));
+    const r = await api("chat_mensajes", { cliente_id: empChat(), chat_id: id, desde_id: st.ultimo || null }).catch((e) => ({ error: e.message }));
     if (S.chatId !== id || !$("#chMsjs")) return;
     if (r.error) { if (!st.ultimo) $("#chMsjs").innerHTML = `<p class="mut">${esc(r.error)}</p>`; }
     else {
@@ -5017,7 +5017,7 @@ function nuevoChat(emp) {
   const sel = () => [...v.querySelectorAll(".nc-lista input:checked")].map((x) => x.value);
   v.querySelector(".nc-lista").onchange = () => { const n = sel().length; $("#ncGrupo", v).hidden = n < 2; $("#ncOk", v).disabled = !n; $("#ncOk", v).textContent = n > 1 ? "Crear grupo" : "Empezar"; };
   $("#ncOk", v).onclick = async () => {
-    const r = await seguro(() => api("chat_nuevo", { empresa_id: emp, miembros: sel(), nombre: $("#ncNom", v).value })); if (!r) return;
+    const r = await seguro(() => api("chat_nuevo", { cliente_id: emp, miembros: sel(), nombre: $("#ncNom", v).value })); if (!r) return;
     v.remove(); await cargarChats(); abrirChat(r.id);
   };
 }
@@ -5028,9 +5028,9 @@ function opcionesGrupo(chat, miembros) {
     <label class="peq" for="ogNom">Nombre</label><div class="ch-fila" style="margin-bottom:14px"><input id="ogNom" maxlength="60" value="${esc(chat.nombre)}" style="flex:1"><button class="btn lin chico" id="ogRen" type="button">Cambiar</button></div>
     ${fuera.length ? `<p class="peq mut" style="margin:0 0 6px">Sumar personas</p><div class="nc-lista">${fuera.map((m) => `<label class="nc-it"><input type="checkbox" value="${esc(m.id)}">${avatar(m.nombre, "directo")}<span>${esc(m.nombre)}</span></label>`).join("")}</div><button class="btn lin chico" id="ogSum" type="button" style="margin-top:8px">Sumar</button>` : ""}
     <div class="fila" style="margin-top:18px"><div class="n"><button class="btn pel chico" id="ogSal" type="button">Salir del grupo</button></div></div>`);
-  $("#ogRen", v).onclick = async () => { if (await seguro(() => api("chat_renombrar", { empresa_id: empChat(), chat_id: chat.id, nombre: $("#ogNom", v).value }))) { v.remove(); abrirChat(chat.id); cargarChats(); } };
-  if ($("#ogSum", v)) $("#ogSum", v).onclick = async () => { const l = [...v.querySelectorAll(".nc-lista input:checked")].map((x) => x.value); if (!l.length) return; if (await seguro(() => api("chat_agregar", { empresa_id: empChat(), chat_id: chat.id, miembros: l }))) { v.remove(); abrirChat(chat.id); } };
-  $("#ogSal", v).onclick = async () => { if (!confirm("¿Salir del grupo? Ya no vas a ver sus mensajes.")) return; if (await seguro(() => api("chat_salir", { empresa_id: empChat(), chat_id: chat.id }))) { v.remove(); volverChats(); } };
+  $("#ogRen", v).onclick = async () => { if (await seguro(() => api("chat_renombrar", { cliente_id: empChat(), chat_id: chat.id, nombre: $("#ogNom", v).value }))) { v.remove(); abrirChat(chat.id); cargarChats(); } };
+  if ($("#ogSum", v)) $("#ogSum", v).onclick = async () => { const l = [...v.querySelectorAll(".nc-lista input:checked")].map((x) => x.value); if (!l.length) return; if (await seguro(() => api("chat_agregar", { cliente_id: empChat(), chat_id: chat.id, miembros: l }))) { v.remove(); abrirChat(chat.id); } };
+  $("#ogSal", v).onclick = async () => { if (!confirm("¿Salir del grupo? Ya no vas a ver sus mensajes.")) return; if (await seguro(() => api("chat_salir", { cliente_id: empChat(), chat_id: chat.id }))) { v.remove(); volverChats(); } };
 }
 
 // ---------- Calendario ----------
@@ -5045,7 +5045,7 @@ VISTAS.calendario = async () => {
   const hoy = new Date(); S.calMes = S.calMes ?? new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const m0 = S.calMes, ini = new Date(m0); ini.setDate(1 - ((m0.getDay() + 6) % 7));
   const fin = new Date(ini); fin.setDate(ini.getDate() + 42);
-  const r = await seguro(() => api("cal_lista", { empresa_id: emp, desde: ini.toISOString(), hasta: new Date(Math.max(fin, Date.now() + 62 * 86400000)).toISOString() }));
+  const r = await seguro(() => api("cal_lista", { cliente_id: emp, desde: ini.toISOString(), hasta: new Date(Math.max(fin, Date.now() + 62 * 86400000)).toISOString() }));
   if (!r || S.tab !== "calendario") return;
   S.calDatos = r;
   const porDia = new Map(); for (const e of r.eventos) { const k = ymd(new Date(e.inicio)); porDia.set(k, [...(porDia.get(k) ?? []), e]); }
@@ -5081,12 +5081,12 @@ function verDia(d, evs) {
 // Crear o cambiar un evento. "previo" puede venir del chat (título, fecha, ficha, invitados)
 async function editarEvento(ev, previo = {}) {
   const emp = empChat();
-  const eq = S.calDatos?.equipo ?? (await api("cal_lista", { empresa_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] }))).equipo ?? [];
+  const eq = S.calDatos?.equipo ?? (await api("cal_lista", { cliente_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] }))).equipo ?? [];
   const yo = S.calDatos?.yo ?? S.chatYo?.id;
   const e = { invitados: [yo], recordatorio_min: S.calDatos?.recordatorio_def ?? 10, ...previo, ...ev };
   const nuevo = !e.id, puede = nuevo || e.puede_editar;
   const ini = e.inicio ? new Date(e.inicio) : new Date(Date.now() + 3600000);
-  const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { empresa_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
+  const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
   const v = abrirHoja(`<div class="cajon-cab"><h2>${nuevo ? "Nuevo evento" : puede ? "Evento" : esc(e.titulo)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     ${!nuevo ? `<p class="peq mut" style="margin:0 0 10px">Lo creó ${esc(e.creado_nombre ?? "")}</p>` : ""}
     <div class="ev-form">
@@ -5109,18 +5109,18 @@ async function editarEvento(ev, previo = {}) {
   if ($("#evG", v)) $("#evG", v).onclick = async () => {
     const td = $("#evTd", v).checked, f = $("#evF", v).value, h = td ? "09:00" : $("#evH", v).value || "09:00", hf = $("#evHf", v).value;
     const inicio = new Date(`${f}T${h}`), fin = !td && hf ? new Date(`${f}T${hf}`) : null;
-    const r = await seguro(() => api("cal_guardar", { empresa_id: emp, id: e.id ?? null, titulo: $("#evT", v).value, detalle: $("#evD", v).value, inicio: inicio.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: td,
+    const r = await seguro(() => api("cal_guardar", { cliente_id: emp, id: e.id ?? null, titulo: $("#evT", v).value, detalle: $("#evD", v).value, inicio: inicio.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: td,
       invitados: [...v.querySelectorAll('[data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv), recordatorio_min: $("#evR", v).value === "" ? null : Number($("#evR", v).value), ref: e.ref ?? null, chat_mensaje_id: e.chat_mensaje_id ?? null }));
     if (!r) return;
     v.remove(); aviso(nuevo ? "Evento agendado" : "Evento guardado");
     if (S.tab === "calendario") VISTAS.calendario();
   };
-  if ($("#evB", v)) $("#evB", v).onclick = async () => { if (!confirm("¿Borrar este evento?")) return; if (await seguro(() => api("cal_borrar", { empresa_id: emp, id: e.id }))) { v.remove(); aviso("Evento borrado"); if (S.tab === "calendario") VISTAS.calendario(); } };
+  if ($("#evB", v)) $("#evB", v).onclick = async () => { if (!confirm("¿Borrar este evento?")) return; if (await seguro(() => api("cal_borrar", { cliente_id: emp, id: e.id }))) { v.remove(); aviso("Evento borrado"); if (S.tab === "calendario") VISTAS.calendario(); } };
 }
 // "Agendar" en un mensaje del chat: la IA propone título, fecha y hora; la persona revisa y guarda
 async function agendarMensaje(m, miembros) {
   const espera = abrirHoja(`<div style="padding:24px;text-align:center"><b>Preparando el evento…</b></div>`);
-  const r = await api("cal_sugerir", { empresa_id: empChat(), texto: m.texto || (m.fichas?.[0]?.titulo ?? "") }).catch(() => null);
+  const r = await api("cal_sugerir", { cliente_id: empChat(), texto: m.texto || (m.fichas?.[0]?.titulo ?? "") }).catch(() => null);
   espera.remove();
   const f = r?.fecha ? new Date(`${r.fecha}T${r.hora || "09:00"}`) : new Date(Date.now() + 86400000);
   const fin = r?.hora && r?.duracion_min ? new Date(f.getTime() + r.duracion_min * 60000) : null;
@@ -5128,17 +5128,17 @@ async function agendarMensaje(m, miembros) {
 }
 
 // ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, se informa a ML con fotos) y fotos al despachar =================
-const clientesCon = (m) => (S.yo?.empresas ?? []).filter((e) => (e.modulos ?? []).includes(m));
+const clientesCon = (m) => (S.yo?.clientes ?? []).filter((e) => (e.modulos ?? []).includes(m));
 const empRec = () => {
   if (S.rol === "admin") return S.empSel;
-  if (S.empresaId) return S.empresaId;
-  if (S.rol !== "operador") return S.res?.empresas?.[0]?.id || null;
-  const es = ["despacho", "devoluciones"].includes(S.tab) ? clientesCon(S.tab) : (S.yo?.empresas ?? []);
+  if (S.clienteId) return S.clienteId;
+  if (S.rol !== "operador") return S.res?.clientes?.[0]?.id || null;
+  const es = ["despacho", "devoluciones"].includes(S.tab) ? clientesCon(S.tab) : (S.yo?.clientes ?? []);
   if (!es.some((e) => e.id === S.recEmp)) S.recEmp = es[0]?.id ?? "";
   return S.recEmp || null;
 };
 // Botones para elegir el cliente (operador que trabaja para varios y tiene elegido "Todos mis clientes")
-const chipsClientes = (m, actual) => S.rol === "operador" && !S.empresaId && clientesCon(m).length > 1
+const chipsClientes = (m, actual) => S.rol === "operador" && !S.clienteId && clientesCon(m).length > 1
   ? `<div class="m-fil" id="cliChips" style="margin:0 0 12px">${clientesCon(m).map((e) => `<button type="button" data-cli="${e.id}" class="${e.id === actual ? "on" : ""}">${esc(e.nombre)}</button>`).join("")}</div>` : "";
 function escucharClientes(alCambiar) { const c = $("#cliChips"); if (c) c.onclick = (e) => { const b = e.target.closest("[data-cli]"); if (b) { S.recEmp = b.dataset.cli; alCambiar(); } }; }
 const ICONO_R = {
@@ -5277,7 +5277,7 @@ function mostrarResultado(r, modo, sinNada) {
     // No hay una devolución para revisar (ya se procesó o es otra etiqueta): se abre la venta en Ventas
     if (r.conversacion_id && modsActuales().has("mensajes")) {
       aviso(r.devolucion_cerrada ? "Esa devolución está cerrada: te abro la venta" : r.es_devolucion ? "Esa devolución ya no está para revisar: te abro la venta" : "Ese envío no tiene una devolución abierta: te abro la venta");
-      S.msjEmp = r.empresa_id ?? S.msjEmp; S.msjId = r.conversacion_id; S.msjBus = ""; ir("mensajes"); return;
+      S.msjEmp = r.cliente_id ?? S.msjEmp; S.msjId = r.conversacion_id; S.msjBus = ""; ir("mensajes"); return;
     }
     if (r.devolucion_cerrada) { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
     aviso(r.es_devolucion ? "Esa devolución ya no está abierta" : "Esa etiqueta es de un envío de una venta, no de una devolución"); return;
@@ -5285,14 +5285,14 @@ function mostrarResultado(r, modo, sinNada) {
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
-  const r = await seguro(() => api("devolucion_buscar", { empresa_id: empRec(), codigo }));
+  const r = await seguro(() => api("devolucion_buscar", { cliente_id: empRec(), codigo }));
   if (r) mostrarResultado(r, modo, puntajeCodigo(limpiarCod(codigo)) === 0 ? "Ese es el número de seguimiento del correo. Apuntá al código de barras con el número de envío de MercadoLibre (solo números) o al QR." : "No encontré ninguna devolución con ese dato");
 }
 const limpiarCod = (c) => String(c ?? "").trim().replace(/[^0-9A-Za-z{}":,]/g, "");
 async function leerEtiquetaFoto(file, modo) {
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Leyendo la etiqueta…</b></p><p class="peq" style="margin:0">Busco los números y nombres que se ven y pruebo cada uno.</p></div>`);
   const img = await achicar(file, 2000);
-  const r = await seguro(() => api("devolucion_leer_etiqueta", { empresa_id: empRec(), imagen: img.datos, tipo: img.tipo }));
+  const r = await seguro(() => api("devolucion_leer_etiqueta", { cliente_id: empRec(), imagen: img.datos, tipo: img.tipo }));
   espera.remove();
   if (!r) return;
   const vi = [...(r.leido?.numeros ?? []), ...(r.leido?.nombres ?? [])];
@@ -5311,7 +5311,7 @@ async function achicar(file, max = 1600) {
 }
 async function subirFoto(file, etiqueta) {
   const { datos, tipo } = await achicar(file);
-  return api("devolucion_foto", { empresa_id: empRec(), datos, tipo, etiqueta });
+  return api("devolucion_foto", { cliente_id: empRec(), datos, tipo, etiqueta });
 }
 // Casillas de fotos guiadas; devuelve el estado (lista de fotos) que se va llenando
 function casillasFotos(caja, guias, fotos, cambio) {
@@ -5337,7 +5337,7 @@ VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const [r] = await Promise.all([seguro(() => api("devoluciones", { empresa_id: emp })), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
+  const [r] = await Promise.all([seguro(() => api("devoluciones", { cliente_id: emp })), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
@@ -5781,8 +5781,8 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
   const ids = lista.map((c) => c.id);
   const necesitaDatos = op.producto || op.armado || op.ruta || op.nota;
   const [r, dd] = await Promise.all([
-    seguro(() => api("despacho_etiquetas", { empresa_id: emp, ids, formato: formato === "zpl" ? "zpl" : "pdf", impresora_id: imp?.id ?? null })),
-    necesitaDatos ? seguro(() => api("despacho_datos", { empresa_id: emp, ids })) : Promise.resolve({ ventas: [] }),
+    seguro(() => api("despacho_etiquetas", { cliente_id: emp, ids, formato: formato === "zpl" ? "zpl" : "pdf", impresora_id: imp?.id ?? null })),
+    necesitaDatos ? seguro(() => api("despacho_datos", { cliente_id: emp, ids })) : Promise.resolve({ ventas: [] }),
   ]);
   alTerminar?.();
   if (!r) { espera.remove(); return; }
@@ -5834,7 +5834,7 @@ async function verificarPaquete(emp) {
   const codigo = await new Promise((fin) => escanear("Escaneá la etiqueta del paquete", fin));
   if (!codigo) return;
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><b>Buscando la venta…</b></div>`);
-  const r = await seguro(() => api("despacho_verificar", { empresa_id: emp, codigo }));
+  const r = await seguro(() => api("despacho_verificar", { cliente_id: emp, codigo }));
   espera.remove();
   if (!r) return;
   const v = r.venta;
@@ -5851,7 +5851,7 @@ async function verificarPaquete(emp) {
       ${!codigos.length ? `<button class="btn pri" type="button" id="verMan">Está bien</button>` : ""}
       ${estado === "ok" || !codigos.length ? `<button class="btn lin" type="button" id="verFot">Sacar fotos</button>` : ""}</div>`;
   const h = abrirHoja(pintar(null));
-  const guardar = (ok, leido) => seguro(() => api("despacho_verificar_guardar", { empresa_id: emp, conversacion_id: v.id, ok, codigo: leido ?? null, esperado: codigos.join(", ") }));
+  const guardar = (ok, leido) => seguro(() => api("despacho_verificar_guardar", { cliente_id: emp, conversacion_id: v.id, ok, codigo: leido ?? null, esperado: codigos.join(", ") }));
   const enganchar = () => {
     h.querySelector("#verEsc")?.addEventListener("click", async () => {
       const leido = await new Promise((fin) => escanear("Escaneá el código del producto", fin, null, { inmediato: true }));
@@ -5947,7 +5947,7 @@ VISTAS.despacho = async (op = {}) => {
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Elegí un cliente.</p></div></div>`; return; }
   if (!op.rapido) { S.dsSel = new Set(); $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>${buscandoTxt("Buscando lo que hay que despachar")}</p></div></div>`; }
   const scroll = window.scrollY, foco = document.activeElement?.id;
-  const [d] = await Promise.all([seguro(() => api("despacho_lista", { empresa_id: emp, rapido: !!op.rapido })), etqCargar(emp)]);
+  const [d] = await Promise.all([seguro(() => api("despacho_lista", { cliente_id: emp, rapido: !!op.rapido })), etqCargar(emp)]);
   if (!d || S.tab !== "despacho") return;
   vigilarDespacho(emp);
   const imps = d.impresoras ?? [];
@@ -6077,7 +6077,7 @@ VISTAS.despacho = async (op = {}) => {
   if ($("#dsSelImp")) $("#dsSelImp").onchange = async (e) => {
     impId = Number(e.target.value) || null;
     if (S.rol === "admin") { try { localStorage.setItem(`mostrador_imp_${emp}`, String(impId ?? "")); } catch {} return; }
-    if (await seguro(() => api("impresora_elegir", { empresa_id: emp, impresora_id: impId }))) aviso("Impresora guardada");
+    if (await seguro(() => api("impresora_elegir", { cliente_id: emp, impresora_id: impId }))) aviso("Impresora guardada");
   };
   $("#dsVer").onclick = () => verificarPaquete(emp);
   $("#dsImp").onclick = async () => {
@@ -6095,7 +6095,7 @@ function vigilarDespacho(emp) {
   const tick = async () => {
     if (S.tab !== "despacho" || S.dsVigila !== emp) { S.dsVigila = null; return; }
     if (!document.hidden) {
-      const r = await api("despacho_firma", { empresa_id: emp }).catch(() => null);
+      const r = await api("despacho_firma", { cliente_id: emp }).catch(() => null);
       if (r?.firma && S.tab === "despacho") {
         if (S.dsFirma && r.firma !== S.dsFirma && !document.querySelector("#dsResM:not(.oculto)")) await VISTAS.despacho({ rapido: true });
         S.dsFirma = r.firma;
@@ -6115,9 +6115,9 @@ VISTAS.listas = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>${buscandoTxt("Cargando")}</p></div></div>`;
   const mods = modsActuales();
   const [cfg, rv, rd, rr] = await Promise.all([etqCargar(emp),
-    mods.has("mensajes") ? api("mensajes", { empresa_id: emp, filtro: "todas", desde: 0, limite: 2, filtros: {} }).catch(() => null) : null,
-    mods.has("despacho") ? api("despacho_lista", { empresa_id: emp, rapido: true }).catch(() => null) : null,
-    mods.has("devoluciones") ? api("devoluciones", { empresa_id: emp }).catch(() => null) : null]);
+    mods.has("mensajes") ? api("mensajes", { cliente_id: emp, filtro: "todas", desde: 0, limite: 2, filtros: {} }).catch(() => null) : null,
+    mods.has("despacho") ? api("despacho_lista", { cliente_id: emp, rapido: true }).catch(() => null) : null,
+    mods.has("devoluciones") ? api("devoluciones", { cliente_id: emp }).catch(() => null) : null]);
   if (S.tab !== "listas") return;
   if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del negocio elige qué se ve en las listas.</p></div></div>`; return; }
   const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
@@ -6134,7 +6134,7 @@ VISTAS.listas = async () => {
 VISTAS.impresoras = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const d = await seguro(() => api("impresoras", { empresa_id: emp }));
+  const d = await seguro(() => api("impresoras", { cliente_id: emp }));
   if (!d || S.tab !== "impresoras") return;
   const imps = d.impresoras ?? [], personas = d.personas ?? [];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Las impresoras donde se imprimen las etiquetas de envío. Cargalas acá y asignale una a cada persona; cada uno puede cambiarla por otra de esta lista desde Despacho.</p></div></div>
@@ -6174,10 +6174,10 @@ VISTAS.impresoras = async () => {
   const leerOpc = () => ({ control: $("#impCtl").value, troquel: $("#impTrq").checked ? "quitar" : "dejar", producto: $("#impPrd").checked, armado: $("#impArm").checked, ruta: $("#impRut").checked, nota: $("#impNot").checked });
   const limpiar = () => { $("#impId").value = ""; $("#impNom").value = ""; $("#impFmt").value = "pdf"; ponerOpc(null); $("#impG").textContent = "Agregar impresora"; $("#impCan").classList.add("oculto"); };
   ponerOpc(null);
-  if ($("#notaG")) $("#notaG").onclick = async () => { if (await seguro(() => api("despacho_nota_guardar", { empresa_id: emp, texto: $("#notaTx").value }))) aviso("Texto de la nota guardado"); };
+  if ($("#notaG")) $("#notaG").onclick = async () => { if (await seguro(() => api("despacho_nota_guardar", { cliente_id: emp, texto: $("#notaTx").value }))) aviso("Texto de la nota guardado"); };
   form.onsubmit = async (e) => {
     e.preventDefault();
-    if (await seguro(() => api("impresora_guardar", { empresa_id: emp, id: Number($("#impId").value) || null, nombre: $("#impNom").value, formato: $("#impFmt").value, opciones: leerOpc() }))) { aviso("Impresora guardada"); VISTAS.impresoras(); }
+    if (await seguro(() => api("impresora_guardar", { cliente_id: emp, id: Number($("#impId").value) || null, nombre: $("#impNom").value, formato: $("#impFmt").value, opciones: leerOpc() }))) { aviso("Impresora guardada"); VISTAS.impresoras(); }
   };
   $("#impCan").onclick = limpiar;
   $("#main").querySelectorAll("[data-ed]").forEach((b) => b.onclick = () => {
@@ -6187,17 +6187,17 @@ VISTAS.impresoras = async () => {
   $("#main").querySelectorAll("[data-bo]").forEach((b) => b.onclick = async () => {
     const i = imps.find((x) => x.id === Number(b.dataset.bo));
     if (!confirm(`¿Borrar la impresora "${i.nombre}"? Las personas que la tenían quedan sin impresora asignada.`)) return;
-    if (await seguro(() => api("impresora_borrar", { empresa_id: emp, id: i.id }))) { aviso("Impresora borrada"); VISTAS.impresoras(); }
+    if (await seguro(() => api("impresora_borrar", { cliente_id: emp, id: i.id }))) { aviso("Impresora borrada"); VISTAS.impresoras(); }
   });
   $("#main").querySelectorAll("[data-per]").forEach((s) => s.onchange = async () => {
-    if (await seguro(() => api("impresora_asignar", { empresa_id: emp, usuario_id: s.dataset.per, impresora_id: Number(s.value) || null }))) aviso("Impresora asignada");
+    if (await seguro(() => api("impresora_asignar", { cliente_id: emp, usuario_id: s.dataset.per, impresora_id: Number(s.value) || null }))) aviso("Impresora asignada");
   });
   $("#impZeb").onclick = async () => {
     $("#impZeb").disabled = true; const l = await zebraImpresoras(); $("#impZeb").disabled = false;
     if (!l) return aviso("No encontramos el programa de Zebra (Browser Print) en esta computadora");
     const nuevas = l.filter((p) => !imps.some((i) => i.nombre === p.name));
     if (!nuevas.length) return aviso(l.length ? "Las impresoras Zebra de esta computadora ya están cargadas" : "El programa de Zebra no encontró impresoras conectadas");
-    for (const p of nuevas) await seguro(() => api("impresora_guardar", { empresa_id: emp, nombre: p.name, formato: "zpl" }));
+    for (const p of nuevas) await seguro(() => api("impresora_guardar", { cliente_id: emp, nombre: p.name, formato: "zpl" }));
     aviso(`Se agregaron ${nuevas.length === 1 ? "1 impresora" : `${nuevas.length} impresoras`}`); VISTAS.impresoras();
   };
 };
@@ -6214,7 +6214,7 @@ function fotosDespacho(env) {
   $("#dsG", v).onclick = async () => {
     if (!fotos.length) return aviso("Sacá al menos una foto");
     $("#dsG", v).disabled = true;
-    const ok = await seguro(() => api("despacho_guardar", { empresa_id: env.empresa_id ?? empRec(), cuenta_id: env.cuenta_id, envio_id: env.envio_id, orden_id: env.orden_id, item_id: env.item_id, item_titulo: env.item_titulo, nota: $("#dsNota", v).value, fotos }));
+    const ok = await seguro(() => api("despacho_guardar", { cliente_id: env.cliente_id ?? empRec(), cuenta_id: env.cuenta_id, envio_id: env.envio_id, orden_id: env.orden_id, item_id: env.item_id, item_titulo: env.item_titulo, nota: $("#dsNota", v).value, fotos }));
     $("#dsG", v).disabled = false;
     if (ok) { v.remove(); aviso("Fotos guardadas en la venta"); if (S.tab === "despacho") VISTAS.despacho(); }
   };
@@ -6225,7 +6225,7 @@ function abrirDesdeEnlace(h) {
   // El dueño de la app ve lo de un cliente entrando como soporte: un aviso de una venta, pregunta, devolución,
   // despacho, chat o calendario lo hace entrar solo, en el cliente de la que es parte, y después abre lo avisado
   if (S.rol === "admin" && !S.soporte && /^#(mensajes|pregunta|devoluciones|reclamos|despacho|chat|calendario)\b/.test(t)) {
-    const em = (S.yo?.empresas ?? []).find((x) => x.rol === "admin") ?? (S.yo?.empresas ?? [])[0];
+    const em = (S.yo?.clientes ?? []).find((x) => x.rol === "admin") ?? (S.yo?.clientes ?? [])[0];
     if (!em) return false;
     S.soporte = em.id; S.soporteNom = em.nombre; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
     try { sessionStorage.setItem("mostrador_soporte", JSON.stringify({ id: em.id, nombre: em.nombre })); } catch {}
