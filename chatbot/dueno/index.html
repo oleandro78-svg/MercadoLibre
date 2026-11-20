@@ -860,6 +860,28 @@ h3 .te{font-size:13px;margin-left:4px}
 .mat-op .peq{display:block;margin-top:2px}
 .cp-l{max-height:50vh;overflow:auto;margin-top:10px}.cp-f{display:flex;gap:8px;align-items:flex-start;padding:7px 4px;border-bottom:1px solid var(--linea);font-size:14px}
 @media (max-width:960px){.mat-grid{grid-template-columns:minmax(0,1fr)}.mat-pubs{max-height:360px}.mat-ops{grid-template-columns:1fr}.mat-it{grid-template-columns:24px minmax(0,1fr)}.mat-it .acc{grid-column:1/-1;justify-content:flex-start}}
+.hilo .h-l{grid-column:2/-1;font-size:12.5px;color:var(--piz);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+.hilo .h-nom b:empty{display:none}.hilo.sf{grid-template-columns:0 minmax(0,1fr) auto;column-gap:0}.hilo.sf .hora{padding-left:10px}
+.ult-nl{color:var(--tinta);font-weight:600}.hilo .cancel,.etq-tx .cancel{color:var(--ladrillo)}
+.cp-b{display:inline-block;font-size:11px;line-height:1;border:1px solid var(--linea);border-radius:5px;padding:2px 4px;margin-left:4px;cursor:pointer;color:var(--piz);vertical-align:1px}.cp-b:hover{background:var(--sup2)}
+.etq-tx{flex:1;min-width:0}.etq-r1{display:flex;gap:10px;justify-content:space-between;align-items:baseline;width:100%}.etq-esq{font-size:12px;color:var(--piz);white-space:nowrap;font-weight:400}
+.etq-l{display:block}.etq-tx .ds-meta:empty{display:none}
+.etq-bt{display:inline-flex!important;align-items:center;gap:6px;margin-left:auto}.etq-bt svg,#mEtq svg,#dsEtq svg{width:17px;height:17px}
+.etq-ed{display:grid;gap:10px}.etq-h{font-size:13px;color:var(--piz);margin:6px 0 0}.etq-pl{display:flex;gap:6px;flex-wrap:wrap}.etq-pl .on{background:var(--tinta);color:var(--sup);border-color:var(--tinta)}
+.etq-molde{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(90px,30%);grid-template-areas:"img r1 esq" "img r2 r2" "img r3 r3" ". r4 r4" ". mar mar";gap:12px 8px;padding:14px 12px 12px;border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
+.etq-slot{min-height:42px;border:2px dashed var(--linea);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;position:relative;background:var(--papel)}
+.etq-slot::before{content:attr(data-t);position:absolute;top:-9px;left:8px;font-size:11px;font-weight:600;color:var(--piz);background:var(--sup);padding:0 4px;white-space:nowrap}
+.etq-slot.vacio::after{content:"Soltá acá";color:var(--piz);opacity:.6;font-size:12px;margin:auto}
+.etq-slot[data-s=img]{grid-area:img}.etq-slot[data-s=esq]{grid-area:esq}.etq-slot[data-s=r1]{grid-area:r1}.etq-slot[data-s=r2]{grid-area:r2}.etq-slot[data-s=r3]{grid-area:r3}.etq-slot[data-s=r4]{grid-area:r4}.etq-slot[data-s=mar]{grid-area:mar}
+.etq-slot.sobre,.etq-pal.sobre{border-color:var(--cielo);background:var(--cielo-2)}
+.etq-pal{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border:1px dashed var(--linea);border-radius:14px;min-height:52px}
+.etq-it{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;background:var(--sup);border:1px solid var(--tinta);color:var(--tinta);display:inline-flex;gap:6px;align-items:center}
+.etq-it::before{content:"⠿";color:var(--piz)}.etq-pal .etq-it{border-style:dashed;border-color:var(--linea);color:var(--piz)}
+.etq-it.sel{outline:2px solid var(--cielo);outline-offset:2px}.etq-it.origen{opacity:.35}
+.etq-it.fantasma{position:fixed;pointer-events:none;z-index:99999;box-shadow:0 6px 18px rgba(22,32,42,.25);transform:rotate(-2deg)}
+.etq-prev{border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
+.etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:static;align-self:flex-end}
+@media (max-width:560px){.etq-molde{grid-template-columns:76px minmax(0,1fr);grid-template-areas:"img r1" "img esq" "r2 r2" "r3 r3" "r4 r4" "mar mar"}}
 </style>
 </head>
 <body>
@@ -3483,6 +3505,7 @@ VISTAS.mensajes = async () => {
   let t; $("#mBus").oninput = () => { clearTimeout(t); t = setTimeout(() => { S.msjBus = $("#mBus").value.trim(); cargarHilos(emp); }, 350); };
   $("#mEsc").onclick = () => escanear("Escanear la etiqueta del envío", (c) => ventaPorCodigo(emp, c), (f) => ventaPorFoto(emp, f));
   $("#main").querySelectorAll("[data-me]").forEach((b) => b.onclick = () => { S.msjEmp = b.dataset.me; S.msjId = null; VISTAS.mensajes(); });
+  await etqCargar(emp);
   const r = await cargarHilos(emp);
   if (S.tab !== "mensajes") return;
   if (S.msjId) abrirConv(S.msjId);
@@ -3504,17 +3527,194 @@ async function cambiarFavorita(id) {
   aviso(on ? "Venta marcada como favorita" : "Venta quitada de favoritas");
   if (!on && S.msjFil === "favoritas") document.querySelector(`#mHilos [data-fav="${id}"]`)?.closest(".hilo-w")?.remove();
 }
-function hiloHTML(c) {
+// ---------- Qué se ve en cada fila de las listas (Ventas, Despacho, Devoluciones) ----------
+// El administrador de la empresa arma la etiqueta de cada módulo: elige una plantilla y la ajusta arrastrando
+// los datos a los casilleros. Se guarda en la empresa y vale para todos los que la operan.
+const ETQ_CASILLEROS = [["img", "Foto"], ["r1", "Renglón principal"], ["esq", "Esquina"], ["r2", "Renglón 2"], ["r3", "Renglón 3"], ["r4", "Renglón 4"], ["mar", "Etiquetas de color"]];
+const etqCopiar = (v) => v ? `<span class="cp-b" role="button" tabindex="0" data-copiar="${esc(v)}" title="Copiar" aria-label="Copiar ${esc(v)}">⧉</span>` : "";
+const etqFechaHora = (f) => f ? `${new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", "")} ${new Date(f).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} hs` : "";
+function etqLlega(c) {
+  if (c.envio_entregado_at) return `Llegó el ${diaMes(c.envio_entregado_at)}`;
+  if (!c.estimada || ["delivered", "cancelled", "not_delivered"].includes(c.envio_estado)) return "";
+  const d = new Date(c.estimada), hoy = new Date(), man = new Date(Date.now() + 86400_000);
+  if (d.toDateString() === hoy.toDateString()) return "Llega hoy";
+  if (d.toDateString() === man.toDateString()) return "Llega mañana";
+  return `Llega el ${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}`;
+}
+const etqZona = (c) => c.destino?.cp ? `CP ${c.destino.cp}${c.destino.barrio || c.destino.ciudad ? ` · ${c.destino.barrio || c.destino.ciudad}` : ""}` : "";
+const etqCant = (c) => c.cantidad ? `${num(c.cantidad)} ${Number(c.cantidad) === 1 ? "unidad" : "unidades"}` : "";
+function etqAsignadosVenta(c) {
   const admin = S.rol !== "operador";
-  const ec = estadoConv(c);
-  return `<div class="hilo-w"><button type="button" class="hilo ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
-      ${foto(c.item_thumbnail)}
-      <span class="h-nom"><b>${esc(nombreComp(c))}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)}</span>
-      <span class="h-prod">${esc(c.item_titulo ?? "")}</span>${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
-      <span class="h-venta">${pagoTxt(c)}${c.envio_logistica ? ` · ${tipoEnvio(c)}` : ""}${c.comprador_negocio ? " · Negocio" : ""}${c.cantidad > 1 ? ` · ${num(c.cantidad)} unidades` : ""} · <span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span></span>
-      ${c.ultimo_texto ? `<span class="ult ${c.pendiente ? "nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""}
-      <span class="tags">${c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""}${c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""}${c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""}${ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""}${admin && c.asignados_nombres?.length ? `<span class="chip ch-at">Atiende${c.asignados_nombres.length > 1 ? "n" : ""}:${c.asignados_nombres.map((n, i) => { const e = c.asignados_estado?.[i] ?? {}; const h = (x) => new Date(x).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-          return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó el aviso el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ningún aviso de esta venta`)}">${esc(n)}</span>`; }).join("")}</span>` : ""}${c.es_mia && !admin ? `<span class="chip c-simulada">Para vos</span>` : ""}</span></button>${botonFav(c)}</div>`;
+  if (c.es_mia && !admin) return `<span class="chip c-simulada">Para vos</span>`;
+  if (!admin || !c.asignados_nombres?.length) return "";
+  const h = (x) => new Date(x).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return `<span class="chip ch-at">Atiende${c.asignados_nombres.length > 1 ? "n" : ""}:${c.asignados_nombres.map((n, i) => { const e = c.asignados_estado?.[i] ?? {};
+    return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó el aviso el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ningún aviso de esta venta`)}">${esc(n)}</span>`; }).join("")}</span>`;
+}
+const etqParaQuien = (c) => c.es_mia || c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : "";
+// Datos de cada módulo: [nombre en el editor, cómo se muestra]. Los de "Etiquetas de color" devuelven su propio chip.
+const ETQ = {
+  ventas: { titulo: "Ventas", datos: {
+    foto: ["Foto", (c) => foto(c.item_thumbnail)],
+    nombre: ["Nombre", (c) => esc(c.comprador_nombre || "")], nick: ["Usuario de ML", (c) => esc(c.comprador_nick || "")],
+    negocio: ["Negocio", (c) => c.comprador_negocio ? "Negocio" : ""],
+    hace: ["Hace cuánto", (c) => haceVivo(c.ultima_actividad || c.ultimo_msj_at || c.fecha_venta)], fecha: ["Fecha y hora de la venta", (c) => etqFechaHora(c.fecha_venta)],
+    prod: ["Producto", (c) => esc(c.item_titulo ?? "")], var: ["Variante", (c) => esc(c.item_variacion ?? "")], cant: ["Cantidad", etqCant],
+    sku: ["SKU", (c) => c.item_sku ? `SKU ${esc(c.item_sku)}${etqCopiar(c.item_sku)}` : ""],
+    nro: ["N° de venta", (c) => c.pack_id ? `#${esc(c.pack_id)}${etqCopiar(c.pack_id)}` : ""], orden: ["N° de orden", (c) => c.orden_ids?.[0] ? `#${esc(c.orden_ids[0])}${etqCopiar(c.orden_ids[0])}` : ""],
+    pago: ["Pagó", (c) => pagoTxt(c)], envio: ["Tipo de envío", (c) => c.envio_logistica ? tipoEnvio(c) : ""],
+    estado: ["Estado", (c) => `<span class="${c.estado_orden === "cancelled" ? "cancel" : ""}">${esc(estadoVenta(c))}</span>`],
+    llega: ["Cuándo llega", (c) => esc(etqLlega(c))], plazo: ["Plazo para despachar", (c) => ["ready_to_ship", "handling", "pending"].includes(c.envio_estado) ? esc(plazoDespacho(c)) : ""],
+    zona: ["Zona", (c) => esc(etqZona(c))], fact: ["Factura", (c) => c.facturada === true ? "Facturada" : c.facturada === false && c.estado_orden !== "cancelled" ? "Falta facturar" : ""],
+    ult: ["Último mensaje", (c) => c.ultimo_texto ? `<span class="${c.pendiente ? "ult-nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""],
+    notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""],
+    recl: ["Reclamo", (c) => c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""],
+    conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
+    asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", () => ""],
+  }, plantillas: [
+    ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig", "fav"] }],
+    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl", "fav"] }],
+    ["Completa", { img: ["foto"], r1: ["nombre", "nick"], esq: ["fecha"], r2: ["prod", "var", "cant", "sku"], r3: ["pago", "envio", "estado", "llega"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig", "fav"] }],
+    ["Como MercadoLibre", { img: ["foto"], r1: ["nick"], esq: ["fecha"], r2: ["prod", "var"], r3: ["cant", "sku", "envio"], r4: ["estado", "llega", "nro", "orden"], mar: ["fav"] }],
+  ] },
+  despacho: { titulo: "Despacho", datos: {
+    foto: ["Foto", (c) => foto(c.item_thumbnail)],
+    nombre: ["Nombre", (c) => esc(c.comprador_nombre || "")], nick: ["Usuario de ML", (c) => esc(c.comprador_nick || "")],
+    fecha: ["Fecha y hora de la venta", (c) => etqFechaHora(c.fecha_venta)], hace: ["Hace cuánto", (c) => haceVivo(c.fecha_venta)],
+    prod: ["Producto", (c) => esc(c.item_titulo ?? "")], var: ["Variante", (c) => esc(c.item_variacion ?? "")],
+    cant: ["Cantidad", (c) => Number(c.cantidad) > 1 ? `<b>${etqCant(c)}</b>` : etqCant(c)],
+    sku: ["SKU", (c) => c.item_sku ? `SKU ${esc(c.item_sku)}${etqCopiar(c.item_sku)}` : ""],
+    nro: ["N° de venta", (c) => c.pack_id ? `#${esc(c.pack_id)}${etqCopiar(c.pack_id)}` : ""], orden: ["N° de orden", (c) => c.orden_ids?.[0] ? `#${esc(c.orden_ids[0])}${etqCopiar(c.orden_ids[0])}` : ""],
+    envio: ["Tipo de envío", (c) => tipoEnvio(c)], plazo: ["Plazo para despachar", (c) => esc(plazoDespacho(c))], llega: ["Cuándo llega", (c) => esc(etqLlega(c))],
+    zona: ["Zona", (c) => esc(etqZona(c))], imp: ["Quién imprimió", (c) => esc(quienImprimio(c))],
+    etiq: ["Estado de la etiqueta", (c) => { const e = ETIQ_ESTADO[c.envio_subestado]; return e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""; }],
+    verif: ["Verificado", (c) => c.verificacion ? `<span class="chip ${c.verificacion.ok ? "c-ok" : "c-blo"}">${c.verificacion.ok ? "Verificado" : "No coincidía"}</span>` : ""],
+    asig: ["Asignada a", etqParaQuien],
+  }, plantillas: [
+    ["Como está", { img: ["foto"], r1: ["nombre"], esq: [], r2: ["cant", "prod"], r3: ["envio", "plazo"], r4: ["imp"], mar: ["etiq", "verif", "asig"] }],
+    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["plazo"], r2: ["cant", "prod"], r3: [], r4: [], mar: ["etiq"] }],
+    ["Para armar paquetes", { img: ["foto"], r1: ["prod"], esq: ["cant"], r2: ["var", "sku"], r3: ["nombre", "envio", "plazo"], r4: ["imp"], mar: ["etiq", "verif", "asig"] }],
+    ["Como MercadoLibre", { img: ["foto"], r1: ["nick"], esq: ["fecha"], r2: ["prod", "var"], r3: ["cant", "sku", "envio"], r4: ["llega", "nro", "orden"], mar: ["etiq"] }],
+  ] },
+  devoluciones: { titulo: "Devoluciones", datos: {
+    foto: ["Foto", (d) => foto(d.item_foto)],
+    prod: ["Producto", (d) => esc(d.item_titulo ?? "Producto")], comprador: ["Comprador", (d) => esc(d.comprador ?? "")],
+    motivo: ["Por qué lo devolvió", (d) => esc(d.motivo_comprador_txt ?? "")],
+    orden: ["N° de venta", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
+    estado: ["Estado", (d) => d.est ? `<span class="chip ${d.est.c}">${esc(d.est.t)}</span>` : ""],
+    notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", etqParaQuien],
+  }, plantillas: [
+    ["Como está", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "motivo"], r3: [], r4: [], mar: ["estado", "notas", "asig"] }],
+    ["Compacta", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
+    ["Completa", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "orden"], r3: ["motivo"], r4: [], mar: ["estado", "notas", "asig"] }],
+  ] },
+};
+// Configuración guardada de la empresa (se trae una vez por empresa)
+async function etqCargar(emp) {
+  if (!emp) return null;
+  S.etq ??= {};
+  if (!S.etq[emp]) { const r = await api("etiquetas", { empresa_id: emp }).catch(() => null); S.etq[emp] = r ?? { etiquetas: {}, puede_editar: false }; }
+  return S.etq[emp];
+}
+const etqConfig = (mod, emp) => S.etq?.[emp]?.etiquetas?.[mod] ?? ETQ[mod].plantillas[0][1];
+const etqPuede = (emp) => !!S.etq?.[emp]?.puede_editar;
+// Arma cada casillero de una fila con los datos elegidos; los vacíos no se muestran
+function etqPartes(mod, c, cfg) {
+  const D = ETQ[mod].datos, sep = '<span class="etq-sep"> · </span>';
+  const p = {};
+  for (const [k] of ETQ_CASILLEROS) {
+    const hs = (cfg[k] ?? []).filter((x) => D[x]).map((x) => D[x][1](c)).filter(Boolean);
+    p[k] = k === "mar" ? hs.join("") : hs.join(sep);
+  }
+  p.fav = (cfg.mar ?? []).includes("fav") || Object.values(cfg).flat().includes("fav");
+  return p;
+}
+// Fila genérica (Despacho y Devoluciones): foto, renglones y etiquetas de color
+const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.esq ? `<span class="etq-esq">${p.esq}</span>` : ""}</span>` : ""}${["r2", "r3", "r4"].map((k) => p[k] ? `<span class="peq etq-l">${p[k]}</span>` : "").join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
+// Copiar un número sin abrir la venta
+document.addEventListener("click", (e) => {
+  const b = e.target.closest?.("[data-copiar]"); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  navigator.clipboard?.writeText(b.dataset.copiar).then(() => aviso("Copiado"), () => aviso(b.dataset.copiar));
+}, true);
+document.addEventListener("keydown", (e) => { const b = e.target.closest?.("[data-copiar]"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); b.click(); } }, true);
+
+// Editor: plantillas arriba, la etiqueta con casilleros, los datos sin usar y cómo se ve con filas reales
+function etqEditor(mod, emp, filas, alGuardar) {
+  const def = ETQ[mod], D = def.datos;
+  let cfg = JSON.parse(JSON.stringify(etqConfig(mod, emp)));
+  for (const [k] of ETQ_CASILLEROS) cfg[k] ??= [];
+  let sel = null;
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Qué se ve en la lista de ${def.titulo}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="fx-cuerpo etq-ed">
+      <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que operan la empresa.</p>
+      <div class="etq-pl" id="etqPl">${def.plantillas.map(([t], i) => `<button type="button" class="btn lin chico" data-pl="${i}">${t}</button>`).join("")}</div>
+      <h3 class="etq-h">Etiqueta</h3><div class="etq-molde" id="etqMolde"></div>
+      <h3 class="etq-h">Datos sin usar</h3><div class="etq-pal" id="etqPal" data-s="pal"></div>
+      <h3 class="etq-h">Así se ve</h3><div class="etq-prev" id="etqPrev"></div>
+    </div>
+    <div class="fx-pie"><button class="btn lin" type="button" data-cerrar>Cancelar</button><button class="btn pri" type="button" id="etqOk">Guardar</button></div>`);
+  const chip = (k) => `<span class="etq-it" data-i="${k}" tabindex="0" role="button">${esc(D[k][0])}</span>`;
+  const muestra = filas.slice(0, 2);
+  const pintar = () => {
+    const usados = new Set(Object.values(cfg).flat());
+    h.querySelector("#etqMolde").innerHTML = ETQ_CASILLEROS.map(([s, t]) => `<div class="etq-slot ${cfg[s].length ? "" : "vacio"}" data-s="${s}" data-t="${t}">${cfg[s].filter((k) => D[k]).map(chip).join("")}</div>`).join("");
+    h.querySelector("#etqPal").innerHTML = Object.keys(D).filter((k) => !usados.has(k)).map(chip).join("") || `<span class="peq mut">Están todos en la etiqueta.</span>`;
+    if (sel) h.querySelector(`[data-i="${sel}"]`)?.classList.add("sel");
+    h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", JSON.stringify(def.plantillas[b.dataset.pl][1]) === JSON.stringify(cfg)));
+    h.querySelector("#etqPrev").innerHTML = muestra.length ? muestra.map((c) => { const p = etqPartes(mod, c, cfg);
+      return `<div class="etq-fila">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+      : `<p class="peq mut" style="padding:12px">Cuando haya ventas en la lista se ven acá de ejemplo.</p>`;
+  };
+  const mover = (k, dest, antes) => {
+    if (dest !== "pal" && (k === "foto") !== (dest === "img")) { aviso(k === "foto" ? "La foto va en su casillero" : "En ese casillero va solo la foto"); sel = null; return pintar(); }
+    for (const s in cfg) cfg[s] = cfg[s].filter((x) => x !== k);
+    if (dest !== "pal") { const l = cfg[dest]; const i = antes ? l.indexOf(antes) : -1; i < 0 ? l.push(k) : l.splice(i, 0, k); }
+    sel = null; pintar();
+  };
+  const destino = (x, y) => { const el = document.elementFromPoint(x, y)?.closest(".etq-slot,.etq-pal"); if (!el || !h.contains(el)) return null;
+    const antes = [...el.querySelectorAll(".etq-it:not(.origen)")].find((c) => { const r = c.getBoundingClientRect(); return y < r.bottom && y > r.top - 4 && x < r.left + r.width / 2; })?.dataset.i;
+    return { el, id: el.dataset.s, antes }; };
+  let dr = null;
+  h.addEventListener("pointerdown", (e) => { const t = e.target.closest(".etq-it"); if (!t) return; e.preventDefault(); dr = { k: t.dataset.i, t, x: e.clientX, y: e.clientY, f: null }; });
+  const mov = (e) => { if (!dr) return; if (!dr.f && Math.hypot(e.clientX - dr.x, e.clientY - dr.y) < 6) return;
+    if (!dr.f) { dr.f = dr.t.cloneNode(true); dr.f.classList.add("fantasma"); document.body.append(dr.f); dr.t.classList.add("origen"); }
+    dr.f.style.left = e.clientX - 20 + "px"; dr.f.style.top = e.clientY - 16 + "px";
+    // Si el dedo llega al borde de la hoja, la hoja se desplaza sola
+    const cu = h.querySelector(".fx-cuerpo"), rc = cu?.getBoundingClientRect();
+    if (rc) { clearInterval(dr.auto); const v = e.clientY < rc.top + 50 ? -12 : e.clientY > rc.bottom - 50 ? 12 : 0; if (v) dr.auto = setInterval(() => cu.scrollBy(0, v), 16); }
+    h.querySelectorAll(".sobre").forEach((x) => x.classList.remove("sobre")); destino(e.clientX, e.clientY)?.el.classList.add("sobre"); };
+  const sol = (e) => { if (!dr) return; const d = dr; dr = null; clearInterval(d.auto); h.querySelectorAll(".sobre").forEach((x) => x.classList.remove("sobre"));
+    if (!d.f) { sel = sel === d.k ? null : d.k; pintar(); return; }
+    d.f.remove(); const t = destino(e.clientX, e.clientY); if (t) mover(d.k, t.id, t.antes); else pintar(); };
+  document.addEventListener("pointermove", mov); document.addEventListener("pointerup", sol);
+  new MutationObserver((_, o) => { if (!h.isConnected) { document.removeEventListener("pointermove", mov); document.removeEventListener("pointerup", sol); o.disconnect(); } }).observe(document.body, { childList: true });
+  h.addEventListener("click", (e) => {
+    const pl = e.target.closest("[data-pl]"); if (pl) { cfg = JSON.parse(JSON.stringify(def.plantillas[pl.dataset.pl][1])); sel = null; pintar(); return; }
+    if (sel && !e.target.closest(".etq-it")) { const s = e.target.closest(".etq-slot,.etq-pal"); if (s) mover(sel, s.dataset.s); }
+  });
+  h.addEventListener("keydown", (e) => { const t = e.target.closest(".etq-it"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sel = t.dataset.i; pintar(); } });
+  h.querySelector("#etqOk").onclick = async () => {
+    const ident = { ventas: ["nombre", "nick", "prod", "nro", "orden"], despacho: ["nombre", "nick", "prod", "nro", "orden", "sku"], devoluciones: ["prod", "comprador", "orden"] }[mod];
+    if (!Object.values(cfg).flat().some((k) => ident.includes(k))) return aviso("Dejá al menos un dato que identifique la venta (nombre, usuario, producto o número)");
+    const b = h.querySelector("#etqOk"); b.disabled = true;
+    const r = await seguro(() => api("etiqueta_guardar", { empresa_id: emp, modulo: mod, config: cfg }));
+    b.disabled = false; if (!r) return;
+    S.etq[emp] = { ...(S.etq[emp] ?? {}), etiquetas: r.etiquetas, puede_editar: true };
+    h.remove(); aviso("Listo: la lista ya muestra los datos elegidos"); alGuardar?.();
+  };
+  pintar();
+}
+
+const ICONO_ETQ = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg>`;
+function hiloHTML(c) {
+  const p = etqPartes("ventas", c, etqConfig("ventas", empMsj()));
+  return `<div class="hilo-w"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
+      ${p.img || "<span></span>"}
+      <span class="h-nom"><b>${p.r1}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${p.esq}</span>
+      ${p.r2 ? `<span class="h-l">${p.r2}</span>` : ""}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
+      ${p.r3 ? `<span class="h-l">${p.r3}</span>` : ""}${p.r4 ? `<span class="h-l">${p.r4}</span>` : ""}
+      ${p.mar ? `<span class="tags">${p.mar}</span>` : ""}</button>${p.fav ? botonFav(c) : ""}</div>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
@@ -3664,9 +3864,11 @@ async function cargarHilos(emp, mas = false) {
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
       + `<span class="mas-caja"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}Ordenar: ${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
+      + (etqPuede(emp) ? `<button type="button" id="mEtq" class="fx-bt" aria-haspopup="dialog">${ICONO_ETQ}Qué mostrar</button>` : "")
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
+      if (e.target.closest("#mEtq")) { etqEditor("ventas", emp, S.msjLista?.filas ?? [], () => cargarHilos(emp)); return; }
       if (e.target.closest("#mPer")) { e.stopPropagation(); const m = $("#mPerM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mPer").setAttribute("aria-expanded", String(ab)); return; }
       const dd = e.target.closest("[data-dias]");
       if (dd) { e.stopPropagation(); if (dd.dataset.dias === "custom") { $("#mPerF").classList.remove("oculto"); $("#mPerD").focus(); return; }
@@ -5112,21 +5314,18 @@ VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const r = await seguro(() => api("devoluciones", { empresa_id: emp })); if (!r || S.tab !== "devoluciones" || S.devId) return;
+  const [r] = await Promise.all([seguro(() => api("devoluciones", { empresa_id: emp })), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
   const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
-    <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">
-        ${foto(d.item_foto)}<span class="rec-tx"><b>${esc(d.item_titulo ?? "Producto")}</b>
-        <span class="peq mut">${esc(d.comprador ?? "Comprador")}${d.motivo_comprador_txt ? ` · ${esc(d.motivo_comprador_txt)}` : ""}</span>
-        <span class="peq"><span class="chip ${d.est.c}">${esc(d.est.t)}</span>${d.con_notas ? ` <span class="chip c-nota">Notas</span>` : ""}${d.es_mia ? ` <span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && d.asignados_nombres?.length ? ` <span class="chip">Para ${esc(d.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span></span></button>`).join("")
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}${etqPuede(emp) ? `<button type="button" id="recEtq" class="etq-bt">${ICONO_ETQ}Qué mostrar</button>` : ""}</div>
+    <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
-  $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
+  $("#recFil").onclick = (e) => { if (e.target.closest("#recEtq")) { etqEditor("devoluciones", emp, lista, () => VISTAS.devoluciones()); return; } const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
 };
 
@@ -5724,7 +5923,7 @@ VISTAS.despacho = async (op = {}) => {
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Elegí un cliente.</p></div></div>`; return; }
   if (!op.rapido) { S.dsSel = new Set(); $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>${buscandoTxt("Buscando lo que hay que despachar")}</p></div></div>`; }
   const scroll = window.scrollY, foco = document.activeElement?.id;
-  const d = await seguro(() => api("despacho_lista", { empresa_id: emp, rapido: !!op.rapido }));
+  const [d] = await Promise.all([seguro(() => api("despacho_lista", { empresa_id: emp, rapido: !!op.rapido })), etqCargar(emp)]);
   if (!d || S.tab !== "despacho") return;
   vigilarDespacho(emp);
   const imps = d.impresoras ?? [];
@@ -5755,10 +5954,7 @@ VISTAS.despacho = async (op = {}) => {
       const e = ETIQ_ESTADO[c.envio_subestado], q = quienImprimio(c);
       const grupo = F.orden === "producto" ? (c.item_titulo ?? "Producto") : F.orden === "tipo" ? (LOGISTICA[c.envio_logistica] ?? c.envio_logistica) : F.orden === "zona" ? (c.destino?.cp ? `CP ${c.destino.cp}${c.destino.barrio || c.destino.ciudad ? ` · ${c.destino.barrio || c.destino.ciudad}` : ""}` : "Sin zona informada") : null;
       const cab = grupo && grupo !== previo ? `<h3 class="ds-grupo">${esc(grupo)}</h3>` : ""; previo = grupo;
-      return `${cab}<label class="ds-it"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}>${foto(c.item_thumbnail)}
-        <span class="rec-tx"><b>${esc(nombreComp(c))}</b><span class="peq">${c.cantidad > 1 ? `<b>${c.cantidad} ×</b> ` : ""}${esc(c.item_titulo ?? "")}</span>
-        <span class="ds-meta">${tipoEnvio(c)}${c.despachar_hasta ? `<span class="peq mut">${esc(plazoDespacho(c))}</span>` : ""}${e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""}${c.verificacion ? `<span class="chip ${c.verificacion.ok ? "c-ok" : "c-blo"}">${c.verificacion.ok ? "Verificado" : "No coincidía"}</span>` : ""}${c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : ""}</span>
-        ${q ? `<span class="peq mut">${esc(q)}</span>` : ""}</span></label>`;
+      return `${cab}<label class="ds-it"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}>${etqFilaHTML(etqPartes("despacho", c, etqConfig("despacho", emp)))}</label>`;
     }).join("") : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
     $("#dsN").textContent = sel.size ? `Imprimir ${sel.size === 1 ? "1 etiqueta" : `${sel.size} etiquetas`}` : "Imprimir etiquetas";
     $("#dsImp").disabled = !sel.size;
@@ -5790,6 +5986,7 @@ VISTAS.despacho = async (op = {}) => {
       <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar<span id="dsFxN"></span></button>
       <span class="mas-caja"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
+      ${etqPuede(emp) ? `<button type="button" id="dsEtq" class="fx-bt" aria-haspopup="dialog">${ICONO_ETQ}Qué mostrar</button>` : ""}
       <div class="fx-act" id="dsAct"></div></div>
     <div class="rec-lista" id="dsLista"></div>
     <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button>
@@ -5804,6 +6001,7 @@ VISTAS.despacho = async (op = {}) => {
     if (e.target.closest("#dsOrd")) { e.stopPropagation(); const m = $("#dsOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsOrd").setAttribute("aria-expanded", String(ab)); return; }
     const od = e.target.closest("[data-dord]"); if (od) { $("#dsOrdM").classList.add("oculto"); $("#dsOrd").setAttribute("aria-expanded", "false"); F.orden = od.dataset.dord; pintar(); return; }
     if (e.target.closest("#dsFx")) { hojaDespacho(); return; }
+    if (e.target.closest("#dsEtq")) { etqEditor("despacho", emp, visibles(), pintar); return; }
     const q = e.target.closest("[data-qd]"); if (!q) return;
     const k = q.dataset.qd;
     if (k === "mio") F.mio = false; else if (k === "et") F.etiqueta = "todas";
