@@ -4132,6 +4132,13 @@ function rtSincronizar() {
   }
 }
 const rtLuego = (k, f, ms = 250) => { clearTimeout(RT.t[k]); RT.t[k] = setTimeout(f, ms); };
+// Respaldo del tiempo real: si en el último minuto no llegó ningún aviso, la lista de Ventas se vuelve a pedir
+// (solo con la pantalla visible, sin una venta abierta encima en el celular y con la lista arriba de todo, para no mover lo que se está mirando)
+setInterval(() => {
+  if (S.tab !== "mensajes" || document.hidden || Date.now() - (RT.ultimoVentas ?? 0) < 55000) return;
+  const l = $("#mHilos"); if (!l || l.scrollTop > 40 || document.querySelector(".velo")) return;
+  cargarHilos(empMsj());
+}, 60000);
 function rtEvento(ev, p) {
   const yo = S.yo?.usuario?.id;
   if (ev === "chat") {
@@ -4147,6 +4154,7 @@ function rtEvento(ev, p) {
   } else if (ev === "preguntas") {
     rtLuego("av", revisarAvisos, 200);
   } else if (ev === "ventas") {
+    RT.ultimoVentas = Date.now();
     rtLuego("av", revisarAvisos, 200);
     if (S.tab === "mensajes") {
       rtLuego("hil", () => cargarHilos(empMsj()), 400);
