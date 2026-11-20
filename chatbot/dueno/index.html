@@ -147,6 +147,19 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .check{display:flex;gap:9px;align-items:flex-start;margin:10px 0;cursor:pointer}
 .check input{margin-top:3px;flex:none}
 .fila{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}.fila>*{flex:1;min-width:170px}.fila>.n{flex:0 0 auto;min-width:0}
+.act-fil{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.act-fil select{width:auto}
+.act-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:14px}.act-p{margin:0}
+.act-res > .panel.act-p{margin:0}.act-pc{display:flex;gap:10px;align-items:center;margin-bottom:10px}.act-d{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:13.5px;color:var(--piz)}.act-d b{display:block;font-size:17px;color:var(--tinta)}
+.act-lista{list-style:none;margin:0;padding:0}.act-l{display:grid;grid-template-columns:48px 32px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--sup2)}
+.act-h{font-variant-numeric:tabular-nums;color:var(--piz);font-size:13.5px}.act-q{margin-right:4px}.act-al{color:var(--ladrillo)}
+.act-dia{font-weight:700;font-size:13px;color:var(--piz);padding:12px 0 4px;text-transform:capitalize;list-style:none}
+.act-m{font-size:11.5px;font-weight:600;border-radius:6px;padding:2px 7px;margin-right:6px}
+.m-p{background:var(--cielo-2);color:var(--cielo)}.m-v{background:var(--pino-2);color:var(--pino-t)}.m-d{background:var(--ambar-2);color:var(--ambar-t)}.m-r{background:#EFE7FB;color:#6A3DB8}.m-s{background:var(--sup2);color:var(--piz)}
+.rc td,.rc th{white-space:nowrap}.rc td:first-child{white-space:normal;min-width:200px}.rc-g td{background:var(--papel);font-weight:700;font-size:12.5px;color:var(--piz)}
+.rc-mejor{background:var(--pino-2);color:var(--pino-t);border-radius:6px;padding:1px 6px;font-weight:700}.rc-malo{color:var(--ladrillo);font-weight:600}
+.rc-bar{display:block;height:6px;border-radius:3px;background:var(--sup2);margin-top:5px;width:110px}.rc-bar i{display:block;height:6px;border-radius:3px}
+.rc-heat{display:grid;gap:3px;align-items:center;font-size:12px}.rc-heat i{height:22px;border-radius:4px;display:block}
+@media (max-width:700px){.act-l{grid-template-columns:44px 1fr auto}.act-l .av-m{display:none}}
 .nf-mod{padding:0;margin-bottom:14px;overflow:hidden}.nf-mod h2{font-size:17px;margin:0;padding:14px 18px;border-bottom:1px solid var(--linea)}
 .nf-fila{display:grid;grid-template-columns:1fr auto;gap:14px;padding:12px 18px;border-top:1px solid var(--sup2);align-items:center}.nf-mod h2+.nf-fila{border-top:0}
 .nf-fila b{display:block;font-weight:600}.nf-fila b:empty{display:none}.nf-ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -1269,7 +1282,7 @@ const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["m
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
-  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["rendimiento", "Rendimiento"]],
+  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
@@ -1325,7 +1338,7 @@ function pintarPerfil() {
 }
 const VISTAS = {};
 // Lo elegido dentro de cada pantalla (solapa Preguntas o Mensajes, vista por persona, etc.) también se conserva al refrescar
-const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "matFil", "msjFil", "msjFx"];
+const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "rendVista", "actPer", "matFil", "msjFil", "msjFx"];
 addEventListener("pagehide", () => { try { sessionStorage.setItem("mostrador_estado", JSON.stringify(Object.fromEntries(ESTADO_PANT.map((k) => [k, S[k] ?? null])))); } catch {} });
 function restaurarEstado() { try { const e = JSON.parse(sessionStorage.getItem("mostrador_estado") ?? "{}"); for (const k of ESTADO_PANT) if (e[k] != null) S[k] = e[k]; } catch {} }
 function ir(t) {
@@ -1668,6 +1681,8 @@ VISTAS.rendimiento = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
   S.rendMod ??= modsActuales().has("preguntas") ? "preguntas" : "mensajes";
+  S.rendVista ??= "comparativo";
+  if (S.rendVista === "comparativo") return rendimientoComparativo(emp ?? empRec());
   if (S.rendMod === "mensajes") return rendimientoMensajes(emp);
   const { desde, hasta } = rangoPer();
   const [d, au] = await Promise.all([seguro(() => api("rendimiento", { empresa_id: emp, desde, hasta })), seguro(() => api("autonomia", { empresa_id: emp }))]);
@@ -1704,7 +1719,7 @@ VISTAS.rendimiento = async () => {
     <div class="panel"><h2>Respuestas que quedaron incompletas</h2><p class="mut peq" style="margin:0 0 8px">Las últimas en las que el comprador volvió a preguntar. Sirven para corregir el criterio del equipo o las instrucciones del bot.</p>
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, false)}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
-  pestModulo("rendMod", VISTAS.rendimiento, ["preguntas", "mensajes", "devoluciones"]);
+  pestRend();
   if ($("#auto")) $("#auto").onclick = async (ev) => {
     const b = ev.target.closest("[data-auto]"); if (!b) return;
     const activar = b.dataset.on === "1", c = au.categorias.find((x) => x.id === b.dataset.auto);
@@ -1857,6 +1872,121 @@ VISTAS.misnotif = async () => {
     guardar();
   };
 };
+
+// ---------- Equipo → Actividad (registro de lo que hizo cada persona) ----------
+const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Devoluciones", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], app: ["App", "m-s"] };
+const ACT_PER = [["hoy", "Hoy"], ["ayer", "Ayer"], ["7d", "Últimos 7 días"], ["30d", "Últimos 30 días"]];
+const colorDe = (lista, id) => PALETA[Math.max(0, lista.findIndex((x) => x.id === id)) % PALETA.length];
+const avAct = (p, c) => `<span class="av-m" style="width:32px;height:32px;background:${c}22;color:${c};box-shadow:inset 0 0 0 2px ${c}" aria-hidden="true">${esc(iniciales(p?.nombre ?? "?"))}</span>`;
+const horaAct = (iso) => new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+const durAct = (seg) => !seg ? "—" : seg < 3600 ? `${Math.round(seg / 60)} min` : `${Math.floor(seg / 3600)} h ${String(Math.round((seg % 3600) / 60)).padStart(2, "0")} min`;
+function rangoAct(k) {
+  const a = new Date(), d = new Date(); d.setHours(0, 0, 0, 0);
+  if (k === "ayer") { const h = new Date(d); d.setDate(d.getDate() - 1); return { desde: d.toISOString(), hasta: h.toISOString() }; }
+  if (k === "7d") d.setDate(d.getDate() - 6); else if (k === "30d") d.setDate(d.getDate() - 29);
+  return { desde: d.toISOString(), hasta: a.toISOString() };
+}
+VISTAS.actividad = async () => {
+  const emp = empRec();
+  if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Actividad</h1><p>Elegí una empresa.</p></div></div>`; return; }
+  S.actPer ??= "hoy"; S.actQuien ??= ""; S.actMod ??= "";
+  const r = await seguro(() => api("actividad_lista", { empresa_id: emp, ...rangoAct(S.actPer), usuario_id: S.actQuien || null, modulo: S.actMod || null }));
+  if (!r || S.tab !== "actividad") return;
+  const pers = r.personas;
+  const nom = new Map(pers.map((p) => [p.id, p]));
+  const modsHay = ["preguntas", "ventas", "despacho", "devoluciones", "notas", "conocimiento", "calendario", "equipo"].filter((k) => k !== "ventas" || r.modulos.includes("mensajes")).filter((k) => !["preguntas", "despacho", "devoluciones"].includes(k) || r.modulos.includes(k));
+  const unDia = S.actPer === "hoy" || S.actPer === "ayer";
+  let diaAnt = "";
+  const lineas = r.eventos.map((e) => {
+    const dia = new Date(e.at).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const cab = !unDia && dia !== diaAnt ? `<li class="act-dia">${esc(dia)}</li>` : ""; diaAnt = dia;
+    const p = nom.get(e.uid), [mt, mc] = ACT_MOD[e.modulo] ?? [e.modulo, "m-s"];
+    return `${cab}<li class="act-l"><span class="act-h">${horaAct(e.at)}</span>${avAct(p, colorDe(pers, e.uid))}<span><b class="act-q">${esc(p?.nombre ?? "Ex integrante")}</b> <span class="act-m ${mc}">${esc(mt)}</span><span class="${e.alerta ? "act-al" : ""}">${esc(e.texto)}</span>${e.nota ? `<span class="peq mut" style="display:block">${esc(e.nota)}</span>` : ""}</span>${e.ir ? `<button type="button" class="enlace" data-ir="${esc(e.ir)}">Ver</button>` : "<span></span>"}</li>`;
+  }).join("");
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Actividad</h1><p>Qué hizo cada persona del equipo, con fecha y hora. Del chat del equipo solo se cuenta cuántos mensajes escribió cada uno, no qué escribió.</p></div></div>
+    <div class="act-fil">${nfSeg("_per", "p", S.actPer, ACT_PER)}
+      <select id="actQuien" aria-label="Persona"><option value="">Todo el equipo</option>${pers.map((p) => `<option value="${p.id}" ${S.actQuien === p.id ? "selected" : ""}>${esc(p.nombre)}</option>`).join("")}</select>
+      <select id="actMod" aria-label="Módulo"><option value="">Todos los módulos</option>${modsHay.map((k) => `<option value="${k}" ${S.actMod === k ? "selected" : ""}>${ACT_MOD[k][0]}</option>`).join("")}</select></div>
+    <div class="act-res">${pers.filter((p) => !S.actQuien || p.id === S.actQuien).map((p) => `<div class="panel act-p"><div class="act-pc">${avAct(p, colorDe(pers, p.id))}<div><b>${esc(p.nombre)}</b><div class="peq mut">${p.conectado ? "Con la app abierta ahora" : p.ultima_conexion ? `Última vez ${hace(p.ultima_conexion)}` : "No entró en el período"}</div></div></div>
+      <div class="act-d"><span>${unDia ? "Entró" : "Primera entrada"}<b>${p.entro ? (unDia ? horaAct(p.entro) : fechaCorta(p.entro)) : "—"}</b></span><span>Con la app abierta<b>${durAct(p.segundos)}</b></span><span>Acciones<b>${num(p.acciones)}</b></span><span>Mensajes en el chat<b>${num(p.chat)}</b></span></div></div>`).join("")}</div>
+    <div class="panel"><h2>Registro${r.total > r.eventos.length ? ` <span class="peq mut">(las ${r.eventos.length} más recientes de ${num(r.total)})</span>` : ""}</h2>${lineas ? `<ul class="act-lista">${lineas}</ul>` : `<p class="mut">No hay actividad en este período.</p>`}</div>`;
+  $("#main").onclick = (e) => {
+    const s = e.target.closest("[data-sec='_per']"); if (s) { S.actPer = s.dataset.v; VISTAS.actividad(); return; }
+    const b = e.target.closest("[data-ir]"); if (b) { location.hash = "#" + b.dataset.ir; abrirDesdeEnlace("#" + b.dataset.ir); }
+  };
+  $("#actQuien").onchange = (e) => { S.actQuien = e.target.value; VISTAS.actividad(); };
+  $("#actMod").onchange = (e) => { S.actMod = e.target.value; VISTAS.actividad(); };
+};
+
+// ---------- Equipo → Rendimiento → Comparativo ----------
+async function rendimientoComparativo(emp) {
+  const { desde, hasta } = rangoPer();
+  const r = await seguro(() => api("rendimiento_comparativo", { empresa_id: emp, desde, hasta }));
+  if (!r || S.tab !== "rendimiento" || S.rendVista !== "comparativo") return;
+  const P = r.personas, mods = new Set(r.modulos);
+  // Una fila: valores por persona, el mejor en verde y el que se aleja mucho del promedio, en rojo
+  const fila = (titulo, ayuda, val, fmt, mejorEs = "alto", barra = false) => {
+    const v = P.map(val);
+    const nums = v.filter((x) => x != null && !Number.isNaN(x));
+    if (!nums.length) return "";
+    const prom = nums.reduce((a, b) => a + b, 0) / nums.length;
+    const mejor = nums.length > 1 ? (mejorEs === "alto" ? Math.max(...nums) : Math.min(...nums)) : null;
+    const malo = (x) => nums.length > 1 && prom > 0 && (mejorEs === "alto" ? x < prom * 0.5 : x > prom * 1.6);
+    const max = Math.max(...nums, 1);
+    return `<tr><td><b>${titulo}</b>${ayuda ? `<div class="peq mut">${ayuda}</div>` : ""}</td>${v.map((x, i) => `<td data-et="${esc(P[i].nombre)}">${x == null ? `<span class="mut">—</span>` : `<span class="${mejor != null && x === mejor ? "rc-mejor" : malo(x) ? "rc-malo" : ""}">${fmt(x)}</span>${barra ? `<span class="rc-bar"><i style="width:${(x / max) * 100}%;background:${PALETA[i % PALETA.length]}"></i></span>` : ""}`}</td>`).join("")}<td class="mut" data-et="Promedio">${fmt(mejorEs === "bajo" || !Number.isInteger(prom) ? Math.round(prom * 10) / 10 : prom)}</td></tr>`;
+  };
+  const g = (t) => `<tr class="rc-g"><td colspan="${P.length + 2}">${t}</td></tr>`;
+  const n = (x) => num(Math.round(x)), pc = (x) => `${Math.round(x)}%`, d = (x) => dur(x), h = (x) => durAct(x), dec = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
+  const filas = [
+    ...(mods.has("preguntas") ? [g("Preguntas"),
+      fila("Respondidas", "", (p) => p.preguntas?.respondidas ?? null, n, "alto", true),
+      fila("Tiempo típico de respuesta", "Desde que llega hasta que sale", (p) => p.preguntas?.respondidas ? p.preguntas.tiempo_mediana_seg : null, d, "bajo"),
+      fila("Con repregunta", "El comprador volvió a preguntar: respuesta incompleta", (p) => p.preguntas?.respondidas ? p.preguntas.repreguntas_pct : null, pc, "bajo"),
+      fila("Usó el borrador del bot sin cambios", "", (p) => p.preguntas?.sin_cambios_pct ?? null, pc, "alto"),
+      fila("Descartadas", "", (p) => p.preguntas?.descartadas ?? null, n, "bajo")] : []),
+    ...(mods.has("mensajes") ? [g("Ventas"),
+      fila("Mensajes enviados a compradores", "", (p) => p.ventas?.enviados ?? null, n, "alto", true),
+      fila("Ventas atendidas", "", (p) => p.ventas?.conversaciones ?? null, n, "alto"),
+      fila("Tiempo típico de respuesta al comprador", "", (p) => p.ventas?.enviados ? p.ventas.tiempo_mediana_seg : null, d, "bajo")] : []),
+    ...(mods.has("despacho") || mods.has("devoluciones") ? [g("Despacho y devoluciones"),
+      ...(mods.has("despacho") ? [fila("Etiquetas impresas", "", (p) => p.despacho?.etiquetas ?? null, n, "alto", true)] : []),
+      ...(mods.has("devoluciones") ? [fila("Devoluciones revisadas", "", (p) => p.devoluciones?.revisadas ?? null, n, "alto"),
+        fila("Informadas antes del vencimiento", "", (p) => p.devoluciones?.a_tiempo_pct ?? null, pc, "alto")] : [])] : []),
+    g("Tiempo"),
+    fila("Con la app abierta", "", (p) => p.tiempo.segundos || null, h, "alto"),
+    fila("Acciones por hora con la app abierta", "Con al menos 10 minutos de uso", (p) => p.tiempo.por_hora, dec, "alto"),
+    fila("Mensajes en el chat del equipo", "", (p) => p.tiempo.chat, n, "alto"),
+  ].join("");
+  // Mapa de calor: acciones por hora del día (lunes a viernes)
+  const desdeH = 7, hastaH = 22, horas = Array.from({ length: hastaH - desdeH }, (_, i) => desdeH + i);
+  const maxH = Math.max(1, ...P.flatMap((p) => p.horas.slice(desdeH, hastaH)));
+  const calor = `<div class="rc-heat" style="grid-template-columns:110px repeat(${horas.length},1fr)"><span></span>${horas.map((x) => `<span class="peq mut">${x}</span>`).join("")}
+    ${P.map((p, i) => `<b>${esc(p.nombre)}</b>${horas.map((x) => { const v = p.horas[x] / maxH; return `<i title="${p.horas[x]} acciones entre las ${x} y las ${x + 1}" style="background:${v ? PALETA[i % PALETA.length] : "var(--sup2)"};opacity:${v ? 0.18 + v * 0.82 : 1}"></i>`; }).join("")}`).join("")}</div>`;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Comparación entre las personas del equipo. Período: ${esc(nombrePer())}. En verde, el mejor valor de cada fila; en rojo, los que se alejan mucho del promedio. Si alguien no está asignado a un módulo, aparece un guion.</p></div>${selPeriodo()}</div>
+    <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th>${esc(p.nombre)}</th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
+    <div class="panel"><h2>A qué hora trabaja cada uno</h2><p class="peq mut" style="margin:-4px 0 10px">Acciones por hora del día, de lunes a viernes, en el período. Más intenso, más actividad.</p>${calor}</div>`;
+  enlazarPeriodo(VISTAS.rendimiento);
+  pestRend();
+}
+// Solapas de Rendimiento: Comparativo y el detalle de cada módulo
+function pestRend() {
+  pestModulo("rendMod", VISTAS.rendimiento, ["preguntas", "mensajes", "devoluciones"]);
+  let t = $("#main .pestanas");
+  if (!t) { $("#main .cabecera").insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist"></div>`); t = $("#main .pestanas"); }
+  t.insertAdjacentHTML("afterbegin", `<button role="tab" type="button" data-rc="1" aria-selected="${S.rendVista === "comparativo"}" class="${S.rendVista === "comparativo" ? "on" : ""}">Comparativo</button>`);
+  if (S.rendVista === "comparativo") t.querySelectorAll("[data-mod]").forEach((b) => { b.classList.remove("on"); b.setAttribute("aria-selected", "false"); });
+  t.onclick = (e) => {
+    if (e.target.closest("[data-rc]")) { if (S.rendVista !== "comparativo") { S.rendVista = "comparativo"; VISTAS.rendimiento(); } return; }
+    const b = e.target.closest("[data-mod]"); if (!b) return;
+    S.rendVista = "modulo"; S.rendMod = b.dataset.mod; VISTAS.rendimiento();
+  };
+}
+// Latido de cada minuto mientras la app está visible: así se sabe cuánto tiempo la tuvo abierta cada persona
+setInterval(() => {
+  if (document.hidden || !S.rol || typeof api !== "function" || S.modo !== "usuario") return;
+  if (S.rol === "admin" && !S.soporte) return;
+  api("conexion", { empresa_id: S.rol === "admin" ? S.soporte : null, dispositivo: /Mobi|Android/i.test(navigator.userAgent) ? "celular" : "computadora" }).catch(() => {});
+}, 60000);
 
 VISTAS.permisos = async () => {
   const emp = empRec();
@@ -4192,7 +4322,7 @@ async function rendimientoMensajes(emp) {
       ${gente.map((p) => `<tr><td><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Mensajes enviados">${num(p.enviados)}</td><td data-et="Ventas atendidas">${num(p.conversaciones)}</td><td data-et="Tiempo típico">${dur(p.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
       ${t.desde_mercadolibre.enviados ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Respondidos fuera de Mostrador</div></td><td data-et="Mensajes enviados">${num(t.desde_mercadolibre.enviados)}</td><td data-et="Ventas atendidas">${num(t.desde_mercadolibre.conversaciones)}</td><td data-et="Tiempo típico">${dur(t.desde_mercadolibre.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(t.desde_mercadolibre.tiempo_prom_seg)}</td></tr>` : ""}</table></div>`;
   enlazarPeriodo(VISTAS.rendimiento);
-  pestModulo("rendMod", VISTAS.rendimiento, ["preguntas", "mensajes", "devoluciones"]);
+  pestRend();
 }
 
 // ================= PLANES Y MÓDULOS (dueño) =================
