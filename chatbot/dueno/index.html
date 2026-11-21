@@ -4767,11 +4767,25 @@ function rtEvento(ev, p) {
   }
 }
 // Al volver la conexión (por ejemplo, el celular recuperó señal) se pone al día todo
+// El celular corta la conexión en vivo cuando la app queda en segundo plano o se bloquea la pantalla, y a veces no avisa.
+// Al volver a la app (o recuperar internet) se rearma la conexión y se trae lo que pasó mientras tanto; además se revisa cada 20 segundos.
+function rtRevisar(ponerAlDia) {
+  if (!S.yo?.usuario?.id || !sb.channel) return;
+  let caidos = 0;
+  for (const [k, ch] of RT.canales) if (ch.state && ch.state !== "joined" && ch.state !== "joining") { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); caidos++; }
+  try { if (sb.realtime && !sb.realtime.isConnected()) { sb.realtime.connect(); caidos++; } } catch {}
+  if (caidos) { RT.ok = false; rtSincronizar(); }
+  if (ponerAlDia || caidos) rtPonerAlDia();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.rol) rtRevisar(true); });
+window.addEventListener("online", () => { if (S.rol) rtRevisar(true); });
+window.addEventListener("pageshow", (e) => { if (e.persisted && S.rol) rtRevisar(true); });
+setInterval(() => { if (!document.hidden && S.rol) rtRevisar(false); }, 20000);
 function rtPonerAlDia() {
   revisarAvisos(); contarChat();
   if (S.tab === "chat" && S.chatTraer) S.chatTraer();
-  if (S.tab === "mensajes") cargarHilos(empMsj());
-  if (S.tab === "despacho") VISTAS.despacho({ rapido: true });
+  if (S.tab === "mensajes") { cargarHilos(empMsj()); if (S.msjId && !document.querySelector(".velo")) refrescarConv(S.msjId); }
+  if (S.tab === "despacho" && !document.querySelector(".velo")) VISTAS.despacho({ rapido: true });
 }
 
 // ================= CHAT DEL EQUIPO y CALENDARIO =================
