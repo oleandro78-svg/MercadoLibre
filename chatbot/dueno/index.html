@@ -886,7 +886,8 @@ h3 .te{font-size:13px;margin-left:4px}
 .m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{column-gap:4px;align-items:center}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
 @media (max-width:960px){#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 @media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
-.etq-ld{display:flex!important;justify-content:space-between;align-items:baseline;gap:10px;-webkit-line-clamp:unset!important}.etq-li{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.etq-ld .etq-esq{text-align:right;flex:none;max-width:45%}
+.etq-ld{display:flex!important;align-items:baseline;gap:6px 10px;-webkit-line-clamp:unset!important}.etq-ld .etq-esq{margin-left:auto}.etq-li{min-width:0;flex:0 1 auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.etq-ld .etq-esq{text-align:right;flex:none;max-width:45%}
+.fav-in,.hilo-w .fav-in,.etq-fila .fav-in{position:static;width:24px;height:24px;vertical-align:middle;margin:-4px 0}.fav-in svg{width:18px;height:18px}.tags .fav-in{margin:0}
 </style>
 </head>
 <body>
@@ -3525,6 +3526,8 @@ VISTAS.mensajes = async () => {
 const POR_PAGINA = 40;
 // Favoritas: cada persona marca con el corazón las ventas que quiere tener a mano
 const ICONO_COR = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+// Corazón dentro de la fila (la fila es un botón, así que el corazón es un elemento con rol de botón)
+const favEnFila = (c) => `<span role="button" tabindex="0" class="fav-h fav-in ${c.favorita ? "on" : ""}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICONO_COR}</span>`;
 const botonFav = (c, extra = "") => `<button type="button" class="fav-h ${c.favorita ? "on" : ""} ${extra}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICONO_COR}</button>`;
 async function cambiarFavorita(id) {
   const fila = (S.msjLista?.filas ?? []).find((x) => x.id === id);
@@ -3580,7 +3583,7 @@ const ETQ = {
     notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""],
     recl: ["Reclamo", (c) => c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""],
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
-    asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", () => ""],
+    asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", (c) => favEnFila(c)],
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl"] }],
@@ -3634,17 +3637,19 @@ const etqPuede = (emp) => !!S.etq?.[emp]?.puede_editar;
 function etqPartes(mod, c, cfg) {
   const D = ETQ[mod].datos, sep = '<span class="etq-sep"> · </span>';
   const p = {};
+  p.f = {};
   for (const [k] of ETQ_CASILLEROS) {
-    const hs = (cfg[k] ?? []).filter((x) => D[x]).map((x) => D[x][1](c)).filter(Boolean);
+    const ks = (cfg[k] ?? []).filter((x) => D[x]);
+    // El corazón va donde lo puso el administrador, pero fuera del texto recortado para que nunca quede oculto
+    if (k !== "mar" && ks.includes("fav")) p.f[k] = D.fav[1](c);
+    const hs = ks.filter((x) => k === "mar" || x !== "fav").map((x) => D[x][1](c)).filter(Boolean);
     p[k] = k === "mar" ? hs.join("") : hs.join(sep);
   }
-  p.fav = (cfg.mar ?? []).includes("fav") || Object.values(cfg).flat().includes("fav");
   return p;
 }
-// El corazón se dibuja aparte, arriba a la derecha
 // Fila genérica (Despacho y Devoluciones): foto, renglones y etiquetas de color
-const etqDer = (izq, der, clase) => izq || der ? `<span class="${clase}${der ? " etq-ld" : ""}">${der ? `<span class="etq-li">${izq}</span><span class="etq-esq">${der}</span>` : izq}</span>` : "";
-const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.esq ? `<span class="etq-esq">${p.esq}</span>` : ""}</span>` : ""}${[2, 3, 4].map((n) => etqDer(p["r" + n], p["d" + n], "peq etq-l")).join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
+const etqDer = (izq, der, clase, favI = "", favD = "") => izq || der || favI || favD ? `<span class="${clase}${der || favI || favD ? " etq-ld" : ""}">${der || favI || favD ? `<span class="etq-li">${izq}</span>${favI}${der || favD ? `<span class="etq-esq">${der}${favD}</span>` : ""}` : izq}</span>` : "";
+const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq || p.f.r1 || p.f.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.f.r1 ?? ""}${p.esq || p.f.esq ? `<span class="etq-esq">${p.esq}${p.f.esq ?? ""}</span>` : ""}</span>` : ""}${[2, 3, 4].map((n) => etqDer(p["r" + n], p["d" + n], "peq etq-l", p.f["r" + n] ?? "", p.f["d" + n] ?? "")).join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
 // Copiar un número sin abrir la venta
 document.addEventListener("click", (e) => {
   const b = e.target.closest?.("[data-copiar]"); if (!b) return;
@@ -3658,7 +3663,6 @@ function etqEditor(mod, emp, filas, alGuardar) {
   const def = ETQ[mod], D = def.datos;
   let cfg = JSON.parse(JSON.stringify(etqConfig(mod, emp)));
   for (const [k] of ETQ_CASILLEROS) cfg[k] ??= [];
-  if (Object.values(cfg).flat().includes("fav") && !cfg.esq.includes("fav")) { for (const k in cfg) cfg[k] = cfg[k].filter((x) => x !== "fav"); cfg.esq.push("fav"); }
   let sel = null;
   const h = abrirHoja(`<div class="cajon-cab"><h2>Qué se ve en la lista de ${def.titulo}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <div class="fx-cuerpo etq-ed">
@@ -3678,12 +3682,11 @@ function etqEditor(mod, emp, filas, alGuardar) {
     if (sel) h.querySelector(`[data-i="${sel}"]`)?.classList.add("sel");
     h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", ETQ_CASILLEROS.every(([k]) => JSON.stringify(def.plantillas[b.dataset.pl][1][k] ?? []) === JSON.stringify(cfg[k] ?? []))));
     h.querySelector("#etqPrev").innerHTML = muestra.length ? muestra.map((c) => { const p = etqPartes(mod, c, cfg);
-      return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+      return `<div class="etq-fila">${etqFilaHTML(p)}</div>`; }).join("")
       : `<p class="peq mut" style="padding:12px">Cuando haya ventas en la lista se ven acá de ejemplo.</p>`;
   };
   const mover = (k, dest, antes) => {
     if (dest !== "pal" && (k === "foto") !== (dest === "img")) { aviso(k === "foto" ? "La foto va en su casillero" : "En ese casillero va solo la foto"); sel = null; return pintar(); }
-    if (dest !== "pal" && k === "fav" && dest !== "esq") { aviso("El corazón va en la esquina"); sel = null; return pintar(); }
     for (const s in cfg) cfg[s] = cfg[s].filter((x) => x !== k);
     if (dest !== "pal") { const l = cfg[dest]; const i = antes ? l.indexOf(antes) : -1; i < 0 ? l.push(k) : l.splice(i, 0, k); }
     sel = null; pintar();
@@ -3725,12 +3728,12 @@ function etqEditor(mod, emp, filas, alGuardar) {
 const ICONO_ETQ = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg>`;
 function hiloHTML(c) {
   const p = etqPartes("ventas", c, etqConfig("ventas", empMsj()));
-  return `<div class="hilo-w ${p.fav ? "cf" : ""}"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
+  return `<div class="hilo-w"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${p.img || "<span></span>"}
-      <span class="h-nom"><b>${p.r1}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${p.esq}</span>
-      ${etqDer(p.r2, p.d2, "h-l")}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
-      ${etqDer(p.r3, p.d3, "h-l")}${etqDer(p.r4, p.d4, "h-l")}
-      ${p.mar ? `<span class="tags">${p.mar}</span>` : ""}</button>${p.fav ? botonFav(c) : ""}</div>`;
+      <span class="h-nom"><b>${p.r1}</b>${p.f.r1 ?? ""}${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${p.esq}${p.f.esq ?? ""}</span>
+      ${etqDer(p.r2, p.d2, "h-l", p.f.r2 ?? "", p.f.d2 ?? "")}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
+      ${etqDer(p.r3, p.d3, "h-l", p.f.r3 ?? "", p.f.d3 ?? "")}${etqDer(p.r4, p.d4, "h-l", p.f.r4 ?? "", p.f.d4 ?? "")}
+      ${p.mar ? `<span class="tags">${p.mar}</span>` : ""}</button></div>`;
 }
 // "Buscando" con tres puntos que se mueven
 const buscandoTxt = (t = "Buscando") => `${t}<span class="puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`;
@@ -3897,6 +3900,7 @@ async function cargarHilos(emp, mas = false) {
       const o = e.target.closest("[data-ord]"); if (o) { S.msjFx = { ...(S.msjFx ?? {}) }; if (o.dataset.ord) S.msjFx.orden = o.dataset.ord; else delete S.msjFx.orden; cargarHilos(emp); return; }
       const q = e.target.closest("[data-qx]"); if (q) { if (q.dataset.qx === "__fil") S.msjFil = "todas"; else delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
+    $("#mHilos").onkeydown = (e) => { const f = e.target.closest?.("[data-fav]"); if (f && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); cambiarFavorita(Number(f.dataset.fav)); } };
     $("#mHilos").onclick = (e) => { const f = e.target.closest("[data-fav]"); if (f) { cambiarFavorita(Number(f.dataset.fav)); return; } const b = e.target.closest("[data-c]"); if (b) abrirConv(Number(b.dataset.c)); };
     $("#mHilos").innerHTML = r.filas.length || r.importando ? "" : S.msjBus ? `<div class="vacio" style="margin:18px" id="mFuera"><b>No está en tu lista</b><span>${buscandoTxt("Buscando en tus cuentas")}</span></div>` : `<div class="vacio" style="margin:18px"><b>${S.msjBus ? "No encontré ventas con eso" : S.msjFil === "pendientes" ? "Todo respondido" : S.msjFil === "favoritas" ? "Todavía no marcaste ventas como favoritas" : S.msjFil === "todas" ? "Todavía no hay ventas" : "No hay ventas con este filtro"}</b>${S.msjFil === "pendientes" && !S.msjBus ? "Cuando un comprador escriba, aparece acá y te llega un aviso." : S.msjBus ? "La búsqueda es sobre las ventas de la lista." : ""}</div>`;
     if (!r.filas.length && !r.importando && S.msjBus) buscarFuera(emp, S.msjBus);
@@ -6167,7 +6171,7 @@ VISTAS.listas = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que trabajan en el negocio; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
-      <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
+      <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila">${etqFilaHTML(p)}</div>`; }).join("")
         || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
       || `<div class="panel vacio">Tu negocio no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
