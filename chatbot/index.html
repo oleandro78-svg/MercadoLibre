@@ -1342,7 +1342,7 @@ function armarNav() {
   else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
   else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
   $("#nav").innerHTML = html;
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") S.recFil = "revisar"; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
 }
 // Deja claro quién está mirando: dueño de la app, administrador de un cliente, operador o soporte
@@ -3617,7 +3617,7 @@ const ETQ = {
     motivo: ["Por qué lo devolvió", (d) => esc(d.motivo_comprador_txt ?? "")],
     orden: ["N° de venta", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
     estado: ["Estado", (d) => d.est ? `<span class="chip ${d.est.c}">${esc(d.est.t)}</span>` : ""],
-    notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", etqParaQuien],
+    notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", (d) => ["revisar", "aprobar"].includes(d.est?.grupo) ? etqParaQuien(d) : ""],
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "motivo"], r3: [], r4: [], mar: ["estado", "notas", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
@@ -5197,9 +5197,9 @@ function estadoDev(d) {
   const r = d.revision;
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
-  if (d.destino === "warehouse") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : d.envio_estado === "delivered" ? "Llegó al depósito de MercadoLibre" : "Vuelve al depósito de MercadoLibre", c: "", grupo: "otras" };
+  if (d.destino === "warehouse") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : d.envio_estado === "delivered" ? "Llegó al depósito de MercadoLibre" : "Vuelve al depósito de MercadoLibre", c: "", grupo: "ml" };
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
-  if (!d.abierto) return { t: "Cerrada", c: "", grupo: "otras" };
+  if (!d.abierto) return { t: "Cerrada", c: "", grupo: "cerradas" };
   return { t: d.envio_estado === "shipped" ? "En camino al depósito" : "El comprador todavía no la despachó", c: "", grupo: "camino" };
 }
 
@@ -5385,8 +5385,9 @@ VISTAS.devoluciones = async () => {
   const [r] = await Promise.all([seguro(() => api("devoluciones", { cliente_id: emp })), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
-  S.recFil ??= n("revisar") ? "revisar" : n("aprobar") ? "aprobar" : "camino";
-  const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["otras", "Otras"]];
+  S.recFil ??= "revisar";
+  if (S.recFil === "otras") S.recFil = "revisar";
+  const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["ml", "En MercadoLibre"], ["cerradas", "Cerradas"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>${chipsClientes("devoluciones", emp)}
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
