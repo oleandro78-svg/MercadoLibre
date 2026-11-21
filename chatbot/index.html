@@ -2909,7 +2909,7 @@ VISTAS.config = async () => {
   const grupos = cv.grupos.map(([g, t]) => { const ks = Object.keys(A).filter((k) => A[k].grupo === g && visibles(k)); return ks.length ? `<div class="panel"><h2>${t}</h2>${ks.map(fila).join("")}</div>` : ""; }).join("");
   const c = nivel === "cuenta" ? cuentaDe(id) : null, pp = c ? (r.stats[c.id]?.por_pregunta ?? {}) : null;
   $("#cfCuerpo").innerHTML = `<div class="conf" style="${c && dueno() ? "" : "grid-template-columns:1fr"}"><div>${grupos || `<div class="panel vacio"><b>Nada para configurar en este nivel</b></div>`}
-      <div class="fila" style="margin-top:16px"><div class="n"><button class="btn pri" id="cfG">Guardar configuración</button></div>${c ? `<div class="n"><button class="btn lin" id="cfSync">Actualizar historial ahora</button></div>` : ""}</div></div>
+      <div class="fila" style="margin-top:16px"><div class="n"><button class="btn pri" id="cfG">Guardar configuración</button></div></div></div>
     ${c && dueno() ? `<aside class="costo"><div class="mut peq">Costo de IA por pregunta</div><div class="grande" style="margin:6px 0 4px">${usd(pp.costo_usd)}</div>
       <div class="mut peq" style="margin-bottom:12px">${pp.muestras ? `Promedio de las últimas ${pp.muestras} preguntas de esta cuenta.` : "Todavía no hay preguntas procesadas en esta cuenta."}</div>
       <div class="fila-t"><span>Tokens nuevos</span><b>${num(pp.tokens_entrada)}</b></div><div class="fila-t"><span>Tokens desde memoria</span><b>${num(pp.tokens_cache_lectura)}</b></div>
@@ -2930,7 +2930,6 @@ VISTAS.config = async () => {
   cuerpo.querySelectorAll("[data-heredar]").forEach((b) => b.onclick = async () => {
     if (await seguro(() => api("config_guardar", { nivel, id, valores: { [b.dataset.heredar]: null } }))) { aviso("Vuelve a usar el valor heredado"); await recargar(); armarNav(); VISTAS.config(); }
   });
-  if ($("#cfSync")) $("#cfSync").onclick = async (e) => { e.target.disabled = true; e.target.textContent = "Actualizando…"; const x = await seguro(() => api("sincronizar_historial", { cuenta_id: c.id })); e.target.disabled = false; e.target.textContent = "Actualizar historial ahora"; if (x) { aviso(x.nuevas ? `${x.nuevas} respuestas nuevas en el historial` : "El historial ya estaba al día"); await recargar(); VISTAS.config(); } };
   $("#cfG").onclick = async () => {
     if (!Object.keys(cambios).length) return aviso("No hay cambios para guardar");
     if (cambios.modo === "automatico" && !confirm("En automático el bot publica en MercadoLibre, sin revisión, lo que sabe responder. ¿Confirmás?")) return;
