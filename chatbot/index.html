@@ -1467,13 +1467,13 @@ document.addEventListener("click", (e) => {
   if (r.right > innerWidth - 8) d.style.left = `calc(50% - ${r.right - innerWidth + 8}px)`; else if (r.left < 8) d.style.left = `calc(50% + ${8 - r.left}px)`;
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelector(".burbuja-ay")?.remove(); });
-// Tiempo de respuesta tal como lo muestra MercadoLibre: últimos 14 días, tres franjas, escala hasta 1:30 y rojo a partir de 1 hora
+// Tiempo de respuesta tal como lo muestra MercadoLibre: últimos 14 días, tres franjas, barra hasta 1:30 (el número es siempre el real) y rojo a partir de 1 hora
 const durML = (m) => m == null ? "—" : m < 60 ? `${Math.round(m)} min` : `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, "0")}`;
 function bloqueTiempoML(c) {
   const t = c.tiempo_ml, tope = 90;
   const fila = (nombre, x) => {
     const m = x?.response_time;
-    return `<div class="franja"><span>${nombre}</span><div class="barra"><i class="${m > 60 ? "roja" : ""}" style="width:${m == null ? 0 : Math.max(3, Math.min(m, tope) / tope * 100)}%"></i></div><b>${m == null ? "—" : m > tope ? "+ 1h30" : durML(m)}</b></div>`;
+    return `<div class="franja"><span>${nombre}</span><div class="barra"><i class="${m > 60 ? "roja" : ""}" style="width:${m == null ? 0 : Math.max(3, Math.min(m, tope) / tope * 100)}%"></i></div><b>${durML(m)}</b></div>`;
   };
   const mejora = Math.max(t.weekdays_extra_hours?.sales_percent_increase ?? 0, t.weekend?.sales_percent_increase ?? 0, t.weekdays_working_hours?.sales_percent_increase ?? 0);
   return `<div class="panel" style="margin-top:16px"><div class="fila" style="align-items:flex-end"><div><h3>Tiempo de respuesta${S.res.cuentas.length > 1 ? ` · ${esc(c.nombre)}` : ""}</h3>
