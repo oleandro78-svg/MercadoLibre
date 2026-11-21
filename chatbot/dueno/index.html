@@ -127,6 +127,8 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .cabecera{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
 .cabecera p{margin:6px 0 0;color:var(--piz)}
 .barra-movil{display:none}
+.volver-nav{padding:10px 28px 0}.volver-nav[hidden]{display:none}.volver-nav .btn{display:inline-flex;align-items:center;gap:6px}
+@media (max-width:760px){.volver-nav{padding:10px 16px 0}}
 
 /* ---------- controles ---------- */
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;border-radius:var(--r-s);padding:8px 14px;font-weight:600;cursor:pointer;background:var(--sup2);color:var(--tinta);white-space:nowrap}
@@ -964,6 +966,7 @@ h3 .te{font-size:13px;margin-left:4px}
   <div class="riel-velo" id="rielVelo" aria-hidden="true"></div>
   <div>
     <div class="barra-movil"><button class="btn lin chico" id="abrirRiel" type="button">Menú</button><b>Mostrador</b><span></span></div>
+    <div class="volver-nav" id="volverNav" hidden><button type="button" class="btn lin chico" id="volverBtn"></button></div>
     <main class="contenido" id="main"></main>
   </div>
 </div>
@@ -1360,7 +1363,7 @@ function armarNav() {
   else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
   else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
   $("#nav").innerHTML = html;
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") S.recFil = "revisar"; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") S.recFil = "revisar"; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
 }
 // Deja claro quién está mirando: dueño de la app, administrador de un cliente, operador o soporte
@@ -1402,9 +1405,48 @@ const VISTAS = {};
 const ESTADO_PANT = ["asigMod", "asigVista", "rendMod", "rendVista", "actPer", "matFil", "msjFil", "msjFx"];
 addEventListener("pagehide", () => { try { sessionStorage.setItem("mostrador_estado", JSON.stringify(Object.fromEntries(ESTADO_PANT.map((k) => [k, S[k] ?? null])))); } catch {} });
 function restaurarEstado() { try { const e = JSON.parse(sessionStorage.getItem("mostrador_estado") ?? "{}"); for (const k of ESTADO_PANT) if (e[k] != null) S[k] = e[k]; } catch {} }
+// ---------- Volver ----------
+// Cuando se pasa de una pantalla a otra desde un enlace (una ficha, "Ver en el calendario", una nota, el registro de
+// actividad), se recuerda de dónde se vino para poder volver: botón "Volver a …" arriba, la hoja que se abrió dice
+// "Volver" en vez de "Cerrar", y el botón Atrás del celular también vuelve. Al elegir algo del menú se empieza de cero.
+S.pila = [];
+function lugarActual() {
+  const t = S.tab;
+  const nombre = t === "mensajes" && S.msjId ? "la venta" : t === "devoluciones" && S.devId ? "la devolución" : t === "chat" && S.chatId ? "el chat" : (tituloPantalla(t) || "la pantalla anterior");
+  const calEv = t === "calendario" && document.querySelector(".velo") ? S.calEvAbierto ?? null : null;
+  return { tab: t, calEv, msjId: S.msjId ?? null, devId: S.devId ?? null, chatId: S.chatId ?? null, calMes: S.calMes ?? null, convTab: S.msjId ? S.convTab?.[S.msjId] ?? null : null, nombre, y: scrollY };
+}
+function recordarLugar(hojaDestino = false) {
+  if (!S.tab) return;
+  S.pila.push(lugarActual()); if (S.pila.length > 20) S.pila.shift();
+  S.hojaVolver = hojaDestino;
+  try { history.pushState({ nav: S.pila.length }, "", location.href); } catch {}
+}
+function pintarVolver() {
+  const b = $("#volverNav"); if (!b) return;
+  const l = S.pila.at(-1);
+  b.hidden = !l;
+  if (l) $("#volverBtn").innerHTML = `${ICONO_M.atras ?? "‹"} Volver a ${esc(l.nombre)}`;
+}
+function volverLugar() {
+  const l = S.pila.pop(); if (!l) return;
+  document.querySelectorAll(".velo").forEach((v) => v.remove());
+  S.hojaVolver = false;
+  if (l.tab === "mensajes" && l.msjId && l.convTab) { S.convTab = S.convTab ?? {}; S.convTab[l.msjId] = l.convTab; }
+  if (l.calMes) S.calMes = new Date(l.calMes);
+  if (l.calEv) { S.calAbrir = l.calEv; S.hojaVolver = S.pila.length > 0; } // la hoja reabierta también vuelve más atrás
+  S.msjId = l.msjId; S.devId = l.devId; S.chatId = l.chatId; // ir() los conserva si se vuelve a esa misma pantalla
+  ir(l.tab);
+  pintarVolver();
+}
+// El botón "Volver" va hacia atrás en el historial; así el Atrás del celular y el botón hacen lo mismo
+function pedirVolver() { if (history.state?.nav) history.back(); else volverLugar(); }
+addEventListener("popstate", () => { if (S.pila.length) volverLugar(); });
+document.addEventListener("click", (e) => { if (e.target.closest("#volverBtn")) pedirVolver(); });
 function ir(t) {
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
+  setTimeout(pintarVolver, 0);
   if (t !== "mensajes") S.msjId = null;
   if (t !== "devoluciones") S.devId = null;
   if (t !== "chat") { S.chatId = null; S.chatCitas = false; clearTimeout(S.chatTimer); }
@@ -1428,6 +1470,10 @@ function cajon(html, centro = false) {
   const cerrarTecla = (e) => { if (e.key === "Escape") { v.remove(); document.removeEventListener("keydown", cerrarTecla); } };
   v.addEventListener("click", (e) => { if (e.target === v || e.target.closest("[data-cerrar]")) { v.remove(); document.removeEventListener("keydown", cerrarTecla); } });
   document.addEventListener("keydown", cerrarTecla);
+  if (S.hojaVolver && S.pila.length) {
+    S.hojaVolver = false;
+    v.querySelectorAll("[data-cerrar]").forEach((b) => { b.removeAttribute("data-cerrar"); b.textContent = "Volver"; b.onclick = (e) => { e.stopPropagation(); pedirVolver(); }; });
+  }
   document.body.appendChild(v); if (!matchMedia("(pointer: coarse)").matches) setTimeout(() => v.querySelector("textarea,input,select")?.focus(), 30);
   return v;
 }
@@ -1974,7 +2020,7 @@ VISTAS.actividad = async () => {
     <div class="panel"><h2>Registro${r.total > r.eventos.length ? ` <span class="peq mut">(las ${r.eventos.length} más recientes de ${num(r.total)})</span>` : ""}</h2>${lineas ? `<ul class="act-lista">${lineas}</ul>` : `<p class="mut">No hay actividad en este período.</p>`}</div>`;
   $("#main").onclick = (e) => {
     const s = e.target.closest("[data-sec='_per']"); if (s) { S.actPer = s.dataset.v; VISTAS.actividad(); return; }
-    const b = e.target.closest("[data-ir]"); if (b) { location.hash = "#" + b.dataset.ir; abrirDesdeEnlace("#" + b.dataset.ir); }
+    const b = e.target.closest("[data-ir]"); if (b) { recordarLugar(/^calendario\//.test(b.dataset.ir)); abrirDesdeEnlace("#" + b.dataset.ir); }
   };
   $("#actQuien").onchange = (e) => { S.actQuien = e.target.value; VISTAS.actividad(); };
   $("#actMod").onchange = (e) => { S.actMod = e.target.value; VISTAS.actividad(); };
@@ -4125,7 +4171,7 @@ function pintarChat(d) {
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
-        ${c.compromiso_at ? `<a class="chip chip-cal c-cal" href="#mComp" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</a>` : ""}
+        ${c.compromiso_at ? `<a class="chip chip-cal c-cal" role="button" tabindex="0" onclick="document.getElementById('mComp')?.scrollIntoView({block:'center'})" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</a>` : ""}
         <button class="urg-marcar" type="button" id="mAgendar" title="Agregar al calendario algo que hay que hacer con este comprador">Agendar</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
@@ -4157,7 +4203,7 @@ function pintarChat(d) {
   $("#mAgendar").onclick = () => { pestConv("chat"); formCompromiso(c, null); };
   $("#mComp").onclick = async (e) => {
     const sb = e.target.closest("[data-comp-sug]"), ok = e.target.closest("[data-comp-ok]"), vc = e.target.closest("[data-comp-cal]");
-    if (vc) { const f = new Date(vc.dataset.compMes); S.calMes = new Date(f.getFullYear(), f.getMonth(), 1); S.calAbrir = Number(vc.dataset.compCal); ir("calendario"); return; }
+    if (vc) { recordarLugar(true); const f = new Date(vc.dataset.compMes); S.calMes = new Date(f.getFullYear(), f.getMonth(), 1); S.calAbrir = Number(vc.dataset.compCal); ir("calendario"); return; }
     // Nada se agrega solo: el botón abre el formulario con lo que detectó la IA y la persona elige día, hora y aviso
     if (sb && new Date(`${c.compromiso_sug.fecha}T${c.compromiso_sug.hora ?? "10:00"}:00`) < new Date()) { const h = new Date(Date.now() + 3600_000); formCompromiso(c, { ...c.compromiso_sug, fecha: fechaLocal(new Date()), hora: `${String(h.getHours()).padStart(2, "0")}:00` }); }
     else if (sb) formCompromiso(c, c.compromiso_sug);
@@ -4197,6 +4243,7 @@ function pestConv(t) {
 // ---------- Notas internas: las escribe el equipo, no se borran ni se modifican y siguen al comprador ----------
 // Abre la pregunta, venta o devolución donde se escribió una nota o por donde pasó el comprador
 function irA(origen, ref) {
+  recordarLugar(origen === "pregunta");
   document.querySelectorAll(".velo").forEach((v) => v.remove());
   if (origen === "pregunta") return detalle(Number(ref));
   if (origen === "venta") { S.msjId = Number(ref); S.msjBus = ""; if (S.tab === "mensajes" && $(".msj")) { abrirConv(Number(ref)); return; } return ir("mensajes"); }
@@ -5223,6 +5270,7 @@ async function editarEvento(ev, previo = {}) {
   const nuevo = !e.id, puede = nuevo || e.puede_editar;
   const ini = e.inicio ? new Date(e.inicio) : new Date(Date.now() + 3600000);
   const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
+  S.calEvAbierto = e.id ?? null; // si desde el evento se va a la venta, al volver se reabre
   const v = abrirHoja(`<div class="cajon-cab"><h2>${nuevo ? "Nuevo evento" : puede ? "Evento" : esc(e.titulo)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     ${!nuevo ? `<p class="peq mut" style="margin:0 0 10px">Lo creó ${esc(e.creado_nombre ?? "")}</p>` : ""}
     ${e.tipo === "compromiso" ? `<div class="estado ${e.cumplido_at ? "e-ok" : "e-mot"}" style="margin:0 0 12px;display:block"><b>Compromiso con el comprador</b>${e.prometido ? `: “${esc(e.prometido)}”` : ""}<br>${e.cumplido_at ? `Cumplido el ${esc(cuandoComp(e.cumplido_at))}.` : "Pendiente."}
