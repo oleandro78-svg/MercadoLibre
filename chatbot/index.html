@@ -1056,7 +1056,12 @@ async function api(accion, datos = {}) {
     h.authorization = "Bearer " + data.session.access_token;
     if (S.clienteId) h["x-cliente-id"] = S.clienteId;
   }
-  const r = await fetch(API, { method: "POST", headers: h, body: JSON.stringify({ accion, ...datos }) });
+  // Nunca se espera para siempre: si el servidor no contesta en 40 segundos, se corta con un error claro
+  const ctl = new AbortController(), corte = setTimeout(() => ctl.abort(), 40_000);
+  let r;
+  try { r = await fetch(API, { method: "POST", headers: h, body: JSON.stringify({ accion, ...datos }), signal: ctl.signal }); }
+  catch (e) { throw new Error(e?.name === "AbortError" ? "El servidor tardó demasiado en responder. Probá de nuevo." : "No hay conexión con el servidor. Revisá internet y probá de nuevo."); }
+  finally { clearTimeout(corte); }
   const j = await r.json().catch(() => ({ error: "El servidor devolvió una respuesta inválida" }));
   if (!r.ok) { if (r.status === 401 && S.rol) { aviso(j.error); salir(); } throw new Error(j.error ?? "Error " + r.status); }
   return j;
@@ -3962,9 +3967,11 @@ async function abrirConv(id) {
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
   document.querySelectorAll("#mHilos .hilo").forEach((h) => h.classList.toggle("on", Number(h.dataset.c) === id));
   $("#mChat").innerHTML = `<p class="mut" style="padding:22px">Cargando la conversación…</p>`; $("#mVen").innerHTML = "";
-  let d = null, err = null;
+  let d = null, err = null; const t0 = Date.now();
   try { d = await api("mensajes_conversacion", { id }); } catch (e) { err = e; }
-  if (S.msjId !== id || S.tab !== "mensajes") return;
+  const ms = Date.now() - t0;
+  if (S.msjId !== id || S.tab !== "mensajes") { informarError(new Error(`abrirConv cortado: msjId=${S.msjId} tab=${S.tab} (${ms} ms)`), `abrirConv ${id}`); return; }
+  if (err || ms > 8000) informarError(new Error(`abrirConv ${err ? `falló: ${err.message}` : "lento"} (${ms} ms)`), `abrirConv ${id}`);
   // Si no se pudo traer o mostrar, se dice y se ofrece reintentar (nunca queda en "Cargando")
   const fallo = (m) => { const c = $("#mChat"); if (c) { c.innerHTML = `<div class="panel vacio" style="margin:18px"><b>No se pudo abrir la venta</b><p class="mut">${esc(m)}</p><button class="btn pri" type="button" id="mReint">Reintentar</button></div>`; $("#mReint").onclick = () => abrirConv(id); } };
   if (!d) { fallo(err?.message ?? "No respondió el servidor."); return; }
