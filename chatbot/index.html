@@ -4026,7 +4026,9 @@ const fechaLocal = (f) => new Date(f).toLocaleDateString("sv-SE");
 function compromisosHtml(c, d) {
   const out = [];
   const sug = c.compromiso_sug;
-  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ¿Lo agendo para el ${esc(new Date(`${sug.fecha}T${sug.hora ?? "10:00"}:00`).toLocaleString("es-AR", sug.hora ? FMT_COMP : { weekday: "long", day: "numeric", month: "short" }))}${sug.hora ? "" : " a las 10:00"}?
+  const cuandoSug = sug ? new Date(`${sug.fecha}T${sug.hora ?? "10:00"}:00`) : null;
+  const fechaSug = sug ? esc(cuandoSug.toLocaleString("es-AR", sug.hora ? FMT_COMP : { weekday: "long", day: "numeric", month: "short" })) : "";
+  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ${cuandoSug < new Date() ? `Era para el ${fechaSug} y no consta que se haya hecho. ¿Lo agendo para hacerlo ahora?` : `¿Lo agendo para el ${fechaSug}${sug.hora ? "" : " a las 10:00"}?`}
     <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-sug="ok">Agendar</button><button type="button" class="btn lin chico" data-comp-sug="cambiar">Cambiar</button><button type="button" class="btn lin chico" data-comp-sug="no">No hace falta</button></span></span></div>`);
   for (const e of (d.compromisos ?? []).filter((x) => !x.cumplido_at)) {
     const escribio = (d.mensajes ?? []).some((m) => m.de === "vendedor" && new Date(m.fecha) >= new Date(e.inicio));
@@ -4123,6 +4125,7 @@ function pintarChat(d) {
     const sb = e.target.closest("[data-comp-sug]"), ok = e.target.closest("[data-comp-ok]");
     if (sb?.dataset.compSug === "no") { if (await seguro(() => api("compromiso_descartar", { id: c.id }))) abrirConv(c.id); }
     else if (sb?.dataset.compSug === "cambiar") formCompromiso(c, c.compromiso_sug);
+    else if (sb?.dataset.compSug === "ok" && new Date(`${c.compromiso_sug.fecha}T${c.compromiso_sug.hora ?? "10:00"}:00`) < new Date()) { const h = new Date(Date.now() + 3600_000); formCompromiso(c, { ...c.compromiso_sug, fecha: fechaLocal(new Date()), hora: `${String(h.getHours()).padStart(2, "0")}:00` }); }
     else if (sb?.dataset.compSug === "ok") { const g = c.compromiso_sug; if (await seguro(() => api("compromiso_agendar", { id: c.id, titulo: g.titulo, fecha: g.fecha, hora: g.hora ?? "10:00", prometido: g.prometido, detalle: g.detalle }))) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); } }
     else if (ok) { if (await seguro(() => api("compromiso_cumplido", { evento_id: Number(ok.dataset.compOk) }))) { aviso("Compromiso cumplido"); abrirConv(c.id); cargarHilos(empMsj()); } }
   };
