@@ -869,11 +869,11 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-l{display:block}.etq-tx .ds-meta:empty{display:none}
 .etq-card{margin-bottom:14px}.etq-bt svg,#mEtq svg,#dsEtq svg{width:17px;height:17px}
 .etq-ed{display:grid;gap:10px}.etq-h{font-size:13px;color:var(--piz);margin:6px 0 0}.etq-pl{display:flex;gap:6px;flex-wrap:wrap}.etq-pl .on{background:var(--tinta);color:var(--sup);border-color:var(--tinta)}
-.etq-molde{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(90px,30%);grid-template-areas:"img r1 esq" "img r2 r2" "img r3 r3" ". r4 r4" ". mar mar";gap:12px 8px;padding:14px 12px 12px;border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
+.etq-molde{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(90px,30%);grid-template-areas:"img r1 esq" "img r2 d2" "img r3 d3" ". r4 d4" ". mar mar";gap:12px 8px;padding:14px 12px 12px;border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
 .etq-slot{min-height:42px;border:2px dashed var(--linea);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;position:relative;background:var(--papel)}
 .etq-slot::before{content:attr(data-t);position:absolute;top:-9px;left:8px;font-size:11px;font-weight:600;color:var(--piz);background:var(--sup);padding:0 4px;white-space:nowrap}
 .etq-slot.vacio::after{content:"Soltá acá";color:var(--piz);opacity:.6;font-size:12px;margin:auto}
-.etq-slot[data-s=img]{grid-area:img}.etq-slot[data-s=esq]{grid-area:esq}.etq-slot[data-s=r1]{grid-area:r1}.etq-slot[data-s=r2]{grid-area:r2}.etq-slot[data-s=r3]{grid-area:r3}.etq-slot[data-s=r4]{grid-area:r4}.etq-slot[data-s=mar]{grid-area:mar}
+.etq-slot[data-s=img]{grid-area:img}.etq-slot[data-s=esq]{grid-area:esq}.etq-slot[data-s=r1]{grid-area:r1}.etq-slot[data-s=r2]{grid-area:r2}.etq-slot[data-s=r3]{grid-area:r3}.etq-slot[data-s=r4]{grid-area:r4}.etq-slot[data-s=d2]{grid-area:d2}.etq-slot[data-s=d3]{grid-area:d3}.etq-slot[data-s=d4]{grid-area:d4}.etq-slot[data-s=mar]{grid-area:mar}
 .etq-slot.sobre,.etq-pal.sobre{border-color:var(--cielo);background:var(--cielo-2)}
 .etq-pal{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border:1px dashed var(--linea);border-radius:14px;min-height:52px}
 .etq-it{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;font-size:13px;font-weight:500;padding:6px 10px;border-radius:8px;background:var(--sup);border:1px solid var(--tinta);color:var(--tinta);display:inline-flex;gap:6px;align-items:center}
@@ -882,10 +882,11 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-it.fantasma{position:fixed;pointer-events:none;z-index:99999;box-shadow:0 6px 18px rgba(22,32,42,.25);transform:rotate(-2deg)}
 .etq-prev{border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
 .etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:absolute;right:8px;top:6px}.etq-fila.cf .etq-esq{padding-right:30px}.etq-fila.cf .etq-r1{padding-right:30px}
-@media (max-width:560px){.etq-molde{grid-template-columns:76px minmax(0,1fr);grid-template-areas:"img r1" "img esq" "r2 r2" "r3 r3" "r4 r4" "mar mar"}}
+@media (max-width:560px){.etq-molde{grid-template-columns:72px minmax(0,1fr) minmax(84px,34%)}}
 .m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{column-gap:4px;align-items:center}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
 @media (max-width:960px){#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 @media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
+.etq-ld{display:flex!important;justify-content:space-between;align-items:baseline;gap:10px;-webkit-line-clamp:unset!important}.etq-li{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.etq-ld .etq-esq{text-align:right;flex:none;max-width:45%}
 </style>
 </head>
 <body>
@@ -3538,7 +3539,7 @@ async function cambiarFavorita(id) {
 // ---------- Qué se ve en cada fila de las listas (Ventas, Despacho, Devoluciones) ----------
 // El administrador del cliente arma la etiqueta de cada módulo: elige una plantilla y la ajusta arrastrando
 // los datos a los casilleros. Se guarda en el cliente y vale para todos los que la operan.
-const ETQ_CASILLEROS = [["img", "Foto"], ["r1", "Renglón principal"], ["esq", "Esquina"], ["r2", "Renglón 2"], ["r3", "Renglón 3"], ["r4", "Renglón 4"], ["mar", "Etiquetas de color"]];
+const ETQ_CASILLEROS = [["img", "Foto"], ["r1", "Renglón 1"], ["esq", "Derecha 1"], ["r2", "Renglón 2"], ["d2", "Derecha 2"], ["r3", "Renglón 3"], ["d3", "Derecha 3"], ["r4", "Renglón 4"], ["d4", "Derecha 4"], ["mar", "Etiquetas de color"]];
 const etqCopiar = (v) => v ? `<span class="cp-b" role="button" tabindex="0" data-copiar="${esc(v)}" title="Copiar" aria-label="Copiar ${esc(v)}">⧉</span>` : "";
 const etqFechaHora = (f) => f ? `${new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", "")} ${new Date(f).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} hs` : "";
 function etqLlega(c) {
@@ -3642,7 +3643,8 @@ function etqPartes(mod, c, cfg) {
 }
 // El corazón se dibuja aparte, arriba a la derecha
 // Fila genérica (Despacho y Devoluciones): foto, renglones y etiquetas de color
-const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.esq ? `<span class="etq-esq">${p.esq}</span>` : ""}</span>` : ""}${["r2", "r3", "r4"].map((k) => p[k] ? `<span class="peq etq-l">${p[k]}</span>` : "").join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
+const etqDer = (izq, der, clase) => izq || der ? `<span class="${clase}${der ? " etq-ld" : ""}">${der ? `<span class="etq-li">${izq}</span><span class="etq-esq">${der}</span>` : izq}</span>` : "";
+const etqFilaHTML = (p) => `${p.img}<span class="rec-tx etq-tx">${p.r1 || p.esq ? `<span class="etq-r1"><b>${p.r1}</b>${p.esq ? `<span class="etq-esq">${p.esq}</span>` : ""}</span>` : ""}${[2, 3, 4].map((n) => etqDer(p["r" + n], p["d" + n], "peq etq-l")).join("")}${p.mar ? `<span class="ds-meta">${p.mar}</span>` : ""}</span>`;
 // Copiar un número sin abrir la venta
 document.addEventListener("click", (e) => {
   const b = e.target.closest?.("[data-copiar]"); if (!b) return;
@@ -3674,7 +3676,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
     h.querySelector("#etqMolde").innerHTML = ETQ_CASILLEROS.map(([s, t]) => `<div class="etq-slot ${cfg[s].length ? "" : "vacio"}" data-s="${s}" data-t="${t}">${cfg[s].filter((k) => D[k]).map(chip).join("")}</div>`).join("");
     h.querySelector("#etqPal").innerHTML = Object.keys(D).filter((k) => !usados.has(k)).map(chip).join("") || `<span class="peq mut">Están todos en la etiqueta.</span>`;
     if (sel) h.querySelector(`[data-i="${sel}"]`)?.classList.add("sel");
-    h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", JSON.stringify(def.plantillas[b.dataset.pl][1]) === JSON.stringify(cfg)));
+    h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", ETQ_CASILLEROS.every(([k]) => JSON.stringify(def.plantillas[b.dataset.pl][1][k] ?? []) === JSON.stringify(cfg[k] ?? []))));
     h.querySelector("#etqPrev").innerHTML = muestra.length ? muestra.map((c) => { const p = etqPartes(mod, c, cfg);
       return `<div class="etq-fila ${p.fav ? "cf" : ""}">${etqFilaHTML(p)}${p.fav ? `<span class="fav-h ${c.favorita ? "on" : ""}" aria-hidden="true">${ICONO_COR}</span>` : ""}</div>`; }).join("")
       : `<p class="peq mut" style="padding:12px">Cuando haya ventas en la lista se ven acá de ejemplo.</p>`;
@@ -3704,7 +3706,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
   document.addEventListener("pointermove", mov); document.addEventListener("pointerup", sol);
   new MutationObserver((_, o) => { if (!h.isConnected) { document.removeEventListener("pointermove", mov); document.removeEventListener("pointerup", sol); o.disconnect(); } }).observe(document.body, { childList: true });
   h.addEventListener("click", (e) => {
-    const pl = e.target.closest("[data-pl]"); if (pl) { cfg = JSON.parse(JSON.stringify(def.plantillas[pl.dataset.pl][1])); sel = null; pintar(); return; }
+    const pl = e.target.closest("[data-pl]"); if (pl) { cfg = JSON.parse(JSON.stringify(def.plantillas[pl.dataset.pl][1])); for (const [k] of ETQ_CASILLEROS) cfg[k] ??= []; sel = null; pintar(); return; }
     if (sel && !e.target.closest(".etq-it")) { const s = e.target.closest(".etq-slot,.etq-pal"); if (s) mover(sel, s.dataset.s); }
   });
   h.addEventListener("keydown", (e) => { const t = e.target.closest(".etq-it"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sel = t.dataset.i; pintar(); } });
@@ -3726,8 +3728,8 @@ function hiloHTML(c) {
   return `<div class="hilo-w ${p.fav ? "cf" : ""}"><button type="button" class="hilo ${p.img ? "" : "sf"} ${c.id === S.msjId ? "on" : ""} ${c.pendiente ? "esp" : ""}" data-c="${c.id}">
       ${p.img || "<span></span>"}
       <span class="h-nom"><b>${p.r1}</b>${c.sin_leer ? `<span class="punto" title="Sin leer"></span>` : ""}</span><span class="hora">${p.esq}</span>
-      ${p.r2 ? `<span class="h-l">${p.r2}</span>` : ""}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
-      ${p.r3 ? `<span class="h-l">${p.r3}</span>` : ""}${p.r4 ? `<span class="h-l">${p.r4}</span>` : ""}
+      ${etqDer(p.r2, p.d2, "h-l")}${c.marca ? `<span class="h-marca">${esc(c.marca)}</span>` : ""}
+      ${etqDer(p.r3, p.d3, "h-l")}${etqDer(p.r4, p.d4, "h-l")}
       ${p.mar ? `<span class="tags">${p.mar}</span>` : ""}</button>${p.fav ? botonFav(c) : ""}</div>`;
 }
 // "Buscando" con tres puntos que se mueven
@@ -6161,7 +6163,7 @@ VISTAS.listas = async () => {
   if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del negocio elige qué se ve en las listas.</p></div></div>`; return; }
   const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
   const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
-  const plantillaDe = (k) => { const c = JSON.stringify(etqConfig(k, emp)); return ETQ[k].plantillas.find(([, x]) => JSON.stringify(x) === c)?.[0] ?? "Personalizada"; };
+  const plantillaDe = (k) => { const c = etqConfig(k, emp); return ETQ[k].plantillas.find(([, x]) => ETQ_CASILLEROS.every(([s]) => JSON.stringify(x[s] ?? []) === JSON.stringify(c[s] ?? [])))?.[0] ?? "Personalizada"; };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que trabajan en el negocio; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
