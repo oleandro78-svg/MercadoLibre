@@ -3960,12 +3960,21 @@ async function ventaPorFoto(emp, file) {
   espera.remove();
   ventaEncontrada(emp, r, r?.por_nombre ?? r?.leido?.numeros?.[0] ?? "");
 }
+// El panel de datos de la venta (#mVen): en el celular se muestra dentro de la solapa "Línea de tiempo" del chat.
+// Antes de volver a dibujar el chat se lo devuelve a su lugar (si no, se borraría junto con el chat); si falta, se crea.
+function rescatarVen() {
+  const caja = $(".msj"); if (!caja) return;
+  let v = $("#mVen");
+  if (!v) { v = document.createElement("aside"); v.className = "m-venta"; v.id = "mVen"; v.setAttribute("aria-label", "Datos de la venta"); caja.appendChild(v); return; }
+  const chat = $("#mChat"); if (chat && chat.contains(v)) caja.appendChild(v);
+}
 async function abrirConv(id) {
   S.msjId = id; S.recDatos = {}; S.convAbiertaAt = Date.now();
   try { history.replaceState(null, "", "#mensajes/" + id); } catch {}
   const caja = $(".msj"); if (!caja) return;
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
   document.querySelectorAll("#mHilos .hilo").forEach((h) => h.classList.toggle("on", Number(h.dataset.c) === id));
+  rescatarVen(); // en el celular los datos de la venta viven dentro del chat (solapa Línea de tiempo): se sacan antes de borrarlo
   $("#mChat").innerHTML = `<p class="mut" style="padding:22px">Cargando la conversación…</p>`; $("#mVen").innerHTML = "";
   let d = null, err = null; const t0 = Date.now();
   try { d = await api("mensajes_conversacion", { id }); } catch (e) { err = e; }
@@ -4098,7 +4107,7 @@ function conX(html, convId) {
 function pintarChat(d) {
   const c = d.conversacion, movil = anchoMovil();
   // En el celular el panel de la venta vive dentro de la solapa "Línea de tiempo": antes de redibujar el chat vuelve a su lugar
-  const ven0 = $("#mVen"); if (ven0 && $("#mChat").contains(ven0)) $(".msj").appendChild(ven0);
+  rescatarVen();
   let estado;
   if (c.conv_estado === "active") estado = "";
   else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
@@ -4132,7 +4141,7 @@ function pintarChat(d) {
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
     <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
     <div class="c-pane" id="cpVen" hidden></div>`;
-  if (movil) $("#cpVen").appendChild($("#mVen"));
+  if (movil) { rescatarVen(); $("#cpVen")?.appendChild($("#mVen")); }
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
     e.stopPropagation(); avisoCerrado(b.dataset.cerrarAviso, true);
@@ -4422,9 +4431,11 @@ async function redactarMotivo(d) {
   const r = await seguro(() => api("mensaje_opciones", { id: c.id }));
   if (!r || S.msjId !== c.id) return;
   const ops = r.opciones ?? [];
+  if (!$("#mRed")) return;
   if (!ops.length) { $("#mRed").innerHTML = `<p class="mut">MercadoLibre no habilita ningún motivo para esta venta. Vas a poder escribir cuando el comprador mande un mensaje.</p>`; return; }
   let sel = ops.find((o) => o.habilitada && o.cupo !== 0) ?? null;
   const pintar = () => {
+    if (!$("#mRed") || S.msjId !== c.id) return; // ya se fue de esta venta
     const pl = sel?.plantillas?.[0];
     $("#mRed").innerHTML = `<p class="peq mut" style="margin:0 0 8px;display:flex;align-items:center;gap:6px">Elegí el motivo para escribirle primero ${ayuda("Mientras el comprador no te escriba, MercadoLibre solo te deja iniciar la conversación con estos mensajes, y cada uno se puede mandar una cantidad limitada de veces en esta venta. El número de la derecha dice cuántas veces más podés mandarlo. Cuando el comprador conteste, ya le escribís lo que quieras, sin límite.")}</p><div class="motivos" role="radiogroup" aria-label="Motivo">${ops.map((o) => {
       const sin = !o.habilitada || o.cupo === 0;
