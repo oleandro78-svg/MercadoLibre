@@ -594,7 +594,7 @@ input[type=file]{max-width:100%}
 .m-chat .estado>span{flex:1;min-width:0}.aviso-x{all:unset;cursor:pointer;flex:none;width:24px;height:24px;margin:-2px -4px -2px 0;border-radius:6px;display:grid;place-items:center;font-size:20px;line-height:1;color:inherit;opacity:.7}.aviso-x:hover,.aviso-x:focus-visible{opacity:1;background:rgba(0,0,0,.06)}.aviso-x:focus-visible{outline:2px solid var(--cielo)}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
-.e-ok{background:var(--pino-2);color:var(--pino-t)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
+.e-ok{background:var(--pino-2);color:var(--pino-t)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
 .dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
 .burbujas .b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
@@ -3584,11 +3584,12 @@ const ETQ = {
     notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""],
     recl: ["Reclamo", (c) => c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""],
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
+    comp: ["Compromiso con el comprador", (c) => c.compromiso_at ? `<span class="chip ${new Date(c.compromiso_at) < new Date() ? "c-urg" : "c-mot"}">Compromiso ${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</span>` : c.compromiso_sug ? `<span class="chip c-mot">Para agendar</span>` : ""],
     asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", (c) => favEnFila(c)],
   }, plantillas: [
-    ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig"] }],
-    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl"] }],
-    ["Completa", { img: ["foto"], r1: ["nombre", "nick"], esq: ["fecha", "fav"], r2: ["prod", "var", "cant", "sku"], r3: ["pago", "envio", "estado", "llega"], r4: ["ult"], mar: ["notas", "resp", "recl", "conv", "asig"] }],
+    ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "comp", "conv", "asig"] }],
+    ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl", "comp"] }],
+    ["Completa", { img: ["foto"], r1: ["nombre", "nick"], esq: ["fecha", "fav"], r2: ["prod", "var", "cant", "sku"], r3: ["pago", "envio", "estado", "llega"], r4: ["ult"], mar: ["notas", "resp", "recl", "comp", "conv", "asig"] }],
     ["Como MercadoLibre", { img: ["foto"], r1: ["nick"], esq: ["fecha", "fav"], r2: ["prod", "var"], r3: ["cant", "sku", "envio"], r4: ["estado", "llega", "nro", "orden"], mar: [] }],
   ] },
   despacho: { titulo: "Despacho", datos: {
@@ -4016,6 +4017,45 @@ function avisoCerrado(k, cerrar) {
   if (!cerrar) return l.includes(k);
   try { localStorage.setItem("mostrador_avisos_cerrados", JSON.stringify([...l.filter((x) => x !== k), k].slice(-300))); } catch {}
 }
+// ---------- Compromisos con el comprador ----------
+// Lo que el vendedor le prometió al comprador ("el lunes nos comunicamos"): la IA lo detecta, se agenda en el
+// Calendario unido a la venta y se marca cumplido cuando se hizo.
+const FMT_COMP = { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" };
+const cuandoComp = (f) => new Date(f).toLocaleString("es-AR", FMT_COMP);
+const fechaLocal = (f) => new Date(f).toLocaleDateString("sv-SE");
+function compromisosHtml(c, d) {
+  const out = [];
+  const sug = c.compromiso_sug;
+  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ¿Lo agendo para el ${esc(new Date(`${sug.fecha}T${sug.hora ?? "10:00"}:00`).toLocaleString("es-AR", sug.hora ? FMT_COMP : { weekday: "long", day: "numeric", month: "short" }))}${sug.hora ? "" : " a las 10:00"}?
+    <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-sug="ok">Agendar</button><button type="button" class="btn lin chico" data-comp-sug="cambiar">Cambiar</button><button type="button" class="btn lin chico" data-comp-sug="no">No hace falta</button></span></span></div>`);
+  for (const e of (d.compromisos ?? []).filter((x) => !x.cumplido_at)) {
+    const escribio = (d.mensajes ?? []).some((m) => m.de === "vendedor" && new Date(m.fecha) >= new Date(e.inicio));
+    const vencido = Date.now() > new Date(e.inicio).getTime();
+    const cls = vencido && !escribio ? "e-blo" : "e-mot";
+    const txt = escribio ? "Le escribieron al comprador después de la fecha. ¿Lo damos por cumplido?" : vencido ? "Ya pasó la fecha y nadie le escribió al comprador." : "";
+    out.push(`<div class="estado ${cls} comp">${vencido && !escribio ? ICONO_M.alto : ICONO_M.info}<span><b>Compromiso:</b> ${esc(e.titulo)} · <b>${esc(cuandoComp(e.inicio))}</b>${txt ? `<br>${esc(txt)}` : ""}
+      <span class="comp-acc"><button type="button" class="btn ${escribio ? "pri" : "lin"} chico" data-comp-ok="${e.id}">Cumplido</button><a class="btn lin chico" href="#calendario/${e.id}">Ver en el calendario</a></span></span></div>`);
+  }
+  return out.join("");
+}
+// Formulario para agendar (precargado con lo que detectó la IA, o vacío desde el botón "Agendar")
+function formCompromiso(c, base) {
+  const caja = $("#mComp"); if (!caja) return;
+  const manana = new Date(Date.now() + 86400_000);
+  const fecha = base?.fecha ?? fechaLocal(manana.getDay() === 6 ? Date.now() + 3 * 86400_000 : manana.getDay() === 0 ? Date.now() + 2 * 86400_000 : manana);
+  caja.innerHTML = `<form class="comp-form panel" id="compForm"><h3 style="margin:0 0 8px">Agendar un compromiso con el comprador</h3>
+    <label class="campo">Qué hay que hacer<input name="titulo" required maxlength="200" value="${esc(base?.titulo ?? "Comunicarse con el comprador")}"></label>
+    <div class="fila" style="gap:10px"><label class="campo">Día<input type="date" name="fecha" required value="${esc(fecha)}"></label><label class="campo">Hora<input type="time" name="hora" required value="${esc(base?.hora ?? "10:00")}"></label></div>
+    <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta, con recordatorio${(c.asignados ?? []).length ? " para quienes la atienden" : ""}. Si pasa la fecha y nadie le escribió al comprador, avisa.</p>
+    <div class="fila" style="gap:8px"><button class="btn pri" type="submit">Agendar</button><button class="btn lin" type="button" id="compCancelar">Cancelar</button></div></form>`;
+  $("#compCancelar").onclick = () => abrirConv(c.id);
+  $("#compForm").onsubmit = async (ev) => {
+    ev.preventDefault(); const f = new FormData(ev.target);
+    const r = await seguro(() => api("compromiso_agendar", { id: c.id, titulo: f.get("titulo"), fecha: f.get("fecha"), hora: f.get("hora"), prometido: base?.prometido ?? null, detalle: base?.detalle ?? null }));
+    if (r) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); }
+  };
+  caja.scrollIntoView({ block: "nearest" });
+}
 function conX(html, convId) {
   if (!html) return "";
   const t = document.createElement("template"); t.innerHTML = html;
@@ -4050,6 +4090,7 @@ function pintarChat(d) {
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
+        <button class="urg-marcar" type="button" id="mAgendar" title="Agendar algo que hay que hacer con este comprador">Agendar</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
@@ -4059,6 +4100,7 @@ function pintarChat(d) {
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
+    <div id="mComp" class="m-comp">${compromisosHtml(c, d)}</div>
     <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div></div>
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
     <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
@@ -4076,6 +4118,14 @@ function pintarChat(d) {
   const favCab = document.querySelector("#mChat .fav-cab"); if (favCab) favCab.onclick = () => cambiarFavorita(c.id);
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
   $("#mCompartir").onclick = () => compartirEnChat("venta", c.id);
+  $("#mAgendar").onclick = () => { pestConv("chat"); formCompromiso(c, null); };
+  $("#mComp").onclick = async (e) => {
+    const sb = e.target.closest("[data-comp-sug]"), ok = e.target.closest("[data-comp-ok]");
+    if (sb?.dataset.compSug === "no") { if (await seguro(() => api("compromiso_descartar", { id: c.id }))) abrirConv(c.id); }
+    else if (sb?.dataset.compSug === "cambiar") formCompromiso(c, c.compromiso_sug);
+    else if (sb?.dataset.compSug === "ok") { const g = c.compromiso_sug; if (await seguro(() => api("compromiso_agendar", { id: c.id, titulo: g.titulo, fecha: g.fecha, hora: g.hora ?? "10:00", prometido: g.prometido, detalle: g.detalle }))) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); } }
+    else if (ok) { if (await seguro(() => api("compromiso_cumplido", { evento_id: Number(ok.dataset.compOk) }))) { aviso("Compromiso cumplido"); abrirConv(c.id); cargarHilos(empMsj()); } }
+  };
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
   bur.onclick = async (e) => {
     const b = e.target.closest("[data-adj]"); if (!b) return;
@@ -5102,7 +5152,7 @@ VISTAS.calendario = async () => {
     <div class="cal-nav"><button class="btn lin chico" id="calAnt" type="button" aria-label="Mes anterior">‹</button><h2>${MESES[m0.getMonth()]} ${m0.getFullYear()}</h2><button class="btn lin chico" id="calSig" type="button" aria-label="Mes siguiente">›</button><button class="btn lin chico" id="calHoy" type="button">Hoy</button></div>
     <div class="cal-grid" role="grid">${DIAS_SEM.map((d) => `<div class="cal-dsem">${d}</div>`).join("")}${celdas.map((d) => { const k = ymd(d), ev = porDia.get(k) ?? []; return `<div class="cal-d ${d.getMonth() !== m0.getMonth() ? "fuera" : ""} ${k === ymd(hoy) ? "hoy" : ""}" data-dia="${k}" role="gridcell"><span class="cal-n">${d.getDate()}</span>${ev.slice(0, 3).map((e) => `<button type="button" class="cal-ev" data-ev="${e.id}">${e.todo_dia ? "" : `<b>${hmCal(new Date(e.inicio))}</b> `}${esc(e.titulo)}</button>`).join("")}${ev.length > 3 ? `<span class="cal-mas">+${ev.length - 3} más</span>` : ""}</div>`; }).join("")}</div>
     <h2 style="margin:28px 0 10px">Próximos</h2>
-    <div class="cal-prox">${proximos.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><b>${new Date(e.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}</b><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${esc(e.titulo)}</b><span class="mut peq">${esc(e.invitados_nombres.join(", "))}${e.recordatorio_min != null ? ` · aviso ${esc((RECORDAR.find((x) => x[0] === String(e.recordatorio_min)) ?? ["", `${e.recordatorio_min} min antes`])[1].toLowerCase())}` : ""}</span></span></button>`).join("") || `<p class="mut">No hay eventos próximos.</p>`}</div>`;
+    <div class="cal-prox">${proximos.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><b>${new Date(e.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}</b><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${e.cumplido_at ? "✓ " : ""}${esc(e.titulo)}</b><span class="mut peq">${esc(e.invitados_nombres.join(", "))}${e.recordatorio_min != null ? ` · aviso ${esc((RECORDAR.find((x) => x[0] === String(e.recordatorio_min)) ?? ["", `${e.recordatorio_min} min antes`])[1].toLowerCase())}` : ""}</span></span></button>`).join("") || `<p class="mut">No hay eventos próximos.</p>`}</div>`;
   $("#calAnt").onclick = () => { S.calMes = new Date(m0.getFullYear(), m0.getMonth() - 1, 1); VISTAS.calendario(); };
   $("#calSig").onclick = () => { S.calMes = new Date(m0.getFullYear(), m0.getMonth() + 1, 1); VISTAS.calendario(); };
   $("#calHoy").onclick = () => { S.calMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1); VISTAS.calendario(); };
@@ -5118,7 +5168,7 @@ VISTAS.calendario = async () => {
 };
 function verDia(d, evs) {
   const v = abrirHoja(`<div class="cajon-cab"><h2>${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    <div class="cal-prox">${evs.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${esc(e.titulo)}</b></span></button>`).join("")}</div>
+    <div class="cal-prox">${evs.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${e.cumplido_at ? "✓ " : ""}${esc(e.titulo)}</b></span></button>`).join("")}</div>
     <div class="fila" style="margin-top:14px"><div class="n"><button class="btn pri chico" type="button" data-nuevo-dia>Nuevo evento este día</button></div></div>`);
   v.onclick = (e) => {
     const b = e.target.closest("[data-ev]"); if (b) { v.remove(); editarEvento(evs.find((x) => x.id === Number(b.dataset.ev))); return; }
@@ -5136,6 +5186,8 @@ async function editarEvento(ev, previo = {}) {
   const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
   const v = abrirHoja(`<div class="cajon-cab"><h2>${nuevo ? "Nuevo evento" : puede ? "Evento" : esc(e.titulo)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     ${!nuevo ? `<p class="peq mut" style="margin:0 0 10px">Lo creó ${esc(e.creado_nombre ?? "")}</p>` : ""}
+    ${e.tipo === "compromiso" ? `<div class="estado ${e.cumplido_at ? "e-ok" : "e-mot"}" style="margin:0 0 12px;display:block"><b>Compromiso con el comprador</b>${e.prometido ? `: “${esc(e.prometido)}”` : ""}<br>${e.cumplido_at ? `Cumplido el ${esc(cuandoComp(e.cumplido_at))}.` : "Pendiente."}
+      <span class="comp-acc"><button type="button" class="btn ${e.cumplido_at ? "lin" : "pri"} chico" id="evCump">${e.cumplido_at ? "Volver a pendiente" : "Marcar cumplido"}</button></span></div>` : ""}
     <div class="ev-form">
       <label>Título<input id="evT" maxlength="200" value="${esc(e.titulo ?? "")}" ${puede ? "" : "disabled"}></label>
       <div class="ev-fila"><label>Fecha<input type="date" id="evF" value="${ymd(ini)}" ${puede ? "" : "disabled"}></label>
@@ -5148,6 +5200,9 @@ async function editarEvento(ev, previo = {}) {
       ${ficha ? `<div><span class="peq">Referencia</span>${fichaHtml(ficha)}</div>` : ""}
     </div>
     ${puede ? `<div class="fila" style="margin-top:14px">${!nuevo ? `<div class="n"><button class="btn pel chico" id="evB" type="button">Borrar</button></div>` : ""}<div class="n" style="margin-left:auto"><button class="btn pri" id="evG" type="button">Guardar</button></div></div>` : ""}`);
+  if ($("#evCump", v)) $("#evCump", v).onclick = async () => {
+    if (await seguro(() => api("compromiso_cumplido", { evento_id: e.id, deshacer: !!e.cumplido_at }))) { v.remove(); aviso(e.cumplido_at ? "Volvió a quedar pendiente" : "Compromiso cumplido"); if (S.tab === "calendario") VISTAS.calendario(); }
+  };
   $("#evTd", v).onchange = (x) => { $("#evH", v).disabled = $("#evHf", v).disabled = x.target.checked; };
   $("#evI", v).onclick = (x) => {
     const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
