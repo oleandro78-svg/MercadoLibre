@@ -683,7 +683,7 @@ input[type=file]{max-width:100%}
 .cal-d{min-height:104px;padding:4px 5px;border-right:1px solid var(--linea);border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:3px;cursor:pointer;background:var(--sup);min-width:0}.cal-d:hover{background:var(--sup2)}
 .cal-d.fuera{background:transparent;color:var(--piz)}.cal-n{font-size:13px;font-weight:600;align-self:flex-start;padding:1px 6px;border-radius:999px}.cal-d.hoy .cal-n{background:var(--tinta);color:var(--papel)}
 .cal-ev{all:unset;cursor:pointer;font-size:12px;background:var(--cielo-2);color:var(--cielo);border-radius:6px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-ev:focus-visible{outline:2px solid var(--cielo)}
-.cal-mas{font-size:12px;color:var(--piz);text-decoration:underline}
+.cal-mas{font-size:12px;color:var(--piz);text-decoration:underline}.cal-cnt{display:none}
 .cal-prox{display:grid;gap:6px}.cal-pi{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:14px;align-items:center;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:10px 14px}.cal-pi:hover{border-color:var(--cielo)}.cal-pi:focus-visible{outline:2px solid var(--cielo)}
 .cal-pf{display:grid;min-width:92px;font-size:13px;text-transform:capitalize}.cal-pt{display:grid;min-width:0;gap:2px}
 .ev-form{display:grid;gap:12px}.ev-form label{display:grid;gap:4px;font-size:13px}.ev-form input,.ev-form select,.ev-form textarea{width:100%}.ev-fila{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}.ev-form .ev-chk{display:flex;align-items:center;gap:8px}.ev-form .ev-chk input{width:auto}
@@ -694,7 +694,7 @@ input[type=file]{max-width:100%}
   .cht .chat-cab{flex-wrap:nowrap;padding:10px 12px}.cht .chat-cab .t{flex:1 1 0;min-width:0}.cht .chat-cab .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cht.ver-lista .m-chat{display:none}.cht.ver-chat .m-lista{display:none}
   .ch-b{max-width:86%}.ch-msjs{padding:12px}.ch-comp{padding:8px 10px 10px}
-  .cal-d{min-height:64px}.cal-ev{font-size:0;height:6px;padding:0;border-radius:3px;background:var(--cielo)}
+  .cal-d{min-height:64px}.cal-ev{font-size:0;height:6px;padding:0;border-radius:3px;background:var(--cielo)}.cal-ev{pointer-events:none}.cal-d:active{background:var(--sup2)}.cal-cnt{display:inline-block!important;align-self:flex-start;font-size:11px;font-weight:700;line-height:16px;min-width:16px;text-align:center;padding:0 4px;border-radius:8px;background:var(--cielo);color:#fff}.cal-mas{display:none}
   .ev-fila{grid-template-columns:1fr 1fr}.ev-fila label:first-child{grid-column:1/-1}
 }
 
@@ -5242,7 +5242,7 @@ VISTAS.calendario = async () => {
   const proximos = r.eventos.filter((e) => new Date(e.inicio) >= new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())).slice(0, 30);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Calendario</h1><p>Eventos del equipo. A la hora del recordatorio les llega una notificación a los invitados.</p></div><div class="n"><button class="btn pri" id="calNuevo" type="button">Nuevo evento</button></div></div>
     <div class="cal-nav"><button class="btn lin chico" id="calAnt" type="button" aria-label="Mes anterior">‹</button><h2>${MESES[m0.getMonth()]} ${m0.getFullYear()}</h2><button class="btn lin chico" id="calSig" type="button" aria-label="Mes siguiente">›</button><button class="btn lin chico" id="calHoy" type="button">Hoy</button></div>
-    <div class="cal-grid" role="grid">${DIAS_SEM.map((d) => `<div class="cal-dsem">${d}</div>`).join("")}${celdas.map((d) => { const k = ymd(d), ev = porDia.get(k) ?? []; return `<div class="cal-d ${d.getMonth() !== m0.getMonth() ? "fuera" : ""} ${k === ymd(hoy) ? "hoy" : ""}" data-dia="${k}" role="gridcell"><span class="cal-n">${d.getDate()}</span>${ev.slice(0, 3).map((e) => `<button type="button" class="cal-ev" data-ev="${e.id}">${e.todo_dia ? "" : `<b>${hmCal(new Date(e.inicio))}</b> `}${esc(e.titulo)}</button>`).join("")}${ev.length > 3 ? `<span class="cal-mas">+${ev.length - 3} más</span>` : ""}</div>`; }).join("")}</div>
+    <div class="cal-grid" role="grid">${DIAS_SEM.map((d) => `<div class="cal-dsem">${d}</div>`).join("")}${celdas.map((d) => { const k = ymd(d), ev = porDia.get(k) ?? []; return `<div class="cal-d ${d.getMonth() !== m0.getMonth() ? "fuera" : ""} ${k === ymd(hoy) ? "hoy" : ""}" data-dia="${k}" role="gridcell"><span class="cal-n">${d.getDate()}</span>${ev.length > 1 ? `<span class="cal-cnt" aria-label="${ev.length} eventos">${ev.length}</span>` : ""}${ev.slice(0, 3).map((e) => `<button type="button" class="cal-ev" data-ev="${e.id}">${e.todo_dia ? "" : `<b>${hmCal(new Date(e.inicio))}</b> `}${esc(e.titulo)}</button>`).join("")}${ev.length > 3 ? `<span class="cal-mas">+${ev.length - 3} más</span>` : ""}</div>`; }).join("")}</div>
     <h2 style="margin:28px 0 10px">Próximos</h2>
     <div class="cal-prox">${proximos.map((e) => `<button type="button" class="cal-pi" data-ev="${e.id}"><span class="cal-pf"><b>${new Date(e.inicio).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" })}</b><span>${e.todo_dia ? "Todo el día" : hmCal(new Date(e.inicio))}</span></span><span class="cal-pt"><b>${e.cumplido_at ? "✓ " : ""}${esc(e.titulo)}</b><span class="mut peq">${esc(e.invitados_nombres.join(", "))}${e.recordatorio_min != null ? ` · aviso ${esc((RECORDAR.find((x) => x[0] === String(e.recordatorio_min)) ?? ["", `${e.recordatorio_min} min antes`])[1].toLowerCase())}` : ""}</span></span></button>`).join("") || `<p class="mut">No hay eventos próximos.</p>`}</div>`;
   $("#calAnt").onclick = () => { S.calMes = new Date(m0.getFullYear(), m0.getMonth() - 1, 1); VISTAS.calendario(); };
@@ -5250,11 +5250,18 @@ VISTAS.calendario = async () => {
   $("#calHoy").onclick = () => { S.calMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1); VISTAS.calendario(); };
   $("#calNuevo").onclick = () => editarEvento({});
   $("#main").onclick = (e) => {
-    const ev = e.target.closest("[data-ev]"); if (ev) { editarEvento(r.eventos.find((x) => x.id === Number(ev.dataset.ev))); return; }
-    // Un día sin eventos: se crea uno; con eventos: se ven los de ese día
-    const d = e.target.closest("[data-dia]"); if (!d) return;
-    const [y, mo, da] = d.dataset.dia.split("-").map(Number), evs = porDia.get(d.dataset.dia) ?? [];
-    if (evs.length) verDia(new Date(y, mo - 1, da), evs); else editarEvento({ inicio: new Date(y, mo - 1, da, 10, 0).toISOString() });
+    // En la grilla del mes se toca el día (aunque el dedo caiga sobre un evento): con un solo evento se abre ese,
+    // con varios se muestra la lista del día para elegir, y sin eventos se crea uno
+    const d = e.target.closest("[data-dia]");
+    if (d) {
+      const [y, mo, da] = d.dataset.dia.split("-").map(Number), evs = porDia.get(d.dataset.dia) ?? [];
+      if (evs.length === 1) editarEvento(evs[0]);
+      else if (evs.length) verDia(new Date(y, mo - 1, da), evs);
+      else editarEvento({ inicio: new Date(y, mo - 1, da, 10, 0).toISOString() });
+      return;
+    }
+    // Fuera de la grilla (la lista de próximos) cada evento abre directo
+    const ev = e.target.closest("[data-ev]"); if (ev) editarEvento(r.eventos.find((x) => x.id === Number(ev.dataset.ev)));
   };
   if (S.calAbrir) { const e = r.eventos.find((x) => x.id === S.calAbrir); S.calAbrir = null; if (e) editarEvento(e); }
 };
