@@ -836,7 +836,10 @@ h3 .te{font-size:13px;margin-left:4px}
 .hoja-asa{display:none}
 @media (max-width:720px){
   .velo.hoja{align-items:flex-end;justify-content:stretch}
-  .cajon.hoja{margin:0;width:100%;max-height:88vh;max-height:88dvh;border-radius:18px 18px 0 0;padding:10px 16px 28px;animation:sube .2s ease-out}
+  /* Las hojas ocupan solo lo que se ve: algunos navegadores (Samsung Internet) dibujan su barra de abajo encima de la página */
+  .velo{bottom:auto;height:var(--alto-visible,100dvh)}
+  .cajon.hoja .fx-pie{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom));background:var(--sup);padding-bottom:calc(14px + env(safe-area-inset-bottom));margin-bottom:calc(-16px - env(safe-area-inset-bottom));z-index:2}
+  .cajon.hoja{margin:0;width:100%;max-height:88vh;max-height:calc(var(--alto-visible,100dvh) * .9);border-radius:18px 18px 0 0;padding:10px 16px calc(16px + env(safe-area-inset-bottom));animation:sube .2s ease-out}
   .hoja-asa{display:block;width:40px;height:4px;border-radius:4px;background:var(--linea);margin:0 auto 10px}
 }
 @keyframes sube{from{transform:translateY(30px);opacity:.6}}
@@ -1442,6 +1445,9 @@ function volverLugar() {
 // El botón "Volver" va hacia atrás en el historial; así el Atrás del celular y el botón hacen lo mismo
 function pedirVolver() { if (history.state?.nav) history.back(); else volverLugar(); }
 addEventListener("popstate", () => { if (S.pila.length) volverLugar(); });
+// Alto realmente visible (sin las barras del navegador), para que nada quede tapado abajo
+function medirAlto() { const h = window.visualViewport?.height ?? innerHeight; document.documentElement.style.setProperty("--alto-visible", `${Math.round(h)}px`); }
+medirAlto(); window.visualViewport?.addEventListener("resize", medirAlto); addEventListener("resize", medirAlto);
 document.addEventListener("click", (e) => { if (e.target.closest("#volverBtn")) pedirVolver(); });
 function ir(t) {
   clearTimeout(sondeo);
