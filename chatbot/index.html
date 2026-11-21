@@ -579,6 +579,7 @@ input[type=file]{max-width:100%}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
 .ch-at{gap:4px}.ch-at::before{display:none}.ch-at .at{padding:0 6px;border-radius:999px}.ch-at .at-a{background:var(--ambar-2);color:var(--ambar-t)}.ch-at .at-x{background:var(--pino-2);color:var(--pino-t)}
+.seg-correo{list-style:none;margin:0;padding:0}.seg-correo li{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--linea);font-size:14px;line-height:1.4}.seg-correo li:first-child{border-top:0}.seg-f{color:var(--piz);font-variant-numeric:tabular-nums;white-space:nowrap}
 .c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
 .m-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
 .m-vacio{margin:auto;text-align:center;color:var(--piz);display:grid;gap:4px}
@@ -5203,14 +5204,27 @@ function quienTrae(d) {
   if (/MEL|Prioritario|Mercado/i.test(t)) return "Mercado Envíos";
   return t.replace(/\s+Est[aá]ndar$/i, "");
 }
-// Quedó en una sucursal: el correo pasó por tu dirección, no la pudo entregar y todavía no la retiraste
-const enSucursal = (d) => d.destino === "seller_address" && !!d.visita_at && d.envio_estado !== "delivered" && d.envio_estado !== "cancelled";
+// Quedó en una sucursal para retirar. Con Correo Argentino se sabe por su seguimiento; con otros transportes, porque
+// MercadoLibre informa una visita sin entrega (lo mismo que decide el servidor para la notificación)
+const enSucursal = (d) => d.destino === "seller_address" && d.envio_estado !== "delivered" && d.envio_estado !== "cancelled" && !d.correo_vencido_at
+  && (d.correo_mov ? !!d.correo_suc : !!d.visita_at);
+// Textos del seguimiento del correo, que vienen en mayúsculas
+const oracion = (t) => { const x = String(t ?? "").toLowerCase().replace(/retornand0/g, "retornando"); return x.charAt(0).toUpperCase() + x.slice(1); };
+const nombrePropio = (t) => String(t ?? "").toLowerCase().replace(/(^|[\s\-\/.(])([a-záéíóúñ])/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(Cdp|Cdd|Clog|Gral)\b/g, (m) => m.toUpperCase());
+const fechaHora = (f) => new Date(f).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+function seguimientoCorreoHtml(d) {
+  if (!d.correo_mov?.length) return "";
+  return `<div class="panel"><h2 style="margin:0 0 4px">Seguimiento de Correo Argentino</h2>
+    <p class="peq mut" style="margin:0 0 10px">Lo que informa el correo para ${esc(d.tracking ?? "este envío")}${d.correo_leido_at ? ` · consultado ${esc(fechaHora(d.correo_leido_at))}` : ""}</p>
+    <ol class="seg-correo">${d.correo_mov.map((e) => `<li><span class="seg-f">${esc(fechaHora(e.f))}</span><span class="seg-q"><b>${esc(oracion(e.estado || e.historia))}</b>${e.estado ? `<span class="mut"> · ${esc(oracion(e.historia))}</span>` : ""}<br><span class="mut">${esc(nombrePropio(e.planta))}</span></span></li>`).join("")}</ol></div>`;
+}
 // En qué grupo va cada devolución, según dónde está el paquete y si hay que hacer algo
 function estadoDev(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
-  if (enSucursal(d)) return { t: `Quedó en una sucursal de ${q || "el correo"}: retirala${d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
+  if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: "Venció el plazo en el correo sin retirarla: la están devolviendo", c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
+  if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
     if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
     if (d.envio_estado === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
@@ -5443,13 +5457,14 @@ async function detalleDevolucion0(id) {
       <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
-      ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
+      ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
       ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
   if (d.destino === "warehouse" && !enviada) {
     // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
       <p style="margin:0 0 10px">Vuelve al depósito de MercadoLibre (Full) y la revisa MercadoLibre. No hay que escanearla ni sacarle fotos.</p>
-      ${d.ml_detalle?.titulo ? `<div class="estado e-pend"><span><b>${esc(d.ml_detalle.titulo)}</b>${d.ml_detalle.descripcion ? `<br>${esc(d.ml_detalle.descripcion)}` : ""}</span></div>` : ""}</div>`;
+      ${d.ml_detalle?.titulo ? `<div class="estado e-pend"><span><b>${esc(d.ml_detalle.titulo)}</b>${d.ml_detalle.descripcion ? `<br>${esc(d.ml_detalle.descripcion)}` : ""}</span></div>` : ""}</div>
+      ${seguimientoCorreoHtml(d)}`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
     return;
   }
@@ -5481,13 +5496,15 @@ async function detalleDevolucion0(id) {
       ${env.no_incluye?.length ? `<p class="peq mut" style="margin:10px 0 0"><b>No incluía:</b> ${env.no_incluye.map(esc).join(" · ")}</p>` : ""}
     </section>`;
   // Quedó en una sucursal: lo primero que se ve es qué hay que hacer y desde cuándo espera
-  const dSuc = enSucursal(d) ? Math.round((new Date().setHours(0, 0, 0, 0) - new Date(d.visita_at).setHours(0, 0, 0, 0)) / 86400_000) : null; // días de calendario
+  const desde = d.correo_suc_at ?? d.visita_at;
+  const dSuc = enSucursal(d) ? Math.round((new Date().setHours(0, 0, 0, 0) - new Date(desde).setHours(0, 0, 0, 0)) / 86400_000) : null; // días de calendario
   const sucHtml = dSuc == null ? "" : `<div class="panel" style="background:var(--ladrillo-2);color:var(--ladrillo);border-color:transparent">
-      <h2 style="margin:0 0 6px;color:inherit">Retirala en ${esc(quienTrae(d) || "el correo")}</h2>
-      <p style="margin:0">El ${esc(diaMes(d.visita_at))} pasaron por tu dirección y no la pudieron entregar. ${dSuc === 0 ? "Quedó hoy en la sucursal." : `Está en la sucursal desde hace ${dSuc} ${dSuc === 1 ? "día" : "días"}.`} Si no la retirás, vuelve a figurar como no entregada y el producto no vuelve.</p>
-      ${d.seguimiento_url ? `<p style="margin:8px 0 0"><a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">Ver la sucursal y el horario en el seguimiento</a></p>` : ""}</div>`;
+      <h2 style="margin:0 0 6px;color:inherit">Retirala en ${d.correo_suc ? `la sucursal ${esc(nombrePropio(d.correo_suc))} de ` : ""}${esc(quienTrae(d) || "el correo")}</h2>
+      <p style="margin:0">${d.correo_suc ? `Pasaron por tu dirección, no la pudieron entregar y el ${esc(diaMes(desde))} quedó en espera en la sucursal.` : `El ${esc(diaMes(desde))} pasaron por tu dirección y no la pudieron entregar.`} ${dSuc === 0 ? (d.correo_suc ? "" : "Quedó hoy en la sucursal.") : `Está ahí desde hace ${dSuc} ${dSuc === 1 ? "día" : "días"}.`} Si no la retirás, vence el plazo y el producto no vuelve.</p>
+      ${d.seguimiento_url ? `<p style="margin:8px 0 0"><a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">Ver el seguimiento en Correo Argentino</a></p>` : ""}</div>`;
   $("#main").innerHTML = `${cab}
     ${sucHtml}
+    ${seguimientoCorreoHtml(d)}
     ${enviadoHtml}
     ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
     ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
