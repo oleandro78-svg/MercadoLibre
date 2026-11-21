@@ -1062,6 +1062,16 @@ async function api(accion, datos = {}) {
   return j;
 }
 async function seguro(fn) { try { return await fn(); } catch (e) { aviso(e.message); } }
+// Errores de la pantalla: se informan al servidor (como mucho 5 por sesión) para poder encontrarlos
+let erroresInformados = 0;
+function informarError(e, donde = "") {
+  try {
+    if (erroresInformados >= 5 || !S.rol) return; erroresInformados++;
+    api("error_cliente", { error: e?.message ?? String(e), stack: e?.stack ?? "", donde: donde || location.hash, version: (document.querySelector('meta[name="version"]')?.content ?? ""), navegador: navigator.userAgent }).catch(() => {});
+  } catch {}
+}
+addEventListener("error", (ev) => informarError(ev.error ?? ev.message, "global"));
+addEventListener("unhandledrejection", (ev) => informarError(ev.reason, "promesa"));
 
 // ---------- tema ----------
 try { const t = localStorage.getItem("mostrador_tema"); if (t) document.documentElement.dataset.theme = t; } catch {}
@@ -3952,10 +3962,14 @@ async function abrirConv(id) {
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
   document.querySelectorAll("#mHilos .hilo").forEach((h) => h.classList.toggle("on", Number(h.dataset.c) === id));
   $("#mChat").innerHTML = `<p class="mut" style="padding:22px">Cargando la conversación…</p>`; $("#mVen").innerHTML = "";
-  const d = await seguro(() => api("mensajes_conversacion", { id }));
-  if (!d || S.msjId !== id || S.tab !== "mensajes") return;
+  let d = null, err = null;
+  try { d = await api("mensajes_conversacion", { id }); } catch (e) { err = e; }
+  if (S.msjId !== id || S.tab !== "mensajes") return;
+  // Si no se pudo traer o mostrar, se dice y se ofrece reintentar (nunca queda en "Cargando")
+  const fallo = (m) => { const c = $("#mChat"); if (c) { c.innerHTML = `<div class="panel vacio" style="margin:18px"><b>No se pudo abrir la venta</b><p class="mut">${esc(m)}</p><button class="btn pri" type="button" id="mReint">Reintentar</button></div>`; $("#mReint").onclick = () => abrirConv(id); } };
+  if (!d) { fallo(err?.message ?? "No respondió el servidor."); return; }
   S.msjConv = d;
-  pintarChat(d); pintarVenta(d);
+  try { pintarChat(d); pintarVenta(d); } catch (e) { informarError(e, `abrirConv ${id}`); fallo("Hubo un error al mostrarla. Ya quedó registrado para revisarlo."); return; }
   const h = $(`#mHilos .hilo[data-c="${id}"] .punto`); if (h) h.remove();
 }
 // Llegó un mensaje en la conversación abierta: se agrega sin borrar lo que la persona está escribiendo
