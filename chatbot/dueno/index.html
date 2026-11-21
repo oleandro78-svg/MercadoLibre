@@ -5274,6 +5274,16 @@ const enSucursal = (d) => d.destino === "seller_address" && d.envio_estado !== "
 const oracion = (t) => { const x = String(t ?? "").toLowerCase().replace(/retornand0/g, "retornando"); return x.charAt(0).toUpperCase() + x.slice(1); };
 const nombrePropio = (t) => String(t ?? "").toLowerCase().replace(/(^|[\s\-\/.(])([a-záéíóúñ])/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(Cdp|Cdd|Clog|Gral)\b/g, (m) => m.toUpperCase());
 const fechaHora = (f) => new Date(f).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+// Qué pasó cuando vence el plazo en el correo, según los últimos movimientos (sin suponer de quién fue la culpa)
+function textoVencido(mov) {
+  const m = mov ?? [];
+  const venc = m.find((e) => /PLAZO VENCIDO/i.test(`${e.historia} ${e.estado}`));
+  const donde = venc?.planta ? ` en ${nombrePropio(venc.planta)}` : "";
+  const ult = m[0];
+  if (ult && /REZAGO|REBUT|ARCHIVO/i.test(ult.planta)) return `Venció el plazo${donde} sin que nadie la retire y el correo la mandó a rezagos`;
+  if (m.some((e) => /RETORNAND/i.test(`${e.historia} ${e.estado}`))) return `Venció el plazo${donde} sin que nadie la retire: el correo la devuelve a quien la despachó`;
+  return `Venció el plazo${donde} sin que nadie la retire`;
+}
 function seguimientoCorreoHtml(d) {
   if (!d.correo_mov?.length) return "";
   return `<div class="panel"><h2 style="margin:0 0 4px">Seguimiento de Correo Argentino</h2>
@@ -5285,7 +5295,7 @@ function estadoDev(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
-  if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: "Venció el plazo en el correo sin retirarla: la están devolviendo", c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
+  if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
     if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
