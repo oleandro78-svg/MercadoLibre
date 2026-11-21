@@ -3615,9 +3615,10 @@ const ETQ = {
     prod: ["Producto", (d) => esc(d.item_titulo ?? "Producto")], comprador: ["Comprador", (d) => esc(d.comprador ?? "")],
     cuenta: ["Cuenta", (d) => esc(d.cuenta_nombre ?? "")],
     motivo: ["Por qué lo devolvió", (d) => esc(d.motivo_comprador_txt ?? "")],
+    transporte: ["Quién lo trae", (d) => esc(quienTrae(d))], seguimiento: ["Código de seguimiento", (d) => d.tracking ? `${esc(d.tracking)}${etqCopiar(d.tracking)}` : ""],
     orden: ["N° de venta", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
     estado: ["Estado", (d) => d.est ? `<span class="chip ${d.est.c}">${esc(d.est.t)}</span>` : ""],
-    notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", (d) => ["revisar", "aprobar"].includes(d.est?.grupo) ? etqParaQuien(d) : ""],
+    notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", (d) => ["revisar", "aprobar", "necesita"].includes(d.est?.grupo) ? etqParaQuien(d) : ""],
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "motivo"], r3: [], r4: [], mar: ["estado", "notas", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
@@ -5193,14 +5194,36 @@ const ICONO_R = {
   mal: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>`,
 };
 const venceRec = (f) => { if (!f) return ""; const h = (new Date(f) - Date.now()) / 3600000; return h < 0 ? "venció" : h < 24 ? `quedan ${Math.max(1, Math.round(h))} h` : `hasta el ${venceTxt(f)}`; };
+// Quién trae el paquete, con el nombre que usa la gente
+function quienTrae(d) {
+  const t = String(d.transportista ?? "");
+  if (/correo/i.test(t)) return "Correo Argentino";
+  if (/andreani/i.test(t)) return "Andreani";
+  if (/oca\b/i.test(t)) return "OCA";
+  if (/MEL|Prioritario|Mercado/i.test(t)) return "Mercado Envíos";
+  return t.replace(/\s+Est[aá]ndar$/i, "");
+}
+// Quedó en una sucursal: el correo pasó por tu dirección, no la pudo entregar y todavía no la retiraste
+const enSucursal = (d) => d.destino === "seller_address" && !!d.visita_at && d.envio_estado !== "delivered" && d.envio_estado !== "cancelled";
+// En qué grupo va cada devolución, según dónde está el paquete y si hay que hacer algo
 function estadoDev(d) {
-  const r = d.revision;
+  const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
-  if (d.destino === "warehouse") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : d.envio_estado === "delivered" ? "Llegó al depósito de MercadoLibre" : "Vuelve al depósito de MercadoLibre", c: "", grupo: "ml" };
+  if (enSucursal(d)) return { t: `Quedó en una sucursal de ${q || "el correo"}: retirala${d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
+  if (d.destino === "warehouse") {
+    if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
+    if (d.envio_estado === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
+    if (d.envio_estado === "shipped") return { t: `En camino al depósito de MercadoLibre${por}`, c: "", grupo: "camino" };
+    if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
+    return { t: d.ml_detalle?.titulo ?? "Cerrada", c: "", grupo: "cerradas" };
+  }
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
-  if (!d.abierto) return { t: "Cerrada", c: "", grupo: "cerradas" };
-  return { t: d.envio_estado === "shipped" ? "En camino al depósito" : "El comprador todavía no la despachó", c: "", grupo: "camino" };
+  if (d.envio_estado === "shipped") return { t: `En camino a tu dirección${por}`, c: "", grupo: "camino" };
+  if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
+  if (d.envio_estado === "not_delivered") return { t: `No entregada: quedó en ${quienTrae(d) || "el correo"} y no se retiró`, c: "", grupo: "cerradas" };
+  if (!d.abierto) return { t: d.envio_estado === "cancelled" ? "Cancelada: el comprador no la despachó" : "Cerrada", c: "", grupo: "cerradas" };
+  return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
 }
 
 // ---------- escáner de etiquetas con la cámara ----------
@@ -5387,10 +5410,10 @@ VISTAS.devoluciones = async () => {
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= "revisar";
   if (S.recFil === "otras") S.recFil = "revisar";
-  const grupos = [["revisar", "Para revisar"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["enviadas", "Revisadas"], ["ml", "En MercadoLibre"], ["cerradas", "Cerradas"]];
+  const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>${chipsClientes("devoluciones", emp)}
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar").map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   escucharClientes(() => VISTAS.devoluciones());
@@ -5419,7 +5442,9 @@ async function detalleDevolucion0(id) {
     <div class="panel rec-cab">${foto(d.item_foto)}<div><h1 style="font-size:20px;margin:0 0 4px">${esc(d.item_titulo ?? "Producto")}</h1>
       <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
-      <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div></div></div>`;
+      <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
+      ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
+      ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
   if (d.destino === "warehouse" && !enviada) {
     // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
