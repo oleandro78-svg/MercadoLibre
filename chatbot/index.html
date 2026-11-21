@@ -594,7 +594,7 @@ input[type=file]{max-width:100%}
 .m-chat .estado>span{flex:1;min-width:0}.aviso-x{all:unset;cursor:pointer;flex:none;width:24px;height:24px;margin:-2px -4px -2px 0;border-radius:6px;display:grid;place-items:center;font-size:20px;line-height:1;color:inherit;opacity:.7}.aviso-x:hover,.aviso-x:focus-visible{opacity:1;background:rgba(0,0,0,.06)}.aviso-x:focus-visible{outline:2px solid var(--cielo)}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
-.e-ok{background:var(--pino-2);color:var(--pino-t)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
+.e-ok{background:var(--pino-2);color:var(--pino-t)}.chip-cal{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.chip-cal::before{display:none}.c-cal{background:var(--cielo-2);color:var(--cielo)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input,.comp-form select{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
 .dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
 .burbujas .b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
@@ -3584,7 +3584,7 @@ const ETQ = {
     notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""],
     recl: ["Reclamo", (c) => c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""],
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
-    comp: ["Compromiso con el comprador", (c) => c.compromiso_at ? `<span class="chip ${new Date(c.compromiso_at) < new Date() ? "c-urg" : "c-mot"}">Compromiso ${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</span>` : c.compromiso_sug ? `<span class="chip c-mot">Para agendar</span>` : ""],
+    comp: ["Calendario", (c) => c.compromiso_at ? `<span class="chip chip-cal ${new Date(c.compromiso_at) < new Date() ? "c-urg" : "c-cal"}" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</span>` : c.compromiso_sug ? `<span class="chip c-mot">Para agregar al calendario</span>` : ""],
     asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", (c) => favEnFila(c)],
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "comp", "conv", "asig"] }],
@@ -3795,7 +3795,7 @@ const ORDEN_CORTO = { recientes: "Recientes", actividad: "Actividad", antiguas: 
 const ORDEN_MSJ = [["recientes", "Ventas más recientes"], ["actividad", "Actividad reciente"], ["antiguas", "Ventas más antiguas"]];
 const ORDEN_MSJ_DEF = "recientes";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
-const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"],
+const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"], ["agendadas", "Agendadas en el calendario", "Tienen un compromiso con el comprador pendiente"], ["por_agendar", "Para agregar al calendario", "Le prometieron algo al comprador y todavía no está en el calendario"],
   ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
 function filtrosActivos() {
   const f = S.msjFx ?? {}, out = [];
@@ -4028,8 +4028,8 @@ function compromisosHtml(c, d) {
   const sug = c.compromiso_sug;
   const cuandoSug = sug ? new Date(`${sug.fecha}T${sug.hora ?? "10:00"}:00`) : null;
   const fechaSug = sug ? esc(cuandoSug.toLocaleString("es-AR", sug.hora ? FMT_COMP : { weekday: "long", day: "numeric", month: "short" })) : "";
-  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ${cuandoSug < new Date() ? `Era para el ${fechaSug} y no consta que se haya hecho. ¿Lo agendo para hacerlo ahora?` : `¿Lo agendo para el ${fechaSug}${sug.hora ? "" : " a las 10:00"}?`}
-    <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-sug="ok">Agendar</button><button type="button" class="btn lin chico" data-comp-sug="cambiar">Cambiar</button><button type="button" class="btn lin chico" data-comp-sug="no">No hace falta</button></span></span></div>`);
+  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ${cuandoSug < new Date() ? `Era para el ${fechaSug} y no consta que se haya hecho.` : `Sería para el ${fechaSug}${sug.hora ? "" : ""}.`} Sugerencia: agregalo al calendario para que no se pase.
+    <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-sug="ok">Agregar al calendario</button></span></span></div>`);
   for (const e of (d.compromisos ?? []).filter((x) => !x.cumplido_at)) {
     const escribio = (d.mensajes ?? []).some((m) => m.de === "vendedor" && new Date(m.fecha) >= new Date(e.inicio));
     const vencido = Date.now() > new Date(e.inicio).getTime();
@@ -4048,12 +4048,13 @@ function formCompromiso(c, base) {
   caja.innerHTML = `<form class="comp-form panel" id="compForm"><h3 style="margin:0 0 8px">Agendar un compromiso con el comprador</h3>
     <label class="campo">Qué hay que hacer<input name="titulo" required maxlength="200" value="${esc(base?.titulo ?? "Comunicarse con el comprador")}"></label>
     <div class="fila" style="gap:10px"><label class="campo">Día<input type="date" name="fecha" required value="${esc(fecha)}"></label><label class="campo">Hora<input type="time" name="hora" required value="${esc(base?.hora ?? "10:00")}"></label></div>
-    <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta, con recordatorio${(c.asignados ?? []).length ? " para quienes la atienden" : ""}. Si pasa la fecha y nadie le escribió al comprador, avisa.</p>
+    <label class="campo">Avisarme<select name="rec">${RECORDAR.map(([k, t]) => `<option value="${k}" ${k === String(S.calDatos?.recordatorio_def ?? 10) ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+    <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta${(c.asignados ?? []).length ? ", con quienes la atienden como invitados" : ""}. El aviso llega cuando lo elegiste; si pasa la fecha y nadie le escribió al comprador, avisa de nuevo.</p>
     <div class="fila" style="gap:8px"><button class="btn pri" type="submit">Agendar</button><button class="btn lin" type="button" id="compCancelar">Cancelar</button></div></form>`;
   $("#compCancelar").onclick = () => abrirConv(c.id);
   $("#compForm").onsubmit = async (ev) => {
     ev.preventDefault(); const f = new FormData(ev.target);
-    const r = await seguro(() => api("compromiso_agendar", { id: c.id, titulo: f.get("titulo"), fecha: f.get("fecha"), hora: f.get("hora"), prometido: base?.prometido ?? null, detalle: base?.detalle ?? null }));
+    const r = await seguro(() => api("compromiso_agendar", { id: c.id, titulo: f.get("titulo"), fecha: f.get("fecha"), hora: f.get("hora"), recordatorio_min: f.get("rec") === "" ? null : Number(f.get("rec")), prometido: base?.prometido ?? null, detalle: base?.detalle ?? null }));
     if (r) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); }
   };
   caja.scrollIntoView({ block: "nearest" });
@@ -4092,7 +4093,8 @@ function pintarChat(d) {
         ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
           : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
         <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
-        <button class="urg-marcar" type="button" id="mAgendar" title="Agendar algo que hay que hacer con este comprador">Agendar</button>
+        ${c.compromiso_at ? `<a class="chip chip-cal c-cal" href="#mComp" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</a>` : ""}
+        <button class="urg-marcar" type="button" id="mAgendar" title="Agregar al calendario algo que hay que hacer con este comprador">Agendar</button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
@@ -4123,10 +4125,9 @@ function pintarChat(d) {
   $("#mAgendar").onclick = () => { pestConv("chat"); formCompromiso(c, null); };
   $("#mComp").onclick = async (e) => {
     const sb = e.target.closest("[data-comp-sug]"), ok = e.target.closest("[data-comp-ok]");
-    if (sb?.dataset.compSug === "no") { if (await seguro(() => api("compromiso_descartar", { id: c.id }))) abrirConv(c.id); }
-    else if (sb?.dataset.compSug === "cambiar") formCompromiso(c, c.compromiso_sug);
-    else if (sb?.dataset.compSug === "ok" && new Date(`${c.compromiso_sug.fecha}T${c.compromiso_sug.hora ?? "10:00"}:00`) < new Date()) { const h = new Date(Date.now() + 3600_000); formCompromiso(c, { ...c.compromiso_sug, fecha: fechaLocal(new Date()), hora: `${String(h.getHours()).padStart(2, "0")}:00` }); }
-    else if (sb?.dataset.compSug === "ok") { const g = c.compromiso_sug; if (await seguro(() => api("compromiso_agendar", { id: c.id, titulo: g.titulo, fecha: g.fecha, hora: g.hora ?? "10:00", prometido: g.prometido, detalle: g.detalle }))) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); } }
+    // Nada se agrega solo: el botón abre el formulario con lo que detectó la IA y la persona elige día, hora y aviso
+    if (sb && new Date(`${c.compromiso_sug.fecha}T${c.compromiso_sug.hora ?? "10:00"}:00`) < new Date()) { const h = new Date(Date.now() + 3600_000); formCompromiso(c, { ...c.compromiso_sug, fecha: fechaLocal(new Date()), hora: `${String(h.getHours()).padStart(2, "0")}:00` }); }
+    else if (sb) formCompromiso(c, c.compromiso_sug);
     else if (ok) { if (await seguro(() => api("compromiso_cumplido", { evento_id: Number(ok.dataset.compOk) }))) { aviso("Compromiso cumplido"); abrirConv(c.id); cargarHilos(empMsj()); } }
   };
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
