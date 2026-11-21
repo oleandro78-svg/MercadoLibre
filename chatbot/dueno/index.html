@@ -5480,7 +5480,14 @@ async function detalleDevolucion0(id) {
         <div class="env-check">${env.incluye.map((x, i) => `<label><input type="checkbox" data-tiene="${i}" ${st.tiene[i] ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div>` : ""}
       ${env.no_incluye?.length ? `<p class="peq mut" style="margin:10px 0 0"><b>No incluía:</b> ${env.no_incluye.map(esc).join(" · ")}</p>` : ""}
     </section>`;
+  // Quedó en una sucursal: lo primero que se ve es qué hay que hacer y desde cuándo espera
+  const dSuc = enSucursal(d) ? Math.round((new Date().setHours(0, 0, 0, 0) - new Date(d.visita_at).setHours(0, 0, 0, 0)) / 86400_000) : null; // días de calendario
+  const sucHtml = dSuc == null ? "" : `<div class="panel" style="background:var(--ladrillo-2);color:var(--ladrillo);border-color:transparent">
+      <h2 style="margin:0 0 6px;color:inherit">Retirala en ${esc(quienTrae(d) || "el correo")}</h2>
+      <p style="margin:0">El ${esc(diaMes(d.visita_at))} pasaron por tu dirección y no la pudieron entregar. ${dSuc === 0 ? "Quedó hoy en la sucursal." : `Está en la sucursal desde hace ${dSuc} ${dSuc === 1 ? "día" : "días"}.`} Si no la retirás, vuelve a figurar como no entregada y el producto no vuelve.</p>
+      ${d.seguimiento_url ? `<p style="margin:8px 0 0"><a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">Ver la sucursal y el horario en el seguimiento</a></p>` : ""}</div>`;
   $("#main").innerHTML = `${cab}
+    ${sucHtml}
     ${enviadoHtml}
     ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
     ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
