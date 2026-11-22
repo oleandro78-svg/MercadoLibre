@@ -4278,13 +4278,14 @@ function formCompromiso(c, base) {
     <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta. El aviso llega cuando lo elegiste; si pasa la fecha y nadie le escribió al comprador, avisa de nuevo.</p>
     <div class="fila" style="gap:8px"><button class="btn pri" type="submit">Agendar</button><button class="btn lin" type="button" id="compCancelar">Cancelar</button></div></form>`;
   $("#compCancelar").onclick = () => abrirConv(c.id);
-  // Invitados por defecto: el grupo de Ventas (si está armado en Equipo); si no, quienes atienden la venta
+  // Invitados por defecto: el grupo de Ventas (si está armado en Equipo); si no, nadie
   api("cal_lista", { cliente_id: empMsj(), desde: new Date().toISOString(), hasta: new Date().toISOString() }).then((cl) => {
     const caja = $("#compInv"); if (!caja) return;
     const gv = (cl.grupos?.ventas ?? []).filter((u) => (cl.equipo ?? []).some((m) => m.id === u));
-    caja.innerHTML = invitadosHTML(cl.equipo ?? [], cl.yo, gv.length ? gv : (c.asignados ?? []).length ? c.asignados : [cl.yo], cl.grupos);
+    // Sin grupos armados en Equipo no se sugiere a nadie: se elige a mano
+    caja.innerHTML = invitadosHTML(cl.equipo ?? [], cl.yo, gv, cl.grupos);
     escucharInvitados(caja);
-  }).catch(() => { const caja = $("#compInv"); if (caja) caja.innerHTML = `<span class="peq mut">Quedan invitados los del grupo de Ventas.</span>`; });
+  }).catch(() => { const caja = $("#compInv"); if (caja) caja.innerHTML = `<span class="peq mut">No se pudo cargar el equipo.</span>`; });
   $("#compForm").onsubmit = async (ev) => {
     ev.preventDefault(); const f = new FormData(ev.target);
     const inv = [...document.querySelectorAll('#compInv [data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv);
@@ -5454,7 +5455,8 @@ function invitadosHTML(eq, yo, sel, grupos) {
 function escucharInvitados(caja) {
   caja.onclick = (x) => {
     const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
-    if (x.target.closest("[data-inv-todos]")) { caja.querySelectorAll("[data-inv]").forEach((y) => y.setAttribute("aria-pressed", "true")); return; }
+    // "Todos" marca a todos; si ya estaban todos marcados, los desmarca
+    if (x.target.closest("[data-inv-todos]")) { const bs = [...caja.querySelectorAll("[data-inv]")], todos = bs.every((y) => y.getAttribute("aria-pressed") === "true"); bs.forEach((y) => y.setAttribute("aria-pressed", String(!todos))); return; }
     const g = x.target.closest("[data-grp]"); if (!g) return;
     const ids = g.dataset.ids.split(","), bs = [...caja.querySelectorAll("[data-inv]")].filter((y) => ids.includes(y.dataset.inv));
     const todos = bs.every((y) => y.getAttribute("aria-pressed") === "true");
@@ -5466,7 +5468,7 @@ async function editarEvento(ev, previo = {}, editar = false) {
   const cl = S.calDatos ?? (await api("cal_lista", { cliente_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] })));
   const eq = cl.equipo ?? [], grp = cl.grupos ?? {};
   const yo = S.calDatos?.yo ?? S.chatYo?.id ?? cl.yo;
-  const e = { invitados: [yo], recordatorio_min: S.calDatos?.recordatorio_def ?? 10, ...previo, ...ev };
+  const e = { invitados: [], recordatorio_min: S.calDatos?.recordatorio_def ?? 10, ...previo, ...ev };
   const nuevo = !e.id, puede = nuevo || e.puede_editar;
   const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
   S.calEvAbierto = e.id ?? null; // si desde el evento se va a la venta, al volver se reabre
@@ -5532,7 +5534,7 @@ async function agendarMensaje(m, miembros) {
   espera.remove();
   const f = r?.fecha ? new Date(`${r.fecha}T${r.hora || "09:00"}`) : new Date(Date.now() + 86400000);
   const fin = r?.hora && r?.duracion_min ? new Date(f.getTime() + r.duracion_min * 60000) : null;
-  editarEvento({}, { titulo: r?.titulo ?? m.texto.slice(0, 80), inicio: f.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: !!r?.todo_dia, detalle: m.texto, invitados: (miembros ?? []).map((x) => x.id), ref: m.fichas?.[0] ? { origen: m.fichas[0].origen, ref: m.fichas[0].ref } : null, chat_mensaje_id: m.id });
+  editarEvento({}, { titulo: r?.titulo ?? m.texto.slice(0, 80), inicio: f.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: !!r?.todo_dia, detalle: m.texto, invitados: [], ref: m.fichas?.[0] ? { origen: m.fichas[0].origen, ref: m.fichas[0].ref } : null, chat_mensaje_id: m.id });
 }
 
 // ================= DEVOLUCIONES: las que vuelven al depósito (si llegó mal, se informa a ML con fotos) y fotos al despachar =================
