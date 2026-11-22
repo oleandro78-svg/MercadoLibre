@@ -584,6 +584,24 @@ input[type=file]{max-width:100%}
 .urg-x button:hover{background:rgba(0,0,0,.08)}.urg-x button:focus-visible{outline:2px solid currentColor}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
+.ev-cab{align-items:center;gap:10px}.ev-cab h2{flex:1;text-align:center;font-size:17px;margin:0}.ev-acc{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.ev-ib{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--piz)}.ev-ib:hover{background:var(--sup2)}.ev-ib:focus-visible{outline:2px solid var(--cielo)}
+.ev-ib svg,.ev-r>svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ev-tag{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px}.ev-tag.pend{background:var(--ambar-2);color:var(--ambar-t)}.ev-tag.ok{background:var(--pino-2);color:var(--pino-t)}
+.ev-h{font-size:21px;line-height:1.25;margin:4px 0 6px}
+.ev-r{display:flex;gap:14px;align-items:flex-start;padding:10px 0;font-size:15px;line-height:1.4}.ev-r>svg{color:var(--piz);margin-top:1px}.ev-r small{display:block;color:var(--piz);font-size:13px;margin-top:2px}
+.ev-inv{display:flex;flex-wrap:wrap;gap:4px 12px}.ev-inv span{display:inline-flex;align-items:center;gap:6px}.ev-inv i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--sup2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ev-prom{background:var(--ambar-2);border-radius:14px;padding:12px 14px;margin:8px 0;font-size:14.5px;line-height:1.45}.ev-prom b{display:block;font-size:12.5px;color:var(--ambar-t);margin-bottom:4px}.ev-prom small{display:block;color:var(--piz);margin-top:6px}
+.ev-det{white-space:pre-wrap}.ev-ver .ficha{margin-top:8px;width:100%}
+.ev-pie{display:flex;gap:10px;margin-top:16px}.ev-pie .btn{flex:1;justify-content:center;text-align:center}
+.ev-ed{display:flex;flex-direction:column;gap:14px}.ev-lab{display:block;font-size:13px;font-weight:600;color:var(--piz);margin-bottom:6px}
+.ev-ed .ev-tit{min-height:0;height:auto;font-size:18px;font-weight:700;resize:none;border:none;border-bottom:2px solid var(--pino);border-radius:0;padding:4px 0;width:100%;background:transparent}
+.ev-cuando input{border:1px solid var(--borde,#d5dbe3);border-radius:12px;padding:10px 12px;font-size:15px;background:var(--sup)}.ev-cuando{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ev-cuando #evF{grid-column:1/-1}.ev-cuando input{min-width:0;width:100%}
+.ev-ed .ev-sw{display:flex;flex-direction:row;justify-content:space-between;align-items:center;font-size:15px;padding:4px 0;margin:0}
+.ev-ed .ev-sw input{flex:none;min-width:0;max-width:44px;padding:0;border:none;appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:13px;background:var(--borde,#cbd5e1);position:relative;cursor:pointer;margin:0;transition:background .15s}
+.ev-ed .ev-sw input::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .15s}
+.ev-ed .ev-sw input:checked{background:var(--pino)}.ev-ed .ev-sw input:checked::after{left:21px}.ev-ed .ev-sw input:focus-visible{outline:2px solid var(--cielo);outline-offset:2px}
+.ev-borrar{all:unset;cursor:pointer;align-self:center;color:var(--ladrillo);font-weight:700;padding:8px 12px;margin-top:4px}
 .acc-i{all:unset;cursor:pointer;display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:60px;padding:4px 2px;border-radius:10px;color:var(--piz);font-size:11.5px;line-height:1.2}
 .acc-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .acc-i:hover{background:var(--sup2)}.acc-i:focus-visible{outline:2px solid var(--cielo)}
@@ -5388,49 +5406,90 @@ function verDia(d, evs) {
   };
 }
 // Crear o cambiar un evento. "previo" puede venir del chat (título, fecha, ficha, invitados)
-async function editarEvento(ev, previo = {}) {
+// Evento del calendario. Al tocarlo se ve como ficha (cuándo, aviso, invitados, compromiso, venta); el lápiz abre la edición.
+// Un evento nuevo abre directamente la edición.
+const ICO_EV = {
+  hora: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+  aviso: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>`,
+  gente: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>`,
+  texto: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>`,
+  lapiz: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>`,
+};
+const RECORDAR_CORTO = { "": "Sin aviso", "0": "A la hora", "10": "10 min antes", "30": "30 min", "60": "1 hora", "1440": "1 día" };
+function cuandoEvento(e) {
+  const ini = new Date(e.inicio), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const d0 = new Date(ini); d0.setHours(0, 0, 0, 0);
+  const dias = Math.round((d0 - hoy) / 86400000);
+  const rel = dias === 0 ? "hoy" : dias === 1 ? "mañana" : dias === -1 ? "ayer" : dias > 1 ? `en ${dias} días` : `hace ${-dias} días`;
+  const fecha = ini.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+  const hora = e.todo_dia ? "Todo el día" : `${hmCal(ini)}${e.fin ? ` a ${hmCal(new Date(e.fin))}` : ""}`;
+  return { fecha: fecha.charAt(0).toUpperCase() + fecha.slice(1), sub: `${hora} · ${rel}` };
+}
+async function editarEvento(ev, previo = {}, editar = false) {
   const emp = empChat();
   const eq = S.calDatos?.equipo ?? (await api("cal_lista", { cliente_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] }))).equipo ?? [];
   const yo = S.calDatos?.yo ?? S.chatYo?.id;
   const e = { invitados: [yo], recordatorio_min: S.calDatos?.recordatorio_def ?? 10, ...previo, ...ev };
   const nuevo = !e.id, puede = nuevo || e.puede_editar;
-  const ini = e.inicio ? new Date(e.inicio) : new Date(Date.now() + 3600000);
   const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
   S.calEvAbierto = e.id ?? null; // si desde el evento se va a la venta, al volver se reabre
-  const v = abrirHoja(`<div class="cajon-cab"><h2>${nuevo ? "Nuevo evento" : puede ? "Evento" : esc(e.titulo)}</h2><button class="btn lin chico" data-cerrar>Cerrar</button></div>
-    ${!nuevo ? `<p class="peq mut" style="margin:0 0 10px">Lo creó ${esc(e.creado_nombre ?? "")}</p>` : ""}
-    ${e.tipo === "compromiso" ? `<div class="estado ${e.cumplido_at ? "e-ok" : "e-mot"}" style="margin:0 0 12px;display:block"><b>Compromiso con el comprador</b>${e.prometido ? `: “${esc(e.prometido)}”` : ""}<br>${e.cumplido_at ? `Cumplido el ${esc(cuandoComp(e.cumplido_at))}.` : "Pendiente."}
-      <span class="comp-acc"><button type="button" class="btn ${e.cumplido_at ? "lin" : "pri"} chico" id="evCump">${e.cumplido_at ? "Volver a pendiente" : "Marcar cumplido"}</button></span></div>` : ""}
-    <div class="ev-form">
-      <label>Título<input id="evT" maxlength="200" value="${esc(e.titulo ?? "")}" ${puede ? "" : "disabled"}></label>
-      <div class="ev-fila"><label>Fecha<input type="date" id="evF" value="${ymd(ini)}" ${puede ? "" : "disabled"}></label>
-        <label>Hora<input type="time" id="evH" value="${hmCal(ini)}" ${e.todo_dia || !puede ? "disabled" : ""}></label>
-        <label>Hasta<input type="time" id="evHf" value="${e.fin ? hmCal(new Date(e.fin)) : ""}" ${e.todo_dia || !puede ? "disabled" : ""}></label></div>
-      <label class="ev-chk"><input type="checkbox" id="evTd" ${e.todo_dia ? "checked" : ""} ${puede ? "" : "disabled"}> Todo el día</label>
-      <label>Recordatorio<select id="evR" ${puede ? "" : "disabled"}>${RECORDAR.map(([k, t]) => `<option value="${k}" ${String(e.recordatorio_min ?? "") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-      <div><span class="peq">Invitados</span><div class="nt-men" id="evI">${eq.map((m) => `<button type="button" aria-pressed="${(e.invitados ?? []).includes(m.id)}" data-inv="${esc(m.id)}" ${puede ? "" : "disabled"}>${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}${puede ? `<button type="button" data-inv-todos>Todos</button>` : ""}</div></div>
-      <label>Detalle<textarea id="evD" maxlength="2000" ${puede ? "" : "disabled"}>${esc(e.detalle ?? "")}</textarea></label>
-      ${ficha ? `<div><span class="peq">Referencia</span>${fichaHtml(ficha)}</div>` : ""}
-    </div>
-    ${puede ? `<div class="fila" style="margin-top:14px">${!nuevo ? `<div class="n"><button class="btn pel chico" id="evB" type="button">Borrar</button></div>` : ""}<div class="n" style="margin-left:auto"><button class="btn pri" id="evG" type="button">Guardar</button></div></div>` : ""}`);
-  if ($("#evCump", v)) $("#evCump", v).onclick = async () => {
-    if (await seguro(() => api("compromiso_cumplido", { evento_id: e.id, deshacer: !!e.cumplido_at }))) { v.remove(); aviso(e.cumplido_at ? "Volvió a quedar pendiente" : "Compromiso cumplido"); if (S.tab === "calendario") VISTAS.calendario(); }
-  };
+  if (!nuevo && !(editar && puede)) return verEvento(e, ficha, eq, yo, emp, puede);
+  const ini = e.inicio ? new Date(e.inicio) : new Date(Date.now() + 3600000);
+  const rec = e.recordatorio_min == null ? "" : String(e.recordatorio_min);
+  const v = abrirHoja(`<div class="cajon-cab ev-cab"><button class="btn lin chico" data-cerrar type="button">Cerrar</button><h2>${nuevo ? "Nuevo evento" : "Editar evento"}</h2><button class="btn pri chico" id="evG" type="button">Guardar</button></div>
+    <div class="ev-form ev-ed">
+      <label><span class="ev-lab">Título</span><textarea id="evT" class="ev-tit" rows="2" maxlength="200" placeholder="Qué hay que hacer">${esc(e.titulo ?? "")}</textarea></label>
+      <div><span class="ev-lab">Cuándo</span><div class="ev-cuando"><input type="date" id="evF" value="${ymd(ini)}" aria-label="Fecha">
+        <input type="time" id="evH" value="${hmCal(ini)}" aria-label="Hora" ${e.todo_dia ? "disabled" : ""}>
+        <input type="time" id="evHf" value="${e.fin ? hmCal(new Date(e.fin)) : ""}" aria-label="Hasta" title="Hasta" ${e.todo_dia ? "disabled" : ""}></div></div>
+      <label class="ev-sw"><span>Todo el día</span><input type="checkbox" role="switch" id="evTd" ${e.todo_dia ? "checked" : ""}></label>
+      <div><span class="ev-lab">Avisarme</span><div class="nt-men ev-rec" id="evR">${RECORDAR.map(([k]) => `<button type="button" data-rec="${k}" aria-pressed="${rec === k}">${RECORDAR_CORTO[k]}</button>`).join("")}</div></div>
+      <div><span class="ev-lab">Invitados</span><div class="nt-men" id="evI">${eq.map((m) => `<button type="button" aria-pressed="${(e.invitados ?? []).includes(m.id)}" data-inv="${esc(m.id)}">${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}<button type="button" data-inv-todos>+ Todos</button></div></div>
+      <label><span class="ev-lab">Detalle</span><textarea id="evD" maxlength="2000" rows="4" placeholder="Lo que hace falta saber">${esc(e.detalle ?? "")}</textarea></label>
+      ${ficha ? `<div><span class="ev-lab">Referencia</span>${fichaHtml(ficha)}</div>` : ""}
+      ${!nuevo ? `<button class="ev-borrar" id="evB" type="button">Borrar evento</button>` : ""}
+    </div>`);
   $("#evTd", v).onchange = (x) => { $("#evH", v).disabled = $("#evHf", v).disabled = x.target.checked; };
+  $("#evR", v).onclick = (x) => { const b = x.target.closest("[data-rec]"); if (!b) return; v.querySelectorAll("[data-rec]").forEach((y) => y.setAttribute("aria-pressed", y === b)); };
   $("#evI", v).onclick = (x) => {
     const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
     if (x.target.closest("[data-inv-todos]")) v.querySelectorAll("[data-inv]").forEach((y) => y.setAttribute("aria-pressed", "true"));
   };
-  if ($("#evG", v)) $("#evG", v).onclick = async () => {
+  $("#evG", v).onclick = async () => {
+    if (!$("#evT", v).value.trim()) { $("#evT", v).focus(); return aviso("Escribí qué hay que hacer"); }
     const td = $("#evTd", v).checked, f = $("#evF", v).value, h = td ? "09:00" : $("#evH", v).value || "09:00", hf = $("#evHf", v).value;
     const inicio = new Date(`${f}T${h}`), fin = !td && hf ? new Date(`${f}T${hf}`) : null;
+    const rk = v.querySelector('[data-rec][aria-pressed="true"]')?.dataset.rec ?? "";
     const r = await seguro(() => api("cal_guardar", { cliente_id: emp, id: e.id ?? null, titulo: $("#evT", v).value, detalle: $("#evD", v).value, inicio: inicio.toISOString(), fin: fin?.toISOString() ?? null, todo_dia: td,
-      invitados: [...v.querySelectorAll('[data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv), recordatorio_min: $("#evR", v).value === "" ? null : Number($("#evR", v).value), ref: e.ref ?? null, chat_mensaje_id: e.chat_mensaje_id ?? null }));
+      invitados: [...v.querySelectorAll('[data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv), recordatorio_min: rk === "" ? null : Number(rk), ref: e.ref ?? null, chat_mensaje_id: e.chat_mensaje_id ?? null }));
     if (!r) return;
     v.remove(); aviso(nuevo ? "Evento agendado" : "Evento guardado");
     if (S.tab === "calendario") VISTAS.calendario();
   };
   if ($("#evB", v)) $("#evB", v).onclick = async () => { if (!confirm("¿Borrar este evento?")) return; if (await seguro(() => api("cal_borrar", { cliente_id: emp, id: e.id }))) { v.remove(); aviso("Evento borrado"); if (S.tab === "calendario") VISTAS.calendario(); } };
+}
+function verEvento(e, ficha, eq, yo, emp, puede) {
+  const c = cuandoEvento(e);
+  const nom = (id) => id === yo ? "Vos" : (eq.find((m) => m.id === id)?.nombre ?? "");
+  const inv = (e.invitados ?? []).map(nom).filter(Boolean);
+  const comp = e.tipo === "compromiso";
+  const estado = comp ? (e.cumplido_at ? `<span class="ev-tag ok">● Cumplido</span>` : `<span class="ev-tag pend">● Compromiso pendiente</span>`) : "<span></span>";
+  const v = abrirHoja(`<div class="cajon-cab ev-cab">${estado}<span class="ev-acc">${puede ? `<button type="button" class="ev-ib" id="evE" aria-label="Editar" title="Editar">${ICO_EV.lapiz}</button>` : ""}<button class="btn lin chico" data-cerrar type="button">Cerrar</button></span></div>
+    <div class="ev-ver">
+      <h2 class="ev-h">${comp && e.cumplido_at ? "✓ " : ""}${esc(e.titulo ?? "")}</h2>
+      <div class="ev-r">${ICO_EV.hora}<div>${esc(c.fecha)}<small>${esc(c.sub)}</small></div></div>
+      <div class="ev-r">${ICO_EV.aviso}<div>${e.recordatorio_min == null ? "Sin aviso" : esc(`Avisa ${(RECORDAR.find(([k]) => k === String(e.recordatorio_min))?.[1] ?? `${e.recordatorio_min} minutos antes`).toLowerCase()}`)}</div></div>
+      <div class="ev-r">${ICO_EV.gente}<div><div class="ev-inv">${inv.map((n) => `<span><i>${esc(n.charAt(0).toUpperCase())}</i>${esc(n)}</span>`).join("") || "Sin invitados"}</div>${e.creado_nombre ? `<small>Lo creó ${esc(e.creado_nombre)}</small>` : ""}</div></div>
+      ${comp && e.prometido ? `<div class="ev-prom"><b>Lo que le prometimos</b>“${esc(e.prometido)}”${e.cumplido_at ? `<small>Cumplido el ${esc(cuandoComp(e.cumplido_at))}</small>` : ""}</div>` : ""}
+      ${e.detalle ? `<div class="ev-r">${ICO_EV.texto}<div class="ev-det">${esc(e.detalle)}</div></div>` : ""}
+      ${ficha ? fichaHtml(ficha) : ""}
+    </div>
+    ${comp || ficha ? `<div class="ev-pie">${comp ? `<button type="button" class="btn ${e.cumplido_at ? "lin" : "pri"}" id="evCump">${e.cumplido_at ? "Volver a pendiente" : "Marcar cumplido"}</button>` : ""}${ficha ? `<button type="button" class="btn lin" id="evIr">${ficha.origen === "venta" ? "Ir a la venta" : "Abrir"}</button>` : ""}</div>` : ""}`);
+  if ($("#evE", v)) $("#evE", v).onclick = () => { v.remove(); editarEvento(e, {}, true); };
+  if ($("#evIr", v)) $("#evIr", v).onclick = () => v.querySelector(".ficha")?.click();
+  if ($("#evCump", v)) $("#evCump", v).onclick = async () => {
+    if (await seguro(() => api("compromiso_cumplido", { evento_id: e.id, deshacer: !!e.cumplido_at }))) { v.remove(); aviso(e.cumplido_at ? "Volvió a quedar pendiente" : "Compromiso cumplido"); if (S.tab === "calendario") VISTAS.calendario(); }
+  };
 }
 // "Agendar" en un mensaje del chat: la IA propone título, fecha y hora; la persona revisa y guarda
 async function agendarMensaje(m, miembros) {
