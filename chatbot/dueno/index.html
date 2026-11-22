@@ -585,6 +585,7 @@ input[type=file]{max-width:100%}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
 .grp-f{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--borde,#e3e7ee)}.grp-f:first-of-type{border-top:none}.inv-grp{border-style:dashed!important}
+.rt-graf{margin:12px 0 4px;overflow:hidden}.rt-info{min-height:22px;margin:0;font-weight:700;font-size:14.5px}.rt-svg{width:100%;height:auto;display:block}.rt-g{stroke:var(--borde,#e3e7ee);stroke-width:1}.rt-t{font-size:11px;fill:var(--piz)}.rt-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}.rt-tab td,.rt-tab th{padding:6px 8px}
 .ev-cab{align-items:center;gap:10px}.ev-cab h2{flex:1;text-align:center;font-size:17px;margin:0}.ev-acc{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .ev-ib{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--piz)}.ev-ib:hover{background:var(--sup2)}.ev-ib:focus-visible{outline:2px solid var(--cielo)}
 .ev-ib svg,.ev-r>svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -2112,10 +2113,63 @@ async function rendimientoComparativo(emp) {
   const calor = `<div class="rc-heat" style="grid-template-columns:110px repeat(${horas.length},1fr)"><span></span>${horas.map((x) => `<span class="peq mut">${x}</span>`).join("")}
     ${P.map((p, i) => `<b>${esc(p.nombre)}</b>${horas.map((x) => { const v = p.horas[x] / maxH; return `<i title="${p.horas[x]} acciones entre las ${x} y las ${x + 1}" style="background:${v ? PALETA[i % PALETA.length] : "var(--sup2)"};opacity:${v ? 0.18 + v * 0.82 : 1}"></i>`; }).join("")}`).join("")}</div>`;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Comparación entre las personas del equipo. Período: ${esc(nombrePer())}. En verde, el mejor valor de cada fila; en rojo, los que se alejan mucho del promedio. Si alguien no está asignado a un módulo, aparece un guion.</p></div>${selPeriodo()}</div>
-    <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th>${esc(p.nombre)}</th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
+    <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th><button type="button" class="lnk" data-rt="${esc(p.id)}" title="Ver cómo fue en el tiempo">${esc(p.nombre)}</button></th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
     <div class="panel"><h2>A qué hora trabaja cada uno</h2><p class="peq mut" style="margin:-4px 0 10px">Acciones por hora del día, de lunes a viernes, en el período. Más intenso, más actividad.</p>${calor}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
   pestRend();
+  $("#main").querySelectorAll("[data-rt]").forEach((b) => b.onclick = () => verRendimiento(emp, [b.dataset.rt]));
+}
+// ---------- rendimiento en el tiempo (gráfico por persona, para comparar) ----------
+const RT_MET = [["tp", "Tiempo de respuesta a preguntas", "preguntas", "prom"], ["tm", "Tiempo de respuesta a compradores", "mensajes", "prom"], ["np", "Preguntas respondidas", "preguntas", "n"], ["nm", "Mensajes enviados", "mensajes", "n"]];
+const RT_PER = [[7, "7 días"], [30, "30 días"], [90, "3 meses"], [182, "6 meses"], [365, "1 año"]];
+async function verRendimiento(emp, uids, met = "tp") {
+  const st = { emp, uids: [...new Set(uids)], met, dias: 30 };
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Rendimiento en el tiempo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div><div id="rtCuerpo"><p class="mut">Cargando…</p></div>`);
+  const pintar = async () => {
+    const hasta = new Date(), desde = new Date(Date.now() - st.dias * 86400000);
+    const r = await seguro(() => api("rendimiento_serie", { cliente_id: st.emp, usuarios: st.uids, desde: desde.toISOString(), hasta: hasta.toISOString() }));
+    if (!r || !v.isConnected) return;
+    const [, titulo, mod, campo] = RT_MET.find((m) => m[0] === st.met);
+    const fmt = campo === "prom" ? dur : (x) => num(x);
+    const colorDe = (id) => PALETA[Math.max(0, r.equipo.findIndex((e) => e.id === id)) % PALETA.length];
+    const series = r.personas.map((p) => ({ p, color: colorDe(p.id), val: p[mod].map((x) => x[campo]) }));
+    // Gráfico de líneas (SVG): un punto por día, semana o mes
+    const W = 640, H = 240, iz = 56, de = 14, ar = 12, ab = 30, N = r.buckets.length;
+    const todos = series.flatMap((x) => x.val).filter((x) => x != null);
+    const max = Math.max(1, ...todos) * 1.1;
+    const X = (i) => iz + (N <= 1 ? (W - iz - de) / 2 : i * (W - iz - de) / (N - 1)), Y = (val) => ar + (H - ar - ab) * (1 - val / max);
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => max * f);
+    const etq = (k) => { const d = new Date(k + "T12:00:00"); return r.paso === "mes" ? d.toLocaleDateString("es-AR", { month: "short" }) : d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
+    const cadaX = Math.max(1, Math.ceil(N / 6));
+    const lineas = series.map((x) => {
+      const pts = x.val.map((val, i) => val == null ? null : [X(i), Y(val), val, i]);
+      let d = "", corte = true;
+      for (const q of pts) { if (!q) { corte = true; continue; } d += `${corte ? "M" : "L"}${q[0].toFixed(1)},${q[1].toFixed(1)} `; corte = false; }
+      return `<path d="${d}" fill="none" stroke="${x.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${pts.filter(Boolean).map((q) => `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="${x.color}" data-info="${esc(`${x.p.nombre} · ${etq(r.buckets[q[3]])}: ${fmt(q[2])}${campo === "prom" ? ` (${x.p[mod][q[3]].n} ${mod === "preguntas" ? "preguntas" : "mensajes"})` : ""}`)}" style="cursor:pointer"><title>${esc(x.p.nombre)} · ${etq(r.buckets[q[3]])}: ${esc(String(fmt(q[2])))}</title></circle>`).join("")}`;
+    }).join("");
+    const svg = todos.length ? `<svg viewBox="0 0 ${W} ${H}" class="rt-svg" role="img" aria-label="${esc(titulo)}">
+      ${ticks.map((t) => `<line x1="${iz}" x2="${W - de}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" class="rt-g"/><text x="${iz - 6}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" class="rt-t">${esc(String(fmt(Math.round(t))))}</text>`).join("")}
+      ${r.buckets.map((k, i) => i % cadaX === 0 ? `<text x="${X(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="rt-t">${etq(k)}</text>` : "").join("")}
+      ${lineas}</svg>` : `<p class="mut" style="padding:30px 0;text-align:center">No hay datos en este período.</p>`;
+    $("#rtCuerpo", v).innerHTML = `
+      <div class="nt-men" id="rtMet">${RT_MET.map(([k, t]) => `<button type="button" data-met="${k}" aria-pressed="${k === st.met}">${t}</button>`).join("")}</div>
+      <div class="nt-men" id="rtPer" style="margin-top:8px">${RT_PER.map(([d, t]) => `<button type="button" data-dias="${d}" aria-pressed="${d === st.dias}">${t}</button>`).join("")}</div>
+      <div class="rt-graf">${svg}</div>
+      <p class="rt-info" id="rtInfo" aria-live="polite"></p>
+      <p class="peq mut" style="margin:2px 0 10px">Cada punto es ${r.paso === "dia" ? "un día" : r.paso === "semana" ? "una semana" : "un mes"}${campo === "prom" ? ", con el tiempo promedio de respuesta" : ""}. Tocá un punto para ver el valor.</p>
+      <table class="tabla rt-tab"><tr><th>Persona</th><th>${campo === "prom" ? "Promedio del período" : "Total del período"}</th><th>${mod === "preguntas" ? "Preguntas" : "Mensajes"}</th></tr>
+        ${series.map((x) => { const t = x.p[mod === "preguntas" ? "total_preguntas" : "total_mensajes"]; return `<tr><td><i class="rt-dot" style="background:${x.color}"></i>${esc(x.p.nombre)}</td><td>${campo === "prom" ? dur(t.prom) : num(t.n)}</td><td>${num(t.n)}</td></tr>`; }).join("")}</table>
+      <span class="ev-lab" style="margin-top:14px">Comparar con</span>
+      <div class="nt-men" id="rtGente">${r.equipo.map((e) => `<button type="button" data-u="${esc(e.id)}" aria-pressed="${st.uids.includes(e.id)}"><i class="rt-dot" style="background:${colorDe(e.id)}"></i>${esc(e.nombre)}</button>`).join("")}</div>`;
+  };
+  v.addEventListener("click", (x) => {
+    const c = x.target.closest("[data-info]"); if (c) { $("#rtInfo", v).textContent = c.dataset.info; return; }
+    const m = x.target.closest("[data-met]"); if (m) { st.met = m.dataset.met; return pintar(); }
+    const d = x.target.closest("[data-dias]"); if (d) { st.dias = Number(d.dataset.dias); return pintar(); }
+    const u = x.target.closest("#rtGente [data-u]"); if (u) { const id = u.dataset.u; st.uids = st.uids.includes(id) ? st.uids.filter((y) => y !== id) : [...st.uids, id]; if (!st.uids.length) st.uids = [id]; return pintar(); }
+  });
+  pintar();
 }
 // Solapas de Rendimiento: Comparativo y el detalle de cada módulo
 function pestRend() {
@@ -3245,12 +3299,13 @@ async function vistaCliente(nuevos = true) {
       ${cta?.tiempo_ml ? bloqueTiempoML(cta) : ""}</div>
     <div class="panel" style="padding:16px 18px;overflow-x:auto"><h2>Equipo</h2>
       ${d.operadores.length ? `<table class="tabla apilable"><tr><th>Persona</th><th>Preguntas respondidas</th><th>Tiempo</th>${conMsj ? "<th>Mensajes enviados</th><th>Tiempo</th><th>Ventas atendidas</th>" : ""}</tr>
-      ${d.operadores.map((o) => `<tr><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}<div class="peq mut">${o.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Preguntas respondidas">${num(o.respondidas)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td data-et="Mensajes enviados">${num(o.mensajes)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_mensajes_seg)}</td><td data-et="Ventas atendidas">${num(o.conversaciones)}</td>` : ""}</tr>`).join("")}
+      ${d.operadores.map((o) => `<tr class="fila-click" data-rt="${esc(o.usuario_id ?? "")}" tabindex="0" title="Ver cómo fue en el tiempo"><td><b>${esc(o.nombre)}</b>${o.estado === "baja" ? ` <span class="chip">De baja</span>` : o.estado === "invitado" ? ` <span class="chip">Invitado</span>` : ""}<div class="peq mut">${o.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Preguntas respondidas">${num(o.respondidas)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_nuestro_seg)}</td>${conMsj ? `<td data-et="Mensajes enviados">${num(o.mensajes)}</td><td data-et="Tiempo de respuesta">${dur(o.tiempo_mensajes_seg)}</td><td data-et="Ventas atendidas">${num(o.conversaciones)}</td>` : ""}</tr>`).join("")}
       ${conMsj && m.desde_mercadolibre ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Escritos fuera de Mostrador</div></td><td></td><td></td><td data-et="Mensajes enviados">${num(m.desde_mercadolibre)}</td><td></td><td></td></tr>` : ""}</table>`
       : `<p class="mut" style="margin:6px 0 0">Este cliente todavía no tiene usuarios.</p>`}</div>
     <button class="btn osc" id="soporteIr" style="margin-top:18px">Entrar como ${esc(e.nombre)} (soporte)</button>
     <p class="mut peq" style="margin:6px 0 0">Ves su panel tal como lo ve su administrador, para ayudarlo. Lo que cambies queda hecho en su negocio.</p>`;
   enlazarPeriodo(vistaCliente);
+  $("#main").querySelectorAll("tr[data-rt]").forEach((t) => { if (!t.dataset.rt) return; t.onclick = (x) => { const td = x.target.closest("td"); verRendimiento(e.id, [t.dataset.rt], td?.previousElementSibling?.dataset.et === "Mensajes enviados" ? "tm" : "tp"); }; });
   $("#volverPlat").onclick = () => { S.platEmp = ""; S.platFil = null; S.platVer = 30; ir("plataforma"); };
   if ($("#sinFil")) $("#sinFil").onclick = () => { S.platFil = null; S.platVer = 30; vistaCliente(false); };
   if ($("#verMas")) $("#verMas").onclick = () => { S.platVer = verN + 30; vistaCliente(false); };
