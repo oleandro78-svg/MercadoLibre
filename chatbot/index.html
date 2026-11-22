@@ -582,7 +582,7 @@ input[type=file]{max-width:100%}
 .urg-x button:hover{background:rgba(0,0,0,.08)}.urg-x button:focus-visible{outline:2px solid currentColor}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
-.ch-at{gap:4px}.ch-at::before{display:none}.ch-at .at{padding:0 6px;border-radius:999px}.ch-at .at-a{background:var(--ambar-2);color:var(--ambar-t)}.ch-at .at-x{background:var(--pino-2);color:var(--pino-t)}
+.ch-at{display:inline-flex;align-items:center;gap:0;font-size:12.5px;color:var(--piz)}.ch-at svg{width:14px;height:14px;margin-right:4px;flex:none}.ch-at .at{font-weight:600}.ch-at .at-a{color:var(--ambar-t)}.ch-at .at-x{color:var(--pino-t)}.ch-at .at-sep{margin-right:4px}
 .seg-correo{list-style:none;margin:0;padding:0}.seg-correo li{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--linea);font-size:14px;line-height:1.4}.seg-correo li:first-child{border-top:0}.seg-f{color:var(--piz);font-variant-numeric:tabular-nums;white-space:nowrap}
 .c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
 .m-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
@@ -797,7 +797,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .hilo .h-venta{grid-column:2/-1;font-size:12.5px;color:var(--piz)}
 .hilo .h-marca{grid-column:2/-1;font-size:12.5px;font-weight:600;color:var(--ambar-t);background:var(--ambar-2);border-radius:8px;padding:4px 8px;margin:2px 0}
 .hilo .h-venta .cancel{color:var(--ladrillo)}
-.c-esp{background:var(--cielo-2);color:var(--cielo)}
+.c-esp{background:var(--cielo-2);color:var(--cielo)}.pend-fila{flex-basis:100%;margin-top:2px}#mFil .pend-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--ambar-2);color:var(--ambar-t)}#mFil .pend-bt::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}#mFil .pend-bt span{font-weight:400}#mFil .pend-bt:focus-visible{outline:2px solid var(--ambar-t)}.c-esp.c-esp-tarde{background:var(--ambar-2);color:var(--ambar-t)}
 .puntos i{font-style:normal;display:inline-block;animation:puntos 1.2s infinite ease-in-out;opacity:.15}
 .puntos i:nth-child(2){animation-delay:.2s}.puntos i:nth-child(3){animation-delay:.4s}
 @keyframes puntos{0%,80%,100%{opacity:.15;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
@@ -3625,13 +3625,14 @@ function etqLlega(c) {
 }
 const etqZona = (c) => c.destino?.cp ? `CP ${c.destino.cp}${c.destino.barrio || c.destino.ciudad ? ` · ${c.destino.barrio || c.destino.ciudad}` : ""}` : "";
 const etqCant = (c) => c.cantidad ? `${num(c.cantidad)} ${Number(c.cantidad) === 1 ? "unidad" : "unidades"}` : "";
+const ICONO_PERSONA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
 function etqAsignadosVenta(c) {
   const admin = S.rol !== "operador";
   if (c.es_mia && !admin) return `<span class="chip c-simulada">Para vos</span>`;
   if (!admin || !c.asignados_nombres?.length) return "";
   const h = (x) => new Date(x).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  return `<span class="chip ch-at">Atiende${c.asignados_nombres.length > 1 ? "n" : ""}:${c.asignados_nombres.map((n, i) => { const e = c.asignados_estado?.[i] ?? {};
-    return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó el aviso el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ningún aviso de esta venta`)}">${esc(n)}</span>`; }).join("")}</span>`;
+  return `<span class="ch-at" aria-label="La atienden">${ICONO_PERSONA}${c.asignados_nombres.map((n, i) => { const e = c.asignados_estado?.[i] ?? {};
+    return `<span class="at ${e.accion ? "at-x" : e.aviso ? "at-a" : ""}" title="${esc(e.accion ? `${n} hizo algo en esta venta el ${h(e.accion)}` : e.aviso ? `A ${n} le llegó la notificación el ${h(e.aviso)} y todavía no hizo nada` : `A ${n} todavía no le llegó ninguna notificación de esta venta`)}">${esc(n)}</span>`; }).join('<span class="at-sep">, </span>')}</span>`;
 }
 const etqParaQuien = (c) => c.es_mia || c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : "";
 // Datos de cada módulo: [nombre en el editor, cómo se muestra]. Los de "Etiquetas de color" devuelven su propio chip.
@@ -3650,7 +3651,8 @@ const ETQ = {
     llega: ["Cuándo llega", (c) => esc(etqLlega(c))], plazo: ["Plazo para despachar", (c) => ["ready_to_ship", "handling", "pending"].includes(c.envio_estado) ? esc(plazoDespacho(c)) : ""],
     zona: ["Zona", (c) => esc(etqZona(c))], fact: ["Factura", (c) => c.facturada === true ? "Facturada" : c.facturada === false && c.estado_orden !== "cancelled" ? "Falta facturar" : ""],
     ult: ["Último mensaje", (c) => c.ultimo_texto ? `<span class="${c.pendiente ? "ult-nl" : ""}">${c.ultimo_de === "vendedor" ? "Vos: " : ""}${esc(c.ultimo_texto)}</span>` : ""],
-    notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => c.pendiente ? `<span class="chip c-esp">Sin responder</span>` : ""],
+    notas: ["Notas", (c) => c.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], resp: ["Sin responder", (c) => { if (!c.pendiente) return ""; const d = c.espera_desde ?? c.ultimo_msj_at; if (!d) return `<span class="chip c-esp">Sin responder</span>`;
+      return `<span class="chip c-esp ${Date.now() - new Date(d) > 3600_000 ? "c-esp-tarde" : ""}" title="Sin responder">Espera ${esc(espera(d))}</span>`; }],
     recl: ["Reclamo", (c) => c.mediacion ? `<span class="chip c-urg">${esc(c.mediacion.tipo)} abierta</span>` : c.urgente ? `<span class="chip c-urg">${c.pendiente && puedeReclamar(c) ? "Posible reclamo" : "Atención"}</span>` : ""],
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
     comp: ["Calendario", (c) => c.compromiso_at ? `<span class="chip chip-cal ${new Date(c.compromiso_at) < new Date() ? "c-urg" : "c-cal"}" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</span>` : c.compromiso_sug ? `<span class="chip c-mot">Para agregar al calendario</span>` : ""],
@@ -3860,9 +3862,9 @@ function textoRango(f) { const { a, b } = rangoPeriodo(f), anio = a.getFullYear(
 // En Ventas siempre hay un período elegido (por defecto, el último mes)
 const DIAS_DEF = "30";
 // Texto corto del orden elegido, para el botón "Ordenar" de la barra
-const ORDEN_CORTO = { recientes: "Recientes", actividad: "Actividad", antiguas: "Antiguas", plazo: "Plazo", producto: "Producto", tipo: "Tipo de envío", zona: "Zona" };
-const ORDEN_MSJ = [["recientes", "Ventas más recientes"], ["actividad", "Actividad reciente"], ["antiguas", "Ventas más antiguas"]];
-const ORDEN_MSJ_DEF = "recientes";
+const ORDEN_CORTO = { recientes: "Recientes", actividad: "Último movimiento", antiguas: "Antiguas", plazo: "Plazo", producto: "Producto", tipo: "Tipo de envío", zona: "Zona" };
+const ORDEN_MSJ = [["actividad", "Último movimiento"], ["recientes", "Ventas más recientes"], ["antiguas", "Ventas más antiguas"]];
+const ORDEN_MSJ_DEF = "actividad";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
 const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"], ["agendadas", "Agendadas en el calendario", "Tienen un compromiso con el comprador pendiente"], ["por_agendar", "Para agregar al calendario", "Le prometieron algo al comprador y todavía no está en el calendario"],
   ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
@@ -3953,6 +3955,7 @@ async function cargarHilos(emp, mas = false) {
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
       + `<span class="mas-caja ord-der"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
+      + (r.pendientes && S.msjFil !== "pendientes" && !S.msjBus ? `<div class="pend-fila"><button type="button" class="pend-bt" data-pend>${num(r.pendientes)} sin responder <span>· Ver</span></button></div>` : "")
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
@@ -3970,6 +3973,7 @@ async function cargarHilos(emp, mas = false) {
       if (e.target.closest("#mPerM")) { e.stopPropagation(); return; }
       if (e.target.closest("#mOrd")) { e.stopPropagation(); const m = $("#mOrdM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#mOrd").setAttribute("aria-expanded", String(ab)); return; }
       const o = e.target.closest("[data-ord]"); if (o) { S.msjFx = { ...(S.msjFx ?? {}) }; if (o.dataset.ord) S.msjFx.orden = o.dataset.ord; else delete S.msjFx.orden; cargarHilos(emp); return; }
+      if (e.target.closest("[data-pend]")) { S.msjFil = "pendientes"; cargarHilos(emp); return; }
       const q = e.target.closest("[data-qx]"); if (q) { if (q.dataset.qx === "__fil") S.msjFil = "todas"; else delete S.msjFx[q.dataset.qx]; cargarHilos(emp); }
     };
     $("#mHilos").onkeydown = (e) => { const f = e.target.closest?.("[data-fav]"); if (f && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); cambiarFavorita(Number(f.dataset.fav)); } };
