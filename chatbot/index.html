@@ -211,6 +211,15 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ds-it input{width:20px;height:20px;flex:none;accent-color:var(--pino)}.ds-it .foto{width:56px;height:56px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}
 .ds-fc{position:relative;flex:none;display:inline-flex}.ds-fc input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}.ds-it:has(input:focus-visible){outline:2px solid var(--cielo);outline-offset:2px}.ds-it:has(.ds-fc.con-foto){align-items:flex-start}
 .ds-it .etq-r1>b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.ds-it .etq-ld{flex-wrap:wrap}.ds-it .etq-ld .etq-esq{white-space:normal;text-align:right}
+.ds-pasos{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}.ds-pasos button{all:unset;cursor:pointer;font-size:12px;line-height:1.2;border-radius:7px;padding:4px 7px;border:1px solid var(--linea);color:var(--piz);background:var(--sup)}
+.ds-pasos button:focus-visible{outline:2px solid var(--cielo)}.ds-pasos .ok{background:var(--pino-2);color:var(--pino-t);border-color:transparent}.ds-pasos .falta,.ds-pasos .mal{border:1.5px solid var(--ladrillo);color:var(--ladrillo);font-weight:600}.ds-pasos .mal{background:var(--ladrillo-2)}.ds-pasos .opc{border-style:dashed}.ds-pasos .pend{opacity:.75}
+.ds-quien{display:block;font-size:12px;color:var(--piz);margin-top:5px}
+.ds-fp{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.ds-fp button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--cielo);background:var(--sup)}.ds-fp button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}.ds-fp button:focus-visible{outline:2px solid var(--cielo)}
+.ps-log{display:flex;flex-direction:column;gap:6px;margin-top:12px}.ps-l{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:10px;font-size:14px;background:var(--pino-2);color:var(--pino-t)}.ps-l.mal{background:var(--ladrillo-2);color:var(--ladrillo)}.ps-l.fuera{background:var(--ambar-2);color:var(--ambar-t)}
+.ps-f{padding:7px 0;border-bottom:1px solid var(--linea);font-size:14px}.ps-f:last-child{border-bottom:0}
+.cir-paso{border-top:1px solid var(--linea);padding:14px 0}.cir-paso:first-of-type{border-top:0;padding-top:4px}.cir-t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.cir-t b{font-size:15.5px}.cir-n{font-size:12px;font-weight:700;color:var(--piz);min-width:14px}
+.cir-seg{display:flex;border:1px solid var(--linea);border-radius:10px;overflow:hidden;margin:8px 0 0 22px;max-width:420px}.cir-seg label{flex:1;text-align:center;cursor:pointer;border-left:1px solid var(--linea)}.cir-seg label:first-child{border-left:0}.cir-seg input{position:absolute;opacity:0;pointer-events:none}.cir-seg span{display:block;padding:8px 4px;font-size:13.5px;color:var(--piz)}.cir-seg input:checked+span{background:var(--tinta);color:var(--papel);font-weight:600}.cir-seg label:has(input:focus-visible){outline:2px solid var(--cielo);outline-offset:-2px}
+.cir-sub{margin:10px 0 0 22px;padding:10px 12px;background:var(--sup2);border-radius:12px;max-width:520px}.cir-sub .et{margin:2px 0 4px}.cir-sub label.op{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.cir-sub input{margin-top:3px;accent-color:var(--tinta)}
 .ds-it:has(input:checked){border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset;background:var(--pino-2)}
 .ds-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
 .imp-lista{display:grid;gap:8px;margin-bottom:14px}.imp-it,.imp-per{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--linea)}
@@ -1372,7 +1381,7 @@ const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["uso", "Plan y uso"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
@@ -6290,6 +6299,10 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
     if (r === "nuevas") lista = lista.filter((c) => !impresa(c));
   }
   const formato = imp?.formato ?? "pdf", base = { ...OPC_IMP_DEF, ...(imp?.opciones ?? {}) };
+  // Si el circuito arma con el troquel, se deja; si arma con la lista, se marca la lista de armado
+  const ciA = circActivo(S.dsCirc) && S.dsCirc.armado.modo !== "apagado" ? S.dsCirc.armado.con : null;
+  if (ciA === "troquel" || ciA === "ambas") base.troquel = "dejar";
+  if (ciA === "lista" || ciA === "ambas") base.armado = true;
   const conRuta = lista.filter((c) => ["self_service", "turbo"].includes(c.envio_logistica)).length;
   const op = await new Promise((fin) => {
     const h = abrirHoja(`<div class="cajon-cab"><h2>Qué imprimir</h2><button class="btn lin chico" data-cerrar type="button">Cancelar</button></div>
@@ -6299,6 +6312,7 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
           <label><input type="checkbox" checked disabled><span>Etiquetas de envío de MercadoLibre</span></label>
           <label><input type="checkbox" name="producto" ${base.producto ? "checked" : ""}><span>Etiqueta con los datos del producto (producto, variante, SKU y cantidad)</span></label>
           ${formato !== "zpl" ? `<label><input type="checkbox" name="troquel" ${base.troquel === "quitar" ? "checked" : ""}><span>Quitar el troquel si MercadoLibre lo manda</span></label>` : ""}
+          ${ciA === "troquel" || ciA === "ambas" ? `<p class="peq mut" style="margin:4px 0 0">El circuito arma con el troquel. Si MercadoLibre no lo manda (la cuenta lo tiene desactivado), sale la etiqueta con los datos del producto en su lugar.</p>` : ""}
         </div></fieldset>
         <fieldset class="fx-g"><legend>Hoja de control de MercadoLibre</legend><div class="fx-ops">${Object.entries(CONTROL_IMP).map(([k, t]) => `<label><input type="radio" name="control" value="${k}" ${base.control === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div>
           <p class="peq mut" style="margin:6px 0 0">Sale solo si la cuenta la tiene activada en MercadoLibre.</p></fieldset>
@@ -6319,7 +6333,8 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
   if (!op) return;
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Preparando…</b></p><p class="peq" style="margin:0" id="espT">Pidiendo las etiquetas a MercadoLibre</p></div>`);
   const ids = lista.map((c) => c.id);
-  const necesitaDatos = op.producto || op.armado || op.ruta || op.nota;
+  const troquelCir = (ciA === "troquel" || ciA === "ambas") && op.troquel === "dejar";
+  const necesitaDatos = op.producto || op.armado || op.ruta || op.nota || troquelCir;
   const [r, dd] = await Promise.all([
     seguro(() => api("despacho_etiquetas", { cliente_id: emp, ids, formato: formato === "zpl" ? "zpl" : "pdf", impresora_id: imp?.id ?? null })),
     necesitaDatos ? seguro(() => api("despacho_datos", { cliente_id: emp, ids })) : Promise.resolve({ ventas: [] }),
@@ -6342,7 +6357,9 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
         } });
         if (op.control !== "no") { const c = await unirControlesZpl(r.archivos); if (c) salidas.push({ t: "Hoja de control", d: "En una impresora común, hoja A4", pdf: c }); }
       } else {
-        const a = await armarEtiquetasPdf(r.archivos, formato, op, ventas);
+        let a = await armarEtiquetasPdf(r.archivos, formato, op, ventas);
+        // Sin troquel de MercadoLibre, la etiqueta de producto hace de troquel
+        if (troquelCir && !a.conTroquel && !op.producto) { op.producto = true; a = await armarEtiquetasPdf(r.archivos, formato, op, ventas); aviso("MercadoLibre no mandó el troquel: va la etiqueta con los datos del producto en su lugar"); }
         salidas.push({ t: "Etiquetas", d: `${formato === "pdf" ? "Hojas A4 con 3 etiquetas" : "Una etiqueta de 10x15 por hoja"}${op.producto ? ", con la de producto" : ""}${a.conTroquel && op.troquel === "quitar" ? ", sin troquel" : ""}${a.controles && op.control === "con_etiquetas" ? ", con la hoja de control al final" : ""}`, pdf: a.etiquetas });
         if (a.control) salidas.push({ t: "Hoja de control", d: "En una impresora común, hoja A4", pdf: a.control });
         if (a.hojasA4 && formato === "pdf10") aviso("La cuenta tiene configurado en MercadoLibre el formato A4: para la térmica conviene configurar PDF 10x15 en Preferencias de venta");
@@ -6369,9 +6386,121 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
   };
 }
 
+// ---------- Circuito de despacho ----------
+// Pasos que sigue cada paquete (los elige el administrador del negocio en Mi negocio › Circuito de despacho).
+// En la lista, cada tarjeta muestra los pasos: verde hecho, rojo el obligatorio que falta y ya le toca, borde punteado
+// los opcionales. Tocando un paso se hace (armado, entrega) o se abre lo que corresponde (verificar, foto).
+const PASOS_DS = [["etiqueta", "Imprimir", "Etiqueta", "Imprimió"], ["armado", "Armar", "Armado", "Armó"], ["verificacion", "Verificar", "Verificado", "Verificó"], ["foto", "Foto", "Foto", "Sacó la foto"], ["entrega", "Entregar", "Entregado", "Entregó al transporte"]];
+const PASO_NOM = { armado: "Armado", verificacion: "Verificación", foto: "Foto del paquete", entrega: "Entrega al transporte" };
+const GRUPO_ENV = { self_service: "flex", turbo: "flex", cross_docking: "colecta", xd_drop_off: "correo", drop_off: "correo" };
+const ENVIOS_CIR = [["flex", "Flex y Turbo"], ["colecta", "Colecta"], ["correo", "Correo y puntos de despacho"]];
+const circActivo = (ci) => !!ci && ["armado", "verificacion", "foto", "entrega"].some((k) => ci[k] && ci[k].modo !== "apagado");
+const pasoAplica = (ci, k, c) => k === "etiqueta" || (!!ci?.[k] && ci[k].modo !== "apagado" && ci[k].envios.includes(GRUPO_ENV[c.envio_logistica]));
+const pasoHecho = (c, k) => k === "etiqueta" ? impresa(c) : k === "verificacion" ? !!c.pasos?.verificacion?.ok : !!c.pasos?.[k];
+const faltaPaso = (ci, c, k) => pasoAplica(ci, k, c) && !pasoHecho(c, k);
+function estadoPasos(c, ci) {
+  const out = []; let bloq = false;
+  for (const [k, accion, hechoT] of PASOS_DS) {
+    if (!pasoAplica(ci, k, c)) continue;
+    const ob = k === "etiqueta" || ci[k].modo === "obligatorio", h = pasoHecho(c, k);
+    const mal = k === "verificacion" && c.pasos?.verificacion && !c.pasos.verificacion.ok;
+    out.push({ k, txt: h ? hechoT : mal ? "No coincidió" : accion, est: h ? "ok" : mal ? "mal" : !ob ? "opc" : bloq ? "pend" : "falta" });
+    if (ob && !h) bloq = true;
+  }
+  return out;
+}
+function pasosHTML(c, ci) {
+  if (!circActivo(ci)) return "";
+  const ps = estadoPasos(c, ci);
+  const ult = [...PASOS_DS].reverse().find(([k]) => pasoHecho(c, k) && c.pasos?.[k]?.quien);
+  const otra = ci.verificacion?.otra && pasoAplica(ci, "verificacion", c) && !pasoHecho(c, "verificacion") && !!c.pasos?.armado?.mio;
+  return `<span class="ds-pasos">${ps.map((p) => `<button type="button" class="${p.est}" data-paso="${p.k}" data-c="${c.id}" aria-label="${esc(PASO_NOM[p.k] ?? "Etiqueta")}: ${p.est === "ok" ? "hecho" : p.est === "falta" ? "falta, obligatorio" : p.est === "opc" ? "opcional" : p.est === "mal" ? "no coincidió" : "pendiente"}">${p.est === "ok" ? "✓ " : ""}${p.txt}</button>`).join("")}</span>
+    ${ult || otra ? `<span class="ds-quien">${ult ? `${ult[3]}: ${esc(c.pasos[ult[0]].quien)}${c.pasos[ult[0]].at ? `, ${horaCorta(c.pasos[ult[0]].at)}` : ""}` : ""}${otra ? `${ult ? " · " : ""}lo tiene que verificar otra persona` : ""}</span>` : ""}`;
+}
+// Tocar un paso en la tarjeta
+async function accionPaso(emp, c, k) {
+  const ci = S.dsCirc, recargar = () => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); };
+  if (k === "etiqueta") return aviso(pasoHecho(c, k) ? (quienImprimio(c) || "La etiqueta ya está impresa") : "Elegí el paquete en la lista e imprimí su etiqueta");
+  if (k === "verificacion") return verificarPaquete(emp, c.envio_id);
+  if (k === "foto") return fotosDespacho({ conversacion_id: c.id, cuenta_id: c.cuenta_id, item_id: c.item_id, envio_id: c.envio_id, item_titulo: c.item_titulo, item_foto: c.item_thumbnail, comprador: c.comprador_nombre, orden_id: c.pack_id ?? c.orden_ids?.[0] ?? null });
+  const nom = k === "armado" ? "armado" : "entregado al transporte";
+  if (pasoHecho(c, k)) {
+    if (!confirm(`¿Desmarcar como ${nom}? Lo marcó ${c.pasos[k].quien}.`)) return;
+    if (await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, deshacer: true }))) { aviso("Desmarcado"); recargar(); }
+    return;
+  }
+  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k }));
+  if (!r) return;
+  if (r.ok === false) return aviso(r.motivo);
+  aviso(k === "armado" ? "Marcado como armado" : "Marcado como entregado al transporte"); recargar();
+  void ci;
+}
+// Escanear etiquetas una tras otra: para marcar armados o la entrega al transporte. Al entregar, muestra lo que falta.
+function sesionPasos(emp, paso, env) {
+  const ci = S.dsCirc, hechos = [], nombre = paso === "armado" ? "Armar paquetes" : "Entregar al transporte";
+  const hoy = env.filter((c) => pasoAplica(ci, paso, c) && grupoDespacho(c) === "hoy");
+  const h = abrirHoja(`<div class="cajon-cab"><h2>${nombre}</h2><button class="btn lin chico" data-cerrar type="button">Terminar</button></div><div class="ps-cuerpo"></div>`);
+  const pintar = () => {
+    const marcados = new Set(hechos.filter((x) => x.ok).flatMap((x) => x.ids));
+    const faltan = paso === "entrega" ? hoy.filter((c) => !pasoHecho(c, "entrega") && !marcados.has(c.id)) : [];
+    const n = hechos.filter((x) => x.ok && !x.ya).length;
+    h.querySelector(".ps-cuerpo").innerHTML = `<p class="peq mut" style="margin:0 0 10px">${paso === "armado" ? "Cuando termines de armar cada paquete, escaneá su etiqueta." : "Escaneá cada etiqueta a medida que le das el paquete al transporte."} La cámara se vuelve a abrir sola para el siguiente; cerrala cuando termines.</p>
+      <button class="btn pri" type="button" id="psEsc" style="width:100%;justify-content:center">Escanear ${hechos.length ? "otra" : "una"} etiqueta</button>
+      ${hechos.length ? `<p class="peq" style="margin:12px 0 0"><b>${n === 1 ? "1 paquete marcado" : `${n} paquetes marcados`}</b></p>` : ""}
+      <div class="ps-log">${hechos.slice().reverse().map((x) => `<div class="ps-l ${!x.ok ? "mal" : x.fuera ? "fuera" : ""}"><b>${!x.ok ? "No se marcó" : x.ya ? "Ya estaba marcado" : x.fuera ? "Marcado, pero no era para hoy" : "Listo"}</b><span>${esc(x.txt)}</span>${x.motivo ? `<span class="peq">${esc(x.motivo)}</span>` : ""}</div>`).join("")}</div>
+      ${paso === "entrega" ? `<h3 style="margin:18px 0 4px;font-size:15px">${faltan.length ? `Faltan entregar hoy: ${faltan.length}` : "No falta entregar nada de hoy"}</h3>
+        ${faltan.map((c) => `<div class="ps-f"><b>${Number(c.cantidad) || 1} × ${esc(c.item_titulo ?? "Producto")}</b><div class="peq mut">${esc([LOGISTICA[c.envio_logistica], c.comprador_nombre, impresa(c) ? "" : "sin etiqueta impresa"].filter(Boolean).join(" · "))}</div></div>`).join("")}` : ""}`;
+    h.querySelector("#psEsc").onclick = leer;
+  };
+  const leer = () => escanear(paso === "armado" ? "Escaneá la etiqueta del paquete armado" : "Escaneá la etiqueta del paquete que entregás", async (codigo) => {
+    const r = await seguro(() => api("despacho_paso", { cliente_id: emp, paso, codigo }));
+    if (!r || !h.isConnected) return;
+    try { navigator.vibrate?.(r.ok ? 80 : [80, 60, 80, 60, 200]); } catch {}
+    const ids = r.venta?.ids ?? [];
+    hechos.push({ ok: !!r.ok, ya: !!r.ya, ids, fuera: r.ok && paso === "entrega" && !ids.some((id) => hoy.some((c) => c.id === id)), txt: r.venta ? `${r.venta.titulo}${r.venta.comprador ? ` · ${r.venta.comprador}` : ""}` : `Código ${codigo}`, motivo: r.motivo ?? null });
+    pintar();
+    if (r.ok) setTimeout(() => { if (h.isConnected) leer(); }, 700);
+  });
+  pintar(); leer();
+  new MutationObserver((_m, o) => { if (!h.isConnected) { o.disconnect(); if (hechos.length && S.tab === "despacho") VISTAS.despacho({ rapido: true }); } }).observe(document.body, { childList: true });
+}
+// Mi negocio › Circuito de despacho (solo el administrador del negocio)
+VISTAS.circuito = async () => {
+  const emp = empRec();
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Circuito de despacho</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  const d = await seguro(() => api("despacho_circuito", { cliente_id: emp }));
+  if (!d || S.tab !== "circuito") return;
+  const ci = d.circuito, pu = d.puede;
+  const seg = (k) => `<div class="cir-seg" role="radiogroup" aria-label="${PASO_NOM[k]}">${[["apagado", "Apagado"], ["opcional", "Opcional"], ["obligatorio", "Obligatorio"]].map(([v, t]) => `<label><input type="radio" name="m_${k}" value="${v}" ${ci[k].modo === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}</span></label>`).join("")}</div>`;
+  const envios = (k) => `<div class="et">Para qué envíos</div>${ENVIOS_CIR.map(([v, t]) => `<label class="op"><input type="checkbox" name="e_${k}" value="${v}" ${ci[k].envios.includes(v) ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}</span></label>`).join("")}`;
+  const ayuda = { armado: "Sacar el producto del depósito y armar el paquete. Se marca tocando el paso en la tarjeta o escaneando la etiqueta.", verificacion: "Escanear la etiqueta y después el código del producto: la app avisa si no coincide.", foto: "Fotos del producto y del paquete cerrado, que quedan como prueba en la venta.", entrega: "Escanear cada etiqueta al dársela al transporte. Al final muestra los paquetes de hoy que faltan." };
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Circuito de despacho</h1><p>Qué pasos sigue cada paquete después de imprimir la etiqueta. Un paso no se puede hacer mientras falte uno obligatorio anterior.${pu ? "" : " Solo el administrador del negocio lo cambia."}</p></div></div>
+    <div class="panel" style="max-width:720px" id="cir">
+      <div class="cir-paso"><div class="cir-t"><span class="cir-n">1</span><b>Etiqueta</b></div><p class="peq mut" style="margin:4px 0 0 22px">Siempre activo: es el primer paso de todos los envíos.</p></div>
+      ${["armado", "verificacion", "foto", "entrega"].map((k, i) => `<div class="cir-paso" data-k="${k}"><div class="cir-t"><span class="cir-n">${i + 2}</span><b>${PASO_NOM[k]}</b></div>
+        <p class="peq mut" style="margin:4px 0 0 22px">${ayuda[k]}</p>${seg(k)}
+        <div class="cir-sub" data-sub="${k}">
+          ${k === "armado" ? `<div class="et">Con qué se arma</div>${[["lista", "Lista de armado en A4", "Agrupada por producto: se saca todo junto del depósito"], ["troquel", "Troquel de cada etiqueta", "Al imprimir se deja el troquel. Si la cuenta no lo tiene activado en MercadoLibre, sale la etiqueta con los datos del producto en su lugar"], ["ambas", "Las dos", ""]].map(([v, t, x]) => `<label class="op"><input type="radio" name="con" value="${v}" ${ci.armado.con === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}${x ? `<br><span class="peq mut">${x}</span>` : ""}</span></label>`).join("")}<div style="height:8px"></div>` : ""}
+          ${k === "verificacion" ? `<label class="op"><input type="checkbox" name="otra" ${ci.verificacion.otra ? "checked" : ""} ${pu ? "" : "disabled"}><span>Que verifique otra persona que la que armó</span></label><div style="height:6px"></div>` : ""}
+          ${envios(k)}</div></div>`).join("")}
+      ${pu ? `<button class="btn pri" type="button" id="cirG" style="margin-top:8px">Guardar circuito</button>` : ""}
+    </div>`;
+  const mostrar = () => $("#cir").querySelectorAll("[data-sub]").forEach((x) => x.classList.toggle("oculto", $(`#cir input[name="m_${x.dataset.sub}"]:checked`)?.value === "apagado"));
+  mostrar(); $("#cir").onchange = mostrar;
+  if ($("#cirG")) $("#cirG").onclick = async () => {
+    const leer = (k) => ({ modo: $(`#cir input[name="m_${k}"]:checked`)?.value ?? "apagado", envios: [...$("#cir").querySelectorAll(`input[name="e_${k}"]:checked`)].map((x) => x.value) });
+    const circuito = { armado: { ...leer("armado"), con: $('#cir input[name="con"]:checked')?.value ?? "lista" }, verificacion: { ...leer("verificacion"), otra: $('#cir input[name="otra"]').checked }, foto: leer("foto"), entrega: leer("entrega") };
+    for (const k of ["armado", "verificacion", "foto", "entrega"]) if (circuito[k].modo !== "apagado" && !circuito[k].envios.length) return aviso(`${PASO_NOM[k]}: elegí al menos un tipo de envío`);
+    $("#cirG").disabled = true;
+    const r = await seguro(() => api("despacho_circuito_guardar", { cliente_id: emp, circuito }));
+    $("#cirG").disabled = false;
+    if (r) { S.dsCirc = r.circuito; aviso("Circuito guardado"); }
+  };
+};
+
 // Control al despachar: escanear la etiqueta y después el producto; si no coinciden, avisa antes de cerrar la caja
-async function verificarPaquete(emp) {
-  const codigo = await new Promise((fin) => escanear("Escaneá la etiqueta del paquete", fin));
+async function verificarPaquete(emp, yaLeido = null) {
+  const codigo = yaLeido ? String(yaLeido) : await new Promise((fin) => escanear("Escaneá la etiqueta del paquete", fin));
   if (!codigo) return;
   const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><b>Buscando la venta…</b></div>`);
   const r = await seguro(() => api("despacho_verificar", { cliente_id: emp, codigo }));
@@ -6390,6 +6519,12 @@ async function verificarPaquete(emp) {
     <div class="fx-pie">${codigos.length ? `<button class="btn ${estado ? "lin" : "pri"}" type="button" id="verEsc">${estado ? "Escanear de nuevo" : "Escanear el producto"}</button>` : ""}
       ${!codigos.length ? `<button class="btn pri" type="button" id="verMan">Está bien</button>` : ""}
       ${estado === "ok" || !codigos.length ? `<button class="btn lin" type="button" id="verFot">Sacar fotos</button>` : ""}</div>`;
+  if (r.bloqueo) {
+    abrirHoja(`<div class="cajon-cab"><h2>Verificar paquete</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+      <p class="peq mut" style="margin:0 0 8px">${esc(v.comprador ?? "")} · venta ${esc(v.pack_id ?? "")}</p>
+      <div class="ver-res mal"><b>Todavía no</b><span>${esc(r.bloqueo)}.</span></div>`);
+    return;
+  }
   const h = abrirHoja(pintar(null));
   const guardar = (ok, leido) => seguro(() => api("despacho_verificar_guardar", { cliente_id: emp, conversacion_id: v.id, ok, codigo: leido ?? null, esperado: codigos.join(", ") }));
   const enganchar = () => {
@@ -6398,7 +6533,8 @@ async function verificarPaquete(emp) {
       if (!leido) return;
       const ok = codigos.some((c) => norm(c) === norm(leido));
       try { navigator.vibrate?.(ok ? 80 : [80, 60, 80, 60, 200]); } catch {}
-      await guardar(ok, leido);
+      if (!(await guardar(ok, leido))) return;
+      if (S.tab === "despacho") VISTAS.despacho({ rapido: true });
       h.querySelector(".cajon").innerHTML = pintar(ok ? "ok" : "mal", leido); enganchar();
     });
     h.querySelector("#verMan")?.addEventListener("click", async () => { await guardar(true, null); aviso("Paquete marcado como revisado"); h.remove(); });
@@ -6494,6 +6630,7 @@ VISTAS.despacho = async (op = {}) => {
   let impId = (S.rol === "admin" ? impLocal(emp) : d.mia?.id) ?? null;
   if (!imps.some((i) => i.id === impId)) impId = imps.length === 1 ? imps[0].id : null;
   const env = d.envios ?? [], sel = S.dsSel ??= new Set();
+  const ci = S.dsCirc = d.circuito ?? null, conCirc = circActivo(ci);
   for (const id of [...sel]) if (!env.some((c) => c.id === id)) sel.delete(id);
   const F = S.dsF ??= { plazo: "hoy", tipos: [], etiqueta: "todas", productos: [], mio: null, orden: "plazo" };
   if (F.mio === null) F.mio = !!d.con_asignaciones && S.rol === "operador";
@@ -6508,7 +6645,10 @@ VISTAS.despacho = async (op = {}) => {
     && (sin === "tipos" || !F.tipos.length || F.tipos.includes(c.envio_logistica))
     && (sin === "etiqueta" || F.etiqueta === "todas" || (F.etiqueta === "impresas") === impresa(c))
     && (sin === "producto" || !F.productos.length || F.productos.includes(tit(c)))
-    && (!F.mio || c.para_mi);
+    && (!F.mio || c.para_mi)
+    && (sin === "paso" || !conCirc || !F.paso || faltaPaso(ci, c, F.paso));
+  const pasosFil = conCirc ? ["armado", "verificacion", "foto", "entrega"].filter((k) => ci[k].modo !== "apagado") : [];
+  if (!pasosFil.includes(F.paso)) F.paso = null;
   const visibles = () => ordenarDespacho(env.filter((c) => pasa(c)), F.orden);
   const pintar = () => {
     const vis = visibles();
@@ -6520,8 +6660,13 @@ VISTAS.despacho = async (op = {}) => {
       const cab = grupo && grupo !== previo ? `<h3 class="ds-grupo">${esc(grupo)}</h3>` : ""; previo = grupo;
       // La casilla va encima de la foto (en el celular no le quita ancho al texto)
       const pt = etqPartes("despacho", c, etqConfig("despacho", emp));
-      return `${cab}<label class="ds-it"><span class="ds-fc ${pt.img ? "con-foto" : ""}">${pt.img}<input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}></span>${etqFilaHTML({ ...pt, img: "" })}</label>`;
+      const fila = etqFilaHTML({ ...pt, img: "" });
+      return `${cab}<label class="ds-it"><span class="ds-fc ${pt.img ? "con-foto" : ""}">${pt.img}<input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}></span>${conCirc ? fila.slice(0, -7) + pasosHTML(c, ci) + "</span>" : fila}</label>`;
     }).join("") : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
+    if ($("#dsFp")) {
+      const FALTA = { armado: "Falta armar", verificacion: "Falta verificar", foto: "Falta foto", entrega: "Falta entregar" };
+      $("#dsFp").innerHTML = `<button type="button" data-fp="" aria-pressed="${!F.paso}">Todos ${env.filter((c) => pasa(c, "paso")).length}</button>${pasosFil.map((k) => `<button type="button" data-fp="${k}" aria-pressed="${F.paso === k}">${FALTA[k]} ${env.filter((c) => pasa(c, "paso") && faltaPaso(ci, c, k)).length}</button>`).join("")}`;
+    }
     $("#dsN").textContent = sel.size ? `Imprimir ${sel.size === 1 ? "1 etiqueta" : `${sel.size} etiquetas`}` : "Imprimir etiquetas";
     $("#dsImp").disabled = !sel.size;
     $("#dsTodas").textContent = vis.length && vis.every((c) => sel.has(c.id)) ? "Quitar selección" : `Elegir todas (${vis.length})`;
@@ -6543,7 +6688,7 @@ VISTAS.despacho = async (op = {}) => {
     $("#dsAct").classList.toggle("oculto", !elegidos.length);
   };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despachás (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>${chipsClientes("despacho", emp)}
-    <div class="ds-imp"><button class="btn lin" type="button" id="dsVer">Verificar paquete</button>${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
+    <div class="ds-imp">${conCirc && ci.armado.modo !== "apagado" ? `<button class="btn lin" type="button" id="dsArm">Armar</button>` : ""}<button class="btn lin" type="button" id="dsVer">Verificar paquete</button>${conCirc && ci.entrega.modo !== "apagado" ? `<button class="btn lin" type="button" id="dsEnt">Entregar al transporte</button>` : ""}${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
       <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "pdf" ? "común" : "térmica"}</option>`).join("")}</select>`
       : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
     <div class="m-fil ds-barra" id="dsBarra">
@@ -6553,6 +6698,7 @@ VISTAS.despacho = async (op = {}) => {
       <span class="mas-caja ord-der"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
       <div class="fx-act" id="dsAct"></div></div>
+    ${conCirc ? `<div class="ds-fp" id="dsFp" aria-label="Qué falta"></div>` : ""}
     <div class="rec-lista" id="dsLista"></div>
     <div class="rec-pie"><button class="btn lin" type="button" id="dsTodas">Elegir todas</button>
       <div class="mas-caja"><button class="btn lin" type="button" id="dsRes" aria-expanded="false" aria-controls="dsResM">Resumen ▾</button>
@@ -6604,6 +6750,14 @@ VISTAS.despacho = async (op = {}) => {
       h.remove(); Object.assign(F, G); pintar();
     };
   }
+  $("#dsLista").onclick = (e) => {
+    const b = e.target.closest("[data-paso]"); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const c = env.find((x) => x.id === Number(b.dataset.c)); if (c) accionPaso(emp, c, b.dataset.paso);
+  };
+  if ($("#dsFp")) $("#dsFp").onclick = (e) => { const b = e.target.closest("[data-fp]"); if (!b) return; F.paso = b.dataset.fp || null; pintar(); };
+  if ($("#dsArm")) $("#dsArm").onclick = () => sesionPasos(emp, "armado", env);
+  if ($("#dsEnt")) $("#dsEnt").onclick = () => sesionPasos(emp, "entrega", env);
   $("#dsLista").onchange = (e) => { const i = e.target.closest("[data-id]"); if (!i) return; const id = Number(i.dataset.id); i.checked ? sel.add(id) : sel.delete(id); pintar(); };
   $("#dsTodas").onclick = () => { const vis = visibles(); const todas = vis.every((c) => sel.has(c.id)); vis.forEach((c) => todas ? sel.delete(c.id) : sel.add(c.id)); pintar(); };
   if (!window.DS_ESCUCHA) { window.DS_ESCUCHA = true; document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu").forEach((m) => m.classList.add("oculto")); }); }
@@ -6798,7 +6952,7 @@ function vistasPermitidas() {
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
   else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
   l.push("misnotif");
-  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
+  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras", "circuito"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
 }
 navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
 </script>
