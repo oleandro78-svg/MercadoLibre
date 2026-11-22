@@ -3825,12 +3825,12 @@ function etqEditor(mod, emp, filas, alGuardar) {
     <div class="fx-cuerpo etq-ed">
       <p class="peq mut" style="margin:0">Elegí una plantilla y, si querés, ajustala: arrastrá los datos a los casilleros, o tocá un dato y después el casillero. Para sacar uno, llevalo a “Datos sin usar”. Vale para todos los que trabajan en el negocio.</p>
       <div class="etq-pl" id="etqPl">${def.plantillas.map(([t], i) => `<button type="button" class="btn lin chico" data-pl="${i}">${t}</button>`).join("")}</div>
+      ${(() => { const otras = Object.keys(ETQ).filter((m) => m !== mod && (() => { try { return modsActuales().has(ETQ_MOD_APP[m]); } catch { return true; } })());
+        return otras.length ? `<h3 class="etq-h">Copiar a otras listas</h3><p class="peq mut" style="margin:0 0 6px">Marcá las listas donde querés la misma etiqueta: al guardar se aplica también ahí, solo con los datos que existen en cada una.</p>
+        <div class="fx-ops" id="etqCopia">${otras.map((m) => `<label><input type="checkbox" value="${m}"><span>${ETQ[m].titulo}</span></label>`).join("")}</div><p class="peq mut" id="etqCopiaN" style="margin:6px 0 0"></p>` : ""; })()}
       <h3 class="etq-h">Etiqueta</h3><div class="etq-molde" id="etqMolde"></div>
       <h3 class="etq-h">Datos sin usar</h3><div class="etq-pal" id="etqPal" data-s="pal"></div>
       <h3 class="etq-h">Así se ve</h3><div class="etq-prev" id="etqPrev"></div>
-      ${(() => { const otras = Object.keys(ETQ).filter((m) => m !== mod && (() => { try { return modsActuales().has(ETQ_MOD_APP[m]); } catch { return true; } })());
-        return otras.length ? `<h3 class="etq-h">Copiar a otras listas</h3><p class="peq mut" style="margin:0 0 6px">Al guardar, la misma etiqueta se aplica también a las listas que marques. Los datos que no existen en esa lista quedan afuera.</p>
-        <div class="fx-ops" id="etqCopia">${otras.map((m) => `<label><input type="checkbox" value="${m}"><span>${ETQ[m].titulo}</span></label>`).join("")}</div><p class="peq mut" id="etqCopiaN" style="margin:6px 0 0"></p>` : ""; })()}
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" data-cerrar>Cancelar</button><button class="btn pri" type="button" id="etqOk">Guardar</button></div>`);
   const chip = (k) => `<span class="etq-it" data-i="${k}" tabindex="0" role="button">${esc(D[k][0])}</span>`;
