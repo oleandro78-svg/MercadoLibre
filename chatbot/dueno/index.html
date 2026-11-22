@@ -6195,6 +6195,53 @@ async function armarEtiquetasPdf(archivos, formato, op, datos) {
   }
   return { etiquetas: await salida.save(), control: control.getPageCount() ? await control.save() : null, controles: controles.length, conTroquel, hojasA4 };
 }
+// ---------- Etiqueta de retiro en el local (propia de la app) ----------
+// Código de barras Code 128 con el número de venta: se escanea al entregar, como las etiquetas de MercadoLibre
+const C128 = "212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112".split(" ");
+function code128(txt) {
+  const t = String(txt ?? ""), num = /^\d+$/.test(t) && t.length % 2 === 0;
+  const cods = num ? [105, ...t.match(/\d\d/g).map(Number)] : [104, ...[...t].map((ch) => Math.min(94, Math.max(0, ch.charCodeAt(0) - 32)))];
+  const chk = cods.reduce((a, c, i) => a + c * (i || 1), 0) % 103;
+  return [...cods, chk, 106].map((c) => C128[c]).join("").split("").map(Number); // anchos: barra, espacio, barra…
+}
+const ventaRetiro = (c) => ({ pack_id: c.pack_id ?? c.orden_ids?.[0] ?? String(c.id), comprador: c.comprador_nombre ?? "", fecha: c.fecha_venta, items: [{ cantidad: Number(c.cantidad) || 1, titulo: c.item_titulo ?? "Producto", variacion: c.item_variacion ?? null, sku: c.item_sku ?? null }] });
+function dibujarRetiro(pg, v, fuentes, x0 = 0, y0 = 0, esc = 1) {
+  const { reg, neg } = fuentes, { rgb } = window.PDFLib, negro = rgb(0, 0, 0), gris = rgb(0.35, 0.35, 0.35);
+  const W = ETQ_W * esc, mx = 16 * esc, ancho = W - 2 * mx; let y = y0 + ETQ_H * esc - 26 * esc;
+  pg.drawRectangle({ x: x0 + 6 * esc, y: y0 + 6 * esc, width: W - 12 * esc, height: ETQ_H * esc - 12 * esc, borderColor: negro, borderWidth: 1 * esc });
+  const linea = (t, f, tam, color = negro) => {
+    let l = ""; const out = [];
+    for (const p of txtPdf(t).split(/\s+/)) { const pr = l ? `${l} ${p}` : p; if (f.widthOfTextAtSize(pr, tam * esc) > ancho && l) { out.push(l); l = p; } else l = pr; }
+    if (l) out.push(l);
+    for (const s of out) { if (y < y0 + 140 * esc) return; pg.drawText(s, { x: x0 + mx, y, size: tam * esc, font: f, color }); y -= tam * esc * 1.25; }
+  };
+  linea("RETIRO EN EL LOCAL", neg, 15); y -= 4 * esc;
+  linea(`Venta ${v.pack_id}`, neg, 11); linea(v.comprador, reg, 11, gris); y -= 6 * esc;
+  for (const it of v.items) { linea(`${it.cantidad} x ${it.titulo}`, neg, 13); if (it.variacion) linea(it.variacion, reg, 10); if (it.sku) linea(`SKU: ${it.sku}`, reg, 10); }
+  // código de barras abajo
+  const barras = code128(v.pack_id), mod = Math.min(1.6 * esc, ancho / barras.reduce((a, b) => a + b, 0)), alto = 70 * esc;
+  let x = x0 + (W - mod * barras.reduce((a, b) => a + b, 0)) / 2;
+  barras.forEach((w, i) => { if (i % 2 === 0) pg.drawRectangle({ x, y: y0 + 40 * esc, width: w * mod, height: alto, color: negro }); x += w * mod; });
+  const num = txtPdf(v.pack_id); pg.drawText(num, { x: x0 + (W - reg.widthOfTextAtSize(num, 11 * esc)) / 2, y: y0 + 24 * esc, size: 11 * esc, font: reg, color: negro });
+}
+async function pdfRetiros(vs, formato) {
+  const { PDFDocument, StandardFonts } = await pdfLib();
+  const out = await PDFDocument.create(), fuentes = { reg: await out.embedFont(StandardFonts.Helvetica), neg: await out.embedFont(StandardFonts.HelveticaBold) };
+  if (formato === "pdf") {
+    const [AH, AW] = A4, m = 12, lugarW = (AW - 2 * m) / 3, esc = Math.min(lugarW / ETQ_W, (AH - 2 * m) / ETQ_H);
+    let hoja = null; vs.forEach((v, i) => { if (i % 3 === 0) hoja = out.addPage([AW, AH]); dibujarRetiro(hoja, v, fuentes, m + (i % 3) * lugarW, AH - m - ETQ_H * esc, esc); });
+  } else vs.forEach((v) => dibujarRetiro(out.addPage([ETQ_W, ETQ_H]), v, fuentes));
+  return await out.save();
+}
+function zplRetiro(v) {
+  let y = 40;
+  const campo = (t, alto, lineas = 1) => { const s = `^FO40,${y}^A0N,${alto},${alto}^FB730,${lineas},4,L^FD${zplTxt(t)}^FS`; y += Math.round(alto * 1.15) * lineas + 6; return s; };
+  const p = ["^XA", "^CI28", "^PW812", "^LL1218", "^FO20,20^GB772,1178,3^FS", campo("RETIRO EN EL LOCAL", 46), campo(`Venta ${v.pack_id}`, 34), campo(v.comprador, 30)];
+  y += 10;
+  for (const it of v.items) { p.push(campo(`${it.cantidad} x ${it.titulo}`, 40, 3)); if (it.variacion) p.push(campo(it.variacion, 30, 2)); if (it.sku) p.push(campo(`SKU: ${it.sku}`, 30)); }
+  p.push(`^FO80,930^BY3^BCN,180,Y,N,N^FD${zplTxt(v.pack_id)}^FS`, "^XZ");
+  return p.join("\n");
+}
 // Etiqueta de producto para impresora Zebra (10x15 a 203 ppp)
 const zplTxt = (t) => String(t ?? "").replace(/[\^~\\]/g, " ").replace(/\s+/g, " ").trim();
 function zplProducto(v) {
@@ -6305,6 +6352,27 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
     if (!r) return;
     if (r === "nuevas") lista = lista.filter((c) => !impresa(c));
   }
+  // Retiro en el local: no tiene etiqueta de MercadoLibre; la app imprime una propia con código de barras
+  const retiros = lista.filter((c) => !c.envio_id); lista = lista.filter((c) => c.envio_id);
+  const salidaRetiros = async () => {
+    if (!retiros.length) return null;
+    const vs = retiros.map(ventaRetiro), fmt = imp?.formato ?? "pdf", d = `${vs.length === 1 ? "1 etiqueta" : `${vs.length} etiquetas`} con código de barras, para pegar en el paquete`;
+    if (!(await seguro(() => api("despacho_retiro_impresa", { cliente_id: emp, ids: retiros.map((c) => c.id), impresora_id: imp?.id ?? null })))) return null;
+    if (fmt === "zpl") {
+      const zpl = vs.map(zplRetiro).join("\n");
+      return { t: "Etiquetas de retiro en el local", d, fn: async () => {
+        const res = await zebraImprimir(zpl, imp?.nombre);
+        if (res === "ok") return aviso(`Etiquetas enviadas a ${imp.nombre}`);
+        bajarArchivo("retiros-zebra.txt", new Blob([zpl], { type: "text/plain" })); aviso("La impresora Zebra no respondió: bajamos el archivo para imprimirlo a mano");
+      } };
+    }
+    return { t: "Etiquetas de retiro en el local", d, pdf: await pdfRetiros(vs, fmt) };
+  };
+  if (!lista.length) {
+    const sr = await salidaRetiros(); alTerminar?.();
+    if (sr) mostrarSalidas([sr]);
+    return;
+  }
   const formato = imp?.formato ?? "pdf", base = { ...OPC_IMP_DEF, ...(imp?.opciones ?? {}) };
   // Si el circuito arma con el troquel, se deja; si arma con la lista, se marca la lista de armado
   const ciA = circActivo(S.dsCirc) && S.dsCirc.armado.modo !== "apagado" ? S.dsCirc.armado.con : null;
@@ -6377,9 +6445,13 @@ async function flujoImpresion(emp, lista, imp, alTerminar) {
       if (cuerpo) salidas.push({ t: [op.armado && "Lista de armado", op.ruta && htmlRuta(ventas) && "hoja de ruta"].filter(Boolean).join(" y "), d: "En una impresora común, hoja A4", html: ["Armado y ruta", cuerpo] });
     }
     if (op.nota && ventas.length) salidas.push({ t: "Notas para el comprador", d: `${ventas.length === 1 ? "1 nota" : `${ventas.length} notas`}, 4 por hoja A4 (para cortar)`, html: ["Notas para el comprador", await htmlNotas(ventas, dd?.nota), CSS_NOTAS] });
+    const sr = await salidaRetiros(); if (sr) salidas.push(sr);
   } catch (e) { espera.remove(); aviso(e?.message || "No se pudieron preparar las etiquetas"); return; }
   espera.remove();
   if (!salidas.length) return aviso("MercadoLibre no entregó etiquetas para imprimir");
+  mostrarSalidas(salidas);
+}
+function mostrarSalidas(salidas) {
   const h = abrirHoja(`<div class="cajon-cab"><h2>Listo para imprimir</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <p class="peq mut" style="margin:0 0 10px">Tocá cada uno para imprimirlo en su impresora.</p>
     <div class="imp-sal">${salidas.map((s, i) => `<button type="button" class="imp-sal-it" data-s="${i}"><b>${esc(s.t)}</b><span class="peq mut">${esc(s.d)}</span><span class="imp-ok oculto">Abierto</span></button>`).join("")}</div>`);
@@ -6402,7 +6474,7 @@ const PASO_NOM = { armado: "Armado", verificacion: "Verificación", foto: "Foto 
 const GRUPO_ENV = { self_service: "flex", turbo: "flex", cross_docking: "colecta", xd_drop_off: "correo", drop_off: "correo", retiro: "retiro" };
 const ENVIOS_CIR = [["flex", "Flex y Turbo"], ["colecta", "Colecta"], ["correo", "Correo y puntos de despacho"], ["retiro", "Retiro en el local"]];
 const circActivo = (ci) => !!ci && ["armado", "verificacion", "foto", "entrega"].some((k) => ci[k] && ci[k].modo !== "apagado");
-const pasoAplica = (ci, k, c) => k === "etiqueta" ? c.envio_logistica !== "retiro" : (!!ci?.[k] && ci[k].modo !== "apagado" && ci[k].envios.includes(GRUPO_ENV[c.envio_logistica]));
+const pasoAplica = (ci, k, c) => k === "etiqueta" ? true : (!!ci?.[k] && ci[k].modo !== "apagado" && ci[k].envios.includes(GRUPO_ENV[c.envio_logistica]));
 const pasoHecho = (c, k) => k === "etiqueta" ? impresa(c) : k === "verificacion" ? !!c.pasos?.verificacion?.ok : !!c.pasos?.[k];
 const faltaPaso = (ci, c, k) => pasoAplica(ci, k, c) && !pasoHecho(c, k);
 function estadoPasos(c, ci) {
@@ -6428,10 +6500,10 @@ function pasosHTML(c, ci) {
 // Tocar un paso en la tarjeta
 async function accionPaso(emp, c, k) {
   const ci = S.dsCirc, recargar = () => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); };
-  if (k === "etiqueta") return aviso(pasoHecho(c, k) ? (quienImprimio(c) || "La etiqueta ya está impresa") : "Elegí el paquete en la lista e imprimí su etiqueta");
+  const retiro = c.envio_logistica === "retiro";
+  if (k === "etiqueta") return aviso(pasoHecho(c, k) ? (quienImprimio(c) || "La etiqueta ya está impresa") : retiro ? "Elegí el paquete en la lista e imprimí su etiqueta de retiro" : "Elegí el paquete en la lista e imprimí su etiqueta");
   if (k === "verificacion") return verificarPaquete(emp, c.envio_id ?? c.pack_id);
   if (k === "foto") return fotosDespacho({ conversacion_id: c.id, cuenta_id: c.cuenta_id, item_id: c.item_id, envio_id: c.envio_id, item_titulo: c.item_titulo, item_foto: c.item_thumbnail, comprador: c.comprador_nombre, orden_id: c.pack_id ?? c.orden_ids?.[0] ?? null });
-  const retiro = c.envio_logistica === "retiro";
   const nom = k === "armado" ? "armado" : retiro ? "entregado al comprador" : "entregado al transporte";
   if (pasoHecho(c, k) && k === "entrega" && retiro) return verEntregaRetiro(emp, c, recargar);
   if (pasoHecho(c, k)) {
@@ -6440,6 +6512,12 @@ async function accionPaso(emp, c, k) {
     return;
   }
   // Retiro en el local: se anota quién se lo lleva (obligatorio si el circuito lo pide)
+  // Entrega obligatoria: se marca escaneando la etiqueta del paquete (la de MercadoLibre o la de retiro)
+  let codigo = null;
+  if (k === "entrega" && ci.entrega.modo === "obligatorio") {
+    codigo = await new Promise((fin) => escanear(retiro ? "Escaneá la etiqueta de retiro del paquete" : "Escaneá la etiqueta del paquete", fin));
+    if (!codigo) return;
+  }
   let retira = "", remito = null; const fotosRet = [];
   const rmOn = retiro && k === "entrega" && ci.entrega.remito?.modo && ci.entrega.remito.modo !== "apagado";
   if (k === "entrega" && retiro) {
@@ -6466,7 +6544,7 @@ async function accionPaso(emp, c, k) {
     if (retira === null) return;
     retira = retira.trim();
   }
-  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(retira ? { retira } : {}), ...(fotosRet.length ? { fotos: fotosRet } : {}), ...(remito ? { remito } : {}) }));
+  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(codigo ? { codigo } : {}), ...(retira ? { retira } : {}), ...(fotosRet.length ? { fotos: fotosRet } : {}), ...(remito ? { remito } : {}) }));
   if (!r) return;
   if (r.ok === false) return aviso(r.motivo);
   aviso(k === "armado" ? "Marcado como armado" : `Marcado como ${nom}`); recargar();
@@ -6582,7 +6660,7 @@ VISTAS.circuito = async () => {
   const ayuda = { armado: "Sacar el producto del depósito y armar el paquete. Se marca tocando el paso en la tarjeta o escaneando la etiqueta.", verificacion: "Escanear la etiqueta y después el código del producto: la app avisa si no coincide.", foto: "Fotos del producto y del paquete cerrado, que quedan como prueba en la venta.", entrega: "Escanear cada etiqueta al dársela al transporte (al final muestra los paquetes de hoy que faltan). En Retiro en el local, se marca cuando el comprador se lo lleva: esas ventas aparecen en Despacho solo si la entrega incluye ese tipo, y se van 12 horas después de entregadas." };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Circuito de despacho</h1><p>Qué pasos sigue cada paquete después de imprimir la etiqueta. Un paso no se puede hacer mientras falte uno obligatorio anterior.${pu ? "" : " Solo el administrador del negocio lo cambia."}</p></div></div>
     <div class="panel" style="max-width:720px" id="cir">
-      <div class="cir-paso"><div class="cir-t"><span class="cir-n">1</span><b>Etiqueta</b></div><p class="peq mut" style="margin:4px 0 0 22px">Siempre activo: es el primer paso de todos los envíos. Las ventas con retiro en el local no tienen etiqueta.</p></div>
+      <div class="cir-paso"><div class="cir-t"><span class="cir-n">1</span><b>Etiqueta</b></div><p class="peq mut" style="margin:4px 0 0 22px">Siempre activo: es el primer paso de todos los envíos. Para el retiro en el local, la app imprime una etiqueta propia con código de barras.</p></div>
       ${["armado", "verificacion", "foto", "entrega"].map((k, i) => `<div class="cir-paso" data-k="${k}"><div class="cir-t"><span class="cir-n">${i + 2}</span><b>${PASO_NOM[k]}</b></div>
         <p class="peq mut" style="margin:4px 0 0 22px">${ayuda[k]}</p>${seg(k)}
         <div class="cir-sub" data-sub="${k}">
@@ -6911,10 +6989,7 @@ VISTAS.despacho = async (op = {}) => {
   $("#dsImp").onclick = async () => {
     const imp = imps.find((i) => i.id === impId);
     if (imps.length && !imp) return aviso("Elegí en qué impresora imprimís");
-    const elegidas = visibles().filter((c) => sel.has(c.id)); // en el orden de la lista
-    const lista = elegidas.filter((c) => c.envio_id); // las de retiro en el local no tienen etiqueta
-    if (!lista.length) return aviso("Las ventas con retiro en el local no tienen etiqueta para imprimir");
-    if (lista.length < elegidas.length) aviso(`${elegidas.length - lista.length === 1 ? "Una venta es" : `${elegidas.length - lista.length} ventas son`} de retiro en el local: no tienen etiqueta`);
+    const lista = visibles().filter((c) => sel.has(c.id)); // en el orden de la lista (las de retiro llevan etiqueta propia)
     await flujoImpresion(emp, lista, imp, () => { sel.clear(); pintar(); setTimeout(() => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); }, 3000); });
   };
 };
