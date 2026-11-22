@@ -1,5 +1,5 @@
 // Mostrador: guarda la pantalla del panel para que abra rápido. Los datos siempre se piden al servidor.
-const VERSION = "mostrador-v150";
+const VERSION = "mostrador-v151";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icono-192.png", "icono-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
@@ -32,10 +32,16 @@ self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil((async () => {
-    await self.registration.showNotification(d.title || "Mostrador", {
-      body: d.body || "Hay una pregunta para responder", tag: d.tag || "mostrador", renotify: true,
-      icon: "icono-192.png", badge: "icono-192.png", data: { url: d.url || "./" },
-    });
+    // Ya no queda nada pendiente de ese módulo: se borra la notificación del celular
+    if (d.cerrar) {
+      for (const n of await self.registration.getNotifications({ tag: d.cerrar })) n.close();
+    } else {
+      // Mismo módulo, mismo "tag": reemplaza la anterior con el total. Si solo bajó el total, se actualiza sin sonar.
+      await self.registration.showNotification(d.title || "Mostrador", {
+        body: d.body || "Hay una pregunta para responder", tag: d.tag || "mostrador", renotify: !d.silencioso, silent: !!d.silencioso,
+        icon: "icono-192.png", badge: "icono-192.png", data: { url: d.url || "./" },
+      });
+    }
     try { const n = await self.registration.getNotifications(); if (self.navigator.setAppBadge) await self.navigator.setAppBadge(n.length); } catch {}
   })());
 });
