@@ -217,6 +217,13 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .ds-fp{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.ds-fp button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--cielo);background:var(--sup)}.ds-fp button[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}.ds-fp button:focus-visible{outline:2px solid var(--cielo)}
 .ps-log{display:flex;flex-direction:column;gap:6px;margin-top:12px}.ps-l{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:10px;font-size:14px;background:var(--pino-2);color:var(--pino-t)}.ps-l.mal{background:var(--ladrillo-2);color:var(--ladrillo)}.ps-l.fuera{background:var(--ambar-2);color:var(--ambar-t)}
 .ps-f{padding:7px 0;border-bottom:1px solid var(--linea);font-size:14px}.ps-f:last-child{border-bottom:0}
+.rm-velo{position:fixed;inset:0;z-index:210;background:var(--papel);overflow:auto;-webkit-overflow-scrolling:touch}.rm-hoja{max-width:640px;margin:0 auto;padding:18px 16px 28px}
+.rm-doc{background:#fff;color:#111;border:1px solid var(--linea);border-radius:14px;padding:18px}.rm-doc h2{margin:0 0 2px;font-size:20px}.rm-doc .m{color:#555;font-size:13px}
+.rm-doc table{width:100%;border-collapse:collapse;margin:12px 0}.rm-doc td,.rm-doc th{border-bottom:1px solid #ddd;padding:7px 4px;text-align:left;font-size:14px;vertical-align:top}.rm-doc th{font-size:12px;color:#555}
+.rm-conf{font-size:15px;margin:12px 0;padding:10px 12px;background:#f5f6f7;border-radius:10px}.rm-doc label.et{color:#333}.rm-doc input[type=text],.rm-doc input[inputmode]{width:100%;font-size:17px}
+.rm-firma{position:relative;margin-top:6px;border:2px dashed #9aa6b2;border-radius:12px;background:#fff;touch-action:none}.rm-firma canvas{display:block;width:100%;height:190px;touch-action:none}.rm-firma span{position:absolute;left:12px;bottom:8px;font-size:12px;color:#8a96a3;pointer-events:none}
+.rm-sn{display:flex;gap:8px}.rm-sn label{flex:1;display:flex;gap:6px;align-items:center;justify-content:center;border:1px solid var(--linea);border-radius:10px;padding:10px;font-size:16px}
+.cir-campo{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)}.cir-campo .fila2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;grid-column:1/-1;font-size:13.5px}
 .cir-paso{border-top:1px solid var(--linea);padding:14px 0}.cir-paso:first-of-type{border-top:0;padding-top:4px}.cir-t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.cir-t b{font-size:15.5px}.cir-n{font-size:12px;font-weight:700;color:var(--piz);min-width:14px}
 .cir-seg{display:flex;border:1px solid var(--linea);border-radius:10px;overflow:hidden;margin:8px 0 0 22px;max-width:420px}.cir-seg label{flex:1;text-align:center;cursor:pointer;border-left:1px solid var(--linea)}.cir-seg label:first-child{border-left:0}.cir-seg input{position:absolute;opacity:0;pointer-events:none}.cir-seg span{display:block;padding:8px 4px;font-size:13.5px;color:var(--piz)}.cir-seg input:checked+span{background:var(--tinta);color:var(--papel);font-weight:600}.cir-seg label:has(input:focus-visible){outline:2px solid var(--cielo);outline-offset:-2px}
 .cir-sub{margin:10px 0 0 22px;padding:10px 12px;background:var(--sup2);border-radius:12px;max-width:520px}.cir-sub .et{margin:2px 0 4px}.cir-sub label.op{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.cir-sub input{margin-top:3px;accent-color:var(--tinta)}
@@ -6414,7 +6421,7 @@ function pasosHTML(c, ci) {
   const ps = estadoPasos(c, ci);
   const ult = [...PASOS_DS].reverse().find(([k]) => pasoHecho(c, k) && c.pasos?.[k]?.quien);
   const otra = ci.verificacion?.otra && pasoAplica(ci, "verificacion", c) && !pasoHecho(c, "verificacion") && !!c.pasos?.armado?.mio;
-  const dato = (ult && c.pasos[ult[0]].dato ? ` · ${esc(c.pasos[ult[0]].dato)}` : "") + (ult?.[0] === "entrega" && c.pasos.entrega.fotos?.length ? " · con recibo firmado" : "");
+  const dato = (ult && c.pasos[ult[0]].dato ? ` · ${esc(c.pasos[ult[0]].dato)}` : "") + (ult?.[0] === "entrega" && c.pasos.entrega.remito ? " · remito firmado" : ult?.[0] === "entrega" && c.pasos.entrega.fotos?.length ? " · con recibo firmado" : "");
   return `<span class="ds-pasos">${ps.map((p) => `<button type="button" class="${p.est}" data-paso="${p.k}" data-c="${c.id}" aria-label="${esc(PASO_NOM[p.k] ?? "Etiqueta")}: ${p.est === "ok" ? "hecho" : p.est === "falta" ? "falta, obligatorio" : p.est === "opc" ? "opcional" : p.est === "mal" ? "no coincidió" : "pendiente"}">${p.est === "ok" ? "✓ " : ""}${p.txt}</button>`).join("")}</span>
     ${ult || otra ? `<span class="ds-quien">${ult ? `${ult[3]}: ${esc(c.pasos[ult[0]].quien)}${c.pasos[ult[0]].at ? `, ${horaCorta(c.pasos[ult[0]].at)}` : ""}${dato}` : ""}${otra ? `${ult ? " · " : ""}lo tiene que verificar otra persona` : ""}</span>` : ""}`;
 }
@@ -6433,27 +6440,84 @@ async function accionPaso(emp, c, k) {
     return;
   }
   // Retiro en el local: se anota quién se lo lleva (obligatorio si el circuito lo pide)
-  let retira = ""; const fotosRet = [];
+  let retira = "", remito = null; const fotosRet = [];
+  const rmOn = retiro && k === "entrega" && ci.entrega.remito?.modo && ci.entrega.remito.modo !== "apagado";
   if (k === "entrega" && retiro) {
     retira = await new Promise((fin) => {
       const h = abrirHoja(`<div class="cajon-cab"><h2>Entregar al comprador</h2><button class="btn lin chico" data-cerrar type="button">Cancelar</button></div>
         <p class="peq mut" style="margin:0 0 10px">${Number(c.cantidad) || 1} × ${esc(c.item_titulo ?? "Producto")} · ${esc(c.comprador_nombre ?? "")}</p>
         <form id="retF"><label class="et" for="retN">Quién lo retira${ci.entrega.nombre ? "" : " (opcional)"}</label><input id="retN" maxlength="120" autocomplete="off" placeholder="Nombre de quien se lo lleva" style="width:100%">
-        <span class="et" style="margin-top:12px">Foto del recibo firmado${ci.entrega.recibo ? "" : " (opcional)"}</span><div id="retFotos"></div>
+        ${rmOn ? `<span class="et" style="margin-top:12px">Remito${ci.entrega.remito.modo === "obligatorio" ? "" : " (opcional)"}</span><div id="retRm"><button type="button" class="btn lin" id="retFirmar" style="width:100%;justify-content:center">Firmar el remito en la pantalla</button></div>` : ""}
+        <span class="et" style="margin-top:12px">Foto del recibo firmado en papel${ci.entrega.recibo && !rmOn ? "" : " (opcional)"}</span><div id="retFotos"></div>
         <button class="btn pri" style="margin-top:12px;width:100%;justify-content:center">Marcar como entregado</button></form>`);
       casillasFotos(h.querySelector("#retFotos"), ["Recibo firmado"], fotosRet, null);
-      h.querySelector("#retF").onsubmit = (e) => { e.preventDefault(); const v = h.querySelector("#retN").value.trim(); if (ci.entrega.nombre && !v) return aviso("Anotá quién lo retira"); if (ci.entrega.recibo && !fotosRet.length) return aviso("Sacale una foto al recibo firmado"); h.remove(); fin(v || " "); };
+      h.querySelector("#retRm")?.addEventListener("click", async (ev) => {
+        if (!ev.target.closest("#retFirmar, #retRe")) return;
+        const x = await firmarRemito(emp, c, ci.entrega.remito); if (!x) return;
+        remito = x;
+        const nombre = x.campos.find((y, i) => ci.entrega.remito.campos[i]?.tipo === "texto" && y.valor)?.valor ?? "";
+        if (nombre && !h.querySelector("#retN").value.trim()) h.querySelector("#retN").value = nombre;
+        h.querySelector("#retRm").innerHTML = `<div class="ver-res ok"><b>Remito firmado</b><span>${esc(nombre || "Listo")}. <button type="button" class="lnk" id="retRe">Volver a firmar</button></span></div>`;
+      });
+      h.querySelector("#retF").onsubmit = (e) => { e.preventDefault(); const v = h.querySelector("#retN").value.trim(); if (rmOn && ci.entrega.remito.modo === "obligatorio" && !remito) return aviso("Falta que firme el remito quien retira"); if (ci.entrega.nombre && !v) return aviso("Anotá quién lo retira"); if (ci.entrega.recibo && !rmOn && !fotosRet.length) return aviso("Sacale una foto al recibo firmado"); if (ci.entrega.recibo && rmOn && !remito && !fotosRet.length) return aviso("Firmá el remito o sacale una foto al recibo en papel"); h.remove(); fin(v || " "); };
       setTimeout(() => h.querySelector("#retN")?.focus(), 50);
       new MutationObserver(() => { if (!h.isConnected) fin(null); }).observe(document.body, { childList: true });
     });
     if (retira === null) return;
     retira = retira.trim();
   }
-  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(retira ? { retira } : {}), ...(fotosRet.length ? { fotos: fotosRet } : {}) }));
+  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(retira ? { retira } : {}), ...(fotosRet.length ? { fotos: fotosRet } : {}), ...(remito ? { remito } : {}) }));
   if (!r) return;
   if (r.ok === false) return aviso(r.motivo);
   aviso(k === "armado" ? "Marcado como armado" : `Marcado como ${nom}`); recargar();
   void ci;
+}
+// Remito de entrega en la pantalla: la app lo completa con los datos de la venta; quien retira llena los datos y firma.
+// Devuelve { campos: [{ valor }], firma: { path… } } o null si se cancela.
+const remitoVentaHTML = (rm, v) => `<h2>${esc(rm.titulo)}</h2><div class="m">${esc(rm.negocio ?? "")}${rm.negocio ? " · " : ""}${new Date(rm.fecha ?? Date.now()).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short", hourCycle: "h23" })}</div>
+  <p style="margin:10px 0 0;font-size:14px">Venta <b>${esc(v.numero ?? "")}</b>${v.fecha ? ` del ${new Date(v.fecha).toLocaleDateString("es-AR")}` : ""}<br>Comprador: <b>${esc(v.comprador ?? "")}</b>${v.nick ? ` (${esc(v.nick)})` : ""}</p>
+  <table><tr><th style="width:56px">Cant.</th><th>Producto</th></tr>${(v.items ?? []).map((i) => `<tr><td>${i.cantidad}</td><td>${esc(i.titulo)}${i.variante || i.sku ? `<div class="m">${esc([i.variante, i.sku ? `SKU ${i.sku}` : ""].filter(Boolean).join(" · "))}</div>` : ""}</td></tr>`).join("")}</table>
+  <div class="rm-conf">${esc(rm.texto)}</div>`;
+function firmarRemito(emp, c, cfg) {
+  return new Promise((fin) => {
+    const v = document.createElement("div"); v.className = "rm-velo"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", cfg.titulo);
+    const venta = { numero: c.pack_id ?? c.orden_ids?.[0] ?? "", fecha: c.fecha_venta, comprador: c.comprador_nombre, nick: c.comprador_nick, items: [{ cantidad: Number(c.cantidad) || 1, titulo: c.item_titulo ?? "Producto", variante: c.item_variacion ?? null, sku: c.item_sku ?? null }] };
+    v.innerHTML = `<div class="rm-hoja"><div class="rm-doc">${remitoVentaHTML({ titulo: cfg.titulo, texto: cfg.texto, negocio: empNom(emp) }, venta)}
+      ${cfg.campos.map((x, i) => x.tipo === "si_no" ? `<fieldset style="border:0;padding:0;margin:10px 0 0"><legend class="et">${esc(x.etiqueta)}${x.obligatorio ? "" : " (opcional)"}</legend><div class="rm-sn"><label><input type="radio" name="rmc${i}" value="si"> Sí</label><label><input type="radio" name="rmc${i}" value="no"> No</label></div></fieldset>`
+        : `<label class="et" for="rmc${i}" style="margin-top:10px">${esc(x.etiqueta)}${x.obligatorio ? "" : " (opcional)"}</label><input type="text" id="rmc${i}" ${x.tipo === "numero" ? 'inputmode="numeric"' : ""} autocomplete="off" maxlength="200">`).join("")}
+      <div class="et" style="margin-top:14px">Firma</div><div class="rm-firma"><canvas aria-label="Firmá con el dedo"></canvas><span>Firmá acá con el dedo</span></div>
+      <button type="button" class="lnk" id="rmBorrar" style="margin-top:6px">Borrar la firma</button></div>
+      <div class="fx-pie" style="margin-top:14px"><button type="button" class="btn lin" id="rmNo">Cancelar</button><button type="button" class="btn pri" id="rmSi">Confirmar y firmar</button></div></div>`;
+    document.body.appendChild(v);
+    const cv = v.querySelector("canvas"), ctx = cv.getContext("2d"); let trazos = 0, dib = false;
+    const medir = () => { const r = cv.getBoundingClientRect(), k = window.devicePixelRatio || 1; cv.width = r.width * k; cv.height = r.height * k; ctx.setTransform(k, 0, 0, k, 0, 0); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, r.width, r.height); ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111"; trazos = 0; };
+    requestAnimationFrame(medir);
+    const pos = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    cv.addEventListener("pointerdown", (e) => { dib = true; cv.setPointerCapture(e.pointerId); const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(x, y); v.querySelector(".rm-firma span").style.display = "none"; });
+    cv.addEventListener("pointermove", (e) => { if (!dib) return; const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); trazos++; });
+    const soltar = () => { dib = false; }; cv.addEventListener("pointerup", soltar); cv.addEventListener("pointercancel", soltar);
+    v.querySelector("#rmBorrar").onclick = () => { medir(); v.querySelector(".rm-firma span").style.display = ""; };
+    const cerrar = (x) => { v.remove(); fin(x); };
+    v.querySelector("#rmNo").onclick = () => cerrar(null);
+    v.querySelector("#rmSi").onclick = async () => {
+      const campos = cfg.campos.map((x, i) => ({ valor: x.tipo === "si_no" ? (v.querySelector(`input[name="rmc${i}"]:checked`)?.value ?? "") : v.querySelector(`#rmc${i}`).value.trim() }));
+      const falta = cfg.campos.find((x, i) => x.obligatorio && !campos[i].valor);
+      if (falta) return aviso(`Completá "${falta.etiqueta}"`);
+      if (trazos < 8) return aviso("Falta la firma");
+      const b = v.querySelector("#rmSi"); b.disabled = true; b.textContent = "Guardando…";
+      const firma = await seguro(() => api("devolucion_foto", { cliente_id: emp, datos: cv.toDataURL("image/png").split(",")[1], tipo: "image/png", etiqueta: "Firma del remito" }));
+      b.disabled = false; b.textContent = "Confirmar y firmar";
+      if (!firma) return;
+      cerrar({ campos, firma });
+    };
+  });
+}
+function verRemito(rm) {
+  abrirDoc(rm.titulo, `${remitoVentaHTML({ ...rm, fecha: rm.firmado_at }, rm.venta ?? {})}
+    ${(rm.campos ?? []).map((x) => `<p style="margin:4px 0">${esc(x.etiqueta)}: <b>${esc(x.valor || "—")}</b></p>`).join("")}
+    <p style="margin:14px 0 4px">Firma:</p>${rm.firma?.url ? `<img src="${esc(rm.firma.url)}" alt="Firma" style="max-width:340px;border-bottom:1px solid #111">` : "<p>(sin firma)</p>"}
+    <p class="m" style="margin-top:10px">Firmado el ${new Date(rm.firmado_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short", hourCycle: "h23" })}${rm.entrega ? `. Entregó: ${esc(rm.entrega)}` : ""}.</p>`,
+    `table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border-bottom:1px solid #ccc;padding:6px 4px;text-align:left;vertical-align:top}th{font-size:12px;color:#444}.rm-conf{margin:12px 0;padding:8px 10px;border:1px solid #ccc;border-radius:6px}h2{font-size:19px;margin:0 0 2px}`);
 }
 // Entrega de un retiro en el local: quién lo entregó, quién lo retiró y el recibo firmado (se puede agregar después)
 function verEntregaRetiro(emp, c, recargar) {
@@ -6462,9 +6526,11 @@ function verEntregaRetiro(emp, c, recargar) {
     <p class="peq mut" style="margin:0 0 10px">${Number(c.cantidad) || 1} × ${esc(c.item_titulo ?? "Producto")} · ${esc(c.comprador_nombre ?? "")}</p>
     <p style="margin:0 0 4px">Entregó <b>${esc(e.quien)}</b>${e.at ? ` el ${new Date(e.at).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}` : ""}.</p>
     ${e.dato ? `<p style="margin:0 0 10px">${esc(e.dato)}.</p>` : ""}
+    ${e.remito ? `<button type="button" class="btn lin" id="erR" style="margin:0 0 12px">Ver el remito firmado</button>` : ""}
     ${e.fotos?.length ? `<span class="et">Recibo firmado</span><div class="fotos-g">${e.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "#")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt="Recibo firmado"><span>${esc(f.etiqueta ?? "Recibo")}</span></a>`).join("")}</div>` : `<p class="peq mut">Todavía no tiene la foto del recibo firmado.</p>`}
     <span class="et" style="margin-top:12px">${e.fotos?.length ? "Agregar otra foto" : "Agregar la foto del recibo"}</span><div id="erF"></div>
     <div class="fx-pie"><button class="btn lin" type="button" id="erD">Desmarcar entrega</button><button class="btn pri" type="button" id="erG" disabled>Guardar foto</button></div>`);
+  h.querySelector("#erR")?.addEventListener("click", () => verRemito(e.remito));
   casillasFotos(h.querySelector("#erF"), ["Recibo firmado"], nuevas, () => { h.querySelector("#erG").disabled = !nuevas.length; });
   h.querySelector("#erG").onclick = async () => {
     if (!nuevas.length) return;
@@ -6523,14 +6589,39 @@ VISTAS.circuito = async () => {
           ${k === "armado" ? `<div class="et">Con qué se arma</div>${[["lista", "Lista de armado en A4", "Agrupada por producto: se saca todo junto del depósito"], ["troquel", "Troquel de cada etiqueta", "Al imprimir se deja el troquel. Si la cuenta no lo tiene activado en MercadoLibre, sale la etiqueta con los datos del producto en su lugar"], ["ambas", "Las dos", ""]].map(([v, t, x]) => `<label class="op"><input type="radio" name="con" value="${v}" ${ci.armado.con === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}${x ? `<br><span class="peq mut">${x}</span>` : ""}</span></label>`).join("")}<div style="height:8px"></div>` : ""}
           ${k === "verificacion" ? `<label class="op"><input type="checkbox" name="otra" ${ci.verificacion.otra ? "checked" : ""} ${pu ? "" : "disabled"}><span>Que verifique otra persona que la que armó</span></label><div style="height:6px"></div>` : ""}
           ${envios(k)}
-          ${k === "entrega" ? `<div style="height:6px"></div><div class="et">En Retiro en el local</div><label class="op"><input type="checkbox" name="nombre" ${ci.entrega.nombre ? "checked" : ""} ${pu ? "" : "disabled"}><span>Anotar quién se lo lleva (obligatorio)</span></label><label class="op"><input type="checkbox" name="recibo" ${ci.entrega.recibo ? "checked" : ""} ${pu ? "" : "disabled"}><span>Foto del recibo firmado (obligatoria)</span></label><p class="peq mut" style="margin:2px 0 0">Si no las marcás, igual se pueden cargar, pero no se exigen.</p>` : ""}</div></div>`).join("")}
+          ${k === "entrega" ? `<div style="height:6px"></div><div class="et">En Retiro en el local</div><label class="op"><input type="checkbox" name="nombre" ${ci.entrega.nombre ? "checked" : ""} ${pu ? "" : "disabled"}><span>Anotar quién se lo lleva (obligatorio)</span></label><label class="op"><input type="checkbox" name="recibo" ${ci.entrega.recibo ? "checked" : ""} ${pu ? "" : "disabled"}><span>Foto del recibo firmado en papel (obligatoria, salvo que firme el remito en pantalla)</span></label><p class="peq mut" style="margin:2px 0 0">Si no las marcás, igual se pueden cargar, pero no se exigen.</p>
+            <div class="et" style="margin-top:12px">Remito para firmar en pantalla</div>
+            <p class="peq mut" style="margin:0 0 4px">Quien retira lo firma con el dedo en el celular o la tablet. La app lo completa con el negocio, la fecha, el número de venta, el comprador y los productos.</p>
+            <div class="cir-seg" style="margin-left:0" role="radiogroup" aria-label="Remito para firmar en pantalla">${[["apagado", "No usar"], ["opcional", "Opcional"], ["obligatorio", "Obligatorio"]].map(([v, t]) => `<label><input type="radio" name="rm_modo" value="${v}" ${ci.entrega.remito.modo === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}</span></label>`).join("")}</div>
+            <div id="rmCfg" style="margin-top:10px">
+              <label class="et" for="rmTit">Título</label><input id="rmTit" maxlength="80" value="${esc(ci.entrega.remito.titulo)}" ${pu ? "" : "disabled"} style="width:100%">
+              <label class="et" for="rmTxt" style="margin-top:8px">Texto de conformidad</label><textarea id="rmTxt" maxlength="600" rows="3" ${pu ? "" : "disabled"} style="width:100%">${esc(ci.entrega.remito.texto)}</textarea>
+              <div class="et" style="margin-top:8px">Datos que completa quien retira (además de la firma)</div>
+              <div id="rmCampos"></div>
+              ${pu ? `<button type="button" class="btn lin chico" id="rmMas" style="margin-top:8px">Agregar un dato</button>` : ""}
+            </div>` : ""}</div></div>`).join("")}
       ${pu ? `<button class="btn pri" type="button" id="cirG" style="margin-top:8px">Guardar circuito</button>` : ""}
     </div>`;
-  const mostrar = () => $("#cir").querySelectorAll("[data-sub]").forEach((x) => x.classList.toggle("oculto", $(`#cir input[name="m_${x.dataset.sub}"]:checked`)?.value === "apagado"));
+  // Datos del remito que completa quien retira
+  const campos = ci.entrega.remito.campos.map((x) => ({ ...x }));
+  const TIPO_TXT = { texto: "Texto", numero: "Número", si_no: "Sí o no" };
+  const pintarCampos = () => { if (!$("#rmCampos")) return; $("#rmCampos").innerHTML = campos.map((x, i) => `<div class="cir-campo" data-i="${i}"><input aria-label="Nombre del dato" maxlength="60" value="${esc(x.etiqueta)}" data-f="etiqueta" placeholder="Por ejemplo: Teléfono" ${pu ? "" : "disabled"}>${pu ? `<button type="button" class="btn lin chico" data-borrar="${i}" aria-label="Quitar ${esc(x.etiqueta)}">Quitar</button>` : "<span></span>"}
+    <div class="fila2"><select data-f="tipo" aria-label="Tipo" ${pu ? "" : "disabled"}>${Object.entries(TIPO_TXT).map(([k, t]) => `<option value="${k}" ${x.tipo === k ? "selected" : ""}>${t}</option>`).join("")}</select><label><input type="checkbox" data-f="obligatorio" ${x.obligatorio ? "checked" : ""} ${pu ? "" : "disabled"}> Obligatorio</label></div></div>`).join("") || `<p class="peq mut" style="margin:4px 0">Solo la firma.</p>`; };
+  pintarCampos();
+  if ($("#rmCampos")) {
+    $("#rmCampos").oninput = (e) => { const f = e.target.closest("[data-f]"), i = Number(e.target.closest("[data-i]")?.dataset.i); if (!f || Number.isNaN(i)) return; campos[i][f.dataset.f] = f.type === "checkbox" ? f.checked : f.value; };
+    $("#rmCampos").onclick = (e) => { const b = e.target.closest("[data-borrar]"); if (!b) return; campos.splice(Number(b.dataset.borrar), 1); pintarCampos(); };
+  }
+  if ($("#rmMas")) $("#rmMas").onclick = () => { if (campos.length >= 10) return aviso("Hasta 10 datos"); campos.push({ etiqueta: "", tipo: "texto", obligatorio: false }); pintarCampos(); $("#rmCampos").querySelector(`[data-i="${campos.length - 1}"] input`)?.focus(); };
+  const mostrar = () => {
+    $("#cir").querySelectorAll("[data-sub]").forEach((x) => x.classList.toggle("oculto", $(`#cir input[name="m_${x.dataset.sub}"]:checked`)?.value === "apagado"));
+    $("#rmCfg")?.classList.toggle("oculto", $('#cir input[name="rm_modo"]:checked')?.value === "apagado");
+  };
   mostrar(); $("#cir").onchange = mostrar;
   if ($("#cirG")) $("#cirG").onclick = async () => {
     const leer = (k) => ({ modo: $(`#cir input[name="m_${k}"]:checked`)?.value ?? "apagado", envios: [...$("#cir").querySelectorAll(`input[name="e_${k}"]:checked`)].map((x) => x.value) });
-    const circuito = { armado: { ...leer("armado"), con: $('#cir input[name="con"]:checked')?.value ?? "lista" }, verificacion: { ...leer("verificacion"), otra: $('#cir input[name="otra"]').checked }, foto: leer("foto"), entrega: { ...leer("entrega"), nombre: !!$('#cir input[name="nombre"]')?.checked, recibo: !!$('#cir input[name="recibo"]')?.checked } };
+    const circuito = { armado: { ...leer("armado"), con: $('#cir input[name="con"]:checked')?.value ?? "lista" }, verificacion: { ...leer("verificacion"), otra: $('#cir input[name="otra"]').checked }, foto: leer("foto"), entrega: { ...leer("entrega"), nombre: !!$('#cir input[name="nombre"]')?.checked, recibo: !!$('#cir input[name="recibo"]')?.checked,
+      remito: { modo: $('#cir input[name="rm_modo"]:checked')?.value ?? "apagado", titulo: $("#rmTit")?.value ?? "", texto: $("#rmTxt")?.value ?? "", campos: campos.filter((x) => String(x.etiqueta ?? "").trim()) } } };
     for (const k of ["armado", "verificacion", "foto", "entrega"]) if (circuito[k].modo !== "apagado" && !circuito[k].envios.length) return aviso(`${PASO_NOM[k]}: elegí al menos un tipo de envío`);
     $("#cirG").disabled = true;
     const r = await seguro(() => api("despacho_circuito_guardar", { cliente_id: emp, circuito }));
