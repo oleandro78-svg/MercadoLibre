@@ -3650,6 +3650,35 @@ function etqAsignadosVenta(c) {
 }
 const etqParaQuien = (c) => c.es_mia || c.para_mi ? `<span class="chip c-simulada">Para vos</span>` : S.rol !== "operador" && c.asignados_nombres?.length ? `<span class="chip">Para ${esc(c.asignados_nombres.join(", ").replace(/, ([^,]*)$/, " y $1"))}</span>` : "";
 // Datos de cada módulo: [nombre en el editor, cómo se muestra]. Los de "Etiquetas de color" devuelven su propio chip.
+// Datos de la venta y del envío que se pueden sumar a la etiqueta de Ventas y de Despacho (salen de la orden y del envío de MercadoLibre)
+const ER = (c) => c.envio_raw ?? c.envio ?? {}, EX = (c) => c.extra ?? {};
+const etqCp = (v) => v ? `${esc(v)}${etqCopiar(v)}` : "";
+const unid = (n) => n == null ? "" : `${num(n)} ${Number(n) === 1 ? "unidad" : "unidades"}`;
+const DATOS_VENTA_MAS = {
+  total: ["Total de la venta", (c) => c.total != null ? esc(plata(c.total, c.moneda)) : ""],
+  precio: ["Precio unitario", (c) => EX(c).precio_unitario != null ? esc(plata(EX(c).precio_unitario, c.moneda)) : ""],
+  cargo: ["Cargo por venta", (c) => EX(c).cargo_venta ? `Cargo ${esc(plata(EX(c).cargo_venta, c.moneda))}` : ""],
+  pub: ["Tipo de publicación", (c) => esc(EX(c).tipo_publicacion ?? "")],
+  cond: ["Nuevo o usado", (c) => esc(EX(c).condicion ?? "")],
+  garantia: ["Garantía", (c) => esc(EX(c).garantia ?? "")],
+  medio: ["Medio de pago", (c) => EX(c).medio_pago ? esc(EX(c).medio_pago + (Number(EX(c).cuotas) > 1 ? ` en ${EX(c).cuotas} cuotas` : "")) : ""],
+  envpago: ["Envío que pagó el comprador", (c) => EX(c).medio_pago == null ? "" : Number(EX(c).envio_pago_comprador) > 0 ? `Envío ${esc(plata(EX(c).envio_pago_comprador, c.moneda))}` : "Envío gratis"],
+  cupon: ["Cupón de descuento", (c) => Number(EX(c).cupon) > 0 ? `Cupón ${esc(plata(EX(c).cupon, c.moneda))}` : ""],
+  canal: ["Dónde se vendió", (c) => esc(EX(c).canal ?? "")],
+  pagada: ["Fecha de pago", (c) => EX(c).pagada_at ? `Pagada ${etqFechaHora(EX(c).pagada_at)}` : ""],
+  cancel: ["Motivo de la cancelación", (c) => esc(EX(c).cancelacion ?? "")],
+  nenvio: ["N° de envío", (c) => c.envio_id ? `Envío ${etqCp(c.envio_id)}` : ""],
+  seguim: ["Código de seguimiento", (c) => etqCp(ER(c).seguimiento)],
+  metodo: ["Método de envío", (c) => esc(ER(c).metodo ?? "")],
+  estenvio: ["Estado del envío", (c) => esc(ENVIO_E[c.envio_estado] ?? "")],
+  despachado: ["Fecha de despacho", (c) => ER(c).despachado ? `Despachado ${etqFechaHora(ER(c).despachado)}` : ""],
+  entregado: ["Fecha de entrega", (c) => (c.envio_entregado_at ?? ER(c).entregado) ? `Entregado ${etqFechaHora(c.envio_entregado_at ?? ER(c).entregado)}` : ""],
+  recibe: ["Quién recibe", (c) => esc(ER(c).destino?.recibe ?? "")],
+  direccion: ["Dirección de entrega", (c) => esc(ER(c).destino?.direccion ?? "")],
+  ciudad: ["Ciudad y provincia", (c) => esc([ER(c).destino?.ciudad, ER(c).destino?.provincia].filter(Boolean).join(", "))],
+  cp: ["Código postal", (c) => ER(c).destino?.cp ? `CP ${esc(ER(c).destino.cp)}` : ""],
+  refdir: ["Referencia de la dirección", (c) => esc(ER(c).destino?.referencia ?? "")],
+};
 const ETQ = {
   ventas: { titulo: "Ventas", datos: {
     foto: ["Foto", (c) => foto(c.item_thumbnail)],
@@ -3671,6 +3700,7 @@ const ETQ = {
     conv: ["Estado de la conversación", (c) => { const ec = estadoConv(c); return ec && c.ultimo_texto && c.conv_estado !== "active" ? `<span class="chip ${ec[0]}">${ec[1]}</span>` : ""; }],
     comp: ["Calendario", (c) => c.compromiso_at ? `<span class="chip chip-cal ${new Date(c.compromiso_at) < new Date() ? "c-urg" : "c-cal"}" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</span>` : c.compromiso_sug ? `<span class="chip c-mot">Para agregar al calendario</span>` : ""],
     asig: ["Asignada a", etqAsignadosVenta], fav: ["Favorita", (c) => favEnFila(c)],
+    ...DATOS_VENTA_MAS,
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: ["pago", "envio", "negocio", "estado"], r4: ["ult"], mar: ["notas", "resp", "recl", "comp", "conv", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["hace", "fav"], r2: ["prod"], r3: [], r4: [], mar: ["resp", "recl", "comp"] }],
@@ -3691,6 +3721,9 @@ const ETQ = {
     etiq: ["Estado de la etiqueta", (c) => { const e = ETIQ_ESTADO[c.envio_subestado]; return e ? `<span class="chip ${e[1]}">${e[0]}</span>` : ""; }],
     verif: ["Verificado", (c) => c.verificacion ? `<span class="chip ${c.verificacion.ok ? "c-ok" : "c-blo"}">${c.verificacion.ok ? "Verificado" : "No coincidía"}</span>` : ""],
     asig: ["Asignada a", etqParaQuien],
+    pago: ["Pagó", (c) => pagoTxt(c)], negocio: ["Negocio", (c) => c.comprador_negocio ? "Negocio" : ""],
+    fact: ["Factura", (c) => c.facturada === true ? "Facturada" : c.facturada === false ? "Falta facturar" : ""],
+    ...DATOS_VENTA_MAS,
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["nombre"], esq: [], r2: ["cant", "prod"], r3: ["envio", "plazo"], r4: ["imp"], mar: ["etiq", "verif", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["nombre"], esq: ["plazo"], r2: ["cant", "prod"], r3: [], r4: [], mar: ["etiq"] }],
@@ -3703,9 +3736,27 @@ const ETQ = {
     cuenta: ["Cuenta", (d) => esc(d.cuenta_nombre ?? "")],
     motivo: ["Por qué lo devolvió", (d) => esc(d.motivo_comprador_txt ?? "")],
     transporte: ["Quién lo trae", (d) => esc(quienTrae(d))], seguimiento: ["Código de seguimiento", (d) => d.tracking ? `${esc(d.tracking)}${etqCopiar(d.tracking)}` : ""],
-    orden: ["N° de venta", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
+    orden: ["N° de orden", (d) => d.orden_id ? `#${esc(d.orden_id)}${etqCopiar(d.orden_id)}` : ""],
     estado: ["Estado", (d) => d.est ? `<span class="chip ${d.est.c}">${esc(d.est.t)}</span>` : ""],
     notas: ["Notas", (d) => d.con_notas ? `<span class="chip c-nota">Notas</span>` : ""], asig: ["Asignada a", (d) => ["revisar", "aprobar", "necesita"].includes(d.est?.grupo) ? etqParaQuien(d) : ""],
+    cant: ["Cantidad", (d) => { const x = EX(d); if (x.cantidad == null) return ""; return Number(x.cantidad_venta) > Number(x.cantidad) ? `${num(x.cantidad)} de ${unid(x.cantidad_venta)}` : unid(x.cantidad); }],
+    precio: ["Precio que pagó", (d) => EX(d).pagado != null ? esc(plata(EX(d).pagado)) : ""],
+    sku: ["SKU", (d) => EX(d).sku ? `SKU ${etqCp(EX(d).sku)}` : ""], var: ["Variante", (d) => esc(EX(d).variante ?? "")],
+    envio: ["Tipo de envío de la venta", (d) => esc(EX(d).logistica ?? "")],
+    nick: ["Usuario de ML", (d) => esc(EX(d).nick ?? "")],
+    carrito: ["N° de venta", (d) => EX(d).pack_id ? `#${etqCp(EX(d).pack_id)}` : ""],
+    reclamo: ["N° de reclamo", (d) => d.claim_id ? `Reclamo ${etqCp(String(d.claim_id))}` : ""],
+    fventa: ["Fecha de la venta", (d) => EX(d).fecha_venta ? `Vendida ${etqFechaHora(EX(d).fecha_venta)}` : ""],
+    freclamo: ["Fecha del reclamo", (d) => d.fecha ? `Reclamo ${etqFechaHora(d.fecha)}` : ""],
+    llegada: ["Cuándo llegó", (d) => d.llegada_at ? `Llegó ${etqFechaHora(d.llegada_at)}` : ""],
+    vence: ["Revisar antes del", (d) => d.vence_at && d.abierto ? `Revisar antes del ${etqFechaHora(d.vence_at)}` : ""],
+    rep: ["Reputación", (d) => EX(d).afecta_reputacion == null ? "" : EX(d).afecta_reputacion ? `<span class="chip c-urg">Afecta tu reputación</span>` : "No afecta tu reputación"],
+    dinero: ["Dinero", (d) => esc({ retained: "Dinero retenido", refunded: "Dinero devuelto al comprador", available: "Dinero liberado" }[d.estado_dinero] ?? "")],
+    tipo: ["Total o parcial", (d) => esc({ return_total: "Devolución total", return_partial: "Devolución parcial" }[d.subtipo] ?? "")],
+    reembolso: ["Cuándo se reembolsa", (d) => esc({ shipped: "Reembolso al despacharla", delivered: "Reembolso al llegar", n_a: "", after_review: "Reembolso después de la revisión" }[EX(d).reembolso_cuando] ?? "")],
+    ml: ["Qué dice MercadoLibre", (d) => esc(d.ml_detalle?.titulo ?? "")],
+    cerrada: ["Fecha de cierre", (d) => EX(d).cerrada_at ? `Cerrada ${etqFechaHora(EX(d).cerrada_at)}` : ""],
+    afavor: ["A favor de quién se cerró", (d) => esc({ complainant: "A favor del comprador", respondent: "A favor tuyo" }[EX(d).a_favor] ?? "")],
   }, plantillas: [
     ["Como está", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "motivo"], r3: [], r4: [], mar: ["estado", "notas", "asig"] }],
     ["Compacta", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
