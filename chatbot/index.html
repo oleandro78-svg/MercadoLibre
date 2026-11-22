@@ -3807,6 +3807,15 @@ document.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { const b = e.target.closest?.("[data-copiar]"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); b.click(); } }, true);
 
 // Editor: plantillas arriba, la etiqueta con casilleros, los datos sin usar y cómo se ve con filas reales
+// Copiar la etiqueta de una lista a otra: los datos con otro nombre se traducen y los que no existen en la otra lista quedan afuera
+const ETQ_EQUIV = { ventas: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, despacho: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, devoluciones: { nombre: "comprador", nro: "carrito", seguim: "seguimiento" } };
+const ETQ_MOD_APP = { ventas: "mensajes", despacho: "despacho", devoluciones: "devoluciones" };
+function etqTraducir(cfg, destino) {
+  const D = ETQ[destino].datos, eq = ETQ_EQUIV[destino] ?? {}, out = {}, fuera = [];
+  for (const [k] of ETQ_CASILLEROS) out[k] = [];
+  for (const [s, l] of Object.entries(cfg)) for (const k of l ?? []) { const t = D[k] ? k : eq[k]; if (t && D[t] && !Object.values(out).flat().includes(t)) (out[s] ??= []).push(t); else if (!t || !D[t]) fuera.push(k); }
+  return { cfg: out, fuera };
+}
 function etqEditor(mod, emp, filas, alGuardar) {
   const def = ETQ[mod], D = def.datos;
   let cfg = JSON.parse(JSON.stringify(etqConfig(mod, emp)));
@@ -3819,6 +3828,9 @@ function etqEditor(mod, emp, filas, alGuardar) {
       <h3 class="etq-h">Etiqueta</h3><div class="etq-molde" id="etqMolde"></div>
       <h3 class="etq-h">Datos sin usar</h3><div class="etq-pal" id="etqPal" data-s="pal"></div>
       <h3 class="etq-h">Así se ve</h3><div class="etq-prev" id="etqPrev"></div>
+      ${(() => { const otras = Object.keys(ETQ).filter((m) => m !== mod && (() => { try { return modsActuales().has(ETQ_MOD_APP[m]); } catch { return true; } })());
+        return otras.length ? `<h3 class="etq-h">Copiar a otras listas</h3><p class="peq mut" style="margin:0 0 6px">Al guardar, la misma etiqueta se aplica también a las listas que marques. Los datos que no existen en esa lista quedan afuera.</p>
+        <div class="fx-ops" id="etqCopia">${otras.map((m) => `<label><input type="checkbox" value="${m}"><span>${ETQ[m].titulo}</span></label>`).join("")}</div><p class="peq mut" id="etqCopiaN" style="margin:6px 0 0"></p>` : ""; })()}
     </div>
     <div class="fx-pie"><button class="btn lin" type="button" data-cerrar>Cancelar</button><button class="btn pri" type="button" id="etqOk">Guardar</button></div>`);
   const chip = (k) => `<span class="etq-it" data-i="${k}" tabindex="0" role="button">${esc(D[k][0])}</span>`;
@@ -3829,6 +3841,9 @@ function etqEditor(mod, emp, filas, alGuardar) {
     h.querySelector("#etqPal").innerHTML = Object.keys(D).filter((k) => !usados.has(k)).map(chip).join("") || `<span class="peq mut">Están todos en la etiqueta.</span>`;
     if (sel) h.querySelector(`[data-i="${sel}"]`)?.classList.add("sel");
     h.querySelector("#etqPl").querySelectorAll("[data-pl]").forEach((b) => b.classList.toggle("on", ETQ_CASILLEROS.every(([k]) => JSON.stringify(def.plantillas[b.dataset.pl][1][k] ?? []) === JSON.stringify(cfg[k] ?? []))));
+    const cn = h.querySelector("#etqCopiaN");
+    if (cn) { const ms = [...h.querySelectorAll("#etqCopia input:checked")].map((i) => i.value);
+      cn.textContent = ms.map((m) => { const f = etqTraducir(cfg, m).fuera; return f.length ? `En ${ETQ[m].titulo} quedan afuera: ${f.map((k) => D[k]?.[0] ?? k).join(", ")}.` : ""; }).filter(Boolean).join(" "); }
     h.querySelector("#etqPrev").innerHTML = muestra.length ? muestra.map((c) => { const p = etqPartes(mod, c, cfg);
       return `<div class="etq-fila">${etqFilaHTML(p)}</div>`; }).join("")
       : `<p class="peq mut" style="padding:12px">Cuando haya ventas en la lista se ven acá de ejemplo.</p>`;
@@ -3860,15 +3875,20 @@ function etqEditor(mod, emp, filas, alGuardar) {
     const pl = e.target.closest("[data-pl]"); if (pl) { cfg = JSON.parse(JSON.stringify(def.plantillas[pl.dataset.pl][1])); for (const [k] of ETQ_CASILLEROS) cfg[k] ??= []; sel = null; pintar(); return; }
     if (sel && !e.target.closest(".etq-it")) { const s = e.target.closest(".etq-slot,.etq-pal"); if (s) mover(sel, s.dataset.s); }
   });
+  h.querySelector("#etqCopia")?.addEventListener("change", () => pintar());
   h.addEventListener("keydown", (e) => { const t = e.target.closest(".etq-it"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sel = t.dataset.i; pintar(); } });
   h.querySelector("#etqOk").onclick = async () => {
     const ident = { ventas: ["nombre", "nick", "prod", "nro", "orden"], despacho: ["nombre", "nick", "prod", "nro", "orden", "sku"], devoluciones: ["prod", "comprador", "orden"] }[mod];
     if (!Object.values(cfg).flat().some((k) => ident.includes(k))) return aviso("Dejá al menos un dato que identifique la venta (nombre, usuario, producto o número)");
     const b = h.querySelector("#etqOk"); b.disabled = true;
     const r = await seguro(() => api("etiqueta_guardar", { cliente_id: emp, modulo: mod, config: cfg }));
-    b.disabled = false; if (!r) return;
-    S.etq[emp] = { ...(S.etq[emp] ?? {}), etiquetas: r.etiquetas, puede_editar: true };
-    h.remove(); aviso("Listo: la lista ya muestra los datos elegidos"); alGuardar?.();
+    if (!r) { b.disabled = false; return; }
+    let ult = r;
+    const copias = [...h.querySelectorAll("#etqCopia input:checked")].map((i) => i.value);
+    for (const m of copias) { const x = await seguro(() => api("etiqueta_guardar", { cliente_id: emp, modulo: m, config: etqTraducir(cfg, m).cfg })); if (x) ult = x; }
+    b.disabled = false;
+    S.etq[emp] = { ...(S.etq[emp] ?? {}), etiquetas: ult.etiquetas, puede_editar: true };
+    h.remove(); aviso(copias.length ? `Listo: se aplicó en ${[def.titulo, ...copias.map((m) => ETQ[m].titulo)].join(", ").replace(/, ([^,]*)$/, " y $1")}` : "Listo: la lista ya muestra los datos elegidos"); alGuardar?.();
   };
   pintar();
 }
