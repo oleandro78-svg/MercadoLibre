@@ -6414,7 +6414,7 @@ function pasosHTML(c, ci) {
   const ps = estadoPasos(c, ci);
   const ult = [...PASOS_DS].reverse().find(([k]) => pasoHecho(c, k) && c.pasos?.[k]?.quien);
   const otra = ci.verificacion?.otra && pasoAplica(ci, "verificacion", c) && !pasoHecho(c, "verificacion") && !!c.pasos?.armado?.mio;
-  const dato = ult && c.pasos[ult[0]].dato ? ` · ${esc(c.pasos[ult[0]].dato)}` : "";
+  const dato = (ult && c.pasos[ult[0]].dato ? ` · ${esc(c.pasos[ult[0]].dato)}` : "") + (ult?.[0] === "entrega" && c.pasos.entrega.fotos?.length ? " · con recibo firmado" : "");
   return `<span class="ds-pasos">${ps.map((p) => `<button type="button" class="${p.est}" data-paso="${p.k}" data-c="${c.id}" aria-label="${esc(PASO_NOM[p.k] ?? "Etiqueta")}: ${p.est === "ok" ? "hecho" : p.est === "falta" ? "falta, obligatorio" : p.est === "opc" ? "opcional" : p.est === "mal" ? "no coincidió" : "pendiente"}">${p.est === "ok" ? "✓ " : ""}${p.txt}</button>`).join("")}</span>
     ${ult || otra ? `<span class="ds-quien">${ult ? `${ult[3]}: ${esc(c.pasos[ult[0]].quien)}${c.pasos[ult[0]].at ? `, ${horaCorta(c.pasos[ult[0]].at)}` : ""}${dato}` : ""}${otra ? `${ult ? " · " : ""}lo tiene que verificar otra persona` : ""}</span>` : ""}`;
 }
@@ -6426,31 +6426,54 @@ async function accionPaso(emp, c, k) {
   if (k === "foto") return fotosDespacho({ conversacion_id: c.id, cuenta_id: c.cuenta_id, item_id: c.item_id, envio_id: c.envio_id, item_titulo: c.item_titulo, item_foto: c.item_thumbnail, comprador: c.comprador_nombre, orden_id: c.pack_id ?? c.orden_ids?.[0] ?? null });
   const retiro = c.envio_logistica === "retiro";
   const nom = k === "armado" ? "armado" : retiro ? "entregado al comprador" : "entregado al transporte";
+  if (pasoHecho(c, k) && k === "entrega" && retiro) return verEntregaRetiro(emp, c, recargar);
   if (pasoHecho(c, k)) {
     if (!confirm(`¿Desmarcar como ${nom}? Lo marcó ${c.pasos[k].quien}.`)) return;
     if (await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, deshacer: true }))) { aviso("Desmarcado"); recargar(); }
     return;
   }
   // Retiro en el local: se anota quién se lo lleva (obligatorio si el circuito lo pide)
-  let retira = "";
+  let retira = ""; const fotosRet = [];
   if (k === "entrega" && retiro) {
     retira = await new Promise((fin) => {
       const h = abrirHoja(`<div class="cajon-cab"><h2>Entregar al comprador</h2><button class="btn lin chico" data-cerrar type="button">Cancelar</button></div>
         <p class="peq mut" style="margin:0 0 10px">${Number(c.cantidad) || 1} × ${esc(c.item_titulo ?? "Producto")} · ${esc(c.comprador_nombre ?? "")}</p>
         <form id="retF"><label class="et" for="retN">Quién lo retira${ci.entrega.nombre ? "" : " (opcional)"}</label><input id="retN" maxlength="120" autocomplete="off" placeholder="Nombre de quien se lo lleva" style="width:100%">
+        <span class="et" style="margin-top:12px">Foto del recibo firmado${ci.entrega.recibo ? "" : " (opcional)"}</span><div id="retFotos"></div>
         <button class="btn pri" style="margin-top:12px;width:100%;justify-content:center">Marcar como entregado</button></form>`);
-      h.querySelector("#retF").onsubmit = (e) => { e.preventDefault(); const v = h.querySelector("#retN").value.trim(); if (ci.entrega.nombre && !v) return aviso("Anotá quién lo retira"); h.remove(); fin(v || " "); };
+      casillasFotos(h.querySelector("#retFotos"), ["Recibo firmado"], fotosRet, null);
+      h.querySelector("#retF").onsubmit = (e) => { e.preventDefault(); const v = h.querySelector("#retN").value.trim(); if (ci.entrega.nombre && !v) return aviso("Anotá quién lo retira"); if (ci.entrega.recibo && !fotosRet.length) return aviso("Sacale una foto al recibo firmado"); h.remove(); fin(v || " "); };
       setTimeout(() => h.querySelector("#retN")?.focus(), 50);
       new MutationObserver(() => { if (!h.isConnected) fin(null); }).observe(document.body, { childList: true });
     });
     if (retira === null) return;
     retira = retira.trim();
   }
-  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(retira ? { retira } : {}) }));
+  const r = await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: k, ...(retira ? { retira } : {}), ...(fotosRet.length ? { fotos: fotosRet } : {}) }));
   if (!r) return;
   if (r.ok === false) return aviso(r.motivo);
   aviso(k === "armado" ? "Marcado como armado" : `Marcado como ${nom}`); recargar();
   void ci;
+}
+// Entrega de un retiro en el local: quién lo entregó, quién lo retiró y el recibo firmado (se puede agregar después)
+function verEntregaRetiro(emp, c, recargar) {
+  const e = c.pasos.entrega, nuevas = [];
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Entregado al comprador</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 10px">${Number(c.cantidad) || 1} × ${esc(c.item_titulo ?? "Producto")} · ${esc(c.comprador_nombre ?? "")}</p>
+    <p style="margin:0 0 4px">Entregó <b>${esc(e.quien)}</b>${e.at ? ` el ${new Date(e.at).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}` : ""}.</p>
+    ${e.dato ? `<p style="margin:0 0 10px">${esc(e.dato)}.</p>` : ""}
+    ${e.fotos?.length ? `<span class="et">Recibo firmado</span><div class="fotos-g">${e.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "#")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt="Recibo firmado"><span>${esc(f.etiqueta ?? "Recibo")}</span></a>`).join("")}</div>` : `<p class="peq mut">Todavía no tiene la foto del recibo firmado.</p>`}
+    <span class="et" style="margin-top:12px">${e.fotos?.length ? "Agregar otra foto" : "Agregar la foto del recibo"}</span><div id="erF"></div>
+    <div class="fx-pie"><button class="btn lin" type="button" id="erD">Desmarcar entrega</button><button class="btn pri" type="button" id="erG" disabled>Guardar foto</button></div>`);
+  casillasFotos(h.querySelector("#erF"), ["Recibo firmado"], nuevas, () => { h.querySelector("#erG").disabled = !nuevas.length; });
+  h.querySelector("#erG").onclick = async () => {
+    if (!nuevas.length) return;
+    if (await seguro(() => api("despacho_recibo", { cliente_id: emp, conversacion_id: c.id, fotos: nuevas }))) { h.remove(); aviso("Foto del recibo guardada"); recargar(); }
+  };
+  h.querySelector("#erD").onclick = async () => {
+    if (!confirm(`¿Desmarcar la entrega? La marcó ${e.quien}. La venta vuelve a quedar para entregar.`)) return;
+    if (await seguro(() => api("despacho_paso", { cliente_id: emp, conversacion_id: c.id, paso: "entrega", deshacer: true }))) { h.remove(); aviso("Desmarcado"); recargar(); }
+  };
 }
 // Escanear etiquetas una tras otra: para marcar armados o la entrega al transporte. Al entregar, muestra lo que falta.
 function sesionPasos(emp, paso, env) {
@@ -6500,14 +6523,14 @@ VISTAS.circuito = async () => {
           ${k === "armado" ? `<div class="et">Con qué se arma</div>${[["lista", "Lista de armado en A4", "Agrupada por producto: se saca todo junto del depósito"], ["troquel", "Troquel de cada etiqueta", "Al imprimir se deja el troquel. Si la cuenta no lo tiene activado en MercadoLibre, sale la etiqueta con los datos del producto en su lugar"], ["ambas", "Las dos", ""]].map(([v, t, x]) => `<label class="op"><input type="radio" name="con" value="${v}" ${ci.armado.con === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}${x ? `<br><span class="peq mut">${x}</span>` : ""}</span></label>`).join("")}<div style="height:8px"></div>` : ""}
           ${k === "verificacion" ? `<label class="op"><input type="checkbox" name="otra" ${ci.verificacion.otra ? "checked" : ""} ${pu ? "" : "disabled"}><span>Que verifique otra persona que la que armó</span></label><div style="height:6px"></div>` : ""}
           ${envios(k)}
-          ${k === "entrega" ? `<div style="height:6px"></div><label class="op"><input type="checkbox" name="nombre" ${ci.entrega.nombre ? "checked" : ""} ${pu ? "" : "disabled"}><span>En Retiro en el local, anotar quién se lo lleva</span></label>` : ""}</div></div>`).join("")}
+          ${k === "entrega" ? `<div style="height:6px"></div><div class="et">En Retiro en el local</div><label class="op"><input type="checkbox" name="nombre" ${ci.entrega.nombre ? "checked" : ""} ${pu ? "" : "disabled"}><span>Anotar quién se lo lleva (obligatorio)</span></label><label class="op"><input type="checkbox" name="recibo" ${ci.entrega.recibo ? "checked" : ""} ${pu ? "" : "disabled"}><span>Foto del recibo firmado (obligatoria)</span></label><p class="peq mut" style="margin:2px 0 0">Si no las marcás, igual se pueden cargar, pero no se exigen.</p>` : ""}</div></div>`).join("")}
       ${pu ? `<button class="btn pri" type="button" id="cirG" style="margin-top:8px">Guardar circuito</button>` : ""}
     </div>`;
   const mostrar = () => $("#cir").querySelectorAll("[data-sub]").forEach((x) => x.classList.toggle("oculto", $(`#cir input[name="m_${x.dataset.sub}"]:checked`)?.value === "apagado"));
   mostrar(); $("#cir").onchange = mostrar;
   if ($("#cirG")) $("#cirG").onclick = async () => {
     const leer = (k) => ({ modo: $(`#cir input[name="m_${k}"]:checked`)?.value ?? "apagado", envios: [...$("#cir").querySelectorAll(`input[name="e_${k}"]:checked`)].map((x) => x.value) });
-    const circuito = { armado: { ...leer("armado"), con: $('#cir input[name="con"]:checked')?.value ?? "lista" }, verificacion: { ...leer("verificacion"), otra: $('#cir input[name="otra"]').checked }, foto: leer("foto"), entrega: { ...leer("entrega"), nombre: !!$('#cir input[name="nombre"]')?.checked } };
+    const circuito = { armado: { ...leer("armado"), con: $('#cir input[name="con"]:checked')?.value ?? "lista" }, verificacion: { ...leer("verificacion"), otra: $('#cir input[name="otra"]').checked }, foto: leer("foto"), entrega: { ...leer("entrega"), nombre: !!$('#cir input[name="nombre"]')?.checked, recibo: !!$('#cir input[name="recibo"]')?.checked } };
     for (const k of ["armado", "verificacion", "foto", "entrega"]) if (circuito[k].modo !== "apagado" && !circuito[k].envios.length) return aviso(`${PASO_NOM[k]}: elegí al menos un tipo de envío`);
     $("#cirG").disabled = true;
     const r = await seguro(() => api("despacho_circuito_guardar", { cliente_id: emp, circuito }));
