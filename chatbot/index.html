@@ -582,6 +582,11 @@ input[type=file]{max-width:100%}
 .urg-x button:hover{background:rgba(0,0,0,.08)}.urg-x button:focus-visible{outline:2px solid currentColor}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
+.acc-i{all:unset;cursor:pointer;display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:60px;padding:4px 2px;border-radius:10px;color:var(--piz);font-size:11.5px;line-height:1.2}
+.acc-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.acc-i:hover{background:var(--sup2)}.acc-i:focus-visible{outline:2px solid var(--cielo)}
+.acc-i.on{color:var(--tinta);font-weight:700}.acc-i.on .ic-f{fill:currentColor}.acc-i.on .ic-x{stroke:var(--sup)}
+.acc-i.urg.on{color:var(--rojo-acc,#dc2626)}.acc-fav.on{color:var(--ladrillo);font-weight:400}
 .ch-at{display:inline-flex;align-items:center;gap:0;font-size:12.5px;color:var(--piz)}.ch-at svg{width:14px;height:14px;margin-right:4px;flex:none}.ch-at .at{font-weight:600}.ch-at .at-a{color:#53bdeb}.ch-at .at-x{color:#6fcf6a}.ch-at .at-sep{margin-right:4px}
 .seg-correo{list-style:none;margin:0;padding:0}.seg-correo li{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--linea);font-size:14px;line-height:1.4}.seg-correo li:first-child{border-top:0}.seg-f{color:var(--piz);font-variant-numeric:tabular-nums;white-space:nowrap}
 .c-urg{background:var(--ladrillo-2);color:var(--ladrillo)}.c-ok{background:var(--pino-2);color:var(--pino-t)}.c-mot{background:var(--ambar-2);color:var(--ambar-t)}.c-blo{background:var(--sup2);color:var(--piz)}
@@ -3598,6 +3603,13 @@ const POR_PAGINA = 40;
 const ICONO_COR = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 // Corazón dentro de la fila (la fila es un botón, así que el corazón es un elemento con rol de botón)
 const favEnFila = (c) => `<span role="button" tabindex="0" class="fav-h fav-in ${c.favorita ? "on" : ""}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICONO_COR}</span>`;
+// Íconos de las acciones de la venta: activados se rellenan (urgente en rojo, favorita en rojo, el resto en negro)
+const ICO_ACC = {
+  urg: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ic-f" cx="12" cy="12" r="9.5"/><path class="ic-x" d="M12 7v6.5M12 17h.01" stroke-width="2.4"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-f" d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.2A8 8 0 1 1 21 12z"/></svg>`,
+  cal: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect class="ic-f" x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M16 3v3M8 3v3"/><path class="ic-x" d="M3 10h18"/></svg>`,
+  fav: `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-f" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>`,
+};
 const botonFav = (c, extra = "") => `<button type="button" class="fav-h ${c.favorita ? "on" : ""} ${extra}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICONO_COR}</button>`;
 async function cambiarFavorita(id) {
   const fila = (S.msjLista?.filas ?? []).find((x) => x.id === id);
@@ -4192,12 +4204,11 @@ function pintarChat(d) {
     <div class="chat-cab">${movil ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver a la lista">${ICONO_M.atras}</button>` : ""}
       ${foto(c.item_thumbnail)}<div class="t"><b>${esc(nombreComp(c))}</b><span class="mut peq">${esc(c.item_titulo ?? "")}</span></div>
       <div class="venta-cab"><b>${pagoTxt(c)}</b><span class="peq">${c.envio_logistica ? tipoEnvio(c) : esc(c.envio_id ? "Envío" : "Sin envío")}${recibida(c) ? `: recibido el ${esc(diaMes(recibida(c)))}` : c.envio_estado ? `: ${esc(ENVIO_E[c.envio_estado] ?? c.envio_estado)}` : ""}${env.estimada && c.envio_estado !== "delivered" && c.envio_estado !== "cancelled" ? ` · llega ${fechaCorta(env.estimada)}` : ""}</span></div>
-      <div class="n acc-cab">${botonFav(c, "fav-cab")}
-        ${c.urgente ? `<span class="chip c-urg urg-x" title="${esc(c.urgente_motivo ?? "Urgente")}">Urgente<button type="button" id="mUrg" aria-label="Quitar urgente">×</button></span>`
-          : `<button class="urg-marcar" type="button" id="mUrg">Marcar urgente</button>`}
-        <button class="urg-marcar" type="button" id="mCompartir">Compartir en el chat</button>
-        ${c.compromiso_at ? `<a class="chip chip-cal c-cal" role="button" tabindex="0" onclick="document.getElementById('mComp')?.scrollIntoView({block:'center'})" title="Agendada en el calendario">${ICONO_CAL}${esc(new Date(c.compromiso_at).toLocaleString("es-AR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }))}</a>` : ""}
-        <button class="urg-marcar" type="button" id="mAgendar" title="Agregar al calendario algo que hay que hacer con este comprador">Agendar</button>
+      <div class="n acc-cab">
+        <button type="button" class="acc-i ${c.urgente ? "on urg" : ""}" id="mUrg" aria-pressed="${!!c.urgente}" title="${esc(c.urgente ? `${c.urgente_motivo || "Urgente"}. Tocá para quitarlo` : "Marcar urgente")}">${ICO_ACC.urg}<span>Urgente</span></button>
+        <button type="button" class="acc-i ${c.compartida ? "on" : ""}" id="mCompartir" title="${c.compartida ? "Ya se habló de esta venta en el chat del equipo. Tocá para compartirla de nuevo" : "Compartir en el chat del equipo"}">${ICO_ACC.chat}<span>${c.compartida ? "Compartida" : "Compartir"}</span></button>
+        <button type="button" class="acc-i ${c.agendada ? "on" : ""}" id="mAgendar" title="${c.agendada ? "Tiene algo en el calendario. Tocá para agregar otro" : "Agregar al calendario algo que hay que hacer con este comprador"}">${ICO_ACC.cal}<span>${c.agendada ? "Agendada" : "Agendar"}</span></button>
+        <button type="button" class="acc-i acc-fav ${c.favorita ? "on" : ""}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICO_ACC.fav}<span>Favorita</span></button>
         ${c.pendiente ? `<button class="btn lin chico" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
@@ -4222,7 +4233,7 @@ function pintarChat(d) {
   if (movil) requestAnimationFrame(() => { const r = $("#mRed"); (r ?? bur.lastElementChild)?.scrollIntoView({ block: "end" }); });
   if ($(".m-atras")) $(".m-atras").onclick = volverLista;
   if ($(".chat-alertas")) $(".chat-alertas").onclick = (e) => { if (!e.target.closest("a")) e.currentTarget.classList.toggle("abierta"); };
-  const favCab = document.querySelector("#mChat .fav-cab"); if (favCab) favCab.onclick = () => cambiarFavorita(c.id);
+  const favCab = document.querySelector("#mChat .acc-fav"); if (favCab) favCab.onclick = () => cambiarFavorita(c.id);
   $("#mUrg").onclick = async () => { if (await seguro(() => api("mensaje_urgente", { id: c.id, urgente: !c.urgente }))) { aviso(c.urgente ? "Ya no figura como urgente" : "Marcada como urgente"); abrirConv(c.id); cargarHilos(empMsj()); } };
   $("#mCompartir").onclick = () => compartirEnChat("venta", c.id);
   $("#mAgendar").onclick = () => { pestConv("chat"); formCompromiso(c, null); };
@@ -5009,7 +5020,8 @@ async function compartirEnChat(origen, ref) {
   v.querySelector(".co-lista").onclick = async (e) => {
     const b = e.target.closest("[data-chat]"); if (!b) return;
     b.disabled = true;
-    if (await seguro(() => api("chat_enviar", { cliente_id: emp, chat_id: Number(b.dataset.chat), texto: $("#coTx", v).value, refs: [{ origen, ref }] }))) { v.remove(); aviso("Compartido en el chat"); }
+    if (await seguro(() => api("chat_enviar", { cliente_id: emp, chat_id: Number(b.dataset.chat), texto: $("#coTx", v).value, refs: [{ origen, ref }] }))) { v.remove(); aviso("Compartido en el chat");
+      const bc = origen === "venta" && document.querySelector("#mCompartir"); if (bc && S.msjId === Number(ref)) { bc.classList.add("on"); bc.querySelector("span").textContent = "Compartida"; } }
     else b.disabled = false;
   };
 }
