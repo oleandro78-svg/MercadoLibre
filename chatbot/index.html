@@ -224,9 +224,20 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .rm-firma{position:relative;margin-top:6px;border:2px dashed #9aa6b2;border-radius:12px;background:#fff;touch-action:none}.rm-firma canvas{display:block;width:100%;height:190px;touch-action:none}.rm-firma span{position:absolute;left:12px;bottom:8px;font-size:12px;color:#8a96a3;pointer-events:none}
 .rm-sn{display:flex;gap:8px}.rm-sn label{flex:1;display:flex;gap:6px;align-items:center;justify-content:center;border:1px solid var(--linea);border-radius:10px;padding:10px;font-size:16px}
 .cir-campo{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea)}.cir-campo .fila2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;grid-column:1/-1;font-size:13.5px}
-.cir-paso{border-top:1px solid var(--linea);padding:14px 0}.cir-paso:first-of-type{border-top:0;padding-top:4px}.cir-t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.cir-t b{font-size:15.5px}.cir-n{font-size:12px;font-weight:700;color:var(--piz);min-width:14px}
-.cir-seg{display:flex;border:1px solid var(--linea);border-radius:10px;overflow:hidden;margin:8px 0 0 22px;max-width:420px}.cir-seg label{flex:1;text-align:center;cursor:pointer;border-left:1px solid var(--linea)}.cir-seg label:first-child{border-left:0}.cir-seg input{position:absolute;opacity:0;pointer-events:none}.cir-seg span{display:block;padding:8px 4px;font-size:13.5px;color:var(--piz)}.cir-seg input:checked+span{background:var(--tinta);color:var(--papel);font-weight:600}.cir-seg label:has(input:focus-visible){outline:2px solid var(--cielo);outline-offset:-2px}
-.cir-sub{margin:10px 0 0 22px;padding:10px 12px;background:var(--sup2);border-radius:12px;max-width:520px}.cir-sub .et{margin:2px 0 4px}.cir-sub label.op{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.cir-sub input{margin-top:3px;accent-color:var(--tinta)}
+.tl{position:relative;padding:4px 0 0 42px}.cir-paso{position:relative;padding:0 0 24px}.cir-paso::before{content:"";position:absolute;left:-27px;top:32px;bottom:2px;width:2px;background:var(--linea)}.cir-paso:last-child::before{display:none}.cir-paso.tramo::before{background:var(--tinta)}
+.cir-t{all:unset;display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:30px;cursor:pointer}.cir-t:focus-visible{outline:2px solid var(--cielo);outline-offset:2px;border-radius:6px}.cir-t[disabled]{cursor:default}.cir-t b{font-size:16px}
+.cir-n{position:absolute;left:-42px;top:0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:var(--sup);border:2px solid var(--linea);color:var(--piz)}
+.cir-paso.ob .cir-n{background:var(--tinta);border-color:var(--tinta);color:var(--papel)}.cir-paso.op .cir-n{border:2px dashed var(--tinta);color:var(--tinta)}.cir-paso.ap .cir-t b{color:var(--piz)}
+.cir-est{font-size:12px;font-weight:600;border-radius:6px;padding:1px 7px;background:var(--sup2);color:var(--piz)}.cir-paso.ob .cir-est{background:var(--tinta);color:var(--papel)}.cir-paso.op .cir-est{background:none;border:1px dashed var(--tinta);color:var(--tinta)}
+.cir-flecha{color:var(--piz);font-size:15px;transition:transform .15s}.cir-t.abierto .cir-flecha{transform:rotate(180deg)}.cir-t[disabled] .cir-flecha{visibility:hidden}
+.vt{position:relative;padding:2px 0 0 30px;margin-bottom:6px}.vt-p{position:relative;padding:0 0 15px;font-size:13.5px}.vt-p::before{content:"";position:absolute;left:-21px;top:18px;bottom:0;width:2px;background:var(--linea)}.vt-p:last-child::before{display:none}.vt-p.ok::before{background:var(--pino)}
+.vt-i{position:absolute;left:-30px;top:0;width:20px;height:20px;border-radius:50%;background:var(--sup);border:2px solid var(--linea);display:grid;place-items:center;font-size:11px;color:#fff}.vt-p.ok .vt-i{background:var(--pino);border-color:var(--pino)}
+.vt-p.falta .vt-i,.vt-p.mal .vt-i{border:3px solid var(--ladrillo)}.vt-p.opc .vt-i{border-style:dashed}.vt-p b{font-size:14px}.vt-p.falta b,.vt-p.mal b{color:var(--ladrillo)}.vt-p .q{display:block;font-size:12.5px;color:var(--piz);margin-top:1px}.vt-p .q:empty{display:none}
+.vt-p.ml b::after{content:"MercadoLibre";font-size:10.5px;font-weight:600;color:var(--piz);background:var(--sup2);border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+.vt-btn{all:unset;cursor:pointer;display:inline-block;margin-top:5px;font-size:12.5px;border:1px solid var(--linea);color:var(--cielo);border-radius:8px;padding:3px 9px;font-weight:600}.vt-btn.rojo{border:1.5px solid var(--ladrillo);color:var(--ladrillo)}.vt-btn:focus-visible{outline:2px solid var(--cielo)}
+.cir-res{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.cir-res:empty{display:none}.cir-res span{font-size:12px;border-radius:999px;padding:2px 9px;background:var(--sup2);color:var(--tinta)}
+.cir-seg{display:flex;border:1px solid var(--linea);border-radius:10px;overflow:hidden;margin:8px 0 0;max-width:420px}.cir-seg label{flex:1;text-align:center;cursor:pointer;border-left:1px solid var(--linea)}.cir-seg label:first-child{border-left:0}.cir-seg input{position:absolute;opacity:0;pointer-events:none}.cir-seg span{display:block;padding:8px 4px;font-size:13.5px;color:var(--piz)}.cir-seg input:checked+span{background:var(--tinta);color:var(--papel);font-weight:600}.cir-seg label:has(input:focus-visible){outline:2px solid var(--cielo);outline-offset:-2px}
+.cir-sub{margin:10px 0 0;padding:10px 12px;background:var(--sup2);border-radius:12px;max-width:520px}.cir-sub .et{margin:2px 0 4px}.cir-sub label.op{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.cir-sub input{margin-top:3px;accent-color:var(--tinta)}
 .ds-it:has(input:checked){border-color:var(--pino);box-shadow:0 0 0 1px var(--pino) inset;background:var(--pino-2)}
 .ds-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
 .imp-lista{display:grid;gap:8px;margin-bottom:14px}.imp-it,.imp-per{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--linea)}
@@ -4765,7 +4776,7 @@ function pintarVenta(d) {
     ${c.estado_orden && c.estado_orden !== "paid" ? `<div class="dv"><span>Estado</span><span${c.estado_orden === "cancelled" ? ' style="color:var(--ladrillo);font-weight:600"' : ""}>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden)}</span></div>` : ""}
     <h3 id="mLineaT">Envío ${tipoEnvio(c) || "—"}</h3>
     ${c.envio_id ? `<div class="linea-t" id="mLinea">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
-      ${env.estimada && !env.entregado ? `<p class="peq mut" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
+      ${env.estimada && !env.entregado ? `<p class="peq mut" id="mEst" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button> · <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></p>`
       : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0">Tuvo un reclamo que ya está cerrado. <button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>` : ""}
@@ -4773,6 +4784,44 @@ function pintarVenta(d) {
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
   $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
   if (c.mediacion || c.reclamo_ids?.length) historiaVenta(c);
+  else if (modsActuales().has("despacho")) lineaCircuito(c);
+}
+// Línea de tiempo de la venta con los pasos del circuito de despacho: lo hecho (quién y cuándo), lo que falta (con el botón
+// para hacerlo) y lo que informa MercadoLibre
+async function lineaCircuito(c) {
+  const emp = c.cliente_id ?? empRec();
+  const r = await api("despacho_venta", { cliente_id: emp, conversacion_id: c.id }).catch(() => null);
+  if (!r?.aplica || !circActivo(r.circuito) || S.msjId !== c.id || !$("#mVen")) return;
+  const ci = r.circuito, env = c.envio ?? {};
+  S.refrescarLinea = () => { if (S.msjId === c.id && $("#mVen")) lineaCircuito(c); };
+  const cv = { ...c, _ci: r.circuito, envio_logistica: r.envio_logistica, pasos: r.pasos, impresiones: r.impresa ? [{ quien: r.pasos.etiqueta?.quien, at: r.pasos.etiqueta?.at }] : [] };
+  if (r.envio_logistica === "retiro") cv.envio_id = null;
+  const retiro = r.envio_logistica === "retiro";
+  const NOM = { etiqueta: retiro ? "Etiqueta de retiro impresa" : "Etiqueta impresa", armado: "Armado", verificacion: "Verificación", foto: "Foto del paquete", entrega: retiro ? "Entregado al comprador" : "Entregado al transporte" };
+  const BTN = { etiqueta: "", armado: "Marcar armado", verificacion: "Verificar", foto: "Sacar la foto", entrega: "Entregar" };
+  const cuando = (t) => t ? fecha(t) : "";
+  const items = [`<div class="vt-p ok ml"><span class="vt-i">✓</span><b>Venta</b><span class="q">${cuando(c.fecha_venta)}</span></div>`];
+  for (const p of estadoPasos(cv, ci)) {
+    const h = r.pasos[p.k] ?? {};
+    const det = p.est === "ok" ? [h.quien, cuando(h.at), p.k === "armado" && ci.armado.con !== "lista" ? (ci.armado.con === "troquel" ? "con el troquel" : "") : "", h.dato ?? ""].filter(Boolean).join(" · ")
+      : p.est === "mal" ? `No coincidió · ${h.quien ?? ""}` : p.est === "opc" ? "Opcional" : p.est === "falta" ? `Falta${p.k === "verificacion" && cv.pasos.armado?.mio && ci.verificacion.otra ? " · la tiene que hacer otra persona" : ""}` : "Pendiente";
+    const boton = (p.est === "falta" || p.est === "opc" || p.est === "mal") && BTN[p.k] ? `<button type="button" class="vt-btn ${p.est === "falta" || p.est === "mal" ? "rojo" : ""}" data-vt="${p.k}">${BTN[p.k]}</button>`
+      : p.k === "entrega" && p.est === "ok" && retiro ? `<button type="button" class="vt-btn" data-vt="entrega">Ver entrega${h.remito ? " y remito" : ""}</button>` : "";
+    items.push(`<div class="vt-p ${p.est}"><span class="vt-i">${p.est === "ok" ? "✓" : ""}</span><b>${NOM[p.k]}</b><span class="q">${esc(det)}</span>${boton}</div>`);
+  }
+  if (!retiro) {
+    items.push(`<div class="vt-p ${env.despachado ? "ok" : ""} ml"><span class="vt-i">${env.despachado ? "✓" : ""}</span><b>En camino</b><span class="q">${env.despachado ? cuando(env.despachado) : "Lo informa MercadoLibre"}</span></div>`);
+    const ent = env.entregado || c.envio_entregado_at;
+    items.push(`<div class="vt-p ${ent ? "ok" : ""} ml"><span class="vt-i">${ent ? "✓" : ""}</span><b>${c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador"}</b><span class="q">${ent ? cuando(ent) : env.estimada ? `Llega ${fechaCorta(env.estimada)}` : ""}</span></div>`);
+  }
+  const t = $("#mLineaT"); if (t) t.innerHTML = retiro ? "Retiro en el local" : `Envío ${tipoEnvio(c) || ""}`.trim();
+  $("#mEst")?.remove(); // la llegada estimada ya va en la línea
+  const l = $("#mLinea"), html = `<div class="vt" id="mLinea">${items.join("")}</div>`;
+  if (l) l.outerHTML = html; else t?.insertAdjacentHTML("afterend", html);
+  $("#mLinea").onclick = (e) => {
+    const b = e.target.closest("[data-vt]"); if (!b) return;
+    accionPaso(emp, cv, b.dataset.vt, () => { if (S.msjId === c.id) lineaCircuito(c); });
+  };
 }
 // Venta con reclamo: la línea de tiempo suma todo lo que pasó (reclamo, mediación, devolución, reintegros), con sus números
 async function historiaVenta(c) {
@@ -6498,8 +6547,8 @@ function pasosHTML(c, ci) {
     ${ult || otra ? `<span class="ds-quien">${ult ? `${ult[3]}: ${esc(c.pasos[ult[0]].quien)}${c.pasos[ult[0]].at ? `, ${horaCorta(c.pasos[ult[0]].at)}` : ""}${dato}` : ""}${otra ? `${ult ? " · " : ""}lo tiene que verificar otra persona` : ""}</span>` : ""}`;
 }
 // Tocar un paso en la tarjeta
-async function accionPaso(emp, c, k) {
-  const ci = S.dsCirc, recargar = () => { if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); };
+async function accionPaso(emp, c, k, despues = null) {
+  const ci = c._ci ?? S.dsCirc, recargar = () => { despues?.(); if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); };
   const retiro = c.envio_logistica === "retiro";
   if (k === "etiqueta") return aviso(pasoHecho(c, k) ? (quienImprimio(c) || "La etiqueta ya está impresa") : retiro ? "Elegí el paquete en la lista e imprimí su etiqueta de retiro" : "Elegí el paquete en la lista e imprimí su etiqueta");
   if (k === "verificacion") return verificarPaquete(emp, c.envio_id ?? c.pack_id);
@@ -6660,10 +6709,10 @@ VISTAS.circuito = async () => {
   const ayuda = { armado: "Sacar el producto del depósito y armar el paquete. Se marca tocando el paso en la tarjeta o escaneando la etiqueta.", verificacion: "Escanear la etiqueta y después el código del producto: la app avisa si no coincide.", foto: "Fotos del producto y del paquete cerrado, que quedan como prueba en la venta.", entrega: "Escanear cada etiqueta al dársela al transporte (al final muestra los paquetes de hoy que faltan). En Retiro en el local, se marca cuando el comprador se lo lleva: esas ventas aparecen en Despacho solo si la entrega incluye ese tipo, y se van 12 horas después de entregadas." };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Circuito de despacho</h1><p>Qué pasos sigue cada paquete después de imprimir la etiqueta. Un paso no se puede hacer mientras falte uno obligatorio anterior.${pu ? "" : " Solo el administrador del negocio lo cambia."}</p></div></div>
     <div class="panel" style="max-width:720px" id="cir">
-      <div class="cir-paso"><div class="cir-t"><span class="cir-n">1</span><b>Etiqueta</b></div><p class="peq mut" style="margin:4px 0 0 22px">Siempre activo: es el primer paso de todos los envíos. Para el retiro en el local, la app imprime una etiqueta propia con código de barras.</p></div>
-      ${["armado", "verificacion", "foto", "entrega"].map((k, i) => `<div class="cir-paso" data-k="${k}"><div class="cir-t"><span class="cir-n">${i + 2}</span><b>${PASO_NOM[k]}</b></div>
-        <p class="peq mut" style="margin:4px 0 0 22px">${ayuda[k]}</p>${seg(k)}
-        <div class="cir-sub" data-sub="${k}">
+      <div class="tl"><div class="cir-paso ob"><div class="cir-t"><span class="cir-n">1</span><b>Etiqueta</b><span class="cir-est">Siempre</span></div><p class="peq mut" style="margin:4px 0 0">Siempre activo: es el primer paso de todos los envíos. Para el retiro en el local, la app imprime una etiqueta propia con código de barras.</p></div>
+      ${["armado", "verificacion", "foto", "entrega"].map((k, i) => `<div class="cir-paso" data-k="${k}"><button type="button" class="cir-t cir-tog" aria-expanded="false" aria-controls="sub_${k}"><span class="cir-n">${i + 2}</span><b>${PASO_NOM[k]}</b><span class="cir-est"></span><span class="cir-flecha" aria-hidden="true">⌄</span></button>
+        <p class="peq mut" style="margin:4px 0 0">${ayuda[k]}</p>${seg(k)}<div class="cir-res"></div>
+        <div class="cir-sub" data-sub="${k}" id="sub_${k}">
           ${k === "armado" ? `<div class="et">Con qué se arma</div>${[["lista", "Lista de armado en A4", "Agrupada por producto: se saca todo junto del depósito"], ["troquel", "Troquel de cada etiqueta", "Al imprimir se deja el troquel. Si la cuenta no lo tiene activado en MercadoLibre, sale la etiqueta con los datos del producto en su lugar"], ["ambas", "Las dos", ""]].map(([v, t, x]) => `<label class="op"><input type="radio" name="con" value="${v}" ${ci.armado.con === v ? "checked" : ""} ${pu ? "" : "disabled"}><span>${t}${x ? `<br><span class="peq mut">${x}</span>` : ""}</span></label>`).join("")}<div style="height:8px"></div>` : ""}
           ${k === "verificacion" ? `<label class="op"><input type="checkbox" name="otra" ${ci.verificacion.otra ? "checked" : ""} ${pu ? "" : "disabled"}><span>Que verifique otra persona que la que armó</span></label><div style="height:6px"></div>` : ""}
           ${envios(k)}
@@ -6677,7 +6726,8 @@ VISTAS.circuito = async () => {
               <div class="et" style="margin-top:8px">Datos que completa quien retira (además de la firma)</div>
               <div id="rmCampos"></div>
               ${pu ? `<button type="button" class="btn lin chico" id="rmMas" style="margin-top:8px">Agregar un dato</button>` : ""}
-            </div>` : ""}</div></div>`).join("")}
+            </div>` : ""}</div></div>`).join("")}</div>
+      <p class="peq mut" style="margin:0 0 12px">Tocá el nombre de un paso para ver todas sus opciones.</p>
       ${pu ? `<button class="btn pri" type="button" id="cirG" style="margin-top:8px">Guardar circuito</button>` : ""}
     </div>`;
   // Datos del remito que completa quien retira
@@ -6691,10 +6741,27 @@ VISTAS.circuito = async () => {
     $("#rmCampos").onclick = (e) => { const b = e.target.closest("[data-borrar]"); if (!b) return; campos.splice(Number(b.dataset.borrar), 1); pintarCampos(); };
   }
   if ($("#rmMas")) $("#rmMas").onclick = () => { if (campos.length >= 10) return aviso("Hasta 10 datos"); campos.push({ etiqueta: "", tipo: "texto", obligatorio: false }); pintarCampos(); $("#rmCampos").querySelector(`[data-i="${campos.length - 1}"] input`)?.focus(); };
+  // Línea de tiempo: cada paso muestra su estado (círculo lleno, punteado o gris) y un resumen; las opciones se abren tocándolo
+  const abiertos = new Set();
   const mostrar = () => {
-    $("#cir").querySelectorAll("[data-sub]").forEach((x) => x.classList.toggle("oculto", $(`#cir input[name="m_${x.dataset.sub}"]:checked`)?.value === "apagado"));
+    $("#cir").querySelectorAll(".cir-paso[data-k]").forEach((p) => {
+      const k = p.dataset.k, modo = $(`#cir input[name="m_${k}"]:checked`)?.value ?? "apagado", ab = abiertos.has(k) && modo !== "apagado";
+      p.classList.toggle("ob", modo === "obligatorio"); p.classList.toggle("op", modo === "opcional"); p.classList.toggle("ap", modo === "apagado");
+      p.querySelector(".cir-est").textContent = { apagado: "Apagado", opcional: "Opcional", obligatorio: "Obligatorio" }[modo];
+      p.querySelector(".cir-sub").classList.toggle("oculto", !ab);
+      const t = p.querySelector(".cir-tog"); t.setAttribute("aria-expanded", String(ab)); t.classList.toggle("abierto", ab); t.disabled = modo === "apagado";
+      const envs = [...p.querySelectorAll(`input[name="e_${k}"]:checked`)].map((x) => ENVIOS_CIR.find((e) => e[0] === x.value)?.[1].replace(" y puntos de despacho", "").replace(" en el local", ""));
+      const extra = k === "armado" ? [{ lista: "Con la lista A4", troquel: "Con el troquel", ambas: "Lista y troquel" }[$('#cir input[name="con"]:checked')?.value]]
+        : k === "verificacion" && $('#cir input[name="otra"]')?.checked ? ["Otra persona que la que armó"]
+        : k === "entrega" ? [$('#cir input[name="rm_modo"]:checked')?.value !== "apagado" ? "Remito firmado en retiro" : "", $('#cir input[name="nombre"]')?.checked ? "Quién lo retira" : ""] : [];
+      p.querySelector(".cir-res").innerHTML = modo === "apagado" || ab ? "" : [...envs, ...extra].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join("");
+    });
+    // la línea queda oscura hasta el último paso encendido
+    const pasos = [...$("#cir").querySelectorAll(".cir-paso")]; let ult = 0; pasos.forEach((p, i) => { if (!p.classList.contains("ap")) ult = i; });
+    pasos.forEach((p, i) => p.classList.toggle("tramo", i < ult));
     $("#rmCfg")?.classList.toggle("oculto", $('#cir input[name="rm_modo"]:checked')?.value === "apagado");
   };
+  $("#cir").addEventListener("click", (e) => { const t = e.target.closest(".cir-tog"); if (!t || t.disabled) return; const k = t.closest("[data-k]").dataset.k; abiertos.has(k) ? abiertos.delete(k) : abiertos.add(k); mostrar(); });
   mostrar(); $("#cir").onchange = mostrar;
   if ($("#cirG")) $("#cirG").onclick = async () => {
     const leer = (k) => ({ modo: $(`#cir input[name="m_${k}"]:checked`)?.value ?? "apagado", envios: [...$("#cir").querySelectorAll(`input[name="e_${k}"]:checked`)].map((x) => x.value) });
@@ -6744,7 +6811,7 @@ async function verificarPaquete(emp, yaLeido = null) {
       const ok = codigos.some((c) => norm(c) === norm(leido));
       try { navigator.vibrate?.(ok ? 80 : [80, 60, 80, 60, 200]); } catch {}
       if (!(await guardar(ok, leido))) return;
-      if (S.tab === "despacho") VISTAS.despacho({ rapido: true });
+      if (S.tab === "despacho") VISTAS.despacho({ rapido: true }); else S.refrescarLinea?.();
       h.querySelector(".cajon").innerHTML = pintar(ok ? "ok" : "mal", leido); enganchar();
     });
     h.querySelector("#verMan")?.addEventListener("click", async () => { await guardar(true, null); aviso("Paquete marcado como revisado"); h.remove(); });
@@ -7122,7 +7189,7 @@ function fotosDespacho(env) {
     $("#dsG", v).disabled = true;
     const ok = await seguro(() => api("despacho_guardar", { cliente_id: env.cliente_id ?? empRec(), cuenta_id: env.cuenta_id, envio_id: env.envio_id, orden_id: env.orden_id, item_id: env.item_id, item_titulo: env.item_titulo, nota: $("#dsNota", v).value, fotos }));
     $("#dsG", v).disabled = false;
-    if (ok) { v.remove(); aviso("Fotos guardadas en la venta"); if (S.tab === "despacho") VISTAS.despacho(); }
+    if (ok) { v.remove(); aviso("Fotos guardadas en la venta"); if (S.tab === "despacho") VISTAS.despacho(); else S.refrescarLinea?.(); }
   };
 }
 
