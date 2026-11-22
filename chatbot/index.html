@@ -1108,8 +1108,11 @@ const dueno = () => S.rol === "admin" && !S.soporte;
 const chip = (e) => `<span class="chip c-${esc(e)}">${esc(ESTADOS[e] ?? e)}</span>`;
 function aviso(t) { const d = document.createElement("div"); d.className = "toast"; d.setAttribute("role", "status"); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3600); }
 
+// Dueño de la app solo en su link; en el de la app, si administra un negocio, es un administrador más
+const comoDueno = () => !!S.yo?.usuario?.admin_app && (window.MOSTRADOR_LINK === "dueno" || !S.yo?.clientes?.length);
 async function api(accion, datos = {}) {
   const h = { "content-type": "application/json" };
+  if (window.MOSTRADOR_LINK === "app") h["x-link"] = "app";
   {
     const { data } = await sb.auth.getSession();
     if (!data?.session) { if (S.rol) { aviso("La sesión venció. Volvé a entrar."); salir(); } throw new Error("Tenés que entrar de nuevo"); }
@@ -1184,9 +1187,11 @@ async function entrarUsuario() {
   // (la sesión es la misma, así que entra directo).
   const link = window.MOSTRADOR_LINK;
   // Al pasar de un link al otro se conserva lo que venía después de "#" (por ejemplo, la venta de un aviso)
-  if (link === "app" && S.yo.usuario?.admin_app) { location.replace("dueno/" + location.hash); return new Promise(() => {}); }
+  // El dueño de la app que además administra un negocio: en el link de la app entra siempre como administrador de su
+  // negocio (sus números, sus notificaciones); la administración de la app está solo en el link del dueño.
+  if (link === "app" && S.yo.usuario?.admin_app && !S.yo.clientes.length) { location.replace("dueno/" + location.hash); return new Promise(() => {}); }
   if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../" + location.hash); return new Promise(() => {}); }
-  if (S.yo.usuario?.admin_app) {
+  if (comoDueno()) {
     S.rol = "admin";
     // Al refrescar la página se sigue dentro del cliente en la que se estaba dando soporte
     try { const sp = JSON.parse(sessionStorage.getItem("mostrador_soporte") ?? "null"); if (sp?.id) { S.soporte = sp.id; S.soporteNom = sp.nombre; } } catch {}
@@ -1222,7 +1227,7 @@ function etiquetaCliente(id) {
 }
 function armarSelector() {
   const sel = $("#selEmp");
-  if (!S.yo || S.yo.usuario?.admin_app) return;
+  if (!S.yo || comoDueno()) return;
   if (S.yo.clientes.length < 2) { sel.classList.add("oculto"); return; }
   sel.classList.remove("oculto");
   const actual = S.clienteId || "*";
