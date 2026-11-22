@@ -797,7 +797,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .hilo .h-venta{grid-column:2/-1;font-size:12.5px;color:var(--piz)}
 .hilo .h-marca{grid-column:2/-1;font-size:12.5px;font-weight:600;color:var(--ambar-t);background:var(--ambar-2);border-radius:8px;padding:4px 8px;margin:2px 0}
 .hilo .h-venta .cancel{color:var(--ladrillo)}
-.c-esp{background:var(--cielo-2);color:var(--cielo)}.pend-fila{flex-basis:100%;margin-top:2px}#mFil .pend-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--ambar-2);color:var(--ambar-t)}#mFil .pend-bt::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}#mFil .pend-bt span{font-weight:400}#mFil .pend-bt:focus-visible{outline:2px solid var(--ambar-t)}.c-esp.c-esp-tarde{background:var(--ambar-2);color:var(--ambar-t)}
+.c-esp{background:var(--cielo-2);color:var(--cielo)}.pend-fila{flex-basis:100%;margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px}.tot-res{font-size:14px;color:var(--piz);white-space:nowrap}.tot-res b{color:var(--tinta)}#mFil .pend-bt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--ambar-2);color:var(--ambar-t)}#mFil .pend-bt::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}#mFil .pend-bt span{font-weight:400}#mFil .pend-bt:focus-visible{outline:2px solid var(--ambar-t)}.c-esp.c-esp-tarde{background:var(--ambar-2);color:var(--ambar-t)}
 .puntos i{font-style:normal;display:inline-block;animation:puntos 1.2s infinite ease-in-out;opacity:.15}
 .puntos i:nth-child(2){animation-delay:.2s}.puntos i:nth-child(3){animation-delay:.4s}
 @keyframes puntos{0%,80%,100%{opacity:.15;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
@@ -3968,7 +3968,9 @@ async function cargarHilos(emp, mas = false) {
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
       + `<span class="mas-caja ord-der"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
-      + (r.pendientes && S.msjFil !== "pendientes" && !S.msjBus ? `<div class="pend-fila"><button type="button" class="pend-bt" data-pend>${num(r.pendientes)} sin responder <span>· Ver</span></button></div>` : "")
+      + (() => { const pend = r.pendientes && S.msjFil !== "pendientes" && !S.msjBus, tot = Number(r.total ?? 0);
+          if (!pend && !tot) return "";
+          return `<div class="pend-fila">${pend ? `<button type="button" class="pend-bt" data-pend>${num(r.pendientes)} sin responder <span>· Ver</span></button>` : "<span></span>"}${tot ? `<span class="tot-res" aria-live="polite"><b>${num(tot)}</b> ${tot === 1 ? "venta" : "ventas"}</span>` : ""}</div>`; })()
       + (elegidos.length ? `<div class="fx-act">${elegidos.map(([k, t]) => `<button type="button" data-qx="${k}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}</div>` : "");
     $("#mFil").onclick = (e) => {
       if (e.target.closest("#mFx")) { hojaFiltros(emp); return; }
