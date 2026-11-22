@@ -584,6 +584,7 @@ input[type=file]{max-width:100%}
 .urg-x button:hover{background:rgba(0,0,0,.08)}.urg-x button:focus-visible{outline:2px solid currentColor}
 .urg-marcar{border:0;background:transparent;color:var(--piz);font:600 13px var(--fuente);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
 .urg-marcar:hover{color:var(--ladrillo)}
+.grp-f{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--borde,#e3e7ee)}.grp-f:first-of-type{border-top:none}.inv-grp{border-style:dashed!important}
 .ev-cab{align-items:center;gap:10px}.ev-cab h2{flex:1;text-align:center;font-size:17px;margin:0}.ev-acc{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .ev-ib{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--piz)}.ev-ib:hover{background:var(--sup2)}.ev-ib:focus-visible{outline:2px solid var(--cielo)}
 .ev-ib svg,.ev-r>svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -1738,9 +1739,18 @@ VISTAS.equipo = async () => {
     </div>
     <h2 class="eq-h">Personas <span class="mut">${vivos.length}</span></h2>
     <div class="personas">${vivos.length ? vivos.map(tarjeta).join("") : `<div class="panel vacio"><b>Todavía no sumaste a nadie</b>Invitá a la primera persona con el botón de arriba.</div>`}</div>
+    ${r.grupos && vivos.length ? (() => { const mods = modsActuales(), gs = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"], ["preguntas", "preguntas"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
+      return gs.length ? `<h2 class="eq-h">Grupos</h2><div class="panel grp-panel"><p class="peq mut" style="margin:0 0 12px">Quiénes son de cada sector. Por ejemplo, cuando se agenda un compromiso con un comprador quedan invitados los de Ventas, no los de Despacho. Una persona puede estar en varios grupos.</p>
+        ${gs.map((k) => `<div class="grp-f"><b>${GRUPO_TXT[k]}</b><div class="nt-men" data-grupo="${k}">${vivos.map((m) => `<button type="button" data-u="${esc(m.usuario_id)}" aria-pressed="${(r.grupos[k] ?? []).includes(m.usuario_id)}">${nomC(m).replace(/^vos$/, "Vos")}</button>`).join("")}</div></div>`).join("")}
+        <div style="margin-top:12px"><button class="btn pri chico" type="button" id="grpG">Guardar grupos</button></div></div>` : ""; })() : ""}
     ${bajas.length ? `<details class="eq-bajas"><summary><h2 class="eq-h" style="display:inline">Dados de baja <span class="mut">${bajas.length}</span></h2></summary><div class="personas" style="margin-top:12px">${bajas.map(tarjeta).join("")}</div></details>` : ""}`;
 
   $("#eqSumar").onclick = () => sumarPersona(emp, libres);
+  $("#main").querySelectorAll("[data-grupo]").forEach((g) => g.addEventListener("click", (x) => { const b = x.target.closest("[data-u]"); if (b) b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); }));
+  if ($("#grpG")) $("#grpG").onclick = async () => {
+    const grupos = Object.fromEntries([...$("#main").querySelectorAll("[data-grupo]")].map((g) => [g.dataset.grupo, [...g.querySelectorAll('[aria-pressed="true"]')].map((b) => b.dataset.u)]));
+    if (await seguro(() => api("grupos_guardar", { cliente_id: emp, grupos }))) { S.calDatos = null; aviso("Grupos guardados"); }
+  };
   $("#eqPrueba").onclick = () => probarAvisos(emp, null);
   // Un solo menú de opciones abierto a la vez
   $("#main").querySelectorAll(".menu-p").forEach((d) => d.addEventListener("toggle", () => { if (d.open) $("#main").querySelectorAll(".menu-p[open]").forEach((o) => { if (o !== d) o.open = false; }); }));
@@ -4264,12 +4274,21 @@ function formCompromiso(c, base) {
     <label class="campo">Qué hay que hacer<input name="titulo" required maxlength="200" value="${esc(base?.titulo ?? "Comunicarse con el comprador")}"></label>
     <div class="fila" style="gap:10px"><label class="campo">Día<input type="date" name="fecha" required value="${esc(fecha)}"></label><label class="campo">Hora<input type="time" name="hora" required value="${esc(base?.hora ?? "10:00")}"></label></div>
     <label class="campo">Avisarme<select name="rec">${RECORDAR.map(([k, t]) => `<option value="${k}" ${k === String(S.calDatos?.recordatorio_def ?? 10) ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-    <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta${(c.asignados ?? []).length ? ", con quienes la atienden como invitados" : ""}. El aviso llega cuando lo elegiste; si pasa la fecha y nadie le escribió al comprador, avisa de nuevo.</p>
+    <div class="campo"><span>Invitados</span><div class="nt-men" id="compInv"><span class="peq mut">Cargando…</span></div></div>
+    <p class="peq mut" style="margin:6px 0 10px">Queda en el Calendario unido a esta venta. El aviso llega cuando lo elegiste; si pasa la fecha y nadie le escribió al comprador, avisa de nuevo.</p>
     <div class="fila" style="gap:8px"><button class="btn pri" type="submit">Agendar</button><button class="btn lin" type="button" id="compCancelar">Cancelar</button></div></form>`;
   $("#compCancelar").onclick = () => abrirConv(c.id);
+  // Invitados por defecto: el grupo de Ventas (si está armado en Equipo); si no, quienes atienden la venta
+  api("cal_lista", { cliente_id: empMsj(), desde: new Date().toISOString(), hasta: new Date().toISOString() }).then((cl) => {
+    const caja = $("#compInv"); if (!caja) return;
+    const gv = (cl.grupos?.ventas ?? []).filter((u) => (cl.equipo ?? []).some((m) => m.id === u));
+    caja.innerHTML = invitadosHTML(cl.equipo ?? [], cl.yo, gv.length ? gv : (c.asignados ?? []).length ? c.asignados : [cl.yo], cl.grupos);
+    escucharInvitados(caja);
+  }).catch(() => { const caja = $("#compInv"); if (caja) caja.innerHTML = `<span class="peq mut">Quedan invitados los del grupo de Ventas.</span>`; });
   $("#compForm").onsubmit = async (ev) => {
     ev.preventDefault(); const f = new FormData(ev.target);
-    const r = await seguro(() => api("compromiso_agendar", { id: c.id, titulo: f.get("titulo"), fecha: f.get("fecha"), hora: f.get("hora"), recordatorio_min: f.get("rec") === "" ? null : Number(f.get("rec")), prometido: base?.prometido ?? null, detalle: base?.detalle ?? null }));
+    const inv = [...document.querySelectorAll('#compInv [data-inv][aria-pressed="true"]')].map((y) => y.dataset.inv);
+    const r = await seguro(() => api("compromiso_agendar", { id: c.id, invitados: inv, titulo: f.get("titulo"), fecha: f.get("fecha"), hora: f.get("hora"), recordatorio_min: f.get("rec") === "" ? null : Number(f.get("rec")), prometido: base?.prometido ?? null, detalle: base?.detalle ?? null }));
     if (r) { aviso("Agendado en el calendario"); abrirConv(c.id); cargarHilos(empMsj()); }
   };
   caja.scrollIntoView({ block: "nearest" });
@@ -5425,10 +5444,28 @@ function cuandoEvento(e) {
   const hora = e.todo_dia ? "Todo el día" : `${hmCal(ini)}${e.fin ? ` a ${hmCal(new Date(e.fin))}` : ""}`;
   return { fecha: fecha.charAt(0).toUpperCase() + fecha.slice(1), sub: `${hora} · ${rel}` };
 }
+// Invitados de un evento: cada persona, y atajos por grupo (los grupos se arman en Equipo)
+const GRUPO_TXT = { ventas: "Ventas", despacho: "Despacho", devoluciones: "Devoluciones", preguntas: "Preguntas" };
+function invitadosHTML(eq, yo, sel, grupos) {
+  const g = Object.entries(grupos ?? {}).filter(([, l]) => (l ?? []).some((u) => eq.some((m) => m.id === u)));
+  return `${eq.map((m) => `<button type="button" aria-pressed="${sel.includes(m.id)}" data-inv="${esc(m.id)}">${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}
+    ${g.map(([k, l]) => `<button type="button" class="inv-grp" data-grp="${k}" data-ids="${esc(l.join(","))}">+ ${GRUPO_TXT[k] ?? k}</button>`).join("")}<button type="button" class="inv-grp" data-inv-todos>+ Todos</button>`;
+}
+function escucharInvitados(caja) {
+  caja.onclick = (x) => {
+    const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
+    if (x.target.closest("[data-inv-todos]")) { caja.querySelectorAll("[data-inv]").forEach((y) => y.setAttribute("aria-pressed", "true")); return; }
+    const g = x.target.closest("[data-grp]"); if (!g) return;
+    const ids = g.dataset.ids.split(","), bs = [...caja.querySelectorAll("[data-inv]")].filter((y) => ids.includes(y.dataset.inv));
+    const todos = bs.every((y) => y.getAttribute("aria-pressed") === "true");
+    bs.forEach((y) => y.setAttribute("aria-pressed", String(!todos)));
+  };
+}
 async function editarEvento(ev, previo = {}, editar = false) {
   const emp = empChat();
-  const eq = S.calDatos?.equipo ?? (await api("cal_lista", { cliente_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] }))).equipo ?? [];
-  const yo = S.calDatos?.yo ?? S.chatYo?.id;
+  const cl = S.calDatos ?? (await api("cal_lista", { cliente_id: emp, desde: new Date().toISOString(), hasta: new Date().toISOString() }).catch(() => ({ equipo: [] })));
+  const eq = cl.equipo ?? [], grp = cl.grupos ?? {};
+  const yo = S.calDatos?.yo ?? S.chatYo?.id ?? cl.yo;
   const e = { invitados: [yo], recordatorio_min: S.calDatos?.recordatorio_def ?? 10, ...previo, ...ev };
   const nuevo = !e.id, puede = nuevo || e.puede_editar;
   const ficha = e.ficha ?? (e.ref ? (await api("chat_fichas", { cliente_id: emp, refs: [e.ref] }).catch(() => ({ fichas: [] }))).fichas?.[0] : null);
@@ -5444,17 +5481,14 @@ async function editarEvento(ev, previo = {}, editar = false) {
         <input type="time" id="evHf" value="${e.fin ? hmCal(new Date(e.fin)) : ""}" aria-label="Hasta" title="Hasta" ${e.todo_dia ? "disabled" : ""}></div></div>
       <label class="ev-sw"><span>Todo el día</span><input type="checkbox" role="switch" id="evTd" ${e.todo_dia ? "checked" : ""}></label>
       <div><span class="ev-lab">Avisarme</span><div class="nt-men ev-rec" id="evR">${RECORDAR.map(([k]) => `<button type="button" data-rec="${k}" aria-pressed="${rec === k}">${RECORDAR_CORTO[k]}</button>`).join("")}</div></div>
-      <div><span class="ev-lab">Invitados</span><div class="nt-men" id="evI">${eq.map((m) => `<button type="button" aria-pressed="${(e.invitados ?? []).includes(m.id)}" data-inv="${esc(m.id)}">${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}<button type="button" data-inv-todos>+ Todos</button></div></div>
+      <div><span class="ev-lab">Invitados</span><div class="nt-men" id="evI">${invitadosHTML(eq, yo, e.invitados ?? [], S.calDatos?.grupos ?? grp)}</div></div>
       <label><span class="ev-lab">Detalle</span><textarea id="evD" maxlength="2000" rows="4" placeholder="Lo que hace falta saber">${esc(e.detalle ?? "")}</textarea></label>
       ${ficha ? `<div><span class="ev-lab">Referencia</span>${fichaHtml(ficha)}</div>` : ""}
       ${!nuevo ? `<button class="ev-borrar" id="evB" type="button">Borrar evento</button>` : ""}
     </div>`);
   $("#evTd", v).onchange = (x) => { $("#evH", v).disabled = $("#evHf", v).disabled = x.target.checked; };
   $("#evR", v).onclick = (x) => { const b = x.target.closest("[data-rec]"); if (!b) return; v.querySelectorAll("[data-rec]").forEach((y) => y.setAttribute("aria-pressed", y === b)); };
-  $("#evI", v).onclick = (x) => {
-    const b = x.target.closest("[data-inv]"); if (b) { b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); return; }
-    if (x.target.closest("[data-inv-todos]")) v.querySelectorAll("[data-inv]").forEach((y) => y.setAttribute("aria-pressed", "true"));
-  };
+  escucharInvitados($("#evI", v));
   $("#evG", v).onclick = async () => {
     if (!$("#evT", v).value.trim()) { $("#evT", v).focus(); return aviso("Escribí qué hay que hacer"); }
     const td = $("#evTd", v).checked, f = $("#evF", v).value, h = td ? "09:00" : $("#evH", v).value || "09:00", hf = $("#evHf", v).value;
