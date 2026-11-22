@@ -3868,9 +3868,12 @@ const ORDEN_MSJ_DEF = "actividad";
 const prodsElegidos = (f) => Array.isArray(f.producto) ? f.producto : f.producto ? [String(f.producto)] : [];
 const FX_SI = [["con_mensajes", "Con mensajes"], ["esperando", "Esperando al comprador", "El último mensaje es tuyo y hace más de 2 días que no contesta"], ["borrador", "Con borrador listo", "El bot dejó la respuesta preparada"], ["agendadas", "Agendadas en el calendario", "Tienen un compromiso con el comprador pendiente"], ["por_agendar", "Para agregar al calendario", "Le prometieron algo al comprador y todavía no está en el calendario"],
   ["reclamos", "Con reclamo o mediación"], ["repetido", "Mismo comprador con otra venta", "Compró más de una vez en los últimos 2 meses"], ["canceladas", "Canceladas"], ["sin_canceladas", "Sin las canceladas"]];
+// Filtros donde se pueden elegir varias opciones a la vez (se guardan como lista)
+const FX_MULTI = new Set(["tipo_envio"]);
+const fxLista = (v) => Array.isArray(v) ? v : v ? [String(v)] : [];
 function filtrosActivos() {
   const f = S.msjFx ?? {}, out = [];
-  for (const [k, , ops] of FX) if (f[k]) out.push([k, ops.find((o) => o[0] === String(f[k]))?.[1] ?? f[k]]);
+  for (const [k, , ops] of FX) if (FX_MULTI.has(k) ? fxLista(f[k]).length : f[k]) out.push([k, FX_MULTI.has(k) ? fxLista(f[k]).map((v) => ops.find((o) => o[0] === v)?.[1] ?? v).join(", ") : ops.find((o) => o[0] === String(f[k]))?.[1] ?? f[k]]);
   for (const [k, t] of FX_SI) if (f[k]) out.push([k, t]);
   const pe = prodsElegidos(f);
   if (pe.length) out.push(["producto", pe.length === 1 ? (S.msjProductos ?? []).find((p) => p.id === pe[0])?.titulo?.slice(0, 40) ?? "Producto" : `${pe.length} productos`]);
@@ -3882,8 +3885,9 @@ function hojaFiltros(emp) {
   const grupo = ([k, t, ops]) => k === "dias" ? `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-per-l">${ops.map(([v, tt]) => `<label class="fx-per-o"><input type="radio" name="fx_dias" value="${v}" ${String(f.dias ?? DIAS_DEF) === v ? "checked" : ""}><span><b>${tt}</b><span class="peq mut">${v === "custom" ? "Elegí desde y hasta qué día" : textoRango({ dias: v })}</span></span></label>`).join("")}</div>
       <div class="fx-fechas ${f.dias === "custom" ? "" : "oculto"}" id="fxFechas"><label>Desde<input type="date" id="fxDesde" max="${hoyStr}" value="${esc(f.desde ?? "")}"></label><label>Hasta<input type="date" id="fxHasta" max="${hoyStr}" value="${esc(f.hasta ?? hoyStr)}"></label></div></fieldset>`
     : `<fieldset class="fx-g"><legend>${t}</legend><div class="fx-ops">
-    ${k === "dias" ? "" : `<label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>`}
-    ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}</div></fieldset>`;
+    ${FX_MULTI.has(k) ? `<label><input type="checkbox" name="fx_${k}" value="" ${!fxLista(f[k]).length ? "checked" : ""}><span>Todas</span></label>${ops.map(([v, tt]) => `<label><input type="checkbox" name="fx_${k}" value="${v}" ${fxLista(f[k]).includes(v) ? "checked" : ""}><span>${tt}</span></label>`).join("")}`
+      : `${k === "dias" ? "" : `<label><input type="radio" name="fx_${k}" value="" ${!f[k] ? "checked" : ""}><span>${k === "inteligente" ? "Sin este filtro" : "Todas"}</span></label>`}
+    ${ops.map(([v, tt]) => `<label><input type="radio" name="fx_${k}" value="${v}" ${String(f[k] ?? "") === v ? "checked" : ""}><span>${tt}</span></label>`).join("")}`}</div></fieldset>`;
   const prods = S.msjProductos ?? [];
   const L = S.msjLista ?? {};
   const rapidos = [["todas", "Todas las ventas"], ["pendientes", "Sin responder", L.pendientes], ["urgentes", "Urgentes", L.urgentes], ["reclamos", "Con reclamo", L.reclamos], ["favoritas", "Favoritas", L.favoritas], ...(L.con_asignaciones ? [["mias", "Para mí"]] : [])];
@@ -3909,6 +3913,12 @@ function hojaFiltros(emp) {
       || `<p class="peq mut" style="padding:8px">No hay productos con ese nombre</p>`;
   };
   ponerT();
+  // Varias opciones: "Todas" se apaga al elegir alguna; sin ninguna elegida vuelve "Todas"
+  for (const k of FX_MULTI) h.querySelectorAll(`input[name="fx_${k}"]`).forEach((i) => i.onchange = () => {
+    const todas = h.querySelector(`input[name="fx_${k}"][value=""]`), resto = [...h.querySelectorAll(`input[name="fx_${k}"]:not([value=""])`)];
+    if (i === todas) { if (todas.checked) resto.forEach((x) => x.checked = false); else todas.checked = true; }
+    else todas.checked = !resto.some((x) => x.checked);
+  });
   h.querySelectorAll('input[name="fx_dias"]').forEach((i) => i.onchange = () => h.querySelector("#fxFechas").classList.toggle("oculto", i.value !== "custom" || !i.checked));
   h.querySelector("#fxProdB").onclick = () => { const p = h.querySelector("#fxProdP"), ab = p.classList.contains("oculto"); p.classList.toggle("oculto", !ab); h.querySelector("#fxProdB").setAttribute("aria-expanded", String(ab)); if (ab) { listar(); h.querySelector("#fxProdQ").focus(); } };
   h.querySelector("#fxProdQ").oninput = listar;
@@ -3916,7 +3926,10 @@ function hojaFiltros(emp) {
   h.querySelector("#fxProdN").onclick = () => { elegidos = []; ponerT(); listar(); };
   h.querySelector("#fxAplicar").onclick = () => {
     const n = {};
-    for (const [k] of FX) { const v = h.querySelector(`input[name="fx_${k}"]:checked`)?.value; if (v) n[k] = v; }
+    for (const [k] of FX) {
+      if (FX_MULTI.has(k)) { const vs = [...h.querySelectorAll(`input[name="fx_${k}"]:checked`)].map((i) => i.value).filter(Boolean); if (vs.length) n[k] = vs; continue; }
+      const v = h.querySelector(`input[name="fx_${k}"]:checked`)?.value; if (v) n[k] = v;
+    }
     for (const [k] of FX_SI) if (h.querySelector(`input[name="fxs_${k}"]`)?.checked) n[k] = true;
     if (n.canceladas && n.sin_canceladas) delete n.sin_canceladas;
     if (elegidos.length) n.producto = [...elegidos];
