@@ -1838,10 +1838,10 @@ VISTAS.rendimiento = async () => {
   const [d, au] = await Promise.all([seguro(() => api("rendimiento", { cliente_id: emp, desde, hasta })), seguro(() => api("autonomia", { cliente_id: emp }))]);
   if (!d || S.tab !== "rendimiento") return;
   const t = d.totales;
-  let k = 0; for (const p of d.personas) p.color = p.estado === "baja" ? "#8A96A3" : PALETA[k++ % PALETA.length];
+  d.personas.forEach((p, i) => { p.color = p.estado === "baja" ? "#8A96A3" : colorPersona(i); });
   const gente = d.personas.filter((p) => p.estado !== "baja" || p.respondidas || p.descartadas);
   const maxR = Math.max(1, ...gente.map((p) => p.respondidas), t.bot.respondidas, t.mercadolibre.respondidas);
-  const fila = (av, nombre, sub, x, extra = {}) => `<tr>
+  const fila = (av, nombre, sub, x, extra = {}) => `<tr${extra.uid ? ` class="fila-click" data-rt="${esc(extra.uid)}" tabindex="0" title="Ver cómo fue en el tiempo"` : ""}>
     <td><div class="rd-p">${av}<div><b>${nombre}</b>${sub ? `<div class="peq mut">${sub}</div>` : ""}</div></div></td>
     <td><div class="rd-n"><b>${num(x.respondidas)}</b><span class="rd-bar"><i style="width:${(x.respondidas / maxR) * 100}%;background:${extra.color ?? "var(--cielo)"}"></i></span></div></td>
     <td>${dur(x.tiempo_mediana_seg)}<div class="peq mut">promedio ${dur(x.tiempo_prom_seg)}</div></td>
@@ -1860,7 +1860,7 @@ VISTAS.rendimiento = async () => {
     <div class="panel" style="padding:16px 18px"><h2>Por persona</h2>
       <p class="mut peq" style="margin:0 0 6px">El tiempo va desde que el comprador preguntó hasta que salió la respuesta; se muestra el típico (la mitad de las respuestas tardó menos) y el promedio. Hay repregunta cuando el mismo comprador vuelve a preguntar en la misma publicación dentro de las ${d.plazo_repregunta_h} horas: suele indicar que la respuesta quedó incompleta.</p>
       <div class="tabla-scroll"><table class="tabla apilable rd"><tr><th>Quién</th><th>Respondió</th><th>Tiempo típico</th><th>Repreguntas</th><th>Descartó</th><th>Le llegaron</th><th>Última respuesta</th></tr>
-      ${gente.map((p) => fila(avP(p), esc(p.nombre) + (p.vos ? ` <span class="mut">(vos)</span>` : ""), [p.rol === "admin" ? "Administrador" : "Operador", p.estado === "baja" ? "dado de baja" : p.estado === "invitado" ? "todavía no entró" : ""].filter(Boolean).join(", "), p, { color: p.color, descartadas: num(p.descartadas), asignadas: num(p.asignadas), ultima: p.ultima })).join("")}
+      ${gente.map((p) => fila(avP(p), esc(p.nombre) + (p.vos ? ` <span class="mut">(vos)</span>` : ""), [p.rol === "admin" ? "Administrador" : "Operador", p.estado === "baja" ? "dado de baja" : p.estado === "invitado" ? "todavía no entró" : ""].filter(Boolean).join(", "), p, { color: p.color, descartadas: num(p.descartadas), asignadas: num(p.asignadas), ultima: p.ultima, uid: p.usuario_id })).join("")}
       ${t.bot.respondidas ? fila(avI("IA", "var(--pino)"), "El bot", "respondió solo", t.bot, { color: "var(--pino)" }) : ""}
       ${t.mercadolibre.respondidas ? fila(avI("ML", "#9AA6B2"), "Desde MercadoLibre", "respondidas fuera de este panel", t.mercadolibre, { color: "#9AA6B2" }) : ""}
       </table></div>
@@ -1870,6 +1870,7 @@ VISTAS.rendimiento = async () => {
       ${listaRepreguntas(d.repreguntas, d.plazo_repregunta_h, false)}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
   pestRend();
+  $("#main").querySelectorAll("tr[data-rt]").forEach((t) => t.onclick = () => verRendimiento(emp ?? empRec(), [t.dataset.rt], "tp"));
   if ($("#auto")) $("#auto").onclick = async (ev) => {
     const b = ev.target.closest("[data-auto]"); if (!b) return;
     const activar = b.dataset.on === "1", c = au.categorias.find((x) => x.id === b.dataset.auto);
@@ -2083,7 +2084,7 @@ async function rendimientoComparativo(emp) {
     const mejor = nums.length > 1 ? (mejorEs === "alto" ? Math.max(...nums) : Math.min(...nums)) : null;
     const malo = (x) => nums.length > 1 && prom > 0 && (mejorEs === "alto" ? x < prom * 0.5 : x > prom * 1.6);
     const max = Math.max(...nums, 1);
-    return `<tr><td><b>${titulo}</b>${ayuda ? `<div class="peq mut">${ayuda}</div>` : ""}</td>${v.map((x, i) => `<td data-et="${esc(P[i].nombre)}">${x == null ? `<span class="mut">—</span>` : `<span class="${mejor != null && x === mejor ? "rc-mejor" : malo(x) ? "rc-malo" : ""}">${fmt(x)}</span>${barra ? `<span class="rc-bar"><i style="width:${(x / max) * 100}%;background:${PALETA[i % PALETA.length]}"></i></span>` : ""}`}</td>`).join("")}<td class="mut" data-et="Promedio">${fmt(mejorEs === "bajo" || !Number.isInteger(prom) ? Math.round(prom * 10) / 10 : prom)}</td></tr>`;
+    return `<tr><td><b>${titulo}</b>${ayuda ? `<div class="peq mut">${ayuda}</div>` : ""}</td>${v.map((x, i) => `<td data-et="${esc(P[i].nombre)}">${x == null ? `<span class="mut">—</span>` : `<span class="${mejor != null && x === mejor ? "rc-mejor" : malo(x) ? "rc-malo" : ""}">${fmt(x)}</span>${barra ? `<span class="rc-bar"><i style="width:${(x / max) * 100}%;background:${colorPersona(P[i].orden ?? i)}"></i></span>` : ""}`}</td>`).join("")}<td class="mut" data-et="Promedio">${fmt(mejorEs === "bajo" || !Number.isInteger(prom) ? Math.round(prom * 10) / 10 : prom)}</td></tr>`;
   };
   const g = (t) => `<tr class="rc-g"><td colspan="${P.length + 2}">${t}</td></tr>`;
   const n = (x) => num(Math.round(x)), pc = (x) => `${Math.round(x)}%`, d = (x) => dur(x), h = (x) => durAct(x), dec = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
@@ -2111,29 +2112,35 @@ async function rendimientoComparativo(emp) {
   const desdeH = 7, hastaH = 22, horas = Array.from({ length: hastaH - desdeH }, (_, i) => desdeH + i);
   const maxH = Math.max(1, ...P.flatMap((p) => p.horas.slice(desdeH, hastaH)));
   const calor = `<div class="rc-heat" style="grid-template-columns:110px repeat(${horas.length},1fr)"><span></span>${horas.map((x) => `<span class="peq mut">${x}</span>`).join("")}
-    ${P.map((p, i) => `<b>${esc(p.nombre)}</b>${horas.map((x) => { const v = p.horas[x] / maxH; return `<i title="${p.horas[x]} acciones entre las ${x} y las ${x + 1}" style="background:${v ? PALETA[i % PALETA.length] : "var(--sup2)"};opacity:${v ? 0.18 + v * 0.82 : 1}"></i>`; }).join("")}`).join("")}</div>`;
+    ${P.map((p, i) => `<b>${esc(p.nombre)}</b>${horas.map((x) => { const v = p.horas[x] / maxH; return `<i title="${p.horas[x]} acciones entre las ${x} y las ${x + 1}" style="background:${v ? colorPersona(p.orden ?? i) : "var(--sup2)"};opacity:${v ? 0.18 + v * 0.82 : 1}"></i>`; }).join("")}`).join("")}</div>`;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Comparación entre las personas del equipo. Período: ${esc(nombrePer())}. En verde, el mejor valor de cada fila; en rojo, los que se alejan mucho del promedio. Si alguien no está asignado a un módulo, aparece un guion.</p></div>${selPeriodo()}</div>
-    <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th><button type="button" class="lnk" data-rt="${esc(p.id)}" title="Ver cómo fue en el tiempo">${esc(p.nombre)}</button></th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
+    <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th><button type="button" class="lnk" data-rt="${esc(p.id)}" title="Ver solo a esta persona en el gráfico"><i class="rt-dot" style="background:${colorPersona(p.orden)}"></i>${esc(p.nombre)}</button></th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
+    ${mods.has("preguntas") || mods.has("mensajes") ? `<div class="panel" id="rcTiempo"><h2>Cómo fue en el tiempo</h2><p class="peq mut" style="margin:-4px 0 4px">Mismo período de arriba. Elegí abajo a quiénes ver; en la computadora también podés tocar un nombre de la tabla.</p><div class="rt-cuerpo"><p class="mut">Cargando…</p></div></div>` : ""}
     <div class="panel"><h2>A qué hora trabaja cada uno</h2><p class="peq mut" style="margin:-4px 0 10px">Acciones por hora del día, de lunes a viernes, en el período. Más intenso, más actividad.</p>${calor}</div>`;
   enlazarPeriodo(VISTAS.rendimiento);
   pestRend();
-  $("#main").querySelectorAll("[data-rt]").forEach((b) => b.onclick = () => verRendimiento(emp, [b.dataset.rt]));
+  const gr = $("#rcTiempo") ? graficoRendimiento($("#rcTiempo .rt-cuerpo"), { emp, uids: P.map((p) => p.id), met: mods.has("preguntas") ? "tp" : "tm", per: "pag" }, false) : null;
+  $("#main").querySelectorAll("[data-rt]").forEach((b) => b.onclick = () => { if (!gr) return; gr.ver([b.dataset.rt]); $("#rcTiempo").scrollIntoView({ behavior: "smooth", block: "start" }); });
 }
 // ---------- rendimiento en el tiempo (gráfico por persona, para comparar) ----------
-const RT_MET = [["tp", "Tiempo de respuesta a preguntas", "preguntas", "prom"], ["tm", "Tiempo de respuesta a compradores", "mensajes", "prom"], ["np", "Preguntas respondidas", "preguntas", "n"], ["nm", "Mensajes enviados", "mensajes", "n"]];
+// El mismo gráfico va dentro de Rendimiento → Comparativo (con el período de la página) y en una hoja aparte
+// (desde Inicio y desde las tablas por persona). Cada persona tiene siempre el mismo color: el de su lugar en el equipo.
+const colorPersona = (orden) => PALETA[Math.max(0, orden ?? 0) % PALETA.length];
+const RT_MET = [["tp", "Tiempo de respuesta a preguntas", "preguntas", "med"], ["tm", "Tiempo de respuesta a compradores", "mensajes", "med"], ["np", "Preguntas respondidas", "preguntas", "n"], ["nm", "Mensajes enviados", "mensajes", "n"]];
 const RT_PER = [[7, "7 días"], [30, "30 días"], [90, "3 meses"], [182, "6 meses"], [365, "1 año"]];
-async function verRendimiento(emp, uids, met = "tp") {
-  const st = { emp, uids: [...new Set(uids)], met, dias: 30 };
-  const v = abrirHoja(`<div class="cajon-cab"><h2>Rendimiento en el tiempo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div><div id="rtCuerpo"><p class="mut">Cargando…</p></div>`);
+const rtPerInicial = () => S.per === "7d" ? 7 : S.per === "30d" ? 30 : "pag";
+function graficoRendimiento(cont, st, conPeriodo) {
+  const rango = () => st.per === "pag" ? rangoPer() : { desde: new Date(Date.now() - st.per * 86400000).toISOString(), hasta: new Date().toISOString() };
   const pintar = async () => {
-    const hasta = new Date(), desde = new Date(Date.now() - st.dias * 86400000);
-    const r = await seguro(() => api("rendimiento_serie", { cliente_id: st.emp, usuarios: st.uids, desde: desde.toISOString(), hasta: hasta.toISOString() }));
-    if (!r || !v.isConnected) return;
+    const { desde, hasta } = rango();
+    const r = await seguro(() => api("rendimiento_serie", { cliente_id: st.emp, usuarios: st.uids, desde, hasta }));
+    if (!r || !cont.isConnected) return;
+    const mets = RT_MET.filter((m) => !r.modulos || r.modulos.includes(m[2]));
+    if (!mets.some((m) => m[0] === st.met) && mets.length) st.met = mets[0][0];
     const [, titulo, mod, campo] = RT_MET.find((m) => m[0] === st.met);
-    const fmt = campo === "prom" ? dur : (x) => num(x);
-    const colorDe = (id) => PALETA[Math.max(0, r.equipo.findIndex((e) => e.id === id)) % PALETA.length];
-    const series = r.personas.map((p) => ({ p, color: colorDe(p.id), val: p[mod].map((x) => x[campo]) }));
-    // Gráfico de líneas (SVG): un punto por día, semana o mes
+    const tiempo = campo === "med", unidad = (n) => mod === "preguntas" ? (n === 1 ? "pregunta" : "preguntas") : (n === 1 ? "mensaje" : "mensajes");
+    const fmt = tiempo ? dur : (x) => num(x);
+    const series = r.personas.map((p) => ({ p, color: colorPersona(p.orden), val: p[mod].map((x) => x[campo]) }));
     const W = 640, H = 240, iz = 56, de = 14, ar = 12, ab = 30, N = r.buckets.length;
     const todos = series.flatMap((x) => x.val).filter((x) => x != null);
     const max = Math.max(1, ...todos) * 1.1;
@@ -2141,35 +2148,44 @@ async function verRendimiento(emp, uids, met = "tp") {
     const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => max * f);
     const etq = (k) => { const d = new Date(k + "T12:00:00"); return r.paso === "mes" ? d.toLocaleDateString("es-AR", { month: "short" }) : d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
     const cadaX = Math.max(1, Math.ceil(N / 6));
+    const info = (x, i) => { const b = x.p[mod][i]; return `${x.p.nombre}, ${r.paso === "semana" ? "semana del " : ""}${etq(r.buckets[i])}: ${tiempo ? `típico ${dur(b.med)}, promedio ${dur(b.prom)} (${num(b.n)} ${unidad(b.n)})` : `${num(b.n)} ${unidad(b.n)}`}`; };
     const lineas = series.map((x) => {
-      const pts = x.val.map((val, i) => val == null ? null : [X(i), Y(val), val, i]);
+      const pts = x.val.map((val, i) => val == null ? null : [X(i), Y(val), i]);
       let d = "", corte = true;
       for (const q of pts) { if (!q) { corte = true; continue; } d += `${corte ? "M" : "L"}${q[0].toFixed(1)},${q[1].toFixed(1)} `; corte = false; }
       return `<path d="${d}" fill="none" stroke="${x.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-        ${pts.filter(Boolean).map((q) => `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="${x.color}" data-info="${esc(`${x.p.nombre} · ${etq(r.buckets[q[3]])}: ${fmt(q[2])}${campo === "prom" ? ` (${x.p[mod][q[3]].n} ${mod === "preguntas" ? "preguntas" : "mensajes"})` : ""}`)}" style="cursor:pointer"><title>${esc(x.p.nombre)} · ${etq(r.buckets[q[3]])}: ${esc(String(fmt(q[2])))}</title></circle>`).join("")}`;
+        ${pts.filter(Boolean).map((q) => `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="${x.color}" data-info="${esc(info(x, q[2]))}" style="cursor:pointer"><title>${esc(info(x, q[2]))}</title></circle>`).join("")}`;
     }).join("");
     const svg = todos.length ? `<svg viewBox="0 0 ${W} ${H}" class="rt-svg" role="img" aria-label="${esc(titulo)}">
       ${ticks.map((t) => `<line x1="${iz}" x2="${W - de}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" class="rt-g"/><text x="${iz - 6}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" class="rt-t">${esc(String(fmt(Math.round(t))))}</text>`).join("")}
       ${r.buckets.map((k, i) => i % cadaX === 0 ? `<text x="${X(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="rt-t">${etq(k)}</text>` : "").join("")}
       ${lineas}</svg>` : `<p class="mut" style="padding:30px 0;text-align:center">No hay datos en este período.</p>`;
-    $("#rtCuerpo", v).innerHTML = `
-      <div class="nt-men" id="rtMet">${RT_MET.map(([k, t]) => `<button type="button" data-met="${k}" aria-pressed="${k === st.met}">${t}</button>`).join("")}</div>
-      <div class="nt-men" id="rtPer" style="margin-top:8px">${RT_PER.map(([d, t]) => `<button type="button" data-dias="${d}" aria-pressed="${d === st.dias}">${t}</button>`).join("")}</div>
+    const tot = (x) => x.p[mod === "preguntas" ? "total_preguntas" : "total_mensajes"];
+    const perPag = PERIODOS.find((p) => p[0] === S.per)?.[1] ?? "Período elegido";
+    cont.innerHTML = `
+      <div class="nt-men" data-g="met">${mets.map(([k, t]) => `<button type="button" data-met="${k}" aria-pressed="${k === st.met}">${t}</button>`).join("")}</div>
+      ${conPeriodo ? `<div class="nt-men" style="margin-top:8px">${rtPerInicial() === "pag" ? `<button type="button" data-per="pag" aria-pressed="${st.per === "pag"}">${esc(perPag)}</button>` : ""}${RT_PER.map(([d, t]) => `<button type="button" data-per="${d}" aria-pressed="${d === st.per}">${t}</button>`).join("")}</div>` : ""}
       <div class="rt-graf">${svg}</div>
-      <p class="rt-info" id="rtInfo" aria-live="polite"></p>
-      <p class="peq mut" style="margin:2px 0 10px">Cada punto es ${r.paso === "dia" ? "un día" : r.paso === "semana" ? "una semana" : "un mes"}${campo === "prom" ? ", con el tiempo promedio de respuesta" : ""}. Tocá un punto para ver el valor.</p>
-      <table class="tabla rt-tab"><tr><th>Persona</th><th>${campo === "prom" ? "Promedio del período" : "Total del período"}</th><th>${mod === "preguntas" ? "Preguntas" : "Mensajes"}</th></tr>
-        ${series.map((x) => { const t = x.p[mod === "preguntas" ? "total_preguntas" : "total_mensajes"]; return `<tr><td><i class="rt-dot" style="background:${x.color}"></i>${esc(x.p.nombre)}</td><td>${campo === "prom" ? dur(t.prom) : num(t.n)}</td><td>${num(t.n)}</td></tr>`; }).join("")}</table>
-      <span class="ev-lab" style="margin-top:14px">Comparar con</span>
-      <div class="nt-men" id="rtGente">${r.equipo.map((e) => `<button type="button" data-u="${esc(e.id)}" aria-pressed="${st.uids.includes(e.id)}"><i class="rt-dot" style="background:${colorDe(e.id)}"></i>${esc(e.nombre)}</button>`).join("")}</div>`;
+      <p class="rt-info" aria-live="polite"></p>
+      <p class="peq mut" style="margin:2px 0 10px">Cada punto es ${r.paso === "dia" ? "un día" : r.paso === "semana" ? "una semana" : "un mes"}${tiempo ? ", con el tiempo típico de respuesta: la mitad tardó menos que eso" : ""}. Tocá un punto para ver el valor.</p>
+      <table class="tabla rt-tab"><tr><th>Persona</th>${tiempo ? `<th>Típico</th><th>Promedio</th><th>${mod === "preguntas" ? "Preguntas" : "Mensajes"}</th>` : `<th>Total del período</th>`}</tr>
+        ${series.map((x) => { const t = tot(x); return `<tr><td><i class="rt-dot" style="background:${x.color}"></i>${esc(x.p.nombre)}</td>${tiempo ? `<td>${dur(t.med)}</td><td>${dur(t.prom)}</td><td>${num(t.n)}</td>` : `<td>${num(t.n)}</td>`}</tr>`; }).join("")}</table>
+      <span class="ev-lab" style="margin-top:14px">${st.uids.length > 1 ? "Personas en el gráfico" : "Comparar con"}</span>
+      <div class="nt-men">${r.equipo.map((e) => `<button type="button" data-u="${esc(e.id)}" aria-pressed="${st.uids.includes(e.id)}"><i class="rt-dot" style="background:${colorPersona(e.orden)}"></i>${esc(e.nombre)}</button>`).join("")}</div>`;
   };
-  v.addEventListener("click", (x) => {
-    const c = x.target.closest("[data-info]"); if (c) { $("#rtInfo", v).textContent = c.dataset.info; return; }
+  cont.addEventListener("click", (x) => {
+    const c = x.target.closest("[data-info]"); if (c) { cont.querySelector(".rt-info").textContent = c.dataset.info; return; }
     const m = x.target.closest("[data-met]"); if (m) { st.met = m.dataset.met; return pintar(); }
-    const d = x.target.closest("[data-dias]"); if (d) { st.dias = Number(d.dataset.dias); return pintar(); }
-    const u = x.target.closest("#rtGente [data-u]"); if (u) { const id = u.dataset.u; st.uids = st.uids.includes(id) ? st.uids.filter((y) => y !== id) : [...st.uids, id]; if (!st.uids.length) st.uids = [id]; return pintar(); }
+    const d = x.target.closest("[data-per]"); if (d) { st.per = d.dataset.per === "pag" ? "pag" : Number(d.dataset.per); return pintar(); }
+    const u = x.target.closest("[data-u]"); if (u) { const id = u.dataset.u; st.uids = st.uids.includes(id) ? st.uids.filter((y) => y !== id) : [...st.uids, id]; if (!st.uids.length) st.uids = [id]; return pintar(); }
   });
   pintar();
+  return { ver: (uids) => { st.uids = [...new Set(uids)]; pintar(); } };
+}
+// Hoja aparte (desde Inicio y desde las tablas por persona): arranca con el período que se está mirando
+function verRendimiento(emp, uids, met = "tp") {
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Rendimiento en el tiempo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div><div class="rt-cuerpo"><p class="mut">Cargando…</p></div>`);
+  graficoRendimiento(v.querySelector(".rt-cuerpo"), { emp, uids: [...new Set(uids)], met, per: rtPerInicial() }, true);
 }
 // Solapas de Rendimiento: Comparativo y el detalle de cada módulo
 function pestRend() {
@@ -5005,10 +5021,11 @@ async function rendimientoMensajes(emp) {
       <div class="medida"><b>${dur(t.tiempo_mediana_seg)}</b><span>tiempo típico de respuesta</span></div>
       <div class="medida"><b>${num(t.pendientes_ahora)}</b><span>esperando respuesta ahora${t.urgentes_ahora ? `, ${num(t.urgentes_ahora)} urgentes` : ""}</span></div></div>
     <div class="panel" style="margin-top:18px;overflow-x:auto"><table class="tabla apilable"><tr><th>Persona</th><th>Mensajes enviados</th><th>Ventas atendidas</th><th>Tiempo típico</th><th>Promedio</th></tr>
-      ${gente.map((p) => `<tr><td><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Mensajes enviados">${num(p.enviados)}</td><td data-et="Ventas atendidas">${num(p.conversaciones)}</td><td data-et="Tiempo típico">${dur(p.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
+      ${gente.map((p, i) => `<tr class="fila-click" data-rt="${esc(p.usuario_id ?? "")}" tabindex="0" title="Ver cómo fue en el tiempo"><td><i class="rt-dot" style="background:${p.estado === "baja" ? "#8A96A3" : colorPersona(d.personas.indexOf(p))}"></i><b>${esc(p.nombre)}</b>${p.vos ? " (vos)" : ""}<div class="peq mut">${p.rol === "admin" ? "Administrador" : "Operador"}</div></td><td data-et="Mensajes enviados">${num(p.enviados)}</td><td data-et="Ventas atendidas">${num(p.conversaciones)}</td><td data-et="Tiempo típico">${dur(p.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(p.tiempo_prom_seg)}</td></tr>`).join("")}
       ${t.desde_mercadolibre.enviados ? `<tr><td><b>Desde MercadoLibre</b><div class="peq mut">Respondidos fuera de Mostrador</div></td><td data-et="Mensajes enviados">${num(t.desde_mercadolibre.enviados)}</td><td data-et="Ventas atendidas">${num(t.desde_mercadolibre.conversaciones)}</td><td data-et="Tiempo típico">${dur(t.desde_mercadolibre.tiempo_mediana_seg)}</td><td data-et="Promedio">${dur(t.desde_mercadolibre.tiempo_prom_seg)}</td></tr>` : ""}</table></div>`;
   enlazarPeriodo(VISTAS.rendimiento);
   pestRend();
+  $("#main").querySelectorAll("tr[data-rt]").forEach((t) => { if (t.dataset.rt) t.onclick = () => verRendimiento(emp ?? empRec(), [t.dataset.rt], "tm"); });
 }
 
 // ================= PLANES Y MÓDULOS (dueño) =================
