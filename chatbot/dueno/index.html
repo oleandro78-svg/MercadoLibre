@@ -4356,7 +4356,9 @@ function compromisosHtml(c, d) {
   const sug = c.compromiso_sug;
   const cuandoSug = sug ? new Date(`${sug.fecha}T${sug.hora ?? "10:00"}:00`) : null;
   const fechaSug = sug ? esc(cuandoSug.toLocaleString("es-AR", sug.hora ? FMT_COMP : { weekday: "long", day: "numeric", month: "short" })) : "";
-  if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ${cuandoSug < new Date() ? `Era para el ${fechaSug} y no consta que se haya hecho.` : `Sería para el ${fechaSug}${sug.hora ? "" : ""}.`} Sugerencia: agregalo al calendario para que no se pase.
+  if (sug?.reemplaza) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le dieron otra fecha al comprador:</b> “${esc(sug.prometido)}”. El compromiso «${esc(sug.titulo)}» está agendado para el ${esc(cuandoComp(sug.antes))}. ¿Lo pasás al ${fechaSug}?
+    <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-mover="1">Cambiar la fecha</button><button type="button" class="btn lin chico" data-comp-dejar="1">Dejarlo como está</button></span></span></div>`);
+  else if (sug) out.push(`<div class="estado e-mot comp">${ICONO_M.info}<span><b>Le prometieron algo al comprador:</b> “${esc(sug.prometido || sug.titulo)}”. ${cuandoSug < new Date() ? `Era para el ${fechaSug} y no consta que se haya hecho.` : `Sería para el ${fechaSug}${sug.hora ? "" : ""}.`} Sugerencia: agregalo al calendario para que no se pase.
     <span class="comp-acc"><button type="button" class="btn pri chico" data-comp-sug="ok">Agregar al calendario</button></span></span></div>`);
   for (const e of (d.compromisos ?? []).filter((x) => !x.cumplido_at)) {
     const escribio = (d.mensajes ?? []).some((m) => m.de === "vendedor" && new Date(m.fecha) >= new Date(e.inicio));
@@ -4462,6 +4464,8 @@ function pintarChat(d) {
   $("#mAgendar").onclick = () => { pestConv("chat"); formCompromiso(c, null); };
   $("#mComp").onclick = async (e) => {
     const sb = e.target.closest("[data-comp-sug]"), ok = e.target.closest("[data-comp-ok]"), vc = e.target.closest("[data-comp-cal]");
+    const mv = e.target.closest("[data-comp-mover], [data-comp-dejar]");
+    if (mv) { const mover = !!mv.dataset.compMover; if (await seguro(() => api(mover ? "compromiso_mover" : "compromiso_dejar", { id: c.id }))) { aviso(mover ? "Fecha del compromiso cambiada" : "El compromiso queda como estaba"); abrirConv(c.id); cargarHilos(empMsj()); } return; }
     if (vc) { recordarLugar(true); const f = new Date(vc.dataset.compMes); S.calMes = new Date(f.getFullYear(), f.getMonth(), 1); S.calAbrir = Number(vc.dataset.compCal); ir("calendario"); return; }
     // Nada se agrega solo: el botón abre el formulario con lo que detectó la IA y la persona elige día, hora y aviso
     if (sb && new Date(`${c.compromiso_sug.fecha}T${c.compromiso_sug.hora ?? "10:00"}:00`) < new Date()) { const h = new Date(Date.now() + 3600_000); formCompromiso(c, { ...c.compromiso_sug, fecha: fechaLocal(new Date()), hora: `${String(h.getHours()).padStart(2, "0")}:00` }); }
