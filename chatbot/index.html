@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230310";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230315";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4869,7 +4869,7 @@ function redactarLibre(d) {
     ${c.borrador ? `<span class="tx-ia">${ICONO.varita} Borrador del bot</span>` : ""}
     <div class="wa-comp"><div class="wa-pill wa-pill-izq">
       <button type="button" class="wa-ic" id="mClip" title="Documentación de la publicación" aria-label="Elegir documentación de la publicación">${ICO_CLIP_WA}</button>
-      <button type="button" class="wa-ic" id="mMas" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu">${ICO_MAS_WA}</button>
+      <button type="button" class="wa-ic" id="mOpc" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu">${ICO_MAS_WA}</button>
       <textarea id="mTx" rows="1" placeholder="Mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
       <span class="cont wa-cont" id="mCont"></span>
       <input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v" tabindex="-1" aria-hidden="true"></div>
@@ -4915,7 +4915,7 @@ function redactarLibre(d) {
     };
   };
   // "+": lo que antes estaba en "Más"
-  $("#mMas").onclick = () => abrirMenu($("#mMas"), [
+  $("#mOpc").onclick = () => abrirMenu($("#mOpc"), [
     ["arch", ICO_SUBIR_WA, "Subir archivo del dispositivo"], ["reg", ICONO.escudo, "Revisar reglas"], ["mej", ICONO.varita, "Mejorar redacción"], ["otro", ICONO.varita, "Otro borrador"],
     ...(S.rol !== "operador" ? [["doc", ICONO_M.clip, "Cargar documentación de esta publicación"]] : []),
   ], (k) => { if (k === "arch") $("#mArch").click(); else if (k === "reg") $("#mReg").click(); else if (k === "mej") $("#mMej").click(); else if (k === "otro") $("#mOtro").click(); else if (k === "doc") irDoc(); }, true);
