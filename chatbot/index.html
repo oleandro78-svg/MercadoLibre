@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611232350";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611232359";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -2050,8 +2050,7 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Llegó una devolución para revisar", "", nfSeg("devoluciones", "a", n.devoluciones.a, [["toca", "A quien le toca"], ["admins", "Solo administradores"]]))}
       ${nfFila("Recordatorio antes del vencimiento", "Si todavía no se revisó", `<input type="number" class="nf-num" min="1" max="72" value="${n.devoluciones.recordatorio_h}" data-num="devoluciones.recordatorio_h"> h antes ${nfSw(`data-swsec="devoluciones" data-swk="recordatorio"`, n.devoluciones.recordatorio)}`)}
       ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}</section>`);
-    b.push(`<section class="panel nf-mod"><h2>Fuera de turno</h2>
-      ${nfFila("Las urgentes llegan igual", "Para los operadores fuera de su turno o en una ausencia: reclamos, mensajes urgentes de compradores y vencimientos. Lo demás les llega en un resumen al empezar el turno.", nfSw(`data-swsec="generales" data-swk="urgentes"`, n.generales?.urgentes !== false))}</section>`);
+    b.push(`<section class="panel nf-mod"><h2>Operadores</h2><p class="mut" style="margin:0">Las notificaciones les llegan solo en el horario que tienen asignado en Asignaciones. Fuera de ese horario no les llega ninguna; si abren la app, ven todas las novedades, y al empezar el turno reciben un resumen de lo que pasó.</p></section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat, notas y calendario</h2>
       ${nfFila("Chat", "Lo que recibe cada persona", nfSeg("chat", "modo", n.chat.modo, [["todos", "Todos los mensajes"], ["directos", "Solo directos y menciones"]]))}
       ${nfFila("Me mencionan en una nota", "No se puede apagar: la mención es para notificar", nfSw("", true, true))}
@@ -2093,7 +2092,7 @@ VISTAS.misnotif = async () => {
       activos ? `<button type="button" class="btn lin chico" id="nfProbar">Mandarme una de prueba</button> <button type="button" class="btn pel chico" id="nfBaja">Desactivar</button>` : `<button type="button" class="btn pri chico" id="nfAct">Activar</button>`)}</section>`);
     if (r.controla === false) {
       b[0] = b[0].replace(/ ?<button type="button" class="btn pel chico" id="nfBaja">Desactivar<\/button>/, "");
-      b.push(`<section class="panel nf-mod"><h2>Qué te llega</h2><p class="mut" style="margin:0">Lo define el administrador del negocio: te llegan mientras estás de turno. Fuera de turno te llega lo urgente y, al empezar tu turno, un resumen de lo que pasó.</p></section>`);
+      b.push(`<section class="panel nf-mod"><h2>Qué te llega</h2><p class="mut" style="margin:0">Lo define el administrador del negocio: te llegan solo en tu horario asignado. Fuera de ese horario no te llega ninguna; si abrís la app, ves todas las novedades, y al empezar tu turno te llega un resumen de lo que pasó.</p></section>`);
       $("#main").innerHTML = `<div class="cabecera"><div><h1>Mis notificaciones</h1><p>Activá las notificaciones en este celular para que te lleguen aunque la app esté cerrada.</p></div></div>${b.join("")}`;
       return;
     }
