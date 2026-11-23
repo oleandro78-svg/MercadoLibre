@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230517";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230522";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4762,7 +4762,7 @@ async function cargarFactura(id) {
       const f = archivos[i];
       if (!f) { aviso("Esperá un momento: la factura se está cargando"); traer(i).catch(() => null); return; }
       if (!navigator.canShare?.({ files: [f] })) { aviso("Este celular no permite compartir el PDF desde la app: usá Descargar"); return; }
-      navigator.share({ files: [f] }).catch((err) => { if (err?.name !== "AbortError") aviso(`No se pudo compartir: ${err?.message ?? err}`); });
+      navigator.share({ files: [f] }).catch((err) => { if (err?.name !== "AbortError") compartirFacturaPlanB(id, r.comprobantes[i].id, f); });
       return;
     }
     const x = await seguro(() => traer(i)); if (!x) return;
@@ -4780,6 +4780,26 @@ async function cargarFactura(id) {
       b.innerHTML = `<img src="${hojas[0]}" alt="Primera hoja de la factura"><span class="fx-lupa">Tocá para verla completa${total > 1 ? ` (${total} hojas)` : ""}</span>`;
     } catch { b.innerHTML = `<span class="fx-carga">No se pudo mostrar la vista previa. Tocá para abrirla.</span>`; }
   });
+}
+// Algunos celulares no dejan compartir archivos desde una app web: se ofrece compartir un enlace a la factura (vence
+// a los 7 días) o descargarla. Cada opción es un toque nuevo, como exige el celular.
+function compartirFacturaPlanB(id, doc, f) {
+  const h = abrirHoja(`<div class="cajon-cab"><h2>Compartir la factura</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p class="mut" style="margin:0 0 12px">Este celular no deja compartir el archivo directo desde la app. Podés compartir un enlace a la factura o descargarla y compartirla desde tus archivos.</p>
+    <div class="doc-pie"><button class="btn pri" type="button" id="fxEnl">Compartir un enlace</button><button class="btn lin" type="button" id="fxBaj">Descargar</button></div>
+    <p class="mut peq" style="margin:10px 0 0">El enlace deja descargar la factura a quien lo reciba y vence a los 7 días.</p>`);
+  let enl = null;
+  const b = h.querySelector("#fxEnl");
+  // El enlace se prepara de entrada, así el toque comparte sin esperar
+  const prep = api("venta_factura_link", { id, doc }).then((x) => { enl = x.url; b.textContent = "Compartir un enlace"; }).catch((e) => { b.disabled = true; b.textContent = "No se pudo preparar el enlace"; aviso(e.message); });
+  b.textContent = "Preparando el enlace…";
+  b.onclick = () => {
+    if (!enl) return aviso("Esperá un momento: se está preparando el enlace");
+    if (navigator.share) navigator.share({ title: "Factura", text: "Factura", url: enl }).then(() => h.remove()).catch((err) => { if (err?.name !== "AbortError") { navigator.clipboard?.writeText(enl).then(() => aviso("No se pudo abrir el menú: copié el enlace, pegalo donde quieras")); } });
+    else navigator.clipboard?.writeText(enl).then(() => aviso("Enlace copiado"));
+  };
+  h.querySelector("#fxBaj").onclick = () => { const u = URL.createObjectURL(f); const a = document.createElement("a"); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); h.remove(); };
+  void prep;
 }
 // La factura completa, hoja por hoja (se puede ampliar con los dedos)
 async function verFactura(x) {
