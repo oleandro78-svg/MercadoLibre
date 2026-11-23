@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230512";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230517";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4744,18 +4744,30 @@ async function cargarFactura(id) {
     <div class="panel fx-sec"><h3>${sinFac ? "Qué hay que facturar" : "Qué se facturó"}</h3>
       ${r.items.map((it) => `<div class="fx-it"><span>${esc(it.titulo)}${it.variante ? ` <span class="mut">(${esc(it.variante)})</span>` : ""}</span><b>${esc(plata(it.unitario * it.cantidad, it.moneda))}</b><span class="mut peq">${it.cantidad} u. × ${esc(plata(it.unitario, it.moneda))}${it.sku ? ` · SKU ${esc(it.sku)}` : ""}</span></div>`).join("") || `<p class="mut">Sin detalle.</p>`}
       ${r.total != null ? `<div class="fx-tot"><span>Total pagado</span><span>${esc(plata(r.total, mon))}</span></div>` : ""}</div>`;
-  const pdfs = {};
-  const traer = (i) => pdfs[i] ??= api("venta_factura_pdf", { id, doc: r.comprobantes[i].id });
+  const pdfs = {}, archivos = {};
+  // El archivo se arma apenas llega, para que "Compartir" lo mande en el mismo toque: el celular solo deja compartir
+  // si no hay que esperar nada entre el toque y el envío
+  const traer = (i) => pdfs[i] ??= api("venta_factura_pdf", { id, doc: r.comprobantes[i].id }).then((x) => {
+    const tipo = /pdf/i.test(x.tipo) || /\.pdf$/i.test(x.nombre) ? "application/pdf" : x.tipo;
+    archivos[i] = new File([bytesDe(x.datos)], x.nombre, { type: tipo });
+    return x;
+  });
   caja.onclick = async (e) => {
     const cp = e.target.closest("[data-cp]");
     if (cp) { try { await navigator.clipboard.writeText(cp.dataset.cp); aviso("Copiado"); } catch { prompt("Copiá el dato:", cp.dataset.cp); } return; }
     const v = e.target.closest("[data-ver]"), bj = e.target.closest("[data-baj]"), cm = e.target.closest("[data-com]");
     const el = v ?? bj ?? cm; if (!el) return;
     const i = Number(el.dataset.ver ?? el.dataset.baj ?? el.dataset.com);
+    if (cm) {
+      const f = archivos[i];
+      if (!f) { aviso("Esperá un momento: la factura se está cargando"); traer(i).catch(() => null); return; }
+      if (!navigator.canShare?.({ files: [f] })) { aviso("Este celular no permite compartir el PDF desde la app: usá Descargar"); return; }
+      navigator.share({ files: [f] }).catch((err) => { if (err?.name !== "AbortError") aviso(`No se pudo compartir: ${err?.message ?? err}`); });
+      return;
+    }
     const x = await seguro(() => traer(i)); if (!x) return;
-    const archivo = new File([bytesDe(x.datos)], x.nombre, { type: x.tipo });
+    const archivo = archivos[i];
     if (bj) { const u = URL.createObjectURL(archivo); const a = document.createElement("a"); a.href = u; a.download = x.nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); return; }
-    if (cm) { try { if (navigator.canShare?.({ files: [archivo] })) await navigator.share({ files: [archivo], title: "Factura" }); else aviso("Este dispositivo no permite compartir archivos"); } catch { /* canceló */ } return; }
     verFactura(x);
   };
   // Miniatura de la primera hoja de cada comprobante
