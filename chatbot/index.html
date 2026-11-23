@@ -653,12 +653,20 @@ input[type=file]{max-width:100%}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.chip-cal{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.chip-cal::before{display:none}.c-cal{background:var(--cielo-2);color:var(--cielo)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input,.comp-form select{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
-.burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px}
-.dia{align-self:center;font-size:12px;color:var(--piz);background:var(--sup2);padding:2px 10px;border-radius:20px;margin:6px 0}
-.burbujas .b{max-width:70%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.45;box-shadow:var(--sombra);overflow-wrap:anywhere}
-.burbujas .b small{display:block;font-size:11.5px;color:var(--piz);margin-top:4px}
-.b-comp{align-self:flex-start;background:var(--sup);border-bottom-left-radius:4px}
-.b-vend{align-self:flex-end;background:var(--pino-2);border-bottom-right-radius:4px}.b-vend small{text-align:right}
+/* Chat con los colores de WhatsApp (claro y oscuro) */
+:root{--wa-fondo:#EFEAE2;--wa-sale:#D9FDD3;--wa-entra:#FFFFFF;--wa-txt:#111B21;--wa-meta:#667781;--wa-meta-sale:#667781;--wa-tilde:#8696A0;--wa-leido:#53BDEB;--wa-dia:#FFFFFF;--wa-dia-txt:#54656F;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}}
+:root[data-theme="dark"]{--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0}
+.burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:6px;background:var(--wa-fondo)}
+.dia{align-self:center;font-size:12.5px;color:var(--wa-dia-txt);background:var(--wa-dia);padding:4px 12px;border-radius:8px;margin:8px 0;box-shadow:var(--wa-sombra);text-transform:none}
+.burbujas .b{max-width:78%;padding:6px 9px 6px;border-radius:8px;font-size:14.5px;line-height:1.4;box-shadow:var(--wa-sombra);overflow-wrap:anywhere;color:var(--wa-txt);-webkit-user-select:text;user-select:text}
+.burbujas .b small{display:flex;justify-content:flex-end;align-items:center;gap:3px;font-size:11px;color:var(--wa-meta);margin-top:2px}
+.b-comp{align-self:flex-start;background:var(--wa-entra);border-top-left-radius:0}
+.b-vend{align-self:flex-end;background:var(--wa-sale);border-top-right-radius:0}.burbujas .b-vend small{color:var(--wa-meta-sale)}
+.tilde{display:inline-flex;color:var(--wa-tilde)}.tilde.leido{color:var(--wa-leido)}.tilde.mal{color:var(--ladrillo)}.tilde svg{display:block}
+.b-vend.apretado{filter:brightness(.93)}
+.mi-fila{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--linea)}.mi-fila:first-of-type{border-top:0}.mi-fila b{display:block;font-size:15px}.mi-fila span.mut{font-size:13.5px}
+.mi-prev{background:var(--wa-fondo);border-radius:12px;padding:14px;display:flex;flex-direction:column;margin-bottom:8px}.mi-prev .b{max-width:92%}
 .b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
 .adj-mini{width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--papel);flex:0 0 auto}.adj-mini:not([src]){animation:pulso 1.2s ease-in-out infinite}
 .adj-falla{animation:none!important}.adj-t{display:flex;flex-direction:column;min-width:0}.adj-t span:first-child{overflow-wrap:anywhere}.adj-img{padding:6px}
@@ -705,13 +713,14 @@ input[type=file]{max-width:100%}
 .ch-tx{flex:1;min-width:0;display:grid;gap:2px}.ch-l1{display:flex;justify-content:space-between;gap:8px}.ch-l1 b,.ch-ult{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch-ult{font-size:13px}
 .av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;background:var(--pino-2);color:var(--pino-t)}.av.av-g{background:var(--cielo-2);color:var(--cielo)}.av.av-n{background:var(--ambar-2);color:var(--ambar-t);font-size:17px}
 .ch-msjs{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:6px}
-.ch-b{max-width:72%;align-self:flex-start;background:var(--sup);border-radius:14px;border-bottom-left-radius:4px;padding:7px 12px 5px;box-shadow:var(--sombra);font-size:14.5px;line-height:1.45;display:grid;gap:4px;overflow-wrap:anywhere}
-.ch-b.mio{align-self:flex-end;background:var(--pino-2);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.ch-msjs{background:var(--wa-fondo)}
+.ch-b{max-width:72%;align-self:flex-start;background:var(--wa-entra);color:var(--wa-txt);border-radius:8px;border-top-left-radius:0;padding:6px 9px 5px;box-shadow:var(--wa-sombra);font-size:14.5px;line-height:1.45;display:grid;gap:4px;overflow-wrap:anywhere}
+.ch-b.mio{align-self:flex-end;background:var(--wa-sale);border-top-left-radius:8px;border-top-right-radius:0}.ch-b .ch-pie{color:var(--wa-meta)}.ch-b.mio .ch-pie{color:var(--wa-meta-sale)}
 .ch-autor{font-size:12.5px;font-weight:700;color:var(--cielo)}
 .ch-tx a{color:var(--cielo);text-decoration:underline;word-break:break-all}
 .ch-pie{display:flex;gap:8px;justify-content:flex-end;align-items:center;font-size:11.5px;color:var(--piz)}
 .ch-acc{all:unset;cursor:pointer;font-size:11.5px;color:var(--piz);opacity:0;text-decoration:underline}.ch-b:hover .ch-acc,.ch-acc:focus-visible{opacity:1}@media (hover:none){.ch-acc{opacity:1}}
-.tilde{font-weight:700;letter-spacing:-2px}.tilde.leido{color:var(--cielo)}
+
 .ch-aviso{align-self:center;font-size:12.5px;color:var(--piz);background:var(--sup2);border-radius:999px;padding:3px 12px;margin:4px 0}
 .ch-cita-resp{all:unset;box-sizing:border-box;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;background:var(--sup2);border-left:3px solid var(--cielo);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--piz);margin-bottom:6px}.ch-cita-resp.mini{cursor:pointer;margin:0;display:block}
 .ch-comp{background:var(--sup);border-top:1px solid var(--linea);padding:10px 22px 14px;position:relative}
@@ -4326,19 +4335,55 @@ async function cargarMinis(convId) {
     }));
   }
 }
+// Tildes como WhatsApp: uno gris (enviado), dos grises (entregado), dos celestes (leído)
+const TILDE1 = `<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M11.07.65 4.8 8.3 1.87 5.38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const TILDE2 = `<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M11.07.65 4.8 8.3 1.87 5.38M15.07.65 8.8 8.3 7.6 7.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function estadoMsj(m) {
+  if (m.moderacion === "rejected") return { k: "mal", txt: "No entregado", svg: `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.5M8 11.2v.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>` };
+  if (m.leido_at) return { k: "leido", txt: "Leído", svg: TILDE2 };
+  if (m.entregado_at) return { k: "", txt: "Entregado", svg: TILDE2 };
+  return { k: "", txt: m.moderacion && m.moderacion !== "clean" ? "En revisión de MercadoLibre" : "Enviado", svg: TILDE1 };
+}
 function burbujas(ms) {
   let dia = "";
-  return ms.map((m) => {
+  S.msjsVista = ms;
+  return ms.map((m, i) => {
     const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
     const sep = d !== dia ? `<div class="dia">${esc(d)}</div>` : ""; dia = d;
     const hora = new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
     const adj = (m.adjuntos ?? []).map((a) => `<button type="button" class="adj ${esImagen(a) ? "adj-img" : ""}" data-adj="${esc(a.id)}">${esImagen(a) ? `<img class="adj-mini" data-mini="${esc(a.id)}" alt="" ${S.minis?.[a.id] ? `src="${S.minis[a.id]}"` : ""}>` : ICONO_M.clip}<span class="adj-t"><span>${esc(a.nombre)}</span>${a.bytes ? `<span class="mut">${pesoTxt(a.bytes)}</span>` : ""}</span></button>`).join("");
     const mod = m.moderacion && m.moderacion !== "clean" ? `<div class="mod-x">${m.moderacion === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}${m.moderacion_motivo ? ` (${esc(m.moderacion_motivo)})` : ""}</div>` : "";
     const quien = m.de === "vendedor" ? (m.enviado_nombre ? `${esc(m.enviado_nombre)} · ` : m.opcion ? "Con motivo · " : "") : "";
-    return `${sep}<div class="b ${m.de === "comprador" ? "b-comp" : "b-vend"}">${m.texto ? esc(m.texto).replace(/\n/g, "<br>") : ""}${adj}${mod}<small>${quien}${hora}${m.de === "vendedor" && m.leido_at ? " · leído" : ""}</small></div>`;
+    const st = m.de === "vendedor" ? estadoMsj(m) : null;
+    return `${sep}<div class="b ${m.de === "comprador" ? "b-comp" : "b-vend"}" ${st ? `data-mi="${i}"` : ""}>${m.texto ? esc(m.texto).replace(/\n/g, "<br>") : ""}${adj}${mod}<small>${quien}${hora}${st ? `<span class="tilde ${st.k}" role="img" aria-label="${st.txt}">${st.svg}</span>` : ""}</small></div>`;
   }).join("");
 }
 
+// Info del mensaje (como WhatsApp): manteniendo apretado un mensaje propio, o con clic derecho en la computadora
+const cuandoInfo = (t) => {
+  if (!t) return "—";
+  const d = new Date(t), hoy = new Date(), ayer = new Date(Date.now() - 86400_000), h = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return d.toDateString() === hoy.toDateString() ? `Hoy, ${h}` : d.toDateString() === ayer.toDateString() ? `Ayer, ${h}` : `${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}, ${h}`;
+};
+function infoMensaje(m) {
+  const st = estadoMsj(m);
+  const fila = (svg, cls, t, v) => `<div class="mi-fila"><span class="tilde ${cls}">${svg}</span><div><b>${t}</b><span class="mut">${v}</span></div></div>`;
+  const prev = `<div class="b b-vend" style="align-self:flex-end">${m.texto ? esc(m.texto).replace(/\n/g, "<br>") : "(archivo adjunto)"}<small>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}<span class="tilde ${st.k}">${st.svg}</span></small></div>`;
+  abrirHoja(`<div class="cajon-cab"><h2>Info del mensaje</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="mi-prev burbujas" style="flex:none;overflow:visible">${prev}</div>
+    ${m.moderacion === "rejected" ? fila(st.svg, "mal", "No entregado", `MercadoLibre no lo entregó${m.moderacion_motivo ? ` (${esc(m.moderacion_motivo)})` : ""}`)
+      : `${fila(TILDE2, "leido", "Leído", cuandoInfo(m.leido_at))}${fila(TILDE2, "", "Entregado", m.entregado_at ? cuandoInfo(m.entregado_at) : m.leido_at ? "Sí (MercadoLibre no informó la hora)" : m.moderacion && m.moderacion !== "clean" ? "En revisión de MercadoLibre" : "—")}`}
+    ${fila(TILDE1, "", "Enviado", `${cuandoInfo(m.fecha)}${m.enviado_nombre ? ` · por ${esc(m.enviado_nombre)}` : m.opcion ? " · con motivo" : ""}`)}`);
+}
+function escucharInfoMensajes(bur) {
+  let t = null, el = null;
+  const abrir = (b) => { const m = S.msjsVista?.[Number(b.dataset.mi)]; if (m) { try { navigator.vibrate?.(30); } catch {} infoMensaje(m); } };
+  const cortar = () => { clearTimeout(t); t = null; el?.classList.remove("apretado"); el = null; };
+  bur.addEventListener("pointerdown", (e) => { const b = e.target.closest("[data-mi]"); if (!b || e.target.closest("button, a")) return; el = b; b.classList.add("apretado"); t = setTimeout(() => { const x = el; cortar(); abrir(x); }, 480); });
+  ["pointerup", "pointercancel", "pointerleave", "scroll"].forEach((ev) => bur.addEventListener(ev, cortar, { passive: true }));
+  bur.addEventListener("pointermove", (e) => { if (t && (Math.abs(e.movementX) > 4 || Math.abs(e.movementY) > 4)) cortar(); });
+  bur.addEventListener("contextmenu", (e) => { const b = e.target.closest("[data-mi]"); if (!b) return; e.preventDefault(); cortar(); abrir(b); });
+}
 // Avisos del chat que se pueden cerrar con la X: quedan cerrados en ese celular o computadora para esa venta
 function avisoCerrado(k, cerrar) {
   let l = []; try { l = JSON.parse(localStorage.getItem("mostrador_avisos_cerrados") ?? "[]"); } catch {}
@@ -4450,6 +4495,7 @@ function pintarChat(d) {
     <div class="c-pane" id="cpVen" hidden></div>`;
   if (movil) { rescatarVen(); $("#cpVen")?.appendChild($("#mVen")); }
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
+  escucharInfoMensajes(bur);
   $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
     e.stopPropagation(); avisoCerrado(b.dataset.cerrarAviso, true);
     const caja = b.closest(".estado"), grupo = caja.closest(".chat-alertas"); caja.remove(); if (grupo && !grupo.querySelector(".estado")) grupo.remove();
@@ -5445,7 +5491,9 @@ async function abrirChat(id) {
     if (!m.mio || m.aviso) return "";
     const otros = (st.miembros ?? []).filter((x) => x.id !== S.chatYo?.id);
     const leyeron = otros.filter((x) => x.leido_hasta >= m.id).length;
-    return `<span class="tilde ${otros.length && leyeron === otros.length ? "leido" : ""}" title="${leyeron === otros.length ? "Leído" : leyeron ? `Leído por ${leyeron} de ${otros.length}` : "Enviado"}">${leyeron === otros.length && otros.length ? "✓✓" : "✓"}</span>`;
+    // Como WhatsApp: celeste si lo leyeron todos, dos grises si lo leyó alguno, uno gris si nadie todavía
+    const todos = otros.length && leyeron === otros.length;
+    return `<span class="tilde ${todos ? "leido" : ""}" role="img" aria-label="${todos ? "Leído" : leyeron ? `Leído por ${leyeron} de ${otros.length}` : "Enviado"}" title="${todos ? "Leído" : leyeron ? `Leído por ${leyeron} de ${otros.length}` : "Enviado"}">${todos || leyeron ? TILDE2 : TILDE1}</span>`;
   };
   const burbuja = (m, ant) => {
     const d = new Date(m.fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
