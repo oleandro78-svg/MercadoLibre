@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230524";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230554";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -5483,7 +5483,7 @@ function rtSincronizar() {
   for (const [k, ch] of RT.canales) if (!quiero.has(k)) { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); }
   for (const k of quiero) if (!RT.canales.has(k)) {
     try {
-      const ch = sb.channel(k).on("broadcast", { event: "*" }, (m) => rtEvento(m.event, m.payload ?? {})).subscribe((st) => {
+      const ch = sb.channel(k, { config: { private: true } }).on("broadcast", { event: "*" }, (m) => rtEvento(m.event, m.payload ?? {})).subscribe((st) => {
         if (st === "SUBSCRIBED") { const volvio = !RT.ok && RT.listo; RT.ok = true; RT.listo = true; if (volvio) rtPonerAlDia(); }
         else if (st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") RT.ok = false;
       });
