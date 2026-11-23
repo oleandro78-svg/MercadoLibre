@@ -654,9 +654,9 @@ input[type=file]{max-width:100%}
 .dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
 .e-ok{background:var(--pino-2);color:var(--pino-t)}.chip-cal{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.chip-cal::before{display:none}.c-cal{background:var(--cielo-2);color:var(--cielo)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input,.comp-form select{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 /* Chat con los colores de WhatsApp (claro y oscuro) */
-:root{--wa-fondo-info:#F5F4F2;--wa-fondo:#EFEAE2;--wa-sale:#D9FDD3;--wa-entra:#FFFFFF;--wa-txt:#111B21;--wa-meta:#667781;--wa-meta-sale:#667781;--wa-tilde:#8696A0;--wa-leido:#53BDEB;--wa-dia:#FFFFFF;--wa-dia-txt:#54656F;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wa-fondo-info:#0B141A;--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}}
-:root[data-theme="dark"]{--wa-fondo-info:#0B141A;--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0}
+:root{--wa-lista:#FFFFFF;--wa-gris:#F0F2F5;--wa-verde:#1DAB61;--wa-chip-on:#D9FDD3;--wa-chip-on-txt:#15603E;--wa-fondo-info:#F5F4F2;--wa-fondo:#EFEAE2;--wa-sale:#D9FDD3;--wa-entra:#FFFFFF;--wa-txt:#111B21;--wa-meta:#667781;--wa-meta-sale:#667781;--wa-tilde:#8696A0;--wa-leido:#53BDEB;--wa-dia:#FFFFFF;--wa-dia-txt:#54656F;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wa-lista:#111B21;--wa-gris:#202C33;--wa-verde:#21C063;--wa-chip-on:#103529;--wa-chip-on-txt:#D9FDD3;--wa-fondo-info:#0B141A;--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}}
+:root[data-theme="dark"]{--wa-lista:#111B21;--wa-gris:#202C33;--wa-verde:#21C063;--wa-chip-on:#103529;--wa-chip-on-txt:#D9FDD3;--wa-fondo-info:#0B141A;--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0}
 .burbujas{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:6px;background:var(--wa-fondo)}
 .dia{align-self:center;font-size:12.5px;color:var(--wa-dia-txt);background:var(--wa-dia);padding:4px 12px;border-radius:8px;margin:8px 0;box-shadow:var(--wa-sombra);text-transform:none}
 .burbujas .b{max-width:78%;padding:6px 9px 6px;border-radius:8px;font-size:14.5px;line-height:1.4;box-shadow:var(--wa-sombra);overflow-wrap:anywhere;color:var(--wa-txt);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -726,6 +726,23 @@ input[type=file]{max-width:100%}
 .cht{display:grid;grid-template-columns:340px minmax(0,1fr);height:100vh;min-width:0}
 .cht .m-chat{min-height:0}
 .ch-lista{overflow:auto;flex:1}
+/* Lista de chats como la pantalla principal de WhatsApp */
+.wa-lista{position:relative;background:var(--wa-lista,#fff);display:flex;flex-direction:column}
+.wa-cab{padding:14px 16px 6px}.wa-cab h1{margin:0;font-size:24px;font-weight:700;color:var(--wa-txt)}
+.wa-bus{display:flex;align-items:center;gap:10px;margin:6px 16px 8px;padding:0 14px;height:42px;border-radius:24px;background:var(--wa-gris,#F0F2F5);color:var(--wa-meta)}
+.wa-bus input{all:unset;flex:1;min-width:0;font-size:16px;color:var(--wa-txt)}.wa-bus input::placeholder{color:var(--wa-meta)}.wa-bus:focus-within{outline:2px solid var(--wa-verde,#1DAB61);outline-offset:-2px}
+.wa-fil{display:flex;gap:8px;padding:2px 16px 8px;overflow-x:auto}
+.wa-fil button{all:unset;cursor:pointer;flex:none;padding:6px 14px;border-radius:999px;font-size:14px;background:var(--wa-gris,#F0F2F5);color:var(--wa-dia-txt)}
+.wa-fil button[aria-pressed="true"]{background:var(--wa-chip-on,#D9FDD3);color:var(--wa-chip-on-txt,#15603E);font-weight:600}.wa-fil button:focus-visible{outline:2px solid var(--cielo)}
+.wa-lista .ch-it{border-bottom:0;padding:10px 16px;gap:14px}.wa-lista .ch-it:hover{background:var(--wa-gris,#F0F2F5)}.wa-lista .ch-it.on{background:var(--wa-gris,#F0F2F5)}
+.wa-lista .av{width:49px;height:49px;font-size:16px}
+.wa-lista .ch-tx{gap:3px}.wa-lista .ch-l1 b{font-size:17px;font-weight:500;color:var(--wa-txt)}.wa-lista .ch-tx>b{font-size:17px;font-weight:500;color:var(--wa-txt)}
+.wa-lista .ch-ult,.wa-lista .ch-tx .mut{font-size:14.5px;color:var(--wa-meta)}
+.ch-hora{flex:none;font-size:12px;color:var(--wa-meta)}.ch-hora.nl{color:var(--wa-verde,#1DAB61);font-weight:600}
+.ch-l2{display:flex;align-items:center;gap:8px;min-width:0}.ch-l2 .ch-ult{flex:1;min-width:0}
+.wa-lista .ch-it .cuenta-n{flex:none;background:var(--wa-verde,#1DAB61);color:#fff;min-width:22px;height:22px;font-size:12.5px;margin:0}
+.wa-vacio{padding:24px 16px;text-align:center;color:var(--wa-meta)}
+.wa-fab{all:unset;position:absolute;right:16px;bottom:16px;width:56px;height:56px;border-radius:16px;background:var(--wa-verde,#1DAB61);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(11,20,26,.25)}.wa-fab:hover{filter:brightness(.95)}.wa-fab:focus-visible{outline:2px solid var(--cielo);outline-offset:2px}
 .ch-it{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--linea);cursor:pointer}
 .ch-it:hover{background:var(--sup2)}.ch-it.on{background:var(--cielo-2)}.ch-it:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}
 .ch-tx{flex:1;min-width:0;display:grid;gap:2px}.ch-l1{display:flex;justify-content:space-between;gap:8px}.ch-l1 b,.ch-ult{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch-ult{font-size:13px}
@@ -1216,8 +1233,8 @@ async function entrarUsuario() {
   // Al pasar de un link al otro se conserva lo que venía después de "#" (por ejemplo, la venta de un aviso)
   // El dueño de la app que además administra un negocio: en el link de la app entra siempre como administrador de su
   // negocio (sus números, sus notificaciones); la administración de la app está solo en el link del dueño.
-  if (link === "app" && S.yo.usuario?.admin_app && !S.yo.clientes.length) { location.replace("dueno/" + location.hash); return new Promise(() => {}); }
-  if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../" + location.hash); return new Promise(() => {}); }
+  if (link === "app" && S.yo.usuario?.admin_app && !S.yo.clientes.length) { location.replace("../admin/" + location.hash); return new Promise(() => {}); }
+  if (link === "dueno" && !S.yo.usuario?.admin_app) { location.replace("../chatbot/" + location.hash); return new Promise(() => {}); }
   if (comoDueno()) {
     S.rol = "admin";
     // Al refrescar la página se sigue dentro del cliente en la que se estaba dando soporte
@@ -5424,9 +5441,15 @@ VISTAS.chat = async () => {
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Chat</h1><p>Elegí un cliente.</p></div></div>`; return; }
   $("#main").classList.add("lleno");
   $("#main").innerHTML = `<div class="cht ${S.chatId || S.chatCitas ? "ver-chat" : "ver-lista"}">
-    <aside class="m-lista"><div class="m-cab"><div class="fila" style="align-items:center"><h1>Chat</h1><div class="n"><button class="btn pri chico" id="chNuevo" type="button">Nuevo chat</button></div></div></div><div id="chLista" class="ch-lista"><p class="mut" style="padding:16px">Cargando…</p></div></aside>
+    <aside class="m-lista wa-lista"><div class="wa-cab"><h1>Chat</h1></div>
+      <div class="wa-bus"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input type="search" id="chBus" placeholder="Buscar" aria-label="Buscar en los chats" autocomplete="off"></div>
+      <div class="wa-fil" id="chFil" role="group" aria-label="Filtrar chats">${[["todos", "Todos"], ["noleidos", "No leídos"], ["grupos", "Grupos"]].map(([k, t]) => `<button type="button" data-chf="${k}" aria-pressed="${(S.chatFil ?? "todos") === k}">${t}</button>`).join("")}</div>
+      <div id="chLista" class="ch-lista"><p class="mut" style="padding:16px">Cargando…</p></div>
+      <button class="wa-fab" id="chNuevo" type="button" aria-label="Nuevo chat" title="Nuevo chat"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3C7 3 3 6.6 3 11c0 2.1.9 4 2.4 5.5L4.6 20.4l4.1-1.5c1 .3 2.1.5 3.3.5 5 0 9-3.6 9-8s-4-8.4-9-8.4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 7.8v6.4M8.8 11h6.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></button></aside>
     <section class="m-chat" id="chConv"><div class="m-vacio"><b>Elegí un chat</b><span>o empezá uno nuevo</span></div></section></div>`;
   $("#chNuevo").onclick = () => nuevoChat(emp);
+  $("#chBus").oninput = () => pintarListaChats();
+  $("#chFil").onclick = (e) => { const b = e.target.closest("[data-chf]"); if (!b) return; S.chatFil = b.dataset.chf; $("#chFil").querySelectorAll("[data-chf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); pintarListaChats(); };
   altoChat();
   await cargarChats();
   if (S.chatCitas) abrirCitas(); else if (S.chatId) abrirChat(S.chatId);
@@ -5436,10 +5459,18 @@ async function cargarChats() {
   if (S.tab !== "chat" || !$("#chLista")) return;
   if (r.error) { $("#chLista").innerHTML = `<p class="mut" style="padding:16px">${esc(r.error)}</p>`; return; }
   S.chatEq = r.equipo; S.chatYo = r.yo;
-  $("#chLista").innerHTML = `<button type="button" class="ch-it ${S.chatCitas ? "on" : ""}" data-citas="1"><i class="av av-n" aria-hidden="true">@</i><span class="ch-tx"><b>Te citaron en notas</b><span class="mut">Notas internas donde te nombraron</span></span>${r.citas ? `<span class="cuenta-n">${r.citas}</span>` : ""}</button>
-    ${r.chats.map((c) => `<button type="button" class="ch-it ${c.id === S.chatId ? "on" : ""}" data-chat="${c.id}">${avatar(c.nombre, c.tipo)}<span class="ch-tx"><span class="ch-l1"><b>${esc(c.nombre)}</b><span class="mut peq" style="flex:none">${c.ultimo ? horaCorta(c.ultimo.fecha) : ""}</span></span><span class="mut ch-ult">${c.ultimo ? `${c.tipo !== "directo" || c.ultimo.autor === "Vos" ? `${esc(c.ultimo.autor)}: ` : ""}${esc(c.ultimo.texto || "Ficha compartida")}` : c.tipo === "general" ? "Todo el equipo" : "Sin mensajes todavía"}</span></span>${c.no_leidos ? `<span class="cuenta-n">${c.no_leidos}</span>` : ""}</button>`).join("")}`;
-  $("#chLista").onclick = (e) => { const b = e.target.closest("[data-chat],[data-citas]"); if (!b) return; if (b.dataset.citas) abrirCitas(); else abrirChat(Number(b.dataset.chat)); };
   S.chatListaDatos = r;
+  pintarListaChats();
+  $("#chLista").onclick = (e) => { const b = e.target.closest("[data-chat],[data-citas]"); if (!b) return; if (b.dataset.citas) abrirCitas(); else abrirChat(Number(b.dataset.chat)); };
+}
+// Lista de chats como la pantalla principal de WhatsApp: búsqueda, filtros (Todos, No leídos, Grupos) y globito verde
+function pintarListaChats() {
+  const r = S.chatListaDatos; if (!r || !$("#chLista")) return;
+  const q = ($("#chBus")?.value ?? "").trim().toLowerCase(), f = S.chatFil ?? "todos";
+  const chats = r.chats.filter((c) => (!q || `${c.nombre} ${c.ultimo?.texto ?? ""}`.toLowerCase().includes(q)) && (f !== "noleidos" || c.no_leidos) && (f !== "grupos" || c.tipo !== "directo"));
+  const citas = !q && (f === "todos" || (f === "noleidos" && r.citas));
+  $("#chLista").innerHTML = (citas ? `<button type="button" class="ch-it ${S.chatCitas ? "on" : ""}" data-citas="1"><i class="av av-n" aria-hidden="true">@</i><span class="ch-tx"><b>Te citaron en notas</b><span class="ch-l2"><span class="mut ch-ult">Notas internas donde te nombraron</span>${r.citas ? `<span class="cuenta-n">${r.citas}</span>` : ""}</span></span></button>` : "") + chats.map((c) => `<button type="button" class="ch-it ${c.id === S.chatId ? "on" : ""}" data-chat="${c.id}">${avatar(c.nombre, c.tipo)}<span class="ch-tx"><span class="ch-l1"><b>${esc(c.nombre)}</b><span class="ch-hora ${c.no_leidos ? "nl" : ""}">${c.ultimo ? horaCorta(c.ultimo.fecha) : ""}</span></span><span class="ch-l2"><span class="mut ch-ult">${c.ultimo ? `${c.tipo !== "directo" || c.ultimo.autor === "Vos" ? `${esc(c.ultimo.autor)}: ` : ""}${esc(c.ultimo.texto || "Ficha compartida")}` : c.tipo === "general" ? "Todo el equipo" : "Sin mensajes todavía"}</span>${c.no_leidos ? `<span class="cuenta-n">${c.no_leidos}</span>` : ""}</span></span></button>`).join("")
+    + (!chats.length ? `<p class="wa-vacio">${q ? "No hay chats con eso." : f === "noleidos" ? "No hay chats sin leer." : f === "grupos" ? "No hay grupos." : "Todavía no hay chats."}</p>` : "");
 }
 function marcarLista(sel) { document.querySelectorAll("#chLista .ch-it").forEach((x) => x.classList.toggle("on", x.matches(sel))); const c = $(".cht"); if (c) { c.classList.add("ver-chat"); c.classList.remove("ver-lista"); } }
 function volverChats() { S.chatId = null; S.chatCitas = false; clearTimeout(S.chatTimer); const c = $(".cht"); if (c) { c.classList.remove("ver-chat"); c.classList.add("ver-lista"); } try { history.replaceState(null, "", location.pathname + location.search + "#chat"); } catch {} cargarChats(); }
