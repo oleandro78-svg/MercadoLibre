@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230305";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230310";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -699,7 +699,14 @@ input[type=file]{max-width:100%}
 .wa-env{all:unset;flex:none;width:48px;height:48px;border-radius:50%;background:#1DAB61;color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:var(--wa-sombra)}.wa-env svg{margin-left:3px}.wa-env:hover{background:#18995A}.wa-env:focus-visible{outline:2px solid var(--cielo);outline-offset:2px}
 .wa-env.enviando{opacity:.6;cursor:progress}.wa-env[disabled]{cursor:progress}
 .redactar .tx-ia{margin:0 0 6px 6px}
-.m-chat .ch-comp{background:var(--wa-fondo);border-top:0}.wa-pill-ch{padding-left:4px}.wa-ic{all:unset;box-sizing:border-box}.wa-ic-txt{font-size:20px;font-weight:600}
+.wa-pill-izq{padding-left:2px;gap:0}.wa-pill-izq textarea{margin-left:4px}.wa-cont{flex:none;align-self:flex-end;padding:0 6px 12px;font-size:11.5px}.wa-cont:empty{display:none}
+.wa-ic svg{display:block}
+#mSel:empty{display:none}#mSel{margin:0 0 8px;display:flex;flex-wrap:wrap;gap:6px}
+.mm-menu.mm-lista{flex-direction:column;padding:6px;min-width:250px}.mm-lista button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:14.5px;padding:10px 12px;min-width:0}.mm-lista svg{width:20px;height:20px;flex:none}
+.doc-l{display:grid;gap:6px}.doc-it{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.doc-it:focus-visible{outline:2px solid var(--cielo)}
+.doc-it[aria-pressed="true"]{border-color:var(--wa-verde,#1DAB61);background:var(--wa-chip-on,#D9FDD3)}.doc-ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--sup2)}.doc-t{flex:1;min-width:0;display:grid;gap:2px}
+.doc-ck{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--linea)}.doc-it[aria-pressed="true"] .doc-ck{border-color:var(--wa-verde,#1DAB61);background:var(--wa-verde,#1DAB61) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.m-chat .ch-comp{background:var(--wa-fondo);border-top:0}.wa-pill-ch{padding-left:4px}button.wa-ic{border:0;background:none;padding:0;margin:0;font:inherit;box-sizing:border-box;-webkit-appearance:none;appearance:none}button.wa-ic:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}.wa-ic-txt{font-size:20px;font-weight:600}
 .ch-pie .ch-acc{display:none}@media (hover:hover){.ch-b:hover .ch-pie .ch-acc{display:inline}}
 .ch-b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.ch-b.elegido{box-shadow:0 0 0 2px var(--wa-leido),var(--wa-sombra)}.ch-b.apretado{filter:brightness(.93)}
 .mi-lista{list-style:none;margin:0;padding:0}.mi-lista li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(134,150,160,.25);font-size:15.5px}.mi-lista li:first-child{border-top:0}.mi-lista .mi-val{margin:0;font-size:14px}
@@ -4377,6 +4384,9 @@ async function cargarMinis(convId) {
 }
 const ICO_ENVIAR_WA = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M1.101 21.757 23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>`;
 const ICO_EMOJI_WA = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.3" fill="currentColor"/><circle cx="15" cy="10" r="1.3" fill="currentColor"/><path d="M8 14.2c1 1.6 2.4 2.4 4 2.4s3-.8 4-2.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const ICO_REF_WA = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9.5 3.5 7.5 20.5M16.5 3.5l-2 17M4 8.5h16.5M3.5 15.5H20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>`;
+const ICO_MAS_WA = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 4.5v15M4.5 12h15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const ICO_SUBIR_WA = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const ICO_CLIP_WA = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M20.5 11.2 12.3 19.4a5.2 5.2 0 0 1-7.4-7.4l8.6-8.6a3.5 3.5 0 0 1 4.9 4.9l-8.6 8.6a1.7 1.7 0 0 1-2.5-2.5l7.9-7.9"/></svg>`;
 // Tildes como WhatsApp: uno gris (enviado), dos grises (entregado), dos celestes (leído)
 const TILDE1 = `<svg viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path d="M11.07.65 4.8 8.3 1.87 5.38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -4456,21 +4466,23 @@ function menuMensaje(b, m) {
 // Chat interno: mantener apretado un mensaje muestra Responder, Copiar, Info (los tuyos) y Agendar
 const ICO_RESP_WA = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z" fill="currentColor"/></svg>`;
 const ICO_CAL_WA = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M3.5 10h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
-function abrirMenu(b, opciones, alElegir) {
+function abrirMenu(b, opciones, alElegir, lista = false) {
   document.querySelector(".mm-menu")?.remove(); document.querySelectorAll(".elegido").forEach((x) => x.classList.remove("elegido"));
   if (!opciones.length) return;
   b.classList.add("elegido");
-  const menu = document.createElement("div"); menu.className = "mm-menu"; menu.setAttribute("role", "menu");
+  const menu = document.createElement("div"); menu.className = `mm-menu${lista ? " mm-lista" : ""}`; menu.setAttribute("role", "menu");
   menu.innerHTML = opciones.map(([k, ico, t]) => `<button type="button" role="menuitem" data-mm="${k}">${ico}<span>${t}</span></button>`).join("");
   document.body.appendChild(menu);
   const r = b.getBoundingClientRect(), w = menu.offsetWidth, h = menu.offsetHeight, der = r.left + r.width / 2 > window.innerWidth / 2;
   menu.style.top = `${r.top - h - 8 > 60 ? r.top - h - 8 : Math.min(r.bottom + 8, window.innerHeight - h - 8)}px`;
   menu.style.left = `${Math.max(8, Math.min(der ? r.right - w : r.left, window.innerWidth - w - 8))}px`;
+  if (lista) b.classList.remove("elegido");
   const cerrar = () => { menu.remove(); b.classList.remove("elegido"); document.removeEventListener("pointerdown", fuera, true); document.removeEventListener("keydown", tecla); };
   const fuera = (e) => { if (!menu.contains(e.target)) cerrar(); };
   const tecla = (e) => { if (e.key === "Escape") cerrar(); };
   setTimeout(() => { document.addEventListener("pointerdown", fuera, true); document.addEventListener("keydown", tecla); }, 0);
   menu.onclick = (e) => { const x = e.target.closest("[data-mm]"); if (!x) return; cerrar(); alElegir(x.dataset.mm); };
+  menu.querySelector("button")?.focus({ preventScroll: true });
 }
 function apretarLargo(caja, sel, abrir) {
   let t = null, el = null, x0 = 0, y0 = 0;
@@ -4849,40 +4861,64 @@ function redactarLibre(d) {
   const c = d.conversacion, mat = d.material ?? [];
   const elegidos = new Set((c.borrador_material ?? []).map(Number));
   const sueltos = [];
+  // Como WhatsApp: a la izquierda el clip (la documentación ya cargada de la publicación) y el "+" (más opciones, entre
+  // ellas subir un archivo del dispositivo); lo elegido queda arriba del cuadro, con la × para sacarlo
   $("#mRed").innerHTML = `
-    ${mat.length ? `<div class="mat"><span class="mat-t">Documentación (tocala para sumarla al mensaje):</span>${mat.map((m) => `<button type="button" class="mat-b ${elegidos.has(m.id) ? "on" : ""}" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)}${m.cuando === "entrega" ? `<span class="mut">al entregarse</span>` : ""}</button>`).join("")}</div>` : ""}
-    <div class="mat" id="mSue"></div>
+    <div class="mat" id="mSel"></div>
     <label class="oculto-v" for="mTx">Mensaje para el comprador</label>
     ${c.borrador ? `<span class="tx-ia">${ICONO.varita} Borrador del bot</span>` : ""}
-    <div class="wa-comp"><div class="wa-pill"><textarea id="mTx" rows="1" placeholder="Mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
-      <label class="wa-ic" title="Adjuntar" aria-label="Adjuntar un archivo">${ICO_CLIP_WA}<input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v"></label></div>
-      ${c.puede_enviar ? `<button class="wa-env" type="button" id="mEnv" aria-label="Enviar">${ICO_ENVIAR_WA}</button>` : ""}</div>
+    <div class="wa-comp"><div class="wa-pill wa-pill-izq">
+      <button type="button" class="wa-ic" id="mClip" title="Documentación de la publicación" aria-label="Elegir documentación de la publicación">${ICO_CLIP_WA}</button>
+      <button type="button" class="wa-ic" id="mMas" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu">${ICO_MAS_WA}</button>
+      <textarea id="mTx" rows="1" placeholder="Mensaje para ${esc(nombreComp(c))}">${esc(c.borrador ?? "")}</textarea>
+      <span class="cont wa-cont" id="mCont"></span>
+      <input type="file" id="mArch" accept=".jpg,.jpeg,.png,.pdf,.txt,image/jpeg,image/png,application/pdf,text/plain" multiple class="oculto-v" tabindex="-1" aria-hidden="true"></div>
+      ${c.puede_enviar ? `<button class="wa-env" type="button" id="mEnv" aria-label="Enviar">${ICO_ENVIAR_WA}</button>` : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div>
     <div id="mRes"></div>
-    <div class="acciones">
-      <div class="mas-caja"><button class="btn lin chico" type="button" id="mMasB" aria-expanded="false" aria-controls="mMasM">Más ▾</button>
-        <div class="mas-menu oculto" id="mMasM" role="menu">
-          <button type="button" role="menuitem" id="mReg">${ICONO.escudo} Revisar reglas</button>
-          <button type="button" role="menuitem" id="mMej">${ICONO.varita} Mejorar redacción</button>
-          <button type="button" role="menuitem" id="mOtro" title="El bot vuelve a leer la conversación y propone otro texto">${ICONO.varita} Otro borrador</button>
-          ${!mat.length && S.rol !== "operador" ? `<button type="button" role="menuitem" id="mIrDoc">${ICONO_M.clip} Cargar documentación de esta publicación</button>` : ""}
-        </div></div>
-      <div class="der"><span class="cont" id="mCont"></span>${c.puede_enviar ? "" : `<button class="btn pri" type="button" id="mGuar">Guardar borrador</button>`}</div></div>
     ${c.puede_enviar ? "" : `<p class="peq mut" style="margin:8px 0 0">No tenés permiso para enviar en este negocio: guardá el borrador y lo envía el administrador.</p>`}`;
   const tx = $("#mTx");
   const crecer = () => { tx.style.height = "auto"; tx.style.height = Math.min(tx.scrollHeight, Math.round(window.innerHeight * 0.4)) + "px"; };
   tx.addEventListener("input", crecer); requestAnimationFrame(crecer);
-  // Menú "Más": se abre y se cierra con el botón, y se cierra al elegir algo o tocar afuera
-  const menu = $("#mMasM"), bm = $("#mMasB");
-  const cerrarMenu = () => { menu.classList.add("oculto"); bm.setAttribute("aria-expanded", "false"); };
-  bm.onclick = (e) => { e.stopPropagation(); const abrir = menu.classList.contains("oculto"); menu.classList.toggle("oculto", !abrir); bm.setAttribute("aria-expanded", String(abrir)); };
-  menu.addEventListener("click", cerrarMenu);
-  if (!window.MAS_ESCUCHA) { window.MAS_ESCUCHA = true; document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu").forEach((m) => { m.classList.add("oculto"); m.previousElementSibling?.setAttribute("aria-expanded", "false"); }); }, true); }
   const extra = () => mat.filter((m) => elegidos.has(m.id) && m.tipo === "enlace" && !tx.value.includes(m.url)).reduce((n, m) => n + m.url.length + 1, 0);
-  const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = `${n} / ${LIM_MSJ}`; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
+  // El contador aparece recién cerca del límite de MercadoLibre, para no ocupar lugar
+  const contar = () => { const n = tx.value.length + extra(); $("#mCont").textContent = n >= LIM_MSJ * 0.8 ? `${n} / ${LIM_MSJ}` : ""; $("#mCont").classList.toggle("pasado", n > LIM_MSJ); };
   tx.oninput = contar; contar();
-  const pintarSueltos = () => { $("#mSue").innerHTML = sueltos.map((f, i) => `<span class="mat-b on">${ICONO_M.clip} ${esc(f.nombre)} <span class="mut">${pesoTxt(f.bytes)}</span> <button type="button" class="x-s" data-q="${i}" aria-label="Quitar ${esc(f.nombre)}">×</button></span>`).join(""); };
-  if ($("#mIrDoc")) $("#mIrDoc").onclick = () => { S.matAbrir = c.item_id; ir("material"); };
-  $("#mSue").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); } };
+  // Lo que va con el mensaje: documentación elegida y archivos del dispositivo
+  const pintarSueltos = () => {
+    $("#mSel").innerHTML = mat.filter((m) => elegidos.has(m.id)).map((m) => `<span class="mat-b on">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip} ${esc(m.titulo)} <button type="button" class="x-s" data-qm="${m.id}" aria-label="Quitar ${esc(m.titulo)}">×</button></span>`).join("")
+      + sueltos.map((f, i) => `<span class="mat-b on">${ICONO_M.clip} ${esc(f.nombre)} <span class="mut">${pesoTxt(f.bytes)}</span> <button type="button" class="x-s" data-q="${i}" aria-label="Quitar ${esc(f.nombre)}">×</button></span>`).join("");
+    contar();
+  };
+  pintarSueltos();
+  $("#mSel").onclick = (e) => {
+    const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); return; }
+    const m = e.target.closest("[data-qm]"); if (m) { elegidos.delete(Number(m.dataset.qm)); pintarSueltos(); }
+  };
+  const irDoc = () => { S.matAbrir = c.item_id; ir("material"); };
+  // Clip: la documentación ya cargada de la publicación (manuales, instructivos, enlaces)
+  $("#mClip").onclick = () => {
+    if (!mat.length) {
+      const h = abrirHoja(`<div class="cajon-cab"><h2>Documentación</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+        <p class="mut">Esta publicación todavía no tiene documentación cargada para enviar.</p>
+        <div class="fx-pie">${S.rol !== "operador" ? `<button class="btn lin" type="button" id="dCar">Cargar documentación de esta publicación</button>` : ""}<button class="btn pri" type="button" id="dArch">Subir un archivo del dispositivo</button></div>`);
+      h.querySelector("#dCar")?.addEventListener("click", () => { h.remove(); irDoc(); });
+      h.querySelector("#dArch").onclick = () => { h.remove(); $("#mArch").click(); };
+      return;
+    }
+    const h = abrirHoja(`<div class="cajon-cab"><h2>Documentación</h2><button class="btn lin chico" data-cerrar type="button">Listo</button></div>
+      <p class="peq mut" style="margin:0 0 8px">Tocá lo que quieras sumar al mensaje.</p>
+      <div class="doc-l">${mat.map((m) => `<button type="button" class="doc-it" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}"><span class="doc-ic">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}</span><span class="doc-t"><b>${esc(m.titulo)}</b>${m.cuando === "entrega" ? `<span class="mut peq">Se manda al entregarse</span>` : `<span class="mut peq">${m.tipo === "enlace" ? "Enlace" : "Archivo"}</span>`}</span><span class="doc-ck" aria-hidden="true"></span></button>`).join("")}</div>`);
+    h.querySelector(".doc-l").onclick = (e) => {
+      const b = e.target.closest("[data-m]"); if (!b) return;
+      const id = Number(b.dataset.m); elegidos.has(id) ? elegidos.delete(id) : elegidos.add(id);
+      b.setAttribute("aria-pressed", String(elegidos.has(id))); pintarSueltos();
+    };
+  };
+  // "+": lo que antes estaba en "Más"
+  $("#mMas").onclick = () => abrirMenu($("#mMas"), [
+    ["arch", ICO_SUBIR_WA, "Subir archivo del dispositivo"], ["reg", ICONO.escudo, "Revisar reglas"], ["mej", ICONO.varita, "Mejorar redacción"], ["otro", ICONO.varita, "Otro borrador"],
+    ...(S.rol !== "operador" ? [["doc", ICONO_M.clip, "Cargar documentación de esta publicación"]] : []),
+  ], (k) => { if (k === "arch") $("#mArch").click(); else if (k === "reg") $("#mReg").click(); else if (k === "mej") $("#mMej").click(); else if (k === "otro") $("#mOtro").click(); else if (k === "doc") irDoc(); }, true);
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
       if (!/\.(jpe?g|png|pdf|txt)$/i.test(f.name)) { aviso(`${f.name}: MercadoLibre acepta solo JPG, PNG, PDF o TXT`); continue; }
@@ -4891,16 +4927,12 @@ function redactarLibre(d) {
     }
     $("#mArch").value = ""; pintarSueltos();
   };
-  const matBox = $("#mRed .mat:not(#mSue)");
-  if (matBox) matBox.onclick = (e) => {
-    const b = e.target.closest("[data-m]"); if (!b) return;
-    const id = Number(b.dataset.m); elegidos.has(id) ? elegidos.delete(id) : elegidos.add(id);
-    b.classList.toggle("on", elegidos.has(id)); b.setAttribute("aria-pressed", elegidos.has(id)); contar();
-  };
+  // Los botones ocultos que usan las funciones de revisar, mejorar y otro borrador (muestran "Revisando…" mientras trabajan)
+  $("#mRes").insertAdjacentHTML("beforebegin", `<span hidden><button type="button" id="mReg">Revisar reglas</button><button type="button" id="mMej">Mejorar redacción</button><button type="button" id="mOtro">Otro borrador</button></span>`);
   $("#mReg").onclick = () => revisarReglas(c.id, tx, $("#mRes"), $("#mReg"), "mensaje_revisar");
   $("#mMej").onclick = () => mejorarTexto(c.id, tx, $("#mRes"), $("#mMej"), "mensaje_mejorar");
   $("#mOtro").onclick = async () => {
-    $("#mOtro").disabled = true; $("#mOtro").textContent = "Redactando…";
+    $("#mOtro").disabled = true; $("#mOtro").textContent = "Redactando…"; aviso("Redactando otro borrador…");
     const r = await seguro(() => api("mensaje_borrador", { id: c.id }));
     $("#mOtro").disabled = false; $("#mOtro").textContent = "Otro borrador";
     if (r) {
@@ -5591,9 +5623,9 @@ async function abrirChat(id) {
     <div class="ch-msjs" id="chMsjs"><p class="mut">Cargando…</p></div>
     <div class="ch-comp"><div id="chResp"></div><div id="chRefs" class="ch-refs"></div><div id="chMen" class="ch-men" hidden></div>
       <div class="ch-emo" id="chEmoP" hidden></div>
-      <div class="wa-comp"><div class="wa-pill wa-pill-ch"><button type="button" class="wa-ic" id="chEmo" title="Emojis" aria-label="Emojis" aria-expanded="false">${ICO_EMOJI_WA}</button>
-        <textarea id="chTx" rows="1" placeholder="Mensaje" aria-label="Mensaje"></textarea>
-        <button type="button" class="wa-ic wa-ic-txt" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación" aria-label="Hacer referencia a una venta, pregunta, devolución o publicación">#</button></div>
+      <div class="wa-comp"><div class="wa-pill wa-pill-ch wa-pill-izq"><button type="button" class="wa-ic" id="chEmo" title="Emojis" aria-label="Emojis" aria-expanded="false">${ICO_EMOJI_WA}</button>
+        <button type="button" class="wa-ic" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación" aria-label="Hacer referencia a una venta, pregunta, devolución o publicación">${ICO_REF_WA}</button>
+        <textarea id="chTx" rows="1" placeholder="Mensaje" aria-label="Mensaje"></textarea></div>
         <button type="button" class="wa-env" id="chEnv" aria-label="Enviar">${ICO_ENVIAR_WA}</button></div></div>`;
   if ($("#chConv .m-atras")) $("#chConv .m-atras").onclick = volverChats;
   const tx = $("#chTx");
