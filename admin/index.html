@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611230554";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611231508";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -7593,7 +7593,8 @@ function abrirDesdeEnlace(h) {
     S.msjId = Number(mm[1]); ir("mensajes"); return true;
   }
   if (mp) { ir(inicio()); detalle(Number(mp[1])); return true; }
-  if (mv && vistasPermitidas().has(mv[1])) { ir(mv[1]); return true; }
+  // Notificación de varias ventas/devoluciones/chats: se abre la lista, no la última conversación abierta
+  if (mv && vistasPermitidas().has(mv[1])) { if (mv[1] === "mensajes") S.msjId = null; if (mv[1] === "devoluciones") S.devId = null; if (mv[1] === "chat") S.chatId = null; ir(mv[1]); return true; }
   return false;
 }
 // Pantallas a las que se puede volver al actualizar la página, según quién entró y qué módulos tiene
@@ -7606,7 +7607,12 @@ function vistasPermitidas() {
   l.push("misnotif");
   return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras", "circuito"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
 }
-navigator.serviceWorker?.addEventListener("message", (e) => { if (e.data?.abrir) abrirDesdeEnlace(e.data.abrir); });
+// Notificación tocada con la app ya abierta: llega la dirección completa; se usa solo lo que va después de "#"
+navigator.serviceWorker?.addEventListener("message", (e) => {
+  if (!e.data?.abrir) return;
+  const u = String(e.data.abrir), h = u.includes("#") ? u.slice(u.indexOf("#")) : "";
+  if (h && !abrirDesdeEnlace(h)) ir(inicio());
+});
 </script>
 <script>
 // App instalable (PWA): guarda la pantalla para que abra rápido y permite instalarla
