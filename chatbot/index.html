@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611231520";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611231527";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -7583,7 +7583,7 @@ function abrirDesdeEnlace(h) {
   const mm = t.match(/#mensajes\/(\d+)/), mp = t.match(/#pregunta\/(\d+)/), mv = t.replace(/^#reclamos$/, "#devoluciones").match(/^#([a-z_]+)$/), mr = t.match(/#(?:devoluciones|reclamos)\/(\d+)/); // "reclamos": enlaces viejos
   if (!S.rol) return false;
   const mch = t.match(/#chat\/(\d+)/), mca = t.match(/#calendario\/(\d+)/);
-  if (mch) { S.chatId = Number(mch[1]); ir("chat"); return true; }
+  if (mch) { S.chatId = Number(mch[1]); S.chatCitas = false; ir("chat"); return true; }
   if (mca) { S.calAbrir = Number(mca[1]); ir("calendario"); return true; }
   // Aviso de una nota en la que citaron a la persona: se abre directo en las notas
   if (/\/notas$/.test(t)) { S.irNotas = true; if (mm) { S.convTab = S.convTab ?? {}; S.convTab[Number(mm[1])] = "notas"; } }
@@ -7610,9 +7610,15 @@ function vistasPermitidas() {
 // Notificación tocada con la app ya abierta: llega la dirección completa; se usa solo lo que va después de "#"
 navigator.serviceWorker?.addEventListener("message", (e) => {
   if (!e.data?.abrir) return;
+  e.ports?.[0]?.postMessage("ok"); // confirma que la app está despierta
   const u = String(e.data.abrir), h = u.includes("#") ? u.slice(u.indexOf("#")) : "";
-  if (h && !abrirDesdeEnlace(h)) ir(inicio());
+  if (!h) return;
+  // Si la app todavía está arrancando, queda en la dirección y la abre al terminar de cargar
+  if (!S.rol) { try { history.replaceState(null, "", location.pathname + location.search + h); } catch {} return; }
+  if (!abrirDesdeEnlace(h)) ir(inicio());
 });
+// Si el celular lleva la app a la dirección del aviso (estaba dormida), se abre lo avisado
+addEventListener("hashchange", () => { if (S.rol && location.hash) abrirDesdeEnlace(location.hash); });
 </script>
 <script>
 // App instalable (PWA): guarda la pantalla para que abra rápido y permite instalarla

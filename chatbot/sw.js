@@ -1,5 +1,5 @@
 // Mostrador: guarda la pantalla del panel para que abra rápido. Los datos siempre se piden al servidor.
-const VERSION = "mostrador-v179";
+const VERSION = "mostrador-v180";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icono-192.png", "icono-512.png", "icono-notif.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
@@ -49,13 +49,19 @@ self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   e.waitUntil((async () => {
     const url = e.notification.data?.url || "./";
-    const ventanas = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    // Solo ventanas de esta app (no otras páginas del mismo sitio)
+    const ventanas = (await clients.matchAll({ type: "window", includeUncontrolled: true })).filter((v) => v.url.startsWith(self.registration.scope));
     const abierta = ventanas.find((v) => "focus" in v);
     if (abierta) {
-      // La app ya estaba abierta: se le pide que muestre la pregunta o la conversación del aviso
-      await abierta.focus();
-      abierta.postMessage({ abrir: url });
-      return;
+      try { await abierta.focus(); } catch { /* sigue */ }
+      // La app abierta confirma que recibió el pedido; si estaba dormida y no contesta, se la lleva a la dirección del aviso
+      const ok = await new Promise((res) => {
+        const ch = new MessageChannel(); const t = setTimeout(() => res(false), 2000);
+        ch.port1.onmessage = () => { clearTimeout(t); res(true); };
+        try { abierta.postMessage({ abrir: url }, [ch.port2]); } catch { clearTimeout(t); res(false); }
+      });
+      if (ok) return;
+      if ("navigate" in abierta) { try { await abierta.navigate(url); return; } catch { /* abre otra */ } }
     }
     return clients.openWindow(url);
   })());
