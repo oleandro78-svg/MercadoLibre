@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611230315";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611230324";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -703,7 +703,7 @@ input[type=file]{max-width:100%}
 .wa-ic svg{display:block}
 #mSel:empty{display:none}#mSel{margin:0 0 8px;display:flex;flex-wrap:wrap;gap:6px}
 .mm-menu.mm-lista{flex-direction:column;padding:6px;min-width:250px}.mm-lista button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:14.5px;padding:10px 12px;min-width:0}.mm-lista svg{width:20px;height:20px;flex:none}
-.doc-l{display:grid;gap:6px}.doc-it{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.doc-it:focus-visible{outline:2px solid var(--cielo)}
+.doc-l{display:grid;gap:6px}.doc-pie{display:grid;gap:8px;margin-top:14px}.doc-pie .btn{width:100%;white-space:normal;min-width:0}.doc-it{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.doc-it:focus-visible{outline:2px solid var(--cielo)}
 .doc-it[aria-pressed="true"]{border-color:var(--wa-verde,#1DAB61);background:var(--wa-chip-on,#D9FDD3)}.doc-ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--sup2)}.doc-t{flex:1;min-width:0;display:grid;gap:2px}
 .doc-ck{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--linea)}.doc-it[aria-pressed="true"] .doc-ck{border-color:var(--wa-verde,#1DAB61);background:var(--wa-verde,#1DAB61) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 .m-chat .ch-comp{background:var(--wa-fondo);border-top:0}.wa-pill-ch{padding-left:4px}button.wa-ic{border:0;background:none;padding:0;margin:0;font:inherit;box-sizing:border-box;-webkit-appearance:none;appearance:none}button.wa-ic:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}.wa-ic-txt{font-size:20px;font-weight:600}
@@ -4900,7 +4900,7 @@ function redactarLibre(d) {
     if (!mat.length) {
       const h = abrirHoja(`<div class="cajon-cab"><h2>Documentación</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
         <p class="mut">Esta publicación todavía no tiene documentación cargada para enviar.</p>
-        <div class="fx-pie">${S.rol !== "operador" ? `<button class="btn lin" type="button" id="dCar">Cargar documentación de esta publicación</button>` : ""}<button class="btn pri" type="button" id="dArch">Subir un archivo del dispositivo</button></div>`);
+        <div class="doc-pie"><button class="btn pri" type="button" id="dArch">Subir un archivo del dispositivo</button>${S.rol !== "operador" ? `<button class="btn lin" type="button" id="dCar">Cargar documentación de esta publicación</button>` : ""}</div>`);
       h.querySelector("#dCar")?.addEventListener("click", () => { h.remove(); irDoc(); });
       h.querySelector("#dArch").onclick = () => { h.remove(); $("#mArch").click(); };
       return;
