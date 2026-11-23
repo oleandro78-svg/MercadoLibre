@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611232118";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611232124";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -854,6 +854,8 @@ input[type=file]{max-width:100%}
 .m-venta h3{font-size:13px;color:var(--piz);font-weight:600;margin:18px 0 8px}.m-venta h3:first-child{margin-top:0}
 .prod{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
 .prod .foto{width:56px;height:56px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
+.ent{display:grid;gap:2px}.ent-dir{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--sup2,#F1F3F5);font-size:14px}.ent-dir b{font-size:15.5px}
+.ent-aviso{margin:8px 0 0;padding:8px 10px;border-radius:8px;background:var(--ambar-2,#FFF4DB);color:var(--ambar-t,#7A5200);font-size:13px}.ent-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ent-acc a{text-decoration:none}
 .dv{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--linea)}.dv span:first-child{color:var(--piz)}
 .linea-t{position:relative;padding-left:18px;font-size:13.5px}
 .linea-t div{position:relative;padding:0 0 12px}
@@ -5168,6 +5170,28 @@ async function redactarMotivo(d) {
   pintar();
 }
 
+// Domicilio de entrega (cualquier tipo de envío): dónde hay que entregar (se lee de MercadoLibre al abrir la venta; no se guarda)
+function pintarEntrega(e) {
+  const caja = $("#mEnt"); if (!caja) return;
+  if (!e?.calle) { caja.previousElementSibling?.remove(); caja.remove(); return; } // sin domicilio disponible: no se muestra nada
+  const linea1 = [e.calle, e.numero].filter(Boolean).join(" ");
+  const zona = [e.barrio, e.localidad].filter((x, i, a) => x && a.indexOf(x) === i).join(", ") + (e.cp ? ` (CP ${e.cp})` : "");
+  const completa = [linea1, e.indicaciones, zona, e.provincia].filter(Boolean).join(", ");
+  const mapa = e.lat && e.lng ? `https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(completa)}`;
+  caja.innerHTML = `<div class="ent">
+      <div class="ent-dir"><b>${esc(linea1)}</b>${e.indicaciones ? `<span>${esc(e.indicaciones)}</span>` : ""}<span>${esc(zona)}${e.provincia ? `, ${esc(e.provincia)}` : ""}</span>${e.entre ? `<span class="mut">Entre ${esc(e.entre)}</span>` : ""}</div>
+      ${e.recibe ? `<div class="dv"><span>Recibe</span><span>${esc(e.recibe)}</span></div>` : ""}
+      ${e.telefono ? `<div class="dv"><span>Teléfono</span><a href="tel:${esc(e.telefono.replace(/[^\d+]/g, ""))}">${esc(e.telefono)}</a></div>` : ""}
+      ${e.tipo ? `<div class="dv"><span>Tipo de domicilio</span><span>${e.tipo === "business" ? "Comercio" : "Casa"}</span></div>` : ""}
+      ${e.distinto_fiscal ? `<p class="ent-aviso">Es distinto del domicilio fiscal del comprador. El fiscal está en la solapa Factura.</p>` : ""}
+      <div class="ent-acc"><a class="btn lin chico" href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a><button type="button" class="btn lin chico" data-cp-dir="${esc(completa)}">Copiar domicilio</button></div></div>`;
+  caja.querySelector("[data-cp-dir]").onclick = async (ev) => { try { await navigator.clipboard.writeText(ev.currentTarget.dataset.cpDir); aviso("Domicilio copiado"); } catch { prompt("Copiá el domicilio:", ev.currentTarget.dataset.cpDir); } };
+}
+async function cargarEntrega(c) {
+  if (!$("#mEnt")) return;
+  let e = null; try { e = await api("venta_entrega", { id: c.id }); } catch { /* se muestra el aviso */ }
+  if (S.msjConv?.conversacion?.id === c.id) pintarEntrega(e);
+}
 function pintarVenta(d) {
   const c = d.conversacion, env = c.envio ?? {};
   const paso = (si, t, f) => `<div class="${si ? "si" : ""}"><b>${t}</b>${f ? `<span class="mut"> · ${fecha(f)}</span>` : ""}</div>`;
@@ -5187,12 +5211,14 @@ function pintarVenta(d) {
     ${c.envio_id ? `<div class="linea-t" id="mLinea">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" id="mEst" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
+    ${c.envio_id ? `<h3>Domicilio de entrega</h3><div id="mEnt"><p class="peq mut" style="margin:0">${buscandoTxt("Buscando el domicilio")}</p></div>` : ""}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button> · <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></p>`
       : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0">Tuvo un reclamo que ya está cerrado. <button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
   $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
   if (c.mediacion || c.reclamo_ids?.length) historiaVenta(c);
+  if ($("#mEnt")) cargarEntrega(c);
   else if (modsActuales().has("despacho")) lineaCircuito(c);
 }
 // Línea de tiempo de la venta con los pasos del circuito de despacho: lo hecho (quién y cuándo), lo que falta (con el botón
