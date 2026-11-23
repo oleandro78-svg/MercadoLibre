@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611231554";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611231556";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -5879,7 +5879,15 @@ async function abrirChat(id) {
     box.innerHTML = (st.msjs.map((m, i) => burbuja(m, st.msjs[i - 1])).join("") + pend) || `<div class="m-vacio"><b>Todavía no hay mensajes</b><span>Escribí el primero.</span></div>`;
     if (todo || abajo) box.scrollTop = box.scrollHeight;
   };
+  // Una sola consulta a la vez: si llega un pedido mientras hay otra en curso (por ejemplo, el aviso en tiempo real
+  // justo después de enviar), se hace una más al terminar, nunca dos juntas (así no se repiten mensajes)
   const traer = async (bajar) => {
+    if (st.trayendo) { st.otraVez = true; st.bajar = st.bajar || bajar; return; }
+    st.trayendo = true;
+    try { await traerUna(bajar); } finally { st.trayendo = false; }
+    if (st.otraVez) { const b2 = st.bajar; st.otraVez = false; st.bajar = false; return traer(b2); }
+  };
+  const traerUna = async (bajar) => {
     clearTimeout(S.chatTimer);
     if (S.chatId !== id || S.tab !== "chat") return;
     const r = await api("chat_mensajes", { cliente_id: empChat(), chat_id: id, desde_id: st.ultimo || null }).catch((e) => ({ error: e.message }));
@@ -5888,7 +5896,10 @@ async function abrirChat(id) {
     else {
       const primera = !st.ultimo;
       st.chat = r.chat; st.miembros = r.miembros;
-      if (r.mensajes.length) { st.msjs = [...st.msjs, ...r.mensajes]; st.ultimo = r.mensajes[r.mensajes.length - 1].id; }
+      // Nunca agregar dos veces el mismo mensaje
+      const ya = new Set(st.msjs.map((m) => m.id)), nuevos = r.mensajes.filter((m) => !ya.has(m.id));
+      if (nuevos.length) { st.msjs = [...st.msjs, ...nuevos]; }
+      if (r.mensajes.length) st.ultimo = Math.max(st.ultimo || 0, ...r.mensajes.map((m) => m.id));
       $("#chNom").textContent = r.chat.nombre;
       $("#chMiem").textContent = r.chat.tipo === "directo" ? "Chat de a dos" : r.miembros.map((x) => x.id === S.chatYo?.id ? "Vos" : x.nombre).join(", ");
       if (primera) {
