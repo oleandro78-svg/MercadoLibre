@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611230335";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611230340";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4894,14 +4894,28 @@ function redactarLibre(d) {
     const b = e.target.closest("[data-q]"); if (b) { sueltos.splice(Number(b.dataset.q), 1); pintarSueltos(); return; }
     const m = e.target.closest("[data-qm]"); if (m) { elegidos.delete(Number(m.dataset.qm)); pintarSueltos(); }
   };
-  const irDoc = () => { S.matAbrir = c.item_id; ir("material"); };
-  // Clip: la documentación ya cargada de la publicación (manuales, instructivos, enlaces)
+  // Los archivos de la publicación se cargan acá mismo, en una hoja, sin salir de la venta
+  const empDoc = S.rol === "admin" ? S.empSel : null;
+  const hojaDocs = async () => {
+    if (!(await seguro(() => datosDocs(empDoc)))) return;
+    const puede = S.matEdit === "todo" || !!S.matEdit?.has?.(c.item_id);
+    if (!puede && !(S.matCargados.get(c.item_id) ?? []).length) return aviso("Esta publicación todavía no tiene documentación cargada");
+    if (!S.matPubs.some((p) => p.id === c.item_id)) S.matPubs.push({ id: c.item_id, titulo: c.item_titulo ?? "Esta publicación", thumbnail: c.item_thumbnail });
+    // Al agregar o subir algo, vuelve a la lista para elegir qué mandar
+    hojaProducto(empDoc, c.item_id, async () => {
+      await seguro(() => datosDocs(empDoc));
+      mat.splice(0, mat.length, ...(S.matCargados.get(c.item_id) ?? [])); pintarSueltos();
+      if (mat.length) $("#mClip").click(); else hojaDocs();
+    });
+  };
+  // Clip: los archivos de esta publicación (manuales, instructivos, enlaces)
   $("#mClip").onclick = () => {
-    // Sin documentación cargada: el clip lleva directo a cargarla (el operador no puede cargarla)
-    if (!mat.length) { if (S.rol !== "operador") irDoc(); else aviso("Esta publicación todavía no tiene documentación cargada"); return; }
+    if (!mat.length) { hojaDocs(); return; }
     const h = abrirHoja(`<div class="cajon-cab"><h2>Documentación</h2><button class="btn lin chico" data-cerrar type="button">Listo</button></div>
       <p class="peq mut" style="margin:0 0 8px">Tocá lo que quieras sumar al mensaje.</p>
-      <div class="doc-l">${mat.map((m) => `<button type="button" class="doc-it" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}"><span class="doc-ic">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}</span><span class="doc-t"><b>${esc(m.titulo)}</b>${m.cuando === "entrega" ? `<span class="mut peq">Se manda al entregarse</span>` : `<span class="mut peq">${m.tipo === "enlace" ? "Enlace" : "Archivo"}</span>`}</span><span class="doc-ck" aria-hidden="true"></span></button>`).join("")}</div>`);
+      <div class="doc-l" id="docL">${mat.map((m) => `<button type="button" class="doc-it" data-m="${m.id}" aria-pressed="${elegidos.has(m.id)}"><span class="doc-ic">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}</span><span class="doc-t"><b>${esc(m.titulo)}</b>${m.cuando === "entrega" ? `<span class="mut peq">Se manda al entregarse</span>` : `<span class="mut peq">${m.tipo === "enlace" ? "Enlace" : "Archivo"}</span>`}</span><span class="doc-ck" aria-hidden="true"></span></button>`).join("")}</div>
+      ${S.rol !== "operador" ? `<button type="button" class="enlace" id="docMas" style="margin-top:14px">+ Agregar archivos a esta publicación</button>` : ""}`);
+    h.querySelector("#docMas")?.addEventListener("click", () => { h.remove(); hojaDocs(); });
     h.querySelector(".doc-l").onclick = (e) => {
       const b = e.target.closest("[data-m]"); if (!b) return;
       const id = Number(b.dataset.m); elegidos.has(id) ? elegidos.delete(id) : elegidos.add(id);
@@ -5147,13 +5161,24 @@ VISTAS.material = async () => {
   if (rev) S.sugTimer = setTimeout(() => { if (S.tab === "material" && !document.querySelector(".velo")) VISTAS.material(); }, 30000);
 };
 
+// Lo que necesita la hoja de un producto, para abrirla desde otra pantalla (por ejemplo, el chat con el comprador)
+async function datosDocs(emp) {
+  const r = await api("material_lista", { cliente_id: emp });
+  S.matEdit = r.editables === "todo" ? "todo" : new Set(r.editables ?? []);
+  const puede = S.matEdit === "todo" || S.matEdit.size > 0;
+  const sg = puede ? await api("docs_sugeridos", { cliente_id: emp }).catch(() => null) : null;
+  S.matPubs = r.publicaciones ?? [];
+  const cargados = new Map(); for (const m of r.materiales ?? []) cargados.set(m.publicacion_id, [...(cargados.get(m.publicacion_id) ?? []), m]);
+  S.matCargados = cargados; S.matSugeridos = new Map(((sg?.publicaciones) ?? []).map((p) => [p.id, p.docs]));
+  return true;
+}
 function abrirHoja(html) {
   const v = cajon(html, true);
   v.classList.add("hoja"); v.querySelector(".cajon").classList.add("hoja");
   return v;
 }
 // Hoja de un producto: lo cargado, lo encontrado para marcar, y subir archivos o links
-function hojaProducto(emp, pubId) {
+function hojaProducto(emp, pubId, recargar = async () => { await VISTAS.material(); hojaProducto(emp, pubId); }) {
   const admin = S.rol !== "operador" || S.matEdit === "todo" || !!S.matEdit?.has?.(pubId);
   const p = S.matPubs.find((x) => x.id === pubId) ?? { id: pubId, titulo: pubId };
   S.matPub = pubId;
@@ -5186,7 +5211,7 @@ function hojaProducto(emp, pubId) {
     if (b.dataset.vers) { e.preventDefault(); b.disabled = true; const x = await seguro(() => api("docs_ver", { cliente_id: emp, clave: b.dataset.vers })); b.disabled = false; if (x) abrirArchivoB64(x); return; }
     if (b.dataset.ver) { const x = await seguro(() => api("material_link", { cliente_id: emp, id: Number(b.dataset.ver) })); if (x) window.open(x.url, "_blank", "noopener"); return; }
     if (b.dataset.cop) { v.remove(); copiarMaterial(emp, cargados.find((m) => m.id === Number(b.dataset.cop))); return; }
-    if (b.dataset.bor) { if (confirm("¿Quitar este documento de este producto?") && await seguro(() => api("material_borrar", { cliente_id: emp, id: Number(b.dataset.bor) }))) { aviso("Documento quitado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); } return; }
+    if (b.dataset.bor) { if (confirm("¿Quitar este documento de este producto?") && await seguro(() => api("material_borrar", { cliente_id: emp, id: Number(b.dataset.bor) }))) { aviso("Documento quitado"); v.remove(); await recargar(); } return; }
   });
   if (btnAgr) btnAgr.onclick = async () => {
     const elegidos = sugeridos.filter((d) => v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked);
@@ -5199,18 +5224,18 @@ function hojaProducto(emp, pubId) {
       if (x) ok++;
     }
     aviso(ok === 1 ? "Agregado: ya se puede mandar" : `Agregados ${ok}: ya se pueden mandar`);
-    v.remove(); await VISTAS.material(); hojaProducto(emp, pubId);
+    v.remove(); await recargar();
   };
   if ($("#hjDes", v)) $("#hjDes", v).onclick = async () => {
     const no = sugeridos.filter((d) => !v.querySelector(`.dsug input[value="${CSS.escape(d.clave)}"]`)?.checked).map((d) => d.clave);
     if (!no.length) return aviso("Están todos marcados");
     if (!confirm(`¿Descartar ${no.length === 1 ? "el archivo no marcado" : `los ${no.length} archivos no marcados`}? No se vuelven a sugerir para este producto.`)) return;
-    if (await seguro(() => api("docs_descartar", { cliente_id: emp, claves: no, publicacion_id: pubId }))) { aviso("Listo"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
+    if (await seguro(() => api("docs_descartar", { cliente_id: emp, claves: no, publicacion_id: pubId }))) { aviso("Listo"); v.remove(); await recargar(); }
   };
-  if ($("#hjSub", v)) $("#hjSub", v).onclick = () => formSubir(emp, pubId, v);
+  if ($("#hjSub", v)) $("#hjSub", v).onclick = () => formSubir(emp, pubId, v, recargar);
 }
 // Subir un archivo o un link a mano
-function formSubir(emp, pubId, v) {
+function formSubir(emp, pubId, v, recargar) {
   const caja = $("#hjForm", v);
   caja.innerHTML = `<div class="dsec"><span>Subir archivo o link</span><span></span></div>
     <div class="seg" id="maTipo" role="tablist"><button type="button" class="on" data-t="archivo">Archivo</button><button type="button" data-t="enlace">Link</button></div>
@@ -5245,7 +5270,7 @@ function formSubir(emp, pubId, v) {
     const b = $("#maG", v); b.disabled = true; b.textContent = "Guardando…";
     const ok = await seguro(() => api("material_guardar", { cliente_id: emp, material: m }));
     b.disabled = false; b.textContent = "Guardar";
-    if (ok) { aviso("Documento guardado"); v.remove(); await VISTAS.material(); hojaProducto(emp, pubId); }
+    if (ok) { aviso("Documento guardado"); v.remove(); await recargar(); }
   };
 }
 
