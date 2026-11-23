@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611231551";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611231554";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4849,10 +4849,28 @@ async function panelNotas(caja, origen, ref, alContar) {
     if (e.target.closest("[data-ncorr-no]")) { st.corrige = null; ver.hidden = true; return; }
     const g = e.target.closest("[data-nguardar]"); if (g) {
       if (!tx.value.trim()) return aviso("Escribí la nota");
-      g.disabled = true; g.textContent = "Guardando…";
-      const ok = await seguro(() => api("nota_agregar", { origen, ref, texto: tx.value, corrige_id: st.corrige }));
-      g.disabled = false; g.textContent = "Guardar nota";
-      if (ok) { aviso(/(^|\s)@\S/.test(tx.value) ? "Nota guardada y avisada" : "Nota guardada"); panelNotas(caja, origen, ref, alContar); }
+      if (g.disabled) return;
+      // Como en WhatsApp: la nota aparece al instante con relojito; si no se guarda queda con el círculo rojo
+      const datos = { origen, ref, texto: tx.value, corrige_id: st.corrige };
+      const lista = caja.querySelector(".nt-lista"); lista?.querySelector("p.mut")?.remove();
+      const pend = document.createElement("div"); pend.className = "nt ch-pend";
+      pend.innerHTML = `<div class="nt-cab"><b>Vos</b><span>${fh(new Date())}</span><span class="tilde" role="img" aria-label="Guardando">${ICO_RELOJ_WA}</span></div><div class="nt-tx">${citas(datos.texto)}</div>`;
+      lista?.appendChild(pend); pend.scrollIntoView({ block: "nearest" });
+      tx.value = ""; st.corrige = null; ver.hidden = true;
+      const guardar = async () => {
+        pend.classList.remove("b-err"); pend.querySelector(".msj-err")?.remove(); g.disabled = true;
+        const ok = await seguro(() => api("nota_agregar", datos));
+        g.disabled = false;
+        if (!ok) {
+          pend.classList.add("b-err");
+          const x = document.createElement("button"); x.type = "button"; x.className = "msj-err"; x.setAttribute("aria-label", "No se guardó: tocá para reintentar o eliminar"); x.textContent = "!";
+          x.onclick = (ev) => { ev.stopPropagation(); abrirMenu(x, [["reintentar", ICO_ENVIAR_WA, "Reintentar"], ["eliminar", ICO_BORRAR_WA, "Eliminar"]], (k) => { if (k === "reintentar") guardar(); else pend.remove(); }); };
+          pend.appendChild(x); return;
+        }
+        if (/(^|\s)@\S/.test(datos.texto)) aviso("Nota guardada y avisada");
+        panelNotas(caja, origen, ref, alContar);
+      };
+      guardar();
     }
   };
 }
@@ -5040,39 +5058,42 @@ function redactarLibre(d) {
     const n = tx.value.length + extra();
     if (n > LIM_MSJ) return aviso(`El mensaje tiene ${n} caracteres: MercadoLibre acepta hasta ${LIM_MSJ}`);
     if (!tx.value.trim() && !elegidos.size && !sueltos.length) return aviso("Escribí un mensaje o elegí un archivo");
-    // Como en WhatsApp: el mensaje aparece al instante con un relojito y el cuadro queda vacío; el botón no se puede
-    // volver a tocar hasta que MercadoLibre lo recibe (así no sale dos veces)
+    // Como en WhatsApp (ver enviarComoWhatsApp): aparece al instante y el cuadro queda vacío
     const b = $("#mEnv"); if (b.disabled) return;
-    b.disabled = true; b.classList.add("enviando"); b.setAttribute("aria-label", "Enviando");
     const texto = tx.value, mats = [...elegidos], adj = sueltos.slice();
     const nombres = [...mats.map((id) => mat.find((m) => Number(m.id) === Number(id))?.titulo).filter(Boolean), ...adj.map((a) => a.nombre)];
-    const bur = $("#mBur"); bur?.querySelector(".b-sis")?.remove();
-    const pend = document.createElement("div"); pend.className = "b b-vend b-pend";
-    pend.innerHTML = `${esc(texto).replace(/\n/g, "<br>")}${nombres.map((n) => `<span class="adj"><span class="adj-t"><span>${esc(n)}</span></span></span>`).join("")}<small>${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}<span class="tilde" role="img" aria-label="Enviando">${ICO_RELOJ_WA}</span></small>`;
-    bur?.appendChild(pend); if (bur) bur.scrollTop = bur.scrollHeight;
     tx.value = ""; elegidos.clear(); sueltos.length = 0; pintarSueltos(); tx.dispatchEvent(new Event("input"));
-    // Si no sale, como en WhatsApp: el mensaje queda con un círculo rojo al costado; tocándolo se reintenta o se elimina
-    const mandar = async () => {
-      pend.classList.remove("b-err"); pend.querySelector(".msj-err")?.remove();
-      const t = pend.querySelector(".tilde"); if (t) { t.innerHTML = ICO_RELOJ_WA; t.setAttribute("aria-label", "Enviando"); }
-      b.disabled = true; b.classList.add("enviando");
-      const r = await seguro(() => api("mensaje_enviar", { id: c.id, texto, material_ids: mats, adjuntos: adj }));
-      b.disabled = false; b.classList.remove("enviando"); b.setAttribute("aria-label", "Enviar");
-      if (!r) {
-        pend.classList.add("b-err");
-        if (t) { t.innerHTML = ""; t.setAttribute("aria-label", "No enviado"); }
-        const x = document.createElement("button"); x.type = "button"; x.className = "msj-err"; x.setAttribute("aria-label", "No se envió: tocá para reintentar o eliminar"); x.textContent = "!";
-        x.onclick = (e) => { e.stopPropagation(); abrirMenu(x, [["reintentar", ICO_ENVIAR_WA, "Reintentar"], ["eliminar", ICO_BORRAR_WA, "Eliminar"]], (k) => { if (k === "reintentar") mandar(); else pend.remove(); }); };
-        pend.appendChild(x);
-        return;
-      }
-      if (t) { t.innerHTML = TILDE1; t.setAttribute("aria-label", "Enviado"); }
-      pend.classList.remove("b-pend");
-      cargarHilos(empMsj());
-      setTimeout(() => { if (S.msjId === c.id && !$("#mTx")?.value) refrescarConv(c.id); }, 2500);
-    };
-    mandar();
+    enviarComoWhatsApp({ texto, nombres, boton: b, llamar: () => api("mensaje_enviar", { id: c.id, texto, material_ids: mats, adjuntos: adj }),
+      alSalir: () => { cargarHilos(empMsj()); setTimeout(() => { if (S.msjId === c.id && !$("#mTx")?.value) refrescarConv(c.id); }, 2500); } });
   };
+}
+
+// Mensaje al comprador como en WhatsApp: aparece al instante con relojito; si sale, una tilde; si no, queda con el
+// círculo rojo para reintentar o eliminar. "boton" no se puede volver a tocar mientras se envía.
+function enviarComoWhatsApp({ texto, nombres = [], boton, llamar, alSalir }) {
+  const bur = $("#mBur"); bur?.querySelector(".b-sis")?.remove();
+  const pend = document.createElement("div"); pend.className = "b b-vend b-pend";
+  pend.innerHTML = `${esc(texto).replace(/\n/g, "<br>")}${nombres.map((n) => `<span class="adj"><span class="adj-t"><span>${esc(n)}</span></span></span>`).join("")}<small>${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}<span class="tilde" role="img" aria-label="Enviando">${ICO_RELOJ_WA}</span></small>`;
+  bur?.appendChild(pend); if (bur) bur.scrollTop = bur.scrollHeight;
+  const mandar = async () => {
+    pend.classList.remove("b-err"); pend.classList.add("b-pend"); pend.querySelector(".msj-err")?.remove();
+    const t = pend.querySelector(".tilde"); if (t) { t.innerHTML = ICO_RELOJ_WA; t.setAttribute("aria-label", "Enviando"); }
+    if (boton) { boton.disabled = true; boton.classList.add("enviando"); }
+    const r = await seguro(llamar);
+    if (boton) { boton.disabled = false; boton.classList.remove("enviando"); }
+    if (!r) {
+      pend.classList.add("b-err");
+      if (t) { t.innerHTML = ""; t.setAttribute("aria-label", "No enviado"); }
+      const x = document.createElement("button"); x.type = "button"; x.className = "msj-err"; x.setAttribute("aria-label", "No se envió: tocá para reintentar o eliminar"); x.textContent = "!";
+      x.onclick = (e) => { e.stopPropagation(); abrirMenu(x, [["reintentar", ICO_ENVIAR_WA, "Reintentar"], ["eliminar", ICO_BORRAR_WA, "Eliminar"]], (k) => { if (k === "reintentar") mandar(); else pend.remove(); }); };
+      pend.appendChild(x);
+      return;
+    }
+    if (t) { t.innerHTML = TILDE1; t.setAttribute("aria-label", "Enviado"); }
+    pend.classList.remove("b-pend");
+    alSalir?.(r);
+  };
+  mandar();
 }
 
 async function redactarMotivo(d) {
@@ -5099,10 +5120,11 @@ async function redactarMotivo(d) {
     if ($("#mEnvM")) $("#mEnvM").onclick = async () => {
       const texto = $("#mTx")?.value ?? "";
       if (!pl && !texto.trim()) return aviso("Escribí el mensaje");
-      const b = $("#mEnvM"); b.disabled = true; b.textContent = "Enviando…";
-      const x = await seguro(() => api("mensaje_enviar", { id: c.id, opcion: sel.id, plantilla: pl?.id ?? null, texto }));
-      b.disabled = false; b.textContent = "Enviar con este motivo";
-      if (x) { aviso("Mensaje enviado"); abrirConv(c.id); cargarHilos(empMsj()); }
+      const b = $("#mEnvM"); if (b.disabled) return;
+      const datos = { id: c.id, opcion: sel.id, plantilla: pl?.id ?? null, texto };
+      if ($("#mTx")) $("#mTx").value = "";
+      enviarComoWhatsApp({ texto: texto || pl?.texto || pl?.titulo || sel?.titulo || "Mensaje con motivo", boton: b, llamar: () => api("mensaje_enviar", datos),
+        alSalir: () => { cargarHilos(empMsj()); setTimeout(() => { if (S.msjId === c.id) abrirConv(c.id); }, 2500); } });
     };
   };
   pintar();
