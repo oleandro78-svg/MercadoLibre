@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230340";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611230410";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -703,7 +703,7 @@ input[type=file]{max-width:100%}
 .wa-ic svg{display:block}
 #mSel:empty{display:none}#mSel{margin:0 0 8px;display:flex;flex-wrap:wrap;gap:6px}
 .mm-menu.mm-lista{flex-direction:column;padding:6px;min-width:250px}.mm-lista button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:14.5px;padding:10px 12px;min-width:0}.mm-lista svg{width:20px;height:20px;flex:none}
-.doc-l{display:grid;gap:6px}#mTx::placeholder{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#mTx:placeholder-shown{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.doc-pie{display:grid;gap:8px;margin-top:14px}.doc-pie .btn{width:100%;white-space:normal;min-width:0}.doc-it{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.doc-it:focus-visible{outline:2px solid var(--cielo)}
+.doc-l{display:grid;gap:6px}.fr-cab{margin:0 0 12px}.fr-pub{margin:0 0 10px;padding:14px}.fr-c{display:flex;gap:12px;align-items:center}.fr-c img,.fr-c .sin-foto{width:48px;height:48px;flex:none}.fr-t{flex:1;min-width:0;display:grid;gap:2px}.fr-n{font-weight:700;white-space:nowrap}.fr-g{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}.fr-g li{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;border-radius:10px;background:var(--suave,rgba(0,0,0,.04))}.fr-o{grid-column:1/-1}#mTx::placeholder{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#mTx:placeholder-shown{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.doc-pie{display:grid;gap:8px;margin-top:14px}.doc-pie .btn{width:100%;white-space:normal;min-width:0}.doc-it{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.doc-it:focus-visible{outline:2px solid var(--cielo)}
 .doc-it[aria-pressed="true"]{border-color:var(--wa-verde,#1DAB61);background:var(--wa-chip-on,#D9FDD3)}.doc-ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--sup2)}.doc-t{flex:1;min-width:0;display:grid;gap:2px}
 .doc-ck{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--linea)}.doc-it[aria-pressed="true"] .doc-ck{border-color:var(--wa-verde,#1DAB61);background:var(--wa-verde,#1DAB61) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 .m-chat .ch-comp{background:var(--wa-fondo);border-top:0}.wa-pill-ch{padding-left:4px}button.wa-ic{border:0;background:none;padding:0;margin:0;font:inherit;box-sizing:border-box;-webkit-appearance:none;appearance:none}button.wa-ic:focus-visible{outline:2px solid var(--cielo);outline-offset:-2px}.wa-ic-txt{font-size:20px;font-weight:600}
@@ -3960,14 +3960,17 @@ const ETQ = {
   ] },
 };
 // Configuración guardada del cliente (se trae una vez por cliente)
+// Si la pantalla no tiene el negocio a mano (el administrador de la empresa entra sin elegirlo), se usa el de la sesión
+const etqEmp = (emp) => emp || empRec() || S.clienteId || null;
 async function etqCargar(emp) {
-  if (!emp) return null;
+  emp = etqEmp(emp); if (!emp) return null;
   S.etq ??= {};
-  if (!S.etq[emp]) { const r = await api("etiquetas", { cliente_id: emp }).catch(() => null); S.etq[emp] = r ?? { etiquetas: {}, puede_editar: false }; }
+  // Si falla la lectura no se guarda vacío: se reintenta la próxima vez (si no, la lista queda con el diseño de fábrica)
+  if (!S.etq[emp]) { const r = await api("etiquetas", { cliente_id: emp }).catch(() => null); if (!r) return null; S.etq[emp] = r; }
   return S.etq[emp];
 }
-const etqConfig = (mod, emp) => S.etq?.[emp]?.etiquetas?.[mod] ?? ETQ[mod].plantillas[0][1];
-const etqPuede = (emp) => !!S.etq?.[emp]?.puede_editar;
+const etqConfig = (mod, emp) => S.etq?.[etqEmp(emp)]?.etiquetas?.[mod] ?? ETQ[mod].plantillas[0][1];
+const etqPuede = (emp) => !!S.etq?.[etqEmp(emp)]?.puede_editar;
 // Arma cada casillero de una fila con los datos elegidos; los vacíos no se muestran
 function etqPartes(mod, c, cfg) {
   const D = ETQ[mod].datos, sep = '<span class="etq-sep"> · </span>';
@@ -4074,7 +4077,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
     const copias = [...h.querySelectorAll("#etqCopia input:checked")].map((i) => i.value);
     for (const m of copias) { const x = await seguro(() => api("etiqueta_guardar", { cliente_id: emp, modulo: m, config: etqTraducir(cfg, m).cfg })); if (x) ult = x; }
     b.disabled = false;
-    S.etq[emp] = { ...(S.etq[emp] ?? {}), etiquetas: ult.etiquetas, puede_editar: true };
+    const ek = etqEmp(emp); S.etq ??= {}; S.etq[ek] = { ...(S.etq[ek] ?? {}), etiquetas: ult.etiquetas, puede_editar: true };
     h.remove(); aviso(copias.length ? `Listo: se aplicó en ${[def.titulo, ...copias.map((m) => ETQ[m].titulo)].join(", ").replace(/, ([^,]*)$/, " y $1")}` : "Listo: la lista ya muestra los datos elegidos"); alGuardar?.();
   };
   pintar();
@@ -6003,7 +6006,13 @@ function estadoDev(d) {
   if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
-    if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
+    if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) {
+      // Lo que diga el reclamo no cambia al pedir o hacer el retiro: manda el stock real de Full
+      const fr = S.fullRet, o = String(d.orden_id ?? "");
+      if (fr?.ordenes?.[o] === "pedido") return { t: "Retiro pedido en MercadoLibre: falta que lo retires", c: "c-cal", grupo: "ml" };
+      if (fr && !fr.ordenes?.[o] && (fr.limpios ?? []).includes(d.item_id)) return { t: "Ya no queda en el depósito de Full", c: "c-ok", grupo: "cerradas" };
+      return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
+    }
     if (d.envio_estado === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
     if (d.envio_estado === "shipped") return { t: `En camino al depósito de MercadoLibre${por}`, c: "", grupo: "camino" };
     if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
@@ -6196,22 +6205,39 @@ VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
-  const [r] = await Promise.all([seguro(() => api("devoluciones", { cliente_id: emp })), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
+  const [r, fr] = await Promise.all([seguro(() => api("devoluciones", { cliente_id: emp })), api("full_retiros", { cliente_id: emp }).catch(() => null), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
+  if (fr) S.fullRet = fr;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= "revisar";
   if (S.recFil === "otras") S.recFil = "revisar";
   const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
+  const fullN = (S.fullRet?.pendientes ?? 0) + (S.fullRet?.pedidas ?? 0);
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>${chipsClientes("devoluciones", emp)}
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
-    <div class="rec-lista">${lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${fullN || S.recFil === "full" ? `<button type="button" data-f="full" class="${S.recFil === "full" ? "on" : ""}">Retirar de Full · ${S.fullRet?.pendientes ?? 0}</button>` : ""}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
+    <div class="rec-lista">${S.recFil === "full" ? fullRetirosHTML(S.fullRet) : lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   escucharClientes(() => VISTAS.devoluciones());
   $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
   $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
-  $("#main").querySelector(".rec-lista").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); } };
+  $("#main").querySelector(".rec-lista").onclick = async (e) => {
+    const u = e.target.closest("#frAct");
+    if (u) { u.disabled = true; u.textContent = "Consultando MercadoLibre…"; const x = await seguro(() => api("full_retiros", { cliente_id: emp, forzar: true })); if (x) S.fullRet = x; VISTAS.devoluciones(); return; }
+    const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); }
+  };
 };
+// Unidades para retirar de los depósitos de Full, por publicación y motivo (sale del stock real, no de los reclamos)
+function fullRetirosHTML(fr) {
+  if (!fr) return `<div class="panel vacio"><b>Todavía no se pudo consultar el stock de Full</b>Probá de nuevo en unos minutos.</div>`;
+  const cuando = fr.actualizado ? haceVivo(fr.actualizado) : "";
+  const cab = `<p class="peq mut fr-cab">${fr.pendientes ? `Hay <b>${fr.pendientes} ${fr.pendientes === 1 ? "unidad" : "unidades"}</b> que no se pueden vender y todavía no pediste retirar.` : "No hay unidades sin retiro pedido."}${fr.pedidas ? ` Además, ${fr.pedidas === 1 ? "hay una" : `hay ${fr.pedidas}`} con el retiro ya pedido, esperando que la${fr.pedidas === 1 ? "" : "s"} retires.` : ""}
+    Es el stock de Full según MercadoLibre${cuando ? ` (consultado ${cuando})` : ""}. <button type="button" class="enlace" id="frAct">Actualizar</button></p>`;
+  if (!fr.publicaciones?.length) return cab;
+  return cab + fr.publicaciones.map((p) => `<div class="panel fr-pub">
+      <div class="fr-c">${foto(p.foto)}<div class="fr-t"><b>${esc(p.titulo)}</b>${p.variante ? `<span class="peq mut">${esc(p.variante)}</span>` : ""}</div><span class="fr-n">${p.cantidad} u.</span></div>
+      <ul class="fr-g">${p.grupos.map((g) => `<li><span>${g.pedido ? `<span class="chip c-cal">Retiro pedido</span> ` : ""}${esc(g.motivo)}</span><b>${g.cantidad}</b>${g.ordenes?.length ? `<span class="peq mut fr-o">Volvió de la venta ${g.ordenes.map((o) => `#${esc(o)}`).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("");
+}
 
 // ---------- detalle de una devolución: cómo llegó ----------
 async function detalleDevolucion(id) {
