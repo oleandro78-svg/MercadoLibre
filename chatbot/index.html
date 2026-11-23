@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611231612";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611232118";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -676,6 +676,11 @@ input[type=file]{max-width:100%}
 .mi-tarjeta{background:var(--wa-entra);color:var(--wa-txt);border-radius:6px;box-shadow:0 1px 3px rgba(11,20,26,.15);padding:4px 16px}
 .mi-fila{padding:14px 0;border-top:1px solid rgba(134,150,160,.25)}.mi-fila:first-child{border-top:0}.mi-tit{display:flex;align-items:center;gap:8px}.mi-tit b{font-size:17px;font-weight:400}.mi-val{display:block;margin-top:2px;font-size:15px;color:var(--wa-meta)}
 .mi-pie{margin:12px 4px 0;font-size:13px;color:var(--wa-meta)}
+.mi-grupo{padding:0;margin-bottom:16px;overflow:hidden}.mi-gtit{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 14px;font-size:17px;color:var(--wa-verde);border-bottom:1px solid rgba(134,150,160,.2)}.mi-gtit .tilde svg{width:22px;height:15px}
+.mi-plista{list-style:none;margin:0;padding:0}.mi-per{display:flex;align-items:center;gap:16px;padding:12px 16px 0}.mi-per-tx{flex:1;display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid rgba(134,150,160,.2);min-width:0}.mi-per:last-child .mi-per-tx,.mi-per:has(+.mi-resto) .mi-per-tx{border-bottom:0}
+.mi-per-n{font-size:17px;color:var(--wa-txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mi-per-h{font-size:14.5px;color:var(--wa-meta)}
+.mi-av{flex:none;width:48px;height:48px;margin-bottom:12px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:600}
+.mi-resto{padding:14px 16px;font-size:16px;color:var(--wa-meta)}.mi-per+.mi-resto{border-top:1px solid rgba(134,150,160,.2)}
 .b-sis{align-self:center;background:transparent;box-shadow:none;color:var(--piz);font-size:13px;text-align:center}
 .adj-mini{width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--papel);flex:0 0 auto}.adj-mini:not([src]){animation:pulso 1.2s ease-in-out infinite}
 .adj-falla{animation:none!important}.adj-t{display:flex;flex-direction:column;min-width:0}.adj-t span:first-child{overflow-wrap:anywhere}.adj-img{padding:6px}
@@ -4448,7 +4453,7 @@ function burbujas(ms) {
 const haceInfo = (t) => {
   if (!t) return "—";
   const d = new Date(t), seg = (Date.now() - d.getTime()) / 1000, h = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  if (seg < 60) return "hace un momento";
+  if (seg < 60) return "Justo ahora";
   if (seg < 3600) { const n = Math.floor(seg / 60); return `hace ${n} ${n === 1 ? "minuto" : "minutos"}`; }
   const hoy = new Date(), ayer = new Date(Date.now() - 86400_000);
   if (d.toDateString() === hoy.toDateString()) return `hoy, ${h}`;
@@ -4535,21 +4540,27 @@ function escucharMenuChat(caja, st, accion) {
     });
   });
 }
+// Círculo con las iniciales, siempre del mismo color para la misma persona
+const AV_COLORES = [["#DFF3E4", "#1D6B3A"], ["#E3EEFB", "#24548F"], ["#FCEBD9", "#8A4B12"], ["#F4E3F7", "#6E2C7D"], ["#FBE3E3", "#8E2B2B"], ["#E4F4F4", "#1F6464"], ["#EFEBDD", "#5E5326"]];
+const avPersona = (n) => { let h = 0; for (const c of String(n)) h = (h * 31 + c.charCodeAt(0)) >>> 0; const [f, t] = AV_COLORES[h % AV_COLORES.length]; return `<span class="mi-av" style="background:${f};color:${t}" aria-hidden="true">${esc(iniciales(n))}</span>`; };
 async function infoChat(m, st) {
   const r = await seguro(() => api("chat_info", { cliente_id: empChat(), mensaje_id: m.id })); if (!r) return;
   const ps = r.personas ?? [], directo = st.chat?.tipo === "directo";
   const fila = (svg, cls, t, val) => `<div class="mi-fila"><div class="mi-tit"><span class="tilde ${cls}">${svg}</span><b>${t}</b></div><span class="mi-val">${val}</span></div>`;
   const leyeron = ps.filter((p) => p.leido), llego = ps.filter((p) => p.entregado && !p.leido), falta = ps.filter((p) => !p.entregado);
   const lista = (l, k) => `<ul class="mi-lista">${l.map((p) => `<li><span>${esc(p.nombre)}</span><span class="mi-val">${p[k] ? haceInfo(p[k]) : k === "leido_at" ? "leído" : "entregado"}</span></li>`).join("")}</ul>`;
+  // Grupos: como WhatsApp, una tarjeta "Visto por" y otra "Entregado a", con la foto (iniciales) de cada uno y "N restantes"
+  const persona = (p, k) => `<li class="mi-per">${avPersona(p.nombre)}<span class="mi-per-tx"><span class="mi-per-n">${esc(p.nombre)}</span><span class="mi-per-h">${p[k] ? haceInfo(p[k]) : k === "leido_at" ? "Visto" : "Entregado"}</span></span></li>`;
+  const restan = (n) => n ? `<li class="mi-resto">${n} ${n === 1 ? "restante" : "restantes"}</li>` : "";
+  const tarjeta = (titulo, cls, l, k, resto) => `<div class="mi-tarjeta mi-grupo"><div class="mi-gtit"><span>${titulo}</span><span class="tilde ${cls}">${TILDE2}</span></div><ul class="mi-plista">${l.map((p) => persona(p, k)).join("")}${restan(resto)}</ul></div>`;
   const cuerpo = directo && ps.length === 1
-    ? `${fila(TILDE2, "leido", "Leído", ps[0].leido ? (ps[0].leido_at ? haceInfo(ps[0].leido_at) : "sí") : "—")}${fila(TILDE2, "", "Entregado", ps[0].entregado ? (ps[0].entregado_at ? haceInfo(ps[0].entregado_at) : "sí") : "—")}`
-    : `<div class="mi-sec"><span class="tilde leido">${TILDE2}</span>Leído por</div>${leyeron.length ? lista(leyeron, "leido_at") : `<p class="mi-val" style="padding:6px 0 10px">Nadie todavía</p>`}
-       <div class="mi-sec"><span class="tilde">${TILDE2}</span>Entregado a</div>${llego.length ? lista(llego, "entregado_at") : `<p class="mi-val" style="padding:6px 0 10px">${leyeron.length === ps.length ? "Todos lo leyeron" : "Nadie más"}</p>`}
-       ${falta.length ? `<div class="mi-sec"><span class="tilde">${TILDE1}</span>Todavía no le llegó a</div><ul class="mi-lista">${falta.map((p) => `<li><span>${esc(p.nombre)}</span></li>`).join("")}</ul>` : ""}`;
+    ? `<div class="mi-tarjeta">${fila(TILDE2, "leido", "Leído", ps[0].leido ? (ps[0].leido_at ? haceInfo(ps[0].leido_at) : "sí") : "—")}${fila(TILDE2, "", "Entregado", ps[0].entregado ? (ps[0].entregado_at ? haceInfo(ps[0].entregado_at) : "sí") : "—")}</div>`
+    : tarjeta("Visto por", "leido", leyeron, "leido_at", ps.length - leyeron.length) + tarjeta("Entregado a", "", llego, "entregado_at", falta.length);
+  const tildeBurbuja = ps.length && leyeron.length === ps.length ? `<span class="tilde leido">${TILDE2}</span>` : ps.length && !falta.length ? `<span class="tilde">${TILDE2}</span>` : `<span class="tilde">${TILDE1}</span>`;
   const v = document.createElement("div"); v.className = "mi-velo"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", "Info del mensaje");
   v.innerHTML = `<div class="mi-cab"><button type="button" class="mi-volver" aria-label="Volver">←</button><h2>Info. del mensaje</h2></div>
-    <div class="mi-chat ch-msjs" style="display:flex;flex-direction:column"><div class="ch-b mio" style="max-width:85%">${m.texto ? `<div class="ch-tx">${esc(m.texto).replace(/\n/g, "<br>")}</div>` : "<div class='ch-tx'>(ficha compartida)</div>"}<span class="ch-pie"><span>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span></span></div></div>
-    <div class="mi-cuerpo"><div class="mi-tarjeta">${cuerpo}</div><p class="mi-pie">Enviado ${haceInfo(r.enviado_at)}.</p></div>`;
+    <div class="mi-chat ch-msjs" style="display:flex;flex-direction:column"><div class="ch-b mio" style="max-width:85%">${m.texto ? `<div class="ch-tx">${esc(m.texto).replace(/\n/g, "<br>")}</div>` : "<div class='ch-tx'>(ficha compartida)</div>"}<span class="ch-pie"><span>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>${tildeBurbuja}</span></div></div>
+    <div class="mi-cuerpo">${cuerpo}</div>`;
   document.body.appendChild(v);
   const cerrar = () => { v.remove(); document.removeEventListener("keydown", tecla); };
   const tecla = (e) => { if (e.key === "Escape") cerrar(); };
