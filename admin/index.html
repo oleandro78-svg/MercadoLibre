@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241255";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241302";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -584,7 +584,7 @@ input[type=file]{max-width:100%}
 .p-dueno .nav .nav-g{color:#7E93A6}
 /* ---------- módulo Mensajes ---------- */
 .contenido.lleno{padding:0;max-width:none}
-.msj{display:grid;grid-template-columns:330px minmax(0,1fr) 290px;height:100vh;min-width:0}
+.msj{display:grid;grid-template-columns:330px minmax(0,1fr);height:100vh;min-width:0}.msj>.m-venta{display:none}#cpVen .m-venta{display:block;border-left:0;padding:16px 18px 40px;overflow:visible;background:none}
 .m-lista{border-right:1px solid var(--linea);background:var(--sup);display:flex;flex-direction:column;min-width:0;min-height:0}
 .m-cab{padding:20px 18px 12px;border-bottom:1px solid var(--linea)}
 .m-cab h1{font-size:24px;margin:0}
@@ -4735,7 +4735,7 @@ function pintarChat(d) {
       <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
       <button type="button" role="tab" data-ct="factura">Factura</button>
       ${c.envio_id || c.estado_orden !== "cancelled" ? `<button type="button" role="tab" data-ct="entrega">Entrega</button>` : ""}
-      <button type="button" role="tab" data-ct="venta" class="solo-movil">Historial</button></div>
+      <button type="button" role="tab" data-ct="venta">Historial</button></div>
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
@@ -4746,7 +4746,8 @@ function pintarChat(d) {
     <div class="c-pane" id="cpFac" hidden><div class="fx" id="cFac"><p class="mut">Cargando…</p></div></div>
     ${c.envio_id || c.estado_orden !== "cancelled" ? `<div class="c-pane" id="cpEnt" hidden><div class="ent-pane"><div id="mEnt"><p class="peq mut" style="margin:0">${buscandoTxt("Buscando la entrega")}</p></div></div></div>` : ""}
     <div class="c-pane" id="cpVen" hidden></div>`;
-  if (movil) { rescatarVen(); $("#cpVen")?.appendChild($("#mVen")); }
+  // El historial de la venta va en su solapa, en el celular y en la computadora
+  rescatarVen(); $("#cpVen")?.appendChild($("#mVen"));
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
   escucharInfoMensajes(bur);
   $("#mChat").querySelectorAll("[data-cerrar-aviso]").forEach((b) => b.onclick = (e) => {
@@ -4796,7 +4797,6 @@ function pestConv(t) {
   const c = S.msjConv?.conversacion; if (!c || !$("#cpChat")) return;
   if (t === "reclamo" && !$("#cpRec")) t = "chat";
   if (t === "entrega" && !$("#cpEnt")) t = "chat";
-  if (t === "venta" && !anchoMovil()) t = "chat";
   S.convTab = S.convTab ?? {}; S.convTab[c.id] = t;
   $("#mChat").querySelectorAll("[data-ct]").forEach((b) => { const on = b.dataset.ct === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   $("#cpChat").hidden = t !== "chat"; if ($("#cpRec")) $("#cpRec").hidden = t !== "reclamo"; $("#cpNot").hidden = t !== "notas"; if ($("#cpVen")) $("#cpVen").hidden = t !== "venta"; $("#cpFac").hidden = t !== "factura"; if ($("#cpEnt")) $("#cpEnt").hidden = t !== "entrega";
@@ -6788,12 +6788,12 @@ VISTAS.devoluciones = async () => {
 function fullRetirosHTML(fr) {
   if (!fr) return `<div class="panel vacio"><b>Todavía no se pudo consultar el stock de Full</b>Probá de nuevo en unos minutos.</div>`;
   const cuando = fr.actualizado ? haceVivo(fr.actualizado) : "";
-  const cab = `<p class="peq mut fr-cab">${fr.pendientes ? `Hay <b>${fr.pendientes} ${fr.pendientes === 1 ? "unidad" : "unidades"}</b> que no se pueden vender y todavía no pediste retirar.` : "No hay unidades sin retiro pedido."}${fr.pedidas ? ` Además, ${fr.pedidas === 1 ? "hay una" : `hay ${fr.pedidas}`} con el retiro ya pedido, esperando que la${fr.pedidas === 1 ? "" : "s"} retires.` : ""}
+  const cab = `<p class="peq mut fr-cab">${fr.pendientes ? `Hay <b>${fr.pendientes} ${fr.pendientes === 1 ? "unidad" : "unidades"}</b> que no se pueden vender y todavía no pediste retirar.` : "No hay unidades para retirar que no hayas pedido."}${fr.pedidas ? ` De ${fr.pedidas === 1 ? "una unidad" : `${fr.pedidas} unidades`} ya pediste el retiro.` : ""}
     Es el stock de Full según MercadoLibre${cuando ? ` (consultado ${cuando})` : ""}. <button type="button" class="enlace" id="frAct">Actualizar</button></p>`;
   if (!fr.publicaciones?.length) return cab;
   return cab + fr.publicaciones.map((p) => `<div class="panel fr-pub">
       <div class="fr-c">${foto(p.foto)}<div class="fr-t"><b>${esc(p.titulo)}</b>${p.variante ? `<span class="peq mut">${esc(p.variante)}</span>` : ""}</div><span class="fr-n">${p.cantidad} u.</span></div>
-      <ul class="fr-g">${p.grupos.map((g) => `<li${g.proceso ? ' class="fr-proc"' : ""}><span>${g.pedido ? `<span class="chip c-cal">Retiro pedido</span> ` : ""}${esc(g.motivo)}</span><b>${g.cantidad}</b>${g.ordenes?.length ? `<span class="peq mut fr-o">Volvió de la venta ${g.ordenes.map((o) => `#${esc(o)}`).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("");
+      <ul class="fr-g">${p.grupos.map((g) => `<li${g.proceso ? ' class="fr-proc"' : ""}><span>${g.pedido ? `<span class="chip c-cal">Ya pediste el retiro</span> ` : ""}${/^(retiro ya pedido|ya pediste el retiro)$/i.test(g.motivo) ? "" : esc(g.motivo)}</span><b>${g.cantidad}</b>${g.ordenes?.length ? `<span class="peq mut fr-o">Volvió de la venta ${g.ordenes.map((o) => `#${esc(o)}`).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("");
 }
 
 // ---------- detalle de una devolución: cómo llegó ----------
