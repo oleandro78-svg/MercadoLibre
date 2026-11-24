@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241404";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241440";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -898,7 +898,8 @@ section.et-seg{display:grid;gap:8px;padding:12px 14px;border-radius:12px;backgro
 .rc-det-venta{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--linea);border-radius:14px;background:var(--sup);margin-bottom:14px}.rc-det-venta>div{display:grid;gap:2px;min-width:0}
 .rc-det-venta .foto{width:52px;height:52px;border-radius:10px;object-fit:cover;font-size:10px;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px var(--linea)}
 .rc-det-p{display:block}.rc-det-p .rec-pie{position:static;margin-top:14px;padding:0;background:none;border:0;box-shadow:none}
-.mod-bus{margin:0 0 12px}.mod-bus .m-bus{margin-top:0}
+.mod-bus{margin:0 0 12px}
+@media (max-width:960px){.mod-bus.bus-dev .m-esc{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:34;width:60px;height:60px;padding:0;border:0;border-radius:50%;background:var(--pino);color:var(--sobre-pino,#fff);display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.25)}.mod-bus.bus-dev .m-esc svg{width:28px;height:28px}}.mod-bus .m-bus{margin-top:0}
 .bq-fuera{border:1px dashed var(--linea);border-radius:14px;padding:14px;background:var(--sup);display:grid;gap:10px;margin:0 0 12px}.bq-fuera p{margin:0;color:var(--piz);font-size:14px}
 .bq-v{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;padding:10px;border-radius:12px;background:var(--sup2)}.bq-v:focus-visible{outline:2px solid var(--cielo)}
 .bq-v .foto{width:48px;height:48px;border-radius:10px;object-fit:cover;font-size:10px;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--piz)}.bq-v>span{display:grid;gap:2px;min-width:0}.bq-v>span>span{color:var(--piz);font-size:13.5px}
@@ -4129,7 +4130,7 @@ document.addEventListener("keydown", (e) => { const b = e.target.closest?.("[dat
 
 // Editor: plantillas arriba, la etiqueta con casilleros, los datos sin usar y cómo se ve con filas reales
 // Copiar la etiqueta de una lista a otra: los datos con otro nombre se traducen y los que no existen en la otra lista quedan afuera
-const ETQ_EQUIV = { ventas: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, despacho: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, devoluciones: { nombre: "comprador", nro: "carrito", seguim: "seguimiento" } };
+const ETQ_EQUIV = { reclamos: { nombre: "comprador", nro: "carrito", orden: "carrito" }, ventas: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, despacho: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, devoluciones: { nombre: "comprador", nro: "carrito", seguim: "seguimiento" } };
 const ETQ_MOD_APP = { ventas: "mensajes", despacho: "despacho", devoluciones: "devoluciones", reclamos: "devoluciones" };
 function etqTraducir(cfg, destino) {
   const D = ETQ[destino].datos, eq = ETQ_EQUIV[destino] ?? {}, out = {}, fuera = [];
@@ -4199,7 +4200,7 @@ function etqEditor(mod, emp, filas, alGuardar) {
   h.querySelector("#etqCopia")?.addEventListener("change", () => pintar());
   h.addEventListener("keydown", (e) => { const t = e.target.closest(".etq-it"); if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sel = t.dataset.i; pintar(); } });
   h.querySelector("#etqOk").onclick = async () => {
-    const ident = { ventas: ["nombre", "nick", "prod", "nro", "orden"], despacho: ["nombre", "nick", "prod", "nro", "orden", "sku"], devoluciones: ["prod", "comprador", "orden"] }[mod];
+    const ident = { ventas: ["nombre", "nick", "prod", "nro", "orden"], despacho: ["nombre", "nick", "prod", "nro", "orden", "sku"], devoluciones: ["prod", "comprador", "orden"], reclamos: ["prod", "comprador", "nick", "carrito", "reclamo"] }[mod] ?? [];
     if (!Object.values(cfg).flat().some((k) => ident.includes(k))) return aviso("Dejá al menos un dato que identifique la venta (nombre, usuario, producto o número)");
     const b = h.querySelector("#etqOk"); b.disabled = true;
     const r = await seguro(() => api("etiqueta_guardar", { cliente_id: emp, modulo: mod, config: cfg }));
@@ -4445,7 +4446,7 @@ function coincideBus(q, texto) { const t = normBus(q).trim(); if (!t) return tru
 const busTxt = (...c) => c.flat(2).filter((x) => x != null && x !== "").join(" ");
 const busAttr = (...c) => `data-bus="${esc(busTxt(...c))}"`;
 function busModHTML(k, conEsc = true) {
-  return `<div class="m-bus-fila mod-bus"><input type="search" id="bm_${k}" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.busMod[k] ?? "")}" aria-label="Buscar" autocomplete="off">
+  return `<div class="m-bus-fila mod-bus${k === "devoluciones" ? " bus-dev" : ""}"><input type="search" id="bm_${k}" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.busMod[k] ?? "")}" aria-label="Buscar" autocomplete="off">
     ${conEsc ? `<button class="btn lin m-esc" type="button" id="bmEsc_${k}" aria-label="Escanear la etiqueta del envío" title="Escanear la etiqueta del envío">${ICONO_R.scan}</button>` : ""}</div>`;
 }
 // aplicar(q) filtra la lista y devuelve cuántos quedaron; donde: "Despacho", "Reclamos"… (para "No está en …")
@@ -4473,6 +4474,7 @@ async function fueraMod(k, emp, q, n, donde) {
   let caja = $(`#bmFuera_${k}`);
   if (!q || n) { caja?.remove(); return; }
   if (!caja) { $(`#bm_${k}`)?.closest(".mod-bus")?.insertAdjacentHTML("afterend", `<div class="bq-fuera" id="bmFuera_${k}"></div>`); caja = $(`#bmFuera_${k}`); if (!caja) return; }
+  if (k === "devoluciones") { caja.innerHTML = `<b>No hay una devolución con eso</b><p>Si tenés el paquete enfrente, escaneá la etiqueta con el botón de escanear.</p>`; return; }
   if (!modsActuales().has("mensajes")) { caja.innerHTML = `<b>No encontré nada con eso en ${donde}</b>`; return; }
   caja.innerHTML = `<b>No está en ${donde}</b><p>${buscandoTxt("Buscando en todas las ventas")}</p>`;
   const r = await api("mensajes", { cliente_id: emp, filtro: "todas", buscar: q, desde: 0, limite: 5, filtros: {} }).catch(() => null);
