@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241529";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241531";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6969,6 +6969,9 @@ async function detalleDevolucion0(id) {
       ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
       ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
   const deposito = EX(d).triage?.destino === "seller", soloRegistrar = deposito && !d.se_puede_revisar;
+  // Del depósito, MercadoLibre a veces solo habilita informar un problema: "llegó bien" se registra en la app
+  const sinOk = !(d.acciones ?? []).some((a) => /return_review(_unified)?_ok/.test(a.accion));
+  const registrar = () => soloRegistrar || (deposito && sinOk && st.resultado === "ok");
   if (d.destino === "warehouse" && !enviada && !deposito) {
     // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
@@ -7029,7 +7032,7 @@ async function detalleDevolucion0(id) {
       <button class="btn pri" id="recEnv" type="button"></button></div>`;
   const pintarPie = () => {
     const b = $("#recEnv");
-    if (soloRegistrar) { b.textContent = "Registrar cómo llegó"; b.disabled = !st.resultado; return; }
+    if (registrar()) { b.textContent = "Registrar cómo llegó"; b.disabled = !st.resultado; return; }
     b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? "Aprobar y enviar a MercadoLibre" : st.resultado === "falla" ? "Informar el problema a MercadoLibre" : "Confirmar que llegó bien";
     b.disabled = !st.resultado || (yo.sinAprobacion && !d.se_puede_revisar);
   };
@@ -7041,8 +7044,9 @@ async function detalleDevolucion0(id) {
     caja.innerHTML = `${f.length ? `<div class="estado e-blo" style="margin-top:14px"><span><b>Sin tildar:</b> ${f.map(esc).join(" · ")}. Si no vino, elegí <b>Llegó con un problema</b>.</span></div>` : env.incluye?.length ? `<div class="estado e-ok" style="margin-top:14px"><span>Vino todo lo que tenía que traer.</span></div>` : ""}
       <h3 class="rec-h3">Fotos <span class="peq mut">opcionales: quedan guardadas en la app como respaldo, no se envían</span></h3>
       <div id="recFotosOk"></div>
+      ${registrar() ? `<div class="env-que"><b>Qué pasa al registrar</b><p>Queda guardado en la app cómo llegó, con las fotos, como respaldo. MercadoLibre ya resolvió este reclamo: no se le envía nada.</p></div>` : `
       <div class="env-que"><b>Qué pasa al confirmar</b><p>MercadoLibre da la devolución por buena y le devuelve la plata al comprador. Después ya no se puede reclamar por esta devolución.</p>
-        ${d.vence_at ? `<p>Si no la revisás ${venceRec(d.vence_at)}, MercadoLibre la da por buena igual.</p>` : ""}</div>`;
+        ${d.vence_at ? `<p>Si no la revisás ${venceRec(d.vence_at)}, MercadoLibre la da por buena igual.</p>` : ""}</div>`}`;
     casillasFotos($("#recFotosOk"), ["Producto", "Embalaje"], st.fotos, null);
   };
   const pintarFalla = () => {
@@ -7092,9 +7096,9 @@ async function detalleDevolucion0(id) {
       const enviar = b.id === "recEnv";
       if (enviar && st.resultado === "falla" && !st.motivo) return aviso("Elegí qué pasó");
       if (enviar && st.resultado === "falla" && !String(st.descripcion).trim()) return aviso("Escribí la descripción o pedísela a la IA");
-      if (enviar && !soloRegistrar && yo.sinAprobacion && !(await confirmarEnvio(d, st, r))) return;
+      if (enviar && !registrar() && yo.sinAprobacion && !(await confirmarEnvio(d, st, r))) return;
       b.disabled = true;
-      const x = await seguro(() => api("devolucion_guardar", soloRegistrar && enviar ? { id, registrar: true, revision: st } : { id, enviar, revision: st }));
+      const x = await seguro(() => api("devolucion_guardar", registrar() && enviar ? { id, registrar: true, revision: st } : { id, enviar, revision: st }));
       b.disabled = false;
       if (!x) return;
       aviso(x.estado === "registrada" ? "Quedó registrado cómo llegó" : x.estado === "enviada" ? (st.resultado === "falla" ? "Problema informado a MercadoLibre" : "Confirmado a MercadoLibre") : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
