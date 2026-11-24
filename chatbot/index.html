@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611242054";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611242102";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1935,7 +1935,7 @@ VISTAS.equipo = async () => {
     </div>
     <h2 class="eq-h">Personas <span class="mut">${vivos.length}</span></h2>
     <div class="personas">${vivos.length ? vivos.map(tarjeta).join("") : `<div class="panel vacio"><b>Todavía no sumaste a nadie</b>Invitá a la primera persona con el botón de arriba.</div>`}</div>
-    ${r.grupos && vivos.length ? (() => { const mods = modsActuales(), gs = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"], ["preguntas", "preguntas"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
+    ${r.grupos && vivos.length ? (() => { const mods = modsActuales(), gs = [["ventas", "mensajes"], ["despacho", "despacho"], ["reclamos", "reclamos"], ["devoluciones", "devoluciones"], ["retiros_full", "retiros_full"], ["preguntas", "preguntas"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
       return gs.length ? `<h2 class="eq-h">Grupos</h2><div class="panel grp-panel"><p class="peq mut" style="margin:0 0 12px">Quiénes son de cada sector. Por ejemplo, cuando se agenda un compromiso con un comprador quedan invitados los de Ventas, no los de Despacho. Una persona puede estar en varios grupos.</p>
         ${gs.map((k) => `<div class="grp-f"><b>${GRUPO_TXT[k]}</b><div class="nt-men" data-grupo="${k}">${vivos.map((m) => `<button type="button" data-u="${esc(m.usuario_id)}" aria-pressed="${(r.grupos[k] ?? []).includes(m.usuario_id)}">${nomC(m).replace(/^vos$/, "Vos")}</button>`).join("")}</div></div>`).join("")}
         <div style="margin-top:12px"><button class="btn pri chico" type="button" id="grpG">Guardar grupos</button></div></div>` : ""; })() : ""}
@@ -2120,11 +2120,15 @@ VISTAS.notificaciones = async () => {
     if (mods.has("despacho")) b.push(`<section class="panel nf-mod"><h2>Despacho</h2>
       ${nfFila("Venta para despachar", "", nfSeg("despacho", "como", n.despacho.como, [["una", "Una por una"], ["resumen", "Resumen a una hora fija"], ["ninguna", "Ninguna"]]) + (n.despacho.como === "resumen" ? ` <input type="time" class="nf-num" value="${esc(n.despacho.hora)}" data-txt="despacho.hora">` : ""))}
       ${nfFila("Recordatorio antes del límite", "Si la etiqueta todavía no se imprimió", `<input type="number" class="nf-num" min="10" max="600" step="10" value="${n.despacho.recordatorio_min}" data-num="despacho.recordatorio_min"> min antes ${nfSw(`data-swsec="despacho" data-swk="recordatorio"`, n.despacho.recordatorio)}`)}</section>`);
-    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Posventa</h2>
-      ${nfFila("Reclamo o mediación nueva", "A las personas de Posventa. Si nadie responde, los recordatorios de 24 h, 4 h, 2 h y 1 h antes de que venza llegan siempre", nfSw(`data-swsec="ventas" data-swk="reclamo"`, n.ventas.reclamo))}${mods.has("devoluciones") ? `
+    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Reclamos</h2>
+      ${nfFila("Reclamo o mediación nueva", "A las personas asignadas a Reclamos y a los administradores. Si nadie responde, los recordatorios de 24 h, 4 h, 2 h y 1 h antes de que venza llegan siempre", nfSw(`data-swsec="ventas" data-swk="reclamo"`, n.ventas.reclamo))}</section>`);
+    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Devoluciones</h2>
       ${nfFila("Llegó una devolución para revisar", "", nfSeg("devoluciones", "a", n.devoluciones.a, [["toca", "A quien le toca"], ["admins", "Solo administradores"]]))}
       ${nfFila("Recordatorio antes del vencimiento", "Si todavía no se revisó", `<input type="number" class="nf-num" min="1" max="72" value="${n.devoluciones.recordatorio_h}" data-num="devoluciones.recordatorio_h"> h antes ${nfSw(`data-swsec="devoluciones" data-swk="recordatorio"`, n.devoluciones.recordatorio)}`)}
-      ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}` : ""}</section>`);
+      ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}</section>`);
+    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Retiros Full</h2>
+      ${nfFila("Una devolución quedó no apta en el depósito de Full", "Para pedir el retiro cuando figure en Control de stock", nfSw(`data-swsec="retiros_full" data-swk="aviso"`, n.retiros_full?.aviso !== false))}
+      ${n.retiros_full?.aviso !== false ? nfFila("A quién", "", nfSeg("retiros_full", "a", n.retiros_full?.a ?? "toca", [["toca", "A quien tiene Retiros Full"], ["admins", "Solo administradores"]])) : ""}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Este celular</h2>${nfFila("Probar las notificaciones", "Para ver que le llegan a este celular", `<button type="button" class="btn lin chico" id="nfProbarAdm">Mandarme una de prueba</button>`)}${nfFila("Las mías", "Pausar, horario propio, qué tipos te llegan", `<button type="button" class="btn lin chico" id="nfMias">Configurar</button>`)}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Operadores</h2><p class="mut" style="margin:0">Las notificaciones les llegan solo en el horario que tienen asignado en Asignaciones. Fuera de ese horario no les llega ninguna; si abren la app, ven todas las novedades, y al empezar el turno reciben un resumen de lo que pasó.</p></section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat, notas y calendario</h2>
@@ -2187,7 +2191,9 @@ VISTAS.misnotif = async () => {
     if (mods.has("preguntas")) b.push(`<section class="panel nf-mod"><h2>Preguntas</h2>${tog("pregunta", "Preguntas para responder")}</section>`);
     if (mods.has("mensajes")) b.push(`<section class="panel nf-mod"><h2>Ventas</h2>${tog("venta_mensaje", "Mensajes del comprador")}${tog("venta_nueva", "Venta nueva")}</section>`);
     if (mods.has("despacho")) b.push(`<section class="panel nf-mod"><h2>Despacho</h2>${tog("despacho", "Ventas para despachar y recordatorios")}</section>`);
-    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Posventa</h2>${tog("venta_reclamo", "Reclamo o mediación")}${mods.has("devoluciones") ? tog("devolucion", "Devoluciones para revisar") + (r.admin ? tog("devolucion_aprobar", "Revisiones para aprobar") : "") : ""}</section>`);
+    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Reclamos</h2>${tog("venta_reclamo", "Reclamo o mediación")}</section>`);
+    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Devoluciones</h2>${tog("devolucion", "Devoluciones para revisar")}${r.admin ? tog("devolucion_aprobar", "Revisiones para aprobar") : ""}</section>`);
+    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Retiros Full</h2>${tog("retiro_full", "Devoluciones no aptas en el depósito de Full")}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat</h2>${nfFila("", "", nfSeg("_p", "chat", p.chat ?? "", [["", "Como el equipo"], ["todos", "Todos"], ["directos", "Directos y menciones"], ["nada", "Nada"]]))}
       ${r.grupos.map((g) => nfFila(esc(g.nombre), g.silenciado ? "Silenciado: solo te notifica si te nombran" : "", nfSw(`data-grupo="${g.id}"`, !g.silenciado))).join("")}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Notas y calendario</h2>${nfFila("Me mencionan en una nota", "No se puede apagar", nfSw("", true, true))}${tog("nota_asignado", "Nota nueva en algo asignado a mí")}${tog("cal_invitacion", "Invitaciones a eventos")}${tog("cal_recordatorio", "Recordatorios de eventos")}</section>`);
@@ -2230,7 +2236,7 @@ VISTAS.misnotif = async () => {
 };
 
 // ---------- Equipo → Actividad (registro de lo que hizo cada persona) ----------
-const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Posventa", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], chat: ["Chat", "m-s"], configuracion: ["Configuración", "m-s"], app: ["App", "m-s"] };
+const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], reclamos: ["Reclamos", "m-r"], devoluciones: ["Devoluciones", "m-r"], retiros_full: ["Retiros Full", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], chat: ["Chat", "m-s"], configuracion: ["Configuración", "m-s"], app: ["App", "m-s"] };
 const ACT_PER = [["hoy", "Hoy"], ["ayer", "Ayer"], ["7d", "Últimos 7 días"], ["30d", "Últimos 30 días"]];
 const colorDe = (lista, id) => PALETA[Math.max(0, lista.findIndex((x) => x.id === id)) % PALETA.length];
 const avAct = (p, c) => `<span class="av-m" style="width:32px;height:32px;background:${c}22;color:${c};box-shadow:inset 0 0 0 2px ${c}" aria-hidden="true">${esc(iniciales(p?.nombre ?? "?"))}</span>`;
@@ -2394,7 +2400,7 @@ function verRendimiento(emp, uids, met = "tp") {
 }
 // Solapas de Rendimiento: Comparativo y el detalle de cada módulo
 function pestRend() {
-  pestModulo("rendMod", VISTAS.rendimiento, ["preguntas", "mensajes", "devoluciones"]);
+  pestModulo("rendMod", VISTAS.rendimiento, ["preguntas", "mensajes", "devoluciones"], { ...MODULOS, devoluciones: "Devoluciones" });
   let t = $("#main .pestanas");
   if (!t) { $("#main .cabecera").insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist"></div>`); t = $("#main .pestanas"); }
   t.insertAdjacentHTML("afterbegin", `<button role="tab" type="button" data-rc="1" aria-selected="${S.rendVista === "comparativo"}" class="${S.rendVista === "comparativo" ? "on" : ""}">Comparativo</button>`);
@@ -6492,7 +6498,7 @@ function cuandoEvento(e) {
   return { fecha: fecha.charAt(0).toUpperCase() + fecha.slice(1), sub: `${hora} · ${rel}` };
 }
 // Invitados de un evento: cada persona, y atajos por grupo (los grupos se arman en Equipo)
-const GRUPO_TXT = { ventas: "Ventas", despacho: "Despacho", devoluciones: "Posventa", preguntas: "Preguntas" };
+const GRUPO_TXT = { ventas: "Ventas", despacho: "Despacho", reclamos: "Reclamos", devoluciones: "Devoluciones", retiros_full: "Retiros Full", preguntas: "Preguntas" };
 function invitadosHTML(eq, yo, sel, grupos) {
   const g = Object.entries(grupos ?? {}).filter(([, l]) => (l ?? []).some((u) => eq.some((m) => m.id === u)));
   return `${eq.map((m) => `<button type="button" aria-pressed="${sel.includes(m.id)}" data-inv="${esc(m.id)}">${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}
