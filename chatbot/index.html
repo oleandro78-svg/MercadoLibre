@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611242013";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611242030";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6841,7 +6841,9 @@ function mostrarResultado(r, modo, sinNada, codigo) {
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
-  const r = await seguro(() => api("devolucion_buscar", { cliente_id: empRec(), codigo }));
+  // Mientras busca, se avisa: la búsqueda puede tardar varios segundos
+  const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Buscando la devolución…</b></p><p class="peq" style="margin:0">Reviso tus devoluciones y lo que viene del depósito de Full.</p></div>`);
+  let r; try { r = await seguro(() => api("devolucion_buscar", { cliente_id: empRec(), codigo })); } finally { espera.remove(); }
   if (r) mostrarResultado(r, modo, puntajeCodigo(limpiarCod(codigo)) === 0 ? "Ese es el número de seguimiento del correo. Apuntá al código de barras con el número de envío de MercadoLibre (solo números) o al QR." : "No encontré ninguna devolución con ese dato", (() => { let k = String(codigo ?? "").trim(); try { const j = JSON.parse(k); k = String(j.id ?? k); } catch {} return k.replace(/[^0-9A-Za-z]/g, ""); })());
 }
 const limpiarCod = (c) => String(c ?? "").trim().replace(/[^0-9A-Za-z{}":,]/g, "");
