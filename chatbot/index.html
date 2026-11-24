@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241957";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611242013";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1344,7 +1344,7 @@ function elegirCliente(id) {
   S.rol = m?.rol === "admin" ? "cliente" : "operador";
   try { localStorage.setItem("mostrador_cliente_sel", id); } catch {}
 }
-const inicio = () => S.rol === "operador" ? ([["preguntas", "bandeja"], ["mensajes", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].find(([m]) => modsActuales().has(m))?.[1] ?? "chat") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
+const inicio = () => S.rol === "operador" ? ([["preguntas", "bandeja"], ["mensajes", "mensajes"], ["despacho", "despacho"], ["posventa", "devoluciones"]].find(([m]) => modsActuales().has(m))?.[1] ?? "chat") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
 const clienteYo = (id) => S.yo?.clientes.find((x) => x.id === id);
 const iniciales = (n) => { const w = String(n ?? "").replace(/\bS\.?R\.?L\.?|\bS\.?A\.?(?=\s|$)/gi, "").trim().split(/\s+/).filter(Boolean); return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "").slice(0, 2)).toUpperCase(); };
 function etiquetaCliente(id) {
@@ -1549,7 +1549,7 @@ const SUBTABS = {
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "posventa"], ["chat", "Chat"], ["calendario", "Calendario"],
   ["conocimiento", "Conocimiento", 0, "preguntas", "conocimiento"], ["material", "Documentación para enviar", 0, "mensajes", "material"], ["dudas", "Dudas frecuentes", 0, "preguntas", "dudas"], ["probar", "Probar el bot", 0, "preguntas", "probar"],
   ["numeros", "Mis números"]];
 // Operador: secciones que el administrador le habilitó (Equipo → Permisos)
@@ -1565,7 +1565,7 @@ function armarNav() {
     : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : 0;
   // Ventas nuevas (desde la última vez que se abrió Ventas): aparte, en verde
   const nuevas = (k) => k === "mensajes" ? (C.ventas_nuevas ?? 0) : 0;
-  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
+  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
   else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
@@ -1674,7 +1674,7 @@ medirAlto(); window.visualViewport?.addEventListener("resize", medirAlto); addEv
 document.addEventListener("click", (e) => { if (e.target.closest("#volverBtn")) pedirVolver(); });
 function ir(t) {
   // Un operador no entra a los módulos que no tiene asignados (por ejemplo, desde un enlace o una notificación vieja)
-  const MOD_TAB = { bandeja: "preguntas", preguntas: "preguntas", mensajes: "mensajes", despacho: "despacho", devoluciones: "devoluciones" };
+  const MOD_TAB = { bandeja: "preguntas", preguntas: "preguntas", mensajes: "mensajes", despacho: "despacho", devoluciones: "posventa" };
   if (S.rol === "operador" && MOD_TAB[t] && !modsActuales().has(MOD_TAB[t])) t = inicio();
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
@@ -2713,6 +2713,8 @@ VISTAS.asignaciones = async () => {
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>${S.asigMod === "mensajes" ? "Qué conversaciones de quienes ya compraron atiende cada persona, según la publicación, y en qué horario. Cuando nadie cubre un mensaje, te llega a vos."
       : S.asigMod === "despacho" ? "Qué envíos despacha cada persona, según la publicación, y en qué horario. En Despacho, cada uno ve primero los envíos que le tocan (filtro «Para mí»)."
       : S.asigMod === "devoluciones" ? "Qué devoluciones revisa cada persona, según la publicación, y en qué horario."
+      : S.asigMod === "reclamos" ? "Quién atiende los reclamos y mediaciones, y en qué horario. Solo esas personas y los administradores los ven, reciben sus notificaciones y pueden responderlos."
+      : S.asigMod === "retiros_full" ? "Quién pide y sigue los retiros de Full (las devoluciones que el depósito dio por no aptas), y en qué horario."
       : "Qué publicaciones atiende cada persona y en qué horario. Cuando nadie cubre una pregunta, el bot responde solo lo que sabe y lo demás te llega a vos."} Horarios de ${esc(r.zona.split("/").pop().replace(/_/g, " "))}.</p></div>
       <div><button class="btn pri" id="asNueva">+ Nueva asignación</button></div></div>
     <div class="fila" style="margin-bottom:14px;flex-wrap:wrap;gap:12px"><div class="seg" id="asVista" role="tablist">${[["categoria", "Por categoría"], ["operador", "Por persona"], ["publicacion", "Por publicación"]].map(([k, t]) => `<button role="tab" aria-selected="${S.asigVista === k}" data-v="${k}" class="${S.asigVista === k ? "on" : ""}">${t}</button>`).join("")}</div>
@@ -2728,7 +2730,7 @@ VISTAS.asignaciones = async () => {
         ${r.excepciones.length ? r.excepciones.map((x) => { const m = x.miembro_id ? r.m(x.miembro_id) : null; return `<div class="item-t">${m ? avatarM(m, 32) : `<span class="av-m" style="width:32px;height:32px;background:var(--sup2);color:var(--piz)" aria-hidden="true">F</span>`}
           <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Todo el equipo"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
     </div>`;
-  pestModulo("asigMod", VISTAS.asignaciones);
+  pestModulo("asigMod", VISTAS.asignaciones, null, MODULOS_ASIG);
   $("#main").querySelectorAll("[data-aprob]").forEach((b) => b.onclick = async (e) => {
     e.stopPropagation();
     const m = r.m(b.dataset.aprob), k = APROB_ASIG[S.asigMod]?.[0]; if (!m || !k) return;
@@ -3791,27 +3793,36 @@ new MutationObserver(() => titularTablas()).observe(document.body, { childList: 
 // ================= MÓDULOS =================
 // Cada cliente tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
 const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Posventa", despacho: "Despacho" };
+// Pestañas de Asignaciones: Posventa va separada en sus tres secciones
+const MODULOS_ASIG = { preguntas: "Preguntas", mensajes: "Ventas", despacho: "Despacho", reclamos: "Reclamos", devoluciones: "Devoluciones", retiros_full: "Retiros Full" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
   mensajes: "Tus ventas y la conversación con cada comprador: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
   devoluciones: "Revisa los productos que vuelven al depósito: escaneás la etiqueta, decís cómo llegó y sacás fotos. Si llegó mal, MercadoLibre lo revisa con esas fotos. También permite sacar fotos al despachar.",
 };
+// Posventa se asigna por sección: Reclamos, Devoluciones y Retiros Full. "posventa" = tiene alguna de las tres.
+const SECC_PV = { reclamos: "Reclamos", devoluciones: "Devoluciones", retiros_full: "Retiros Full" };
+function conPosventa(m) {
+  if (S.rol !== "operador" && m.has("devoluciones")) { m.add("reclamos"); m.add("retiros_full"); }
+  if (Object.keys(SECC_PV).some((k) => m.has(k))) m.add("posventa");
+  return m;
+}
 function modsActuales() {
   if (S.rol === "operador") {
     const es = S.clienteId ? [clienteYo(S.clienteId)].filter(Boolean) : (S.yo?.clientes ?? []);
-    return new Set(es.flatMap((e) => e.modulos ?? ["preguntas"]));
+    return conPosventa(new Set(es.flatMap((e) => e.modulos ?? ["preguntas"])));
   }
-  if (S.rol === "cliente" || S.soporte) return new Set(S.res?.clientes?.[0]?.modulos_efectivos ?? ["preguntas"]);
-  return new Set(Object.keys(MODULOS));
+  if (S.rol === "cliente" || S.soporte) return conPosventa(new Set(S.res?.clientes?.[0]?.modulos_efectivos ?? ["preguntas"]));
+  return conPosventa(new Set(Object.keys(MODULOS)));
 }
 // Pestañas Preguntas / Ventas arriba de Asignaciones y Rendimiento (solo si el cliente tiene los dos)
-function pestModulo(clave, volver, solo = null) {
+function pestModulo(clave, volver, solo = null, lista = MODULOS) {
   const m0 = modsActuales(), m = new Set([...m0].filter((k) => !solo || solo.includes(k)));
-  const ks = Object.keys(MODULOS).filter((k) => m.has(k));
+  const ks = Object.keys(lista).filter((k) => m.has(k));
   if (!ks.includes(S[clave])) S[clave] = ks[0] ?? "preguntas";
   if (ks.length < 2) return;
   const cab = $("#main .cabecera"); if (!cab) return;
-  cab.insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist" aria-label="Módulo">${Object.entries(MODULOS).filter(([k]) => m.has(k)).map(([k, t]) => `<button role="tab" type="button" data-mod="${k}" aria-selected="${S[clave] === k}" class="${S[clave] === k ? "on" : ""}">${t}</button>`).join("")}</div>`);
+  cab.insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist" aria-label="Módulo">${Object.entries(lista).filter(([k]) => m.has(k)).map(([k, t]) => `<button role="tab" type="button" data-mod="${k}" aria-selected="${S[clave] === k}" class="${S[clave] === k ? "on" : ""}">${t}</button>`).join("")}</div>`);
   $("#main .pestanas").onclick = (e) => { const b = e.target.closest("[data-mod]"); if (b && S[clave] !== b.dataset.mod) { S[clave] = b.dataset.mod; volver(); } };
 }
 VISTAS.no_incluido = () => {
@@ -6898,7 +6909,8 @@ function casillasFotos(caja, guias, fotos, cambio, base) {
 function posventaTabs() {
   const C = S.cont ?? {};
   const dv = S.devN ?? 0, fl = S.fullRet?.pendientes ?? 0;
-  const t = [["reclamos", "Reclamos", C.reclamos, "rojo"], ["devoluciones", "Devoluciones", dv, ""], ["full", "Retiros Full", fl, ""]];
+  const m = modsActuales();
+  const t = [["reclamos", "Reclamos", C.reclamos, "rojo", "reclamos"], ["devoluciones", "Devoluciones", dv, "", "devoluciones"], ["full", "Retiros Full", fl, "", "retiros_full"]].filter((x) => m.has(x[4]));
   return `<div class="cabecera pv-cab"><div><h1>Posventa</h1></div></div>
     <div class="pestanas pv-tabs" role="tablist" aria-label="Posventa">${t.map(([k, x, n, c]) => `<button type="button" role="tab" data-pv="${k}" class="${S.pvTab === k ? "on" : ""}" aria-selected="${S.pvTab === k}">${x}${n ? ` <span class="cuenta-n ${c}">${n}</span>` : ""}</button>`).join("")}</div>`;
 }
@@ -6967,7 +6979,9 @@ async function detalleReclamoPV(id) {
 }
 VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
-  S.pvTab ??= "reclamos";
+  // Solo las secciones de Posventa que la persona tiene asignadas
+  { const m = modsActuales(), ok = [["reclamos", "reclamos"], ["devoluciones", "devoluciones"], ["full", "retiros_full"]].filter(([, k]) => m.has(k)).map(([t]) => t);
+    if (!ok.includes(S.pvTab)) S.pvTab = ok[0] ?? "devoluciones"; }
   if (S.pvTab === "reclamos") return vistaReclamos();
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Posventa</h1><p>Elegí un cliente.</p></div></div>`; return; }
@@ -8202,7 +8216,7 @@ VISTAS.listas = async () => {
   if (S.tab !== "listas") return;
   if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del negocio elige qué se ve en las listas.</p></div></div>`; return; }
   const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })), reclamos: [...(rc?.abiertos ?? []), ...(rc?.cerrados ?? [])] };
-  const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["reclamos", "devoluciones"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
+  const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["reclamos", "reclamos"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
   const plantillaDe = (k) => { const c = etqConfig(k, emp); return ETQ[k].plantillas.find(([, x]) => ETQ_CASILLEROS.every(([s]) => JSON.stringify(x[s] ?? []) === JSON.stringify(c[s] ?? [])))?.[0] ?? "Personalizada"; };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que trabajan en el negocio; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
@@ -8322,7 +8336,7 @@ function abrirDesdeEnlace(h) {
   if (/\/notas$/.test(t)) { S.irNotas = true; if (mm) { S.convTab = S.convTab ?? {}; S.convTab[Number(mm[1])] = "notas"; } }
   // Reclamos: se abren en Posventa (uno o la lista)
   const mpr = t.match(/^#posventa\/reclamo\/(\d+)/);
-  if (mpr || /^#posventa\/reclamos$/.test(t)) { if (!modsActuales().has("devoluciones")) return false; S.devId = null; S.pvTab = "reclamos"; S.pvRec = mpr ? Number(mpr[1]) : null; ir("devoluciones"); return true; }
+  if (mpr || /^#posventa\/reclamos$/.test(t)) { if (!modsActuales().has("reclamos")) return false; S.devId = null; S.pvTab = "reclamos"; S.pvRec = mpr ? Number(mpr[1]) : null; ir("devoluciones"); return true; }
   if (mr) { if (!modsActuales().has("devoluciones")) return false; S.devId = Number(mr[1]); ir("devoluciones"); return true; }
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
