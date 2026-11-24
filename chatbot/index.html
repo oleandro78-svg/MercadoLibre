@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611232359";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611240011";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1448,7 +1448,9 @@ async function pintarAvisosBtn() {
   b.classList.remove("oculto");
   const s = await suscripcionActual().catch(() => null);
   const activos = !!s && Notification.permission === "granted";
-  b.textContent = activos ? "Mis notificaciones" : "Activar notificaciones";
+  // Con las notificaciones activas no se muestra en el menú: qué llega lo configura el administrador (Equipo → Notificaciones)
+  if (activos) { b.classList.add("oculto"); return; }
+  b.textContent = "Activar notificaciones";
   b.classList.toggle("pri", !activos); b.classList.toggle("lin", activos);
   b.onclick = () => { $("#riel").classList.remove("abierto"); ir("misnotif"); };
 }
@@ -2050,6 +2052,7 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Llegó una devolución para revisar", "", nfSeg("devoluciones", "a", n.devoluciones.a, [["toca", "A quien le toca"], ["admins", "Solo administradores"]]))}
       ${nfFila("Recordatorio antes del vencimiento", "Si todavía no se revisó", `<input type="number" class="nf-num" min="1" max="72" value="${n.devoluciones.recordatorio_h}" data-num="devoluciones.recordatorio_h"> h antes ${nfSw(`data-swsec="devoluciones" data-swk="recordatorio"`, n.devoluciones.recordatorio)}`)}
       ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}</section>`);
+    b.push(`<section class="panel nf-mod"><h2>Este celular</h2>${nfFila("Probar las notificaciones", "Para ver que le llegan a este celular", `<button type="button" class="btn lin chico" id="nfProbarAdm">Mandarme una de prueba</button>`)}${nfFila("Las mías", "Pausar, horario propio, qué tipos te llegan", `<button type="button" class="btn lin chico" id="nfMias">Configurar</button>`)}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Operadores</h2><p class="mut" style="margin:0">Las notificaciones les llegan solo en el horario que tienen asignado en Asignaciones. Fuera de ese horario no les llega ninguna; si abren la app, ven todas las novedades, y al empezar el turno reciben un resumen de lo que pasó.</p></section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat, notas y calendario</h2>
       ${nfFila("Chat", "Lo que recibe cada persona", nfSeg("chat", "modo", n.chat.modo, [["todos", "Todos los mensajes"], ["directos", "Solo directos y menciones"]]))}
@@ -2060,7 +2063,9 @@ VISTAS.notificaciones = async () => {
   };
   const guardar = () => nfGuardarLuego(() => api("notif_cliente_guardar", { cliente_id: emp, notif: n, escalar_min: esc_.min, escalar_a: esc_.a }));
   pintar();
-  $("#main").onclick = (e) => {
+  $("#main").onclick = async (e) => {
+    if (e.target.closest("#nfProbarAdm")) { if (await seguro(() => api("push_prueba"))) aviso("Notificación de prueba enviada"); return; }
+    if (e.target.closest("#nfMias")) { ir("misnotif"); return; }
     const s = e.target.closest("[data-sec]");
     if (s) { if (s.dataset.sec === "_esc") esc_.a = s.dataset.v; else { const cur = n[s.dataset.sec][s.dataset.k]; n[s.dataset.sec][s.dataset.k] = typeof cur === "number" ? Number(s.dataset.v) : s.dataset.v; } pintar(); guardar(); return; }
     const w = e.target.closest("[data-swsec]");
