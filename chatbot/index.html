@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241531";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241549";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6742,7 +6742,28 @@ function elegirDevolucion(lista, titulo) {
       <span class="peq">${esc(x.comprador ?? "")}${x.llegada_at ? ` · llegó el ${diaMes(x.llegada_at)}` : x.abierto ? " · en camino" : " · cerrada"}</span></span></button>`).join("")}</div>`);
   h.querySelectorAll("[data-dev]").forEach((b) => b.onclick = () => { h.remove(); S.devId = Number(b.dataset.dev); S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); });
 }
-function mostrarResultado(r, modo, sinNada) {
+// Lo que viene del depósito de Full (devoluciones que MercadoLibre saca por retiro y retiros pedidos): la etiqueta
+// no figura en la cuenta, así que se elige cuál es; la etiqueta queda asociada y la próxima vez se abre directo
+function elegirDeFull(lista, codigo) {
+  const abrir = (x) => {
+    if (codigo) api("devolucion_etiqueta", { cliente_id: empRec(), codigo, ...(x.tipo === "devolucion" ? { claim_id: x.claim_id } : { item_id: x.item_id, titulo: x.item_titulo }) }).catch(() => {});
+    if (x.tipo === "devolucion") { S.devId = x.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); }
+    else verRetiroFull(x);
+  };
+  if (lista.length === 1) { aviso("Es lo único que viene del depósito de Full"); abrir(lista[0]); return; }
+  const h = abrirHoja(`<div class="cajon-cab"><h2>¿Cuál de estas es?</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p class="peq mut" style="margin:0 0 10px">Esa etiqueta la puso el depósito de Full y MercadoLibre no la vincula con tu cuenta. Estas son las que vienen del depósito: abrí el paquete y elegí según el producto. La próxima vez que escanees esta etiqueta se abre directo.</p>
+    <div class="rec-lista">${lista.map((x, i) => `<button type="button" class="rec-it" data-i="${i}">${foto(x.item_foto)}<span class="rec-tx"><b>${esc(x.item_titulo ?? "Producto")}</b>
+      <span class="peq">${x.tipo === "devolucion" ? `Devolución${x.comprador ? ` de ${esc(x.comprador)}` : ""}` : "Retiro de Full"}</span><span class="peq mut">${esc(x.estado ?? "")}</span></span></button>`).join("")}</div>`);
+  h.querySelectorAll("[data-i]").forEach((b) => b.onclick = () => { h.remove(); abrir(lista[Number(b.dataset.i)]); });
+}
+function verRetiroFull(x) {
+  cajon(`<div class="cajon-cab"><div><h2>Retiro de Full</h2></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
+    <p><b>${esc(x.item_titulo ?? x.titulo ?? "Producto")}</b></p>
+    <p>Es un retiro de stock que pediste en MercadoLibre${x.cantidad ? ` (${x.cantidad} ${x.cantidad === 1 ? "unidad" : "unidades"})` : ""}: no es una devolución de un comprador. Revisá que esté lo que pediste y guardalo en el depósito.</p>`, true);
+}
+function mostrarResultado(r, modo, sinNada, codigo) {
+  if (r.tipo === "retiro_full") { verRetiroFull(r); return; }
   if (r.tipo === "devolucion") { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
   if (r.tipo === "varias") { elegirDevolucion(r.lista, `Encontré ${r.lista.length} devoluciones`); return; }
   if (r.tipo === "compra") {
@@ -6763,12 +6784,12 @@ function mostrarResultado(r, modo, sinNada) {
     aviso(r.es_devolucion ? "Esa devolución ya no está abierta" : "Esa etiqueta es de un envío de una venta, no de una devolución"); return;
   }
   // La etiqueta que pone el depósito de Full al reenviar una devolución no figura en la cuenta: se ofrecen las que vienen de ahí
-  if (r.deposito?.length && modo !== "despacho") { elegirDevolucion(r.deposito, "No encontré esa etiqueta. ¿Es una de las que te manda el depósito de Full?"); return; }
+  if (r.deposito?.length && modo !== "despacho") { elegirDeFull(r.deposito, codigo); return; }
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
   const r = await seguro(() => api("devolucion_buscar", { cliente_id: empRec(), codigo }));
-  if (r) mostrarResultado(r, modo, puntajeCodigo(limpiarCod(codigo)) === 0 ? "Ese es el número de seguimiento del correo. Apuntá al código de barras con el número de envío de MercadoLibre (solo números) o al QR." : "No encontré ninguna devolución con ese dato");
+  if (r) mostrarResultado(r, modo, puntajeCodigo(limpiarCod(codigo)) === 0 ? "Ese es el número de seguimiento del correo. Apuntá al código de barras con el número de envío de MercadoLibre (solo números) o al QR." : "No encontré ninguna devolución con ese dato", (() => { let k = String(codigo ?? "").trim(); try { const j = JSON.parse(k); k = String(j.id ?? k); } catch {} return k.replace(/[^0-9A-Za-z]/g, ""); })());
 }
 const limpiarCod = (c) => String(c ?? "").trim().replace(/[^0-9A-Za-z{}":,]/g, "");
 async function leerEtiquetaFoto(file, modo) {
@@ -6778,7 +6799,7 @@ async function leerEtiquetaFoto(file, modo) {
   espera.remove();
   if (!r) return;
   const vi = [...(r.leido?.numeros ?? []), ...(r.leido?.nombres ?? [])];
-  mostrarResultado(r, modo, vi.length ? `Leí ${vi.slice(0, 4).join(", ")}, pero no encontré ninguna devolución con esos datos` : "No pude leer datos en la foto. Probá con más luz o más cerca.");
+  mostrarResultado(r, modo, vi.length ? `Leí ${vi.slice(0, 4).join(", ")}, pero no encontré ninguna devolución con esos datos` : "No pude leer datos en la foto. Probá con más luz o más cerca.", (r.leido?.numeros ?? []).find((n) => /^\d{10,12}$/.test(n)) ?? null);
 }
 
 // ---------- fotos: se achican en el celular antes de subirlas ----------
