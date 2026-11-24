@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241208";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241223";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -65,7 +65,7 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .nav button:hover{background:var(--sup2);color:var(--tinta)}
 .nav button.on{background:var(--tinta);color:var(--papel)}
 .nav button:focus-visible{outline:2px solid var(--cielo)}
-.nav .cuenta-n{margin-left:auto;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}.nav .cuenta-n.rojo,.cuenta-n.rojo{background:var(--ladrillo);color:#fff}
+.nav .cuenta-n{margin-left:auto;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}.nav .cuenta-n.rojo,.cuenta-n.rojo{background:var(--ladrillo)!important;color:#fff!important}
 .nav .sep{height:1px;background:var(--linea);margin:8px 6px}
 /* ---------- perfil: cada uno con su identidad ---------- */
 .perfil{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:var(--r-m);background:var(--sup2);border-left:4px solid var(--emp,var(--pino))}
@@ -5042,7 +5042,7 @@ function enlazarAccionesReclamo(id, pie) {
       const texto = msj ? $("#rcTx").value.trim() : null;
       if (msj && !texto) return aviso("Escribí el mensaje");
       const ok = $("#rcOk"); ok.disabled = true; ok.textContent = "Enviando…";
-      const r = await seguro(() => api("reclamo_accion", { id, reclamo: pie.id, accion: k, texto }));
+      const r = await seguro(() => api("posventa_accion", { id, reclamo: pie.id, accion: k, texto }));
       if (!r) { ok.disabled = false; ok.textContent = "Probar de nuevo"; return; }
       v.remove(); aviso(msj ? "Mensaje enviado" : "Listo: MercadoLibre lo recibió");
       if (S.recDatos) delete S.recDatos[id];
@@ -6732,7 +6732,7 @@ const fechaRec = (f) => f ? cuandoPlazo(f) : "";
 async function vistaReclamos() {
   const emp = empRec();
   $("#main").innerHTML = posventaTabs() + `<p class="mut">${buscandoTxt("Buscando reclamos")}</p>`; enlazarPvTabs();
-  const r = await seguro(() => api("reclamos_lista", { cliente_id: emp }));
+  const r = await seguro(() => api("posventa_reclamos", { cliente_id: emp }));
   if (!r || S.tab !== "devoluciones" || S.pvTab !== "reclamos" || S.devId) return;
   S.rcFil ??= "abiertos";
   const resp = r.abiertos.filter((x) => x.responder);
