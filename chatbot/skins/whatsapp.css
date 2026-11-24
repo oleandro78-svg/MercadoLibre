@@ -1,0 +1,132 @@
+/* Mostrador · Apariencia "Estilo WhatsApp"
+   Se aplica sobre la pantalla de siempre cuando <html data-skin="wa">. Solo cambia cómo se ve. */
+
+/* ---------- Colores y letra ---------- */
+:root[data-skin="wa"]{
+  --papel:#F7F8FA; --sup:#FFFFFF; --sup2:#F0F2F5; --tinta:#111B21; --piz:#667781; --linea:#E9EDEF;
+  --pino:#008069; --sobre-pino:#FFFFFF; --pino-2:#D9FDD3; --pino-t:#0A5C49;
+  --acento:#25D366; --sobre-acento:#FFFFFF; --wa-titulo:#1DAB61;
+  --cielo:#027EB5; --cielo-2:#E1F3FB;
+  --sombra:0 1px 2px rgba(11,20,26,.08);
+  --r-s:10px; --r-m:14px; --r-l:18px;
+  --fuente:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root[data-skin="wa"]:not([data-theme="light"]){
+  --papel:#0B141A; --sup:#111B21; --sup2:#202C33; --tinta:#E9EDEF; --piz:#8696A0; --linea:#222D34;
+  --pino:#00A884; --sobre-pino:#0B141A; --pino-2:#103529; --pino-t:#D9FDD3;
+  --acento:#21C063; --sobre-acento:#0B141A; --wa-titulo:#E9EDEF;
+  --cielo:#53BDEB; --cielo-2:#10293A; --sombra:none;
+}}
+:root[data-skin="wa"][data-theme="dark"]{
+  --papel:#0B141A; --sup:#111B21; --sup2:#202C33; --tinta:#E9EDEF; --piz:#8696A0; --linea:#222D34;
+  --pino:#00A884; --sobre-pino:#0B141A; --pino-2:#103529; --pino-t:#D9FDD3;
+  --acento:#21C063; --sobre-acento:#0B141A; --wa-titulo:#E9EDEF;
+  --cielo:#53BDEB; --cielo-2:#10293A; --sombra:none;
+}
+[data-skin="wa"] body{letter-spacing:0}
+[data-skin="wa"] h1,[data-skin="wa"] h2,[data-skin="wa"] h3{letter-spacing:0}
+
+/* ---------- Menú lateral (computadora): como la columna de WhatsApp Web ---------- */
+[data-skin="wa"] .riel{background:var(--sup);border-right:1px solid var(--linea)}
+[data-skin="wa"] .marca svg rect:first-child{fill:var(--acento)}
+[data-skin="wa"] .nav button{border-radius:12px;color:var(--tinta);font-weight:500;padding:10px 12px}
+[data-skin="wa"] .nav button:hover{background:var(--sup2)}
+[data-skin="wa"] .nav button.on{background:var(--sup2);color:var(--tinta);font-weight:700}
+[data-skin="wa"] .nav .cuenta-n,[data-skin="wa"] #abrirRiel .cuenta-n{background:var(--acento);color:var(--sobre-acento)}
+[data-skin="wa"] .perfil{background:var(--sup2);border-left:0;border-radius:14px}
+[data-skin="wa"] .perfil i{border-radius:50%}
+[data-skin="wa"] .riel-pie .btn{border-radius:20px}
+
+/* ---------- Controles ---------- */
+[data-skin="wa"] .btn{border-radius:22px;font-weight:600}
+[data-skin="wa"] .btn.pri{background:var(--pino);color:var(--sobre-pino)}
+[data-skin="wa"] .btn.osc{background:var(--pino);color:var(--sobre-pino)}
+[data-skin="wa"] .btn.lin{border-color:var(--linea);background:var(--sup)}
+[data-skin="wa"] input[type=text],[data-skin="wa"] input[type=password],[data-skin="wa"] input[type=email],[data-skin="wa"] input[type=number],
+[data-skin="wa"] input[type=time],[data-skin="wa"] input[type=url],[data-skin="wa"] input:not([type]),[data-skin="wa"] select,[data-skin="wa"] textarea{border-radius:12px;border-color:var(--linea)}
+/* Buscadores: la píldora gris de WhatsApp con la lupa */
+[data-skin="wa"] input[type=search]:not(.wa-bus input){background:var(--sup2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667781' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px 50%/19px;
+  border:0;border-radius:24px;padding:10px 14px 10px 44px;min-height:42px}
+[data-skin="wa"] input[type=search]:not(.wa-bus input):focus{box-shadow:0 0 0 2px var(--pino);outline:0}
+[data-skin="wa"] .panel{border:0;border-radius:18px;box-shadow:var(--sombra)}
+[data-skin="wa"] .chip{border-radius:999px}
+
+/* Solapas de cada sección: los filtros redondos de WhatsApp ("Todos", "No leídos", "Grupos") */
+[data-skin="wa"] .pestanas{border-bottom:0;gap:8px;margin-bottom:16px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+[data-skin="wa"] .pestanas::-webkit-scrollbar{display:none}
+[data-skin="wa"] .pestanas button{border:0;margin:0;padding:7px 14px;border-radius:999px;background:var(--sup2);color:var(--piz);font-weight:500;font-size:14.5px}
+[data-skin="wa"] .pestanas button.on{background:var(--pino-2);color:var(--pino-t);font-weight:700;border:0}
+[data-skin="wa"] .subnav button{background:var(--sup2);color:var(--piz);font-weight:500}
+[data-skin="wa"] .subnav button.on{background:var(--pino-2);color:var(--pino-t);font-weight:700}
+
+/* Lo elegido va en verde (en la clásica va en negro) */
+[data-skin="wa"] input[type=radio],[data-skin="wa"] input[type=checkbox]{accent-color:var(--pino)}
+[data-skin="wa"] .cir-seg{border-radius:999px}
+[data-skin="wa"] .cir-seg input:checked+span,[data-skin="wa"] .fx-ops input:checked+span,
+[data-skin="wa"] .ds-fp button[aria-pressed="true"],[data-skin="wa"] .nt-men button[aria-pressed="true"]{background:var(--pino-2);color:var(--pino-t);border-color:var(--pino-2);font-weight:700}
+[data-skin="wa"] .cir-paso.ob .cir-n{background:var(--pino);border-color:var(--pino);color:var(--sobre-pino)}
+[data-skin="wa"] .cir-paso.ob .cir-est{background:var(--pino-2);color:var(--pino-t)}
+[data-skin="wa"] .cir-paso.tramo::before{background:var(--pino)}
+[data-skin="wa"] .tab-n{background:var(--acento);color:var(--sobre-acento)}
+[data-skin="wa"] .rol-t.admin{background:var(--pino);color:var(--sobre-pino)}
+[data-skin="wa"] .cal-d.hoy .cal-n{background:var(--pino);color:var(--sobre-pino)}
+[data-skin="wa"] .etq-pl .on{background:var(--pino-2);color:var(--pino-t);border-color:var(--pino)}
+[data-skin="wa"] .toast{border-radius:12px}
+
+/* ---------- Listas (Ventas, Despacho, Devoluciones): la lista de chats ---------- */
+[data-skin="wa"] .m-lista{background:var(--sup);border-right-color:var(--linea)}
+[data-skin="wa"] .m-cab{border-bottom:0;padding:14px 16px 6px}
+[data-skin="wa"] .m-cab h1{color:var(--wa-titulo);font-size:24px}
+[data-skin="wa"] .m-fil .fx-bt{background:var(--sup2)!important;border-radius:999px;padding:5px 11px;font-weight:500;font-size:13.5px;color:var(--piz)}
+[data-skin="wa"] .m-fil .fx-bt.on{background:var(--pino-2)!important;color:var(--pino-t);font-weight:700}
+[data-skin="wa"] .m-fil .fx-bt svg{width:16px;height:16px}
+[data-skin="wa"] .m-fil>button:not(.fx-bt){border-radius:999px;padding:6px 12px;font-size:13.5px;font-weight:500}
+[data-skin="wa"] .m-fil>button.on:not(.fx-bt){background:var(--pino-2);color:var(--pino-t);font-weight:700}
+[data-skin="wa"] #mFil .pend-bt{background:var(--pino-2);color:var(--pino-t);font-weight:700}
+[data-skin="wa"] .hilo{border-bottom:0;padding:11px 16px;gap:1px 14px;grid-template-columns:52px minmax(0,1fr) auto;position:relative}
+[data-skin="wa"] .hilo::after{content:"";position:absolute;left:82px;right:0;bottom:0;height:1px;background:var(--linea)}
+[data-skin="wa"] .hilo .foto{width:52px;height:52px;border-radius:50%;border:0;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);object-fit:contain}
+[data-skin="wa"] .hilo .h-nom b{font-size:16.5px;font-weight:600}
+[data-skin="wa"] .hilo .hora{font-size:12px}
+[data-skin="wa"] .hilo.esp .hora{color:var(--acento);font-weight:600}
+[data-skin="wa"] .hilo .punto{background:var(--acento);width:10px;height:10px}
+[data-skin="wa"] .hilo.on{background:var(--sup2)}
+[data-skin="wa"] .hilo:hover{background:var(--sup2)}
+[data-skin="wa"] .ult-nl{font-weight:500}
+[data-skin="wa"] .vacio b{color:var(--tinta)}
+
+/* ---------- Teléfono ---------- */
+@media (max-width:960px){
+  /* Arriba: el título grande a la izquierda, como "WhatsApp" */
+  [data-skin="wa"] .barra-movil{justify-content:flex-start;gap:10px;border-bottom:0;padding:12px 16px 6px;background:var(--sup)}
+  [data-skin="wa"] .barra-movil b{font-size:24px;font-weight:700;color:var(--wa-titulo);order:-1}
+  [data-skin="wa"] #abrirRiel{display:none}
+  [data-skin="wa"] .contenido:not(.lleno){padding:14px 14px 100px}
+  [data-skin="wa"] .app{background:var(--papel)}
+  [data-skin="wa"] .m-cab{padding:4px 16px 6px}
+  [data-skin="wa"] .hilos{padding-bottom:84px}
+  [data-skin="wa"] .m-chat,[data-skin="wa"] .m-lista{min-height:calc(100dvh - 52px)}
+  /* El escáner de etiquetas pasa a ser el botón redondo de abajo a la derecha */
+  [data-skin="wa"] .ver-lista .m-esc{position:fixed;right:16px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:34;width:56px;height:56px;padding:0;border:0;border-radius:16px;
+    background:var(--acento);color:var(--sobre-acento);display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+  [data-skin="wa"] .ver-lista .m-esc svg{width:26px;height:26px}
+
+  [data-skin="wa"] .wa-cab{display:none}
+  /* Lo que queda fijo abajo (por ejemplo "Imprimir etiquetas") se apoya sobre la barra */
+  [data-skin="wa"] .rec-pie{bottom:calc(70px + env(safe-area-inset-bottom));background:var(--papel)}
+  /* Barra de abajo */
+  [data-skin="wa"] .skin-barra{position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;justify-content:space-around;background:var(--sup);border-top:1px solid var(--linea);
+    padding:8px 2px calc(8px + env(safe-area-inset-bottom))}
+  [data-skin="wa"] .skin-barra button{all:unset;cursor:pointer;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;font-weight:500;letter-spacing:-.1px;color:var(--piz);-webkit-tap-highlight-color:transparent}
+  [data-skin="wa"] .skin-barra .sb-ic{position:relative;width:56px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .15s}
+  [data-skin="wa"] .skin-barra svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  [data-skin="wa"] .skin-barra .on{color:var(--tinta);font-weight:700}
+  [data-skin="wa"] .skin-barra .on .sb-ic{background:var(--pino-2);color:var(--pino-t)}
+  [data-skin="wa"] .skin-barra .sb-t{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  [data-skin="wa"] .skin-barra .sb-n{position:absolute;top:-3px;left:36px;font-style:normal;background:var(--acento);color:var(--sobre-acento);font-size:11px;font-weight:700;line-height:18px;min-width:18px;padding:0 5px;border-radius:9px;text-align:center;box-sizing:border-box}
+  [data-skin="wa"] .skin-barra .sb-p{position:absolute;top:2px;left:40px;width:9px;height:9px;border-radius:50%;background:var(--acento)}
+  [data-skin="wa"] .skin-barra button:focus-visible .sb-ic{outline:2px solid var(--cielo)}
+  /* Dentro de una conversación la barra se esconde, como en WhatsApp */
+  [data-skin="wa"] body:has(.ver-chat) .skin-barra,[data-skin="wa"] body:has(.ver-chat) .m-esc{display:none}
+}
+@media (min-width:961px){[data-skin="wa"] .skin-barra{display:none}}
