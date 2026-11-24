@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241440";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241529";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6611,6 +6611,10 @@ function estadoDev(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
+  if (r?.estado === "registrada") return { t: r.resultado === "ok" ? "Registrada: llegó bien" : "Registrada: llegó con problema", c: "c-ok", grupo: "enviadas" };
+  // Devolución de Full que el depósito de MercadoLibre revisó y le manda al vendedor
+  const tri = EX(d).triage;
+  if (tri?.destino === "seller") return { t: `Te la manda el depósito de Full: ${tri.condicion === "unsaleable" ? "no apta para la venta" : "revisada por MercadoLibre"}${tri.motivo === "damaged" ? " (dañada)" : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: Date.now() - new Date(tri.fecha ?? 0).getTime() < 45 * 86400_000 ? "revisar" : "cerradas" };
   if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
@@ -6758,6 +6762,8 @@ function mostrarResultado(r, modo, sinNada) {
     if (r.devolucion_cerrada) { S.devId = r.claim_id; S.tab === "devoluciones" ? VISTAS.devoluciones() : ir("devoluciones"); return; }
     aviso(r.es_devolucion ? "Esa devolución ya no está abierta" : "Esa etiqueta es de un envío de una venta, no de una devolución"); return;
   }
+  // La etiqueta que pone el depósito de Full al reenviar una devolución no figura en la cuenta: se ofrecen las que vienen de ahí
+  if (r.deposito?.length && modo !== "despacho") { elegirDevolucion(r.deposito, "No encontré esa etiqueta. ¿Es una de las que te manda el depósito de Full?"); return; }
   aviso(sinNada);
 }
 async function buscarEtiqueta(codigo, modo) {
@@ -6962,7 +6968,8 @@ async function detalleDevolucion0(id) {
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
       ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
       ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
-  if (d.destino === "warehouse" && !enviada) {
+  const deposito = EX(d).triage?.destino === "seller", soloRegistrar = deposito && !d.se_puede_revisar;
+  if (d.destino === "warehouse" && !enviada && !deposito) {
     // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
       <p style="margin:0 0 10px">Vuelve al depósito de MercadoLibre (Full) y la revisa MercadoLibre. No hay que escanearla ni sacarle fotos.</p>
@@ -7011,7 +7018,8 @@ async function detalleDevolucion0(id) {
     ${enviadoHtml}
     ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
     ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
-    ${!d.se_puede_revisar ? `<div class="estado e-pend" style="margin-bottom:12px"><span>MercadoLibre habilita la revisión cuando la devolución llega. Podés dejarla preparada y enviarla después.</span></div>` : ""}
+    ${deposito ? `<div class="estado e-pend" style="margin-bottom:12px"><span><b>Viene del depósito de Full.</b> MercadoLibre la revisó en su depósito${EX(d).triage.condicion === "unsaleable" ? ", la marcó como no apta para la venta" : ""}${EX(d).triage.motivo === "damaged" ? " (dañada)" : ""} y te la manda. ${soloRegistrar ? "No hay una revisión para enviarle: dejá registrado cómo llegó, con fotos, como respaldo." : "Revisala y contale a MercadoLibre cómo llegó."}</span></div>`
+      : !d.se_puede_revisar ? `<div class="estado e-pend" style="margin-bottom:12px"><span>MercadoLibre habilita la revisión cuando la devolución llega. Podés dejarla preparada y enviarla después.</span></div>` : ""}
     <h2 class="rec-h">¿Cómo llegó?</h2>
     <div class="rec-dos"><button type="button" class="rec-op ok ${st.resultado === "ok" ? "on" : ""}" data-r="ok">${ICONO_R.ok}<b>Llegó bien</b></button>
       <button type="button" class="rec-op mal ${st.resultado === "falla" ? "on" : ""}" data-r="falla">${ICONO_R.mal}<b>Llegó con un problema</b></button></div>
@@ -7021,6 +7029,7 @@ async function detalleDevolucion0(id) {
       <button class="btn pri" id="recEnv" type="button"></button></div>`;
   const pintarPie = () => {
     const b = $("#recEnv");
+    if (soloRegistrar) { b.textContent = "Registrar cómo llegó"; b.disabled = !st.resultado; return; }
     b.textContent = !yo.sinAprobacion ? "Mandar a aprobar" : rv?.estado === "para_aprobar" ? "Aprobar y enviar a MercadoLibre" : st.resultado === "falla" ? "Informar el problema a MercadoLibre" : "Confirmar que llegó bien";
     b.disabled = !st.resultado || (yo.sinAprobacion && !d.se_puede_revisar);
   };
@@ -7083,12 +7092,12 @@ async function detalleDevolucion0(id) {
       const enviar = b.id === "recEnv";
       if (enviar && st.resultado === "falla" && !st.motivo) return aviso("Elegí qué pasó");
       if (enviar && st.resultado === "falla" && !String(st.descripcion).trim()) return aviso("Escribí la descripción o pedísela a la IA");
-      if (enviar && yo.sinAprobacion && !(await confirmarEnvio(d, st, r))) return;
+      if (enviar && !soloRegistrar && yo.sinAprobacion && !(await confirmarEnvio(d, st, r))) return;
       b.disabled = true;
-      const x = await seguro(() => api("devolucion_guardar", { id, enviar, revision: st }));
+      const x = await seguro(() => api("devolucion_guardar", soloRegistrar && enviar ? { id, registrar: true, revision: st } : { id, enviar, revision: st }));
       b.disabled = false;
       if (!x) return;
-      aviso(x.estado === "enviada" ? (st.resultado === "falla" ? "Problema informado a MercadoLibre" : "Confirmado a MercadoLibre") : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
+      aviso(x.estado === "registrada" ? "Quedó registrado cómo llegó" : x.estado === "enviada" ? (st.resultado === "falla" ? "Problema informado a MercadoLibre" : "Confirmado a MercadoLibre") : x.estado === "para_aprobar" ? "Mandada a aprobar" : "Guardada");
       if (x.estado !== "borrador") { S.devId = null; ir("devoluciones"); }
     }
   };
