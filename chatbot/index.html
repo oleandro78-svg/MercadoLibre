@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241333";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241342";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6830,7 +6830,7 @@ VISTAS.devoluciones = async () => {
   const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
   const fullN = (S.fullRet?.pendientes ?? 0) + (S.fullRet?.pedidas ?? 0);
   const kb = S.pvTab === "full" ? "full" : "devoluciones";
-  $("#main").innerHTML = posventaTabs() + `${busModHTML(kb, kb === "devoluciones")}
+  $("#main").innerHTML = posventaTabs() + `${kb === "devoluciones" ? busModHTML(kb) : ""}
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${fullN || S.recFil === "full" ? `<button type="button" data-f="full" class="${S.recFil === "full" ? "on" : ""}">Retirar de Full · ${S.fullRet?.pendientes ?? 0}</button>` : ""}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${S.recFil === "full" ? fullRetirosHTML(S.fullRet) : lista.map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}" data-g="${d.est.grupo}" ${busAttr(d.comprador, d.item_titulo, d.orden_id, d.claim_id, d.extra?.pack_id, d.extra?.envio_id)}>${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       + `<div class="panel vacio rc-vacio" hidden><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
@@ -6845,6 +6845,7 @@ VISTAS.devoluciones = async () => {
     const v = $("#main .rc-vacio"); if (v) v.hidden = !!q || n > 0;
     return n;
   };
+  if (kb === "full") S.busMod.full = ""; // Retiros Full no tiene buscador
   mostrar(S.busMod[kb] ?? "");
   enlazarBusMod(kb, emp, mostrar, kb === "full" ? "Retiros Full" : "Devoluciones",
     () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion")));
