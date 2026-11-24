@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241132";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241208";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -65,7 +65,7 @@ h1{font-size:30px;line-height:1.15} h2{font-size:20px} h3{font-size:15px;font-we
 .nav button:hover{background:var(--sup2);color:var(--tinta)}
 .nav button.on{background:var(--tinta);color:var(--papel)}
 .nav button:focus-visible{outline:2px solid var(--cielo)}
-.nav .cuenta-n{margin-left:auto;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}
+.nav .cuenta-n{margin-left:auto;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}.nav .cuenta-n.rojo,.cuenta-n.rojo{background:var(--ladrillo);color:#fff}
 .nav .sep{height:1px;background:var(--linea);margin:8px 6px}
 /* ---------- perfil: cada uno con su identidad ---------- */
 .perfil{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:var(--r-m);background:var(--sup2);border-left:4px solid var(--emp,var(--pino))}
@@ -855,6 +855,16 @@ input[type=file]{max-width:100%}
 .prod{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
 .prod .foto{width:56px;height:56px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
 .ent-pane{padding:16px 14px 24px;max-width:640px}
+.rc-banner{display:flex;gap:12px;align-items:center;padding:12px 14px;margin:0 0 14px;border-radius:12px;background:var(--ladrillo-2);color:var(--ladrillo);border:1px solid var(--ladrillo)}.rc-banner svg{flex:none;width:26px;height:26px}.rc-banner b{display:block;font-size:15px}.rc-banner span{font-size:13.5px;color:var(--tinta)}.rc-banner .btn{margin-left:auto;flex:none}
+.pv-tabs{margin-bottom:12px;flex-wrap:nowrap!important;overflow-x:auto}.pv-tabs button{padding:10px 8px!important;white-space:nowrap}.rc-item>:first-child{width:48px;height:48px;overflow:hidden;font-size:10px;border-radius:10px;flex:none}.pv-tabs .cuenta-n{display:inline-block;margin-left:4px;background:var(--ambar);color:#2B1D02;border-radius:20px;font-size:12px;font-weight:700;padding:0 7px;line-height:20px}.pv-tabs .cuenta-n.rojo{background:var(--ladrillo);color:#fff}
+.rc-lista{display:grid;gap:10px}.rc-g{font-size:13px;font-weight:700;color:var(--piz);margin:8px 2px 0}
+.rc-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px;border-radius:12px;background:var(--sup);border:1px solid var(--linea);text-align:left;font:inherit;color:var(--tinta);cursor:pointer;width:100%}
+.rc-item.urg{border-color:var(--ladrillo);box-shadow:inset 4px 0 0 var(--ladrillo)}.rc-item .foto,.rc-item img{width:48px;height:48px;border-radius:10px;object-fit:cover}
+.rc-tx{display:grid;gap:2px;min-width:0}.rc-tx b{font-size:15px;line-height:1.3}.rc-tx .p{color:var(--piz);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-vence{font-size:13px;font-weight:700;color:var(--ladrillo)}
+.rc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rc-chip{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sup2);color:var(--piz)}.rc-chip.r{background:var(--ladrillo-2);color:var(--ladrillo)}.rc-chip.a{background:var(--ambar-2);color:var(--ambar-t)}.rc-chip.c{background:var(--cielo-2);color:var(--cielo)}
+.rc-accs{display:grid!important;gap:8px}.rc-accs .btn{width:100%;justify-content:center}.rc-plazo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--ladrillo);color:#fff}.rc-plazo b{font-size:17px;white-space:nowrap}
+.rc-acc-f{display:grid;gap:8px;margin-top:12px}.rc-acc-f .btn{width:100%;justify-content:center}.btn.peligro{background:var(--ladrillo);border-color:var(--ladrillo);color:#fff}
 .et{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;font-size:15px}.et *{min-width:0}.et h3{margin:0 0 6px;font-size:13.5px;color:var(--piz);font-weight:600}
 .et-tipo{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--sup);border:1px solid var(--linea)}.et-tipo b{display:block;font-size:16px}.et-tipo p{margin:2px 0 0;color:var(--piz);font-size:14px;line-height:1.4}
 .et-ico{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center}.et-ico svg{width:22px;height:22px}.et-ico.ml{background:var(--cielo-2);color:var(--cielo)}.et-ico.vos{background:var(--pino-2);color:var(--pino)}.et-ico.acu{background:var(--ambar-2);color:var(--ambar-t)}
@@ -1499,7 +1509,7 @@ async function recargar() {
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
+const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
   ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
@@ -1508,7 +1518,7 @@ const SUBTABS = {
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
-const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["devoluciones", "Devoluciones", 0, "devoluciones"], ["despacho", "Despacho", 0, "despacho"], ["chat", "Chat"], ["calendario", "Calendario"],
+const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
   ["conocimiento", "Conocimiento", 0, "preguntas", "conocimiento"], ["material", "Documentación para enviar", 0, "mensajes", "material"], ["dudas", "Dudas frecuentes", 0, "preguntas", "dudas"], ["probar", "Probar el bot", 0, "preguntas", "probar"],
   ["numeros", "Mis números"]];
 // Operador: secciones que el administrador le habilitó (Equipo → Permisos)
@@ -1524,7 +1534,7 @@ function armarNav() {
     : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : 0;
   // Ventas nuevas (desde la última vez que se abrió Ventas): aparte, en verde
   const nuevas = (k) => k === "mensajes" ? (C.ventas_nuevas ?? 0) : 0;
-  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
+  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
   else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
@@ -1538,6 +1548,18 @@ function armarNav() {
   const bm = $("#abrirRiel"); if (bm) { bm.querySelector(".cuenta-n")?.remove(); if (tot) bm.insertAdjacentHTML("beforeend", `<span class="cuenta-n" aria-label="${tot} pendientes">${tot > 99 ? "99+" : tot}</span>`); }
   $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") S.recFil = "revisar"; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
+  bannerReclamos();
+}
+// Aviso fijo arriba de Inicio mientras haya reclamos que piden respuesta
+function bannerReclamos() {
+  $("#rcBanner")?.remove();
+  const C = S.cont ?? {};
+  if (!C.reclamos || !["hoy", "bandeja"].includes(S.tab) || !$("#main")) return;
+  const v = C.reclamos_vence ? cuandoPlazo(C.reclamos_vence) : "";
+  $("#main").insertAdjacentHTML("afterbegin", `<div class="rc-banner" id="rcBanner" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>
+    <div><b>${C.reclamos === 1 ? "1 reclamo espera tu respuesta" : `${C.reclamos} reclamos esperan tu respuesta`}</b>${v ? `<span>${C.reclamos === 1 ? "Vence" : "El primero vence"} ${esc(v.replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""}</div>
+    <button type="button" class="btn osc chico" id="rcBannerVer">Ver</button></div>`);
+  $("#rcBannerVer").onclick = () => { S.pvTab = "reclamos"; S.rcFil = "responder"; S.devId = null; ir("devoluciones"); };
 }
 // Deja claro quién está mirando: dueño de la app, administrador de un cliente, operador o soporte
 function pintarPerfil() {
@@ -2178,7 +2200,7 @@ VISTAS.misnotif = async () => {
 };
 
 // ---------- Equipo → Actividad (registro de lo que hizo cada persona) ----------
-const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Devoluciones", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], chat: ["Chat", "m-s"], configuracion: ["Configuración", "m-s"], app: ["App", "m-s"] };
+const ACT_MOD = { preguntas: ["Preguntas", "m-p"], ventas: ["Ventas", "m-v"], despacho: ["Despacho", "m-d"], devoluciones: ["Posventa", "m-r"], notas: ["Notas", "m-s"], conocimiento: ["Conocimiento", "m-s"], calendario: ["Calendario", "m-s"], equipo: ["Equipo", "m-s"], chat: ["Chat", "m-s"], configuracion: ["Configuración", "m-s"], app: ["App", "m-s"] };
 const ACT_PER = [["hoy", "Hoy"], ["ayer", "Ayer"], ["7d", "Últimos 7 días"], ["30d", "Últimos 30 días"]];
 const colorDe = (lista, id) => PALETA[Math.max(0, lista.findIndex((x) => x.id === id)) % PALETA.length];
 const avAct = (p, c) => `<span class="av-m" style="width:32px;height:32px;background:${c}22;color:${c};box-shadow:inset 0 0 0 2px ${c}" aria-hidden="true">${esc(iniciales(p?.nombre ?? "?"))}</span>`;
@@ -3721,7 +3743,7 @@ new MutationObserver(() => titularTablas()).observe(document.body, { childList: 
 
 // ================= MÓDULOS =================
 // Cada cliente tiene los módulos de su plan (Preguntas, Ventas) o los que le asignó el dueño de la app.
-const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Devoluciones", despacho: "Despacho" };
+const MODULOS = { preguntas: "Preguntas", mensajes: "Ventas", devoluciones: "Posventa", despacho: "Despacho" };
 const MOD_TXT = {
   preguntas: "Responde las preguntas que hacen los compradores antes de comprar, con borradores del bot y respuestas automáticas.",
   mensajes: "Tus ventas y la conversación con cada comprador: mensajes de la venta con borradores del bot, motivos para iniciar la charla, manuales y archivos de cada publicación, y avisos de posibles reclamos.",
@@ -4969,7 +4991,8 @@ async function cargarReclamo(id) {
   caja.innerHTML = lista.map((x) => fichaReclamo(x)).join("") || `<p class="mut">MercadoLibre no informa reclamos para esta venta.</p>`;
   const pie = lista.find((x) => x.abierto);
   $("#cpRec").querySelector(".rec-pie")?.remove();
-  if (pie) $("#cpRec").insertAdjacentHTML("beforeend", `<div class="rec-pie">${ICONO_M.info}<span style="flex:1;min-width:200px">${pie.acciones?.length ? "Para responder en el reclamo, entrá a MercadoLibre." : "Por ahora MercadoLibre no te pide nada en este reclamo."}</span><a class="btn chico" href="${esc(pie.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></div>`);
+  if (pie) $("#cpRec").insertAdjacentHTML("beforeend", accionesReclamo(pie));
+  enlazarAccionesReclamo(id, pie);
   caja.querySelectorAll("[data-rdev]").forEach((b) => b.onclick = () => { S.devId = Number(b.dataset.rdev); ir("devoluciones"); });
   caja.onclick = async (e) => {
     const b = e.target.closest("[data-radj]"); if (!b) return;
@@ -4977,6 +5000,57 @@ async function cargarReclamo(id) {
     if (a) abrirArchivo(a);
   };
   minisReclamo(id);
+}
+// Acciones sobre el reclamo abierto: solo las que MercadoLibre habilita ahora; cada una se confirma antes
+const REC_ACC = [
+  ["mensaje", ["send_message_to_complainant"], "Responder al comprador", "osc"],
+  ["mensaje_mediador", ["send_message_to_mediator"], "Escribirle a MercadoLibre", "osc"],
+  ["devolucion", ["allow_return", "allow_return_label"], "Aceptar la devolución del producto", "lin"],
+  ["reembolso", ["refund"], "Devolver el dinero", "lin"],
+  ["mediacion", ["open_dispute"], "Pedir que intervenga MercadoLibre", "lin"],
+];
+function accionesReclamo(pie) {
+  const hab = new Set((pie.acciones ?? []).map((a) => a.accion));
+  const ob = (pie.acciones ?? []).filter((a) => a.obligatoria && a.vence).sort((a, b) => String(a.vence).localeCompare(String(b.vence)))[0];
+  const bts = REC_ACC.filter(([, ks]) => ks.some((k) => hab.has(k)));
+  return `<div class="rec-pie rc-accs">
+    ${ob ? `<div class="rc-plazo"><span>Tenés que responder antes de</span><b>${esc(cuandoPlazo(ob.vence))}</b></div>` : ""}
+    ${bts.length ? bts.map(([k, , t, c]) => `<button type="button" class="btn ${c}" data-racc="${k}">${t}</button>`).join("") + `<p class="et-nota">Antes de cada acción te mostramos qué va a pasar y te pedimos confirmación. Queda registrado quién lo hizo.</p>`
+      : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}
+    <a class="btn lin chico" href="${esc(pie.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></div>`;
+}
+function enlazarAccionesReclamo(id, pie) {
+  const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
+  const c = S.msjConv?.conversacion ?? {};
+  const monto = plata(c.pagado ?? c.total ?? 0, c.moneda ?? "ARS");
+  caja.onclick = (e) => {
+    const b = e.target.closest("[data-racc]"); if (!b) return;
+    const k = b.dataset.racc;
+    const msj = k === "mensaje" || k === "mensaje_mediador";
+    const TXT = {
+      mensaje: ["Responder al comprador", "El mensaje le llega al comprador dentro del reclamo."],
+      mensaje_mediador: ["Escribirle a MercadoLibre", "El mensaje le llega al mediador de MercadoLibre dentro del reclamo."],
+      devolucion: ["¿Aceptar la devolución?", "El comprador va a poder mandar el producto de vuelta con la etiqueta de MercadoLibre. Cuando llegue, lo revisás en Posventa → Devoluciones."],
+      reembolso: [`¿Devolver ${monto}?`, `Se le devuelven ${monto} al comprador y el reclamo se cierra. El comprador se queda con el producto. Esto no se puede deshacer.`],
+      mediacion: ["¿Pedir que intervenga MercadoLibre?", "El reclamo pasa a mediación: MercadoLibre revisa el caso y decide. Ya no se resuelve solo entre el comprador y vos."],
+    }[k];
+    const v = cajon(`<div class="cajon-cab"><h2>${esc(TXT[0])}</h2><button class="btn lin chico" data-cerrar>Cancelar</button></div>
+      <p class="mut">${esc(TXT[1])}</p>
+      ${msj ? `<textarea id="rcTx" rows="5" style="width:100%;font:inherit;padding:10px;border:1px solid var(--linea);border-radius:10px;background:var(--sup);color:var(--tinta)" placeholder="Escribí el mensaje"></textarea>` : ""}
+      <div class="rc-acc-f"><button type="button" class="btn ${k === "reembolso" ? "peligro" : "osc"}" id="rcOk">${msj ? "Enviar" : k === "reembolso" ? `Sí, devolver ${monto}` : k === "devolucion" ? "Sí, aceptar la devolución" : "Sí, pedir que intervenga"}</button></div>`);
+    $("#rcOk").onclick = async () => {
+      const texto = msj ? $("#rcTx").value.trim() : null;
+      if (msj && !texto) return aviso("Escribí el mensaje");
+      const ok = $("#rcOk"); ok.disabled = true; ok.textContent = "Enviando…";
+      const r = await seguro(() => api("reclamo_accion", { id, reclamo: pie.id, accion: k, texto }));
+      if (!r) { ok.disabled = false; ok.textContent = "Probar de nuevo"; return; }
+      v.remove(); aviso(msj ? "Mensaje enviado" : "Listo: MercadoLibre lo recibió");
+      if (S.recDatos) delete S.recDatos[id];
+      $("#cRec").dataset.listo = ""; cargarReclamo(id);
+      S.cont = { ...(S.cont ?? {}), reclamos: Math.max(0, (S.cont?.reclamos ?? 1) - (msj ? 0 : 1)) }; armarNav();
+    };
+    if (msj) setTimeout(() => $("#rcTx")?.focus(), 50);
+  };
 }
 // Fotos de los mensajes del reclamo: se ven chiquitas, igual que en el chat
 const ADJ_REC = {};
@@ -5307,7 +5381,7 @@ function pintarPropia(p, c, editar = false) {
           <div class="et-c"><span>Lo paga</span><div class="et-seg">${[["comprador", "Comprador"], ["vendedor", "Nosotros"]].map(([k, t]) => `<button type="button" class="${(d.paga ?? "comprador") === k ? "on" : ""}" data-paga="${k}">${t}</button>`).join("")}</div></div></div>
           <div class="et-2"><label class="et-c"><span>Bultos</span><input id="etBul" inputmode="numeric" value="${d.bultos ?? 1}"></label><label class="et-c"><span>Llegada estimada</span><input id="etLle" type="date" value="${esc(d.llegada ?? "")}"></label></div>` : ""}
         ${d.modo ? `<section><h3>Fotos</h3><div id="etFotos"></div></section>` : ""}
-        <div class="et-acc col"><button type="button" class="btn osc" id="etGuardar"${d.modo ? "" : " disabled"}>Guardar</button>${editar ? `<button type="button" class="btn lin" id="etCancelar">Cancelar</button>` : ""}</div></div>`;
+        <div class="et-acc col"><button type="button" class="btn osc" id="etGuardar"${d.modo ? "" : " disabled"}>Guardar</button>${!editar ? `<button type="button" class="btn lin" data-est="entregado">Ya se entregó</button>` : ""}${editar ? `<button type="button" class="btn lin" id="etCancelar">Cancelar</button>` : ""}</div></div>`;
       S.fotoEmp = c.cliente_id ?? null;
       if ($("#etFotos")) casillasFotos($("#etFotos"), d.modo === "retiro" ? ["Paquete armado", "Remito firmado"] : ["Paquete armado", "Guía del correo", "Remito firmado"], d.fotos, null);
     };
@@ -5324,6 +5398,11 @@ function pintarPropia(p, c, editar = false) {
       else if (b.dataset.serv) { leer(); d.servicio = b.dataset.serv; pintarF(); }
       else if (b.dataset.paga) { leer(); d.paga = b.dataset.paga; pintarF(); }
       else if (b.id === "etCancelar") pintarPropia(p, c);
+      else if (b.dataset.est === "entregado") {
+        if (!confirm("¿Marcar esta venta como entregada?")) return;
+        b.disabled = true; const r = await seguro(() => api("entrega_estado", { id: c.id, estado: "entregado" })); b.disabled = false;
+        if (r) { aviso("Entregado"); S.entrega = { id: c.id, e: { tipo_envio: "acordar", propia: r }, at: Date.now() }; pintarPropia(r, c); pintarHistPropia(r); }
+      }
       else if (b.id === "etGuardar") {
         leer();
         const costo = String(d.costo ?? "").replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
@@ -5359,6 +5438,8 @@ function pintarPropia(p, c, editar = false) {
     ${p.guia && !p.con_seguimiento && sitio && est === "despachado" ? `<div class="et-acc"><button type="button" class="btn lin" id="etSitio">Copiar la guía y abrir ${esc(p.empresa)}</button></div>` : ""}
     <div class="et-acc col">
       ${sig ? `<button type="button" class="btn osc" data-est="${sig[0]}">${sig[1]}</button>` : ""}
+      ${sig && sig[0] !== "entregado" ? `<button type="button" class="btn lin" data-est="entregado">Marcar como entregado</button>` : ""}
+      ${est === "no_entregado" ? `<button type="button" class="btn osc" data-est="entregado">Marcar como entregado</button>` : ""}
       ${p.guia && ["despachado", "entregado"].includes(est) ? `<button type="button" class="btn lin" id="etAvisar">Mandar los datos al comprador</button><p class="et-nota">Te armamos el mensaje en el chat; lo revisás y lo enviás vos.</p>` : ""}
       ${est === "despachado" ? `<button type="button" class="btn lin" data-est="no_entregado">No se pudo entregar</button>` : ""}
       ${est !== "entregado" ? `<button type="button" class="btn lin" id="etEditar">Editar los datos</button>` : ""}
@@ -6288,7 +6369,7 @@ function cuandoEvento(e) {
   return { fecha: fecha.charAt(0).toUpperCase() + fecha.slice(1), sub: `${hora} · ${rel}` };
 }
 // Invitados de un evento: cada persona, y atajos por grupo (los grupos se arman en Equipo)
-const GRUPO_TXT = { ventas: "Ventas", despacho: "Despacho", devoluciones: "Devoluciones", preguntas: "Preguntas" };
+const GRUPO_TXT = { ventas: "Ventas", despacho: "Despacho", devoluciones: "Posventa", preguntas: "Preguntas" };
 function invitadosHTML(eq, yo, sel, grupos) {
   const g = Object.entries(grupos ?? {}).filter(([, l]) => (l ?? []).some((u) => eq.some((m) => m.id === u)));
   return `${eq.map((m) => `<button type="button" aria-pressed="${sel.includes(m.id)}" data-inv="${esc(m.id)}">${esc(m.id === yo ? "Vos" : m.nombre)}</button>`).join("")}
@@ -6636,26 +6717,68 @@ function casillasFotos(caja, guias, fotos, cambio) {
 }
 
 // ---------- lista ----------
+// ---------- Posventa: Reclamos, Devoluciones y Retiros de Full ----------
+function posventaTabs() {
+  const C = S.cont ?? {};
+  const dv = S.devN ?? 0, fl = S.fullRet?.pendientes ?? 0;
+  const t = [["reclamos", "Reclamos", C.reclamos, "rojo"], ["devoluciones", "Devoluciones", dv, ""], ["full", "Retiros Full", fl, ""]];
+  return `<div class="cabecera"><div><h1>Posventa</h1><p>Reclamos, devoluciones y retiros de Full</p></div></div>
+    <div class="pestanas pv-tabs" role="tablist" aria-label="Posventa">${t.map(([k, x, n, c]) => `<button type="button" role="tab" data-pv="${k}" class="${S.pvTab === k ? "on" : ""}" aria-selected="${S.pvTab === k}">${x}${n ? ` <span class="cuenta-n ${c}">${n}</span>` : ""}</button>`).join("")}</div>`;
+}
+function enlazarPvTabs() {
+  $("#main .pv-tabs").onclick = (e) => { const b = e.target.closest("[data-pv]"); if (b && b.dataset.pv !== S.pvTab) { S.pvTab = b.dataset.pv; VISTAS.devoluciones(); } };
+}
+const fechaRec = (f) => f ? cuandoPlazo(f) : "";
+async function vistaReclamos() {
+  const emp = empRec();
+  $("#main").innerHTML = posventaTabs() + `<p class="mut">${buscandoTxt("Buscando reclamos")}</p>`; enlazarPvTabs();
+  const r = await seguro(() => api("reclamos_lista", { cliente_id: emp }));
+  if (!r || S.tab !== "devoluciones" || S.pvTab !== "reclamos" || S.devId) return;
+  S.rcFil ??= "abiertos";
+  const resp = r.abiertos.filter((x) => x.responder);
+  if ((S.cont ?? {}).reclamos !== resp.length) { S.cont = { ...(S.cont ?? {}), reclamos: resp.length }; armarNav(); }
+  const fila = (x) => `<button type="button" class="rc-item ${x.responder ? "urg" : ""}" data-conv="${x.conv}">
+      ${foto(x.foto)}<div class="rc-tx">${x.responder && x.vence ? `<span class="rc-vence">Vence ${esc(fechaRec(x.vence).replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""}<b>${esc(x.titulo ?? "Venta")}</b><span class="p">${esc(x.comprador)} · ${esc(x.tipo)}</span>
+      <span class="rc-chips">${x.responder ? `<span class="rc-chip r">Te toca responder</span>` : x.abierto ? `<span class="rc-chip a">Esperando al comprador o a MercadoLibre</span>` : `<span class="rc-chip">Cerrado</span>`}${x.etapa ? `<span class="rc-chip c">${esc(x.etapa)}</span>` : ""}</span></div></button>`;
+  const lista = S.rcFil === "responder" ? resp : S.rcFil === "cerrados" ? r.cerrados : r.abiertos;
+  const esperan = r.abiertos.filter((x) => !x.responder);
+  const cuerpo = S.rcFil === "abiertos"
+    ? (resp.length ? `<div class="rc-g">Te toca responder</div>${resp.map(fila).join("")}` : "") + (esperan.length ? `<div class="rc-g">Esperando al comprador o a MercadoLibre</div>${esperan.map(fila).join("")}` : "")
+    : lista.map(fila).join("");
+  $("#main").innerHTML = posventaTabs() + `
+    <div class="m-fil" id="rcFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${[["abiertos", "Abiertos", r.abiertos.length], ["responder", "Te toca responder", resp.length], ["cerrados", "Cerrados", 0]].map(([k, t, n]) => `<button type="button" data-f="${k}" class="${S.rcFil === k ? "on" : ""}">${t}${n ? ` <b>${n}</b>` : ""}</button>`).join("")}</div>
+    <div class="rc-lista">${cuerpo || `<div class="panel vacio"><b>${S.rcFil === "cerrados" ? "No hay reclamos cerrados en los últimos 3 meses" : "No hay reclamos abiertos"}</b>${S.rcFil === "cerrados" ? "" : "Cuando se abra uno, te avisamos al celular."}</div>`}</div>`;
+  enlazarPvTabs();
+  $("#rcFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.rcFil = b.dataset.f; vistaReclamos(); } };
+  $("#main .rc-lista").onclick = (e) => { const b = e.target.closest("[data-conv]"); if (!b) return; const id = Number(b.dataset.conv); S.convTab = { ...(S.convTab ?? {}), [id]: "reclamo" }; S.msjId = id; ir("mensajes"); };
+  escucharClientes(() => { if (S.pvTab === "reclamos") vistaReclamos(); });
+}
 VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
+  S.pvTab ??= "reclamos";
+  if (S.pvTab === "reclamos") return vistaReclamos();
   const emp = empRec();
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Elegí un cliente.</p></div></div>`; return; }
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Posventa</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const [r, fr] = await Promise.all([seguro(() => api("devoluciones", { cliente_id: emp })), api("full_retiros", { cliente_id: emp }).catch(() => null), etqCargar(emp)]); if (!r || S.tab !== "devoluciones" || S.devId) return;
   if (fr) S.fullRet = fr;
   const lista = r.devoluciones.map((d) => ({ ...d, est: estadoDev(d) })).filter((d) => !S.recMio || d.es_mia);
   const n = (g) => lista.filter((d) => d.est.grupo === g).length;
   S.recFil ??= "revisar";
   if (S.recFil === "otras") S.recFil = "revisar";
+  if (S.pvTab === "full") S.recFil = "full"; else if (S.recFil === "full") S.recFil = "revisar";
+  S.devN = n("revisar") + n("necesita") + n("aprobar");
   const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
   const fullN = (S.fullRet?.pendientes ?? 0) + (S.fullRet?.pedidas ?? 0);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Devoluciones</h1><p>Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó. Si llegó con un problema, se lo informás a MercadoLibre con tus fotos.</p></div></div>${chipsClientes("devoluciones", emp)}
+  $("#main").innerHTML = posventaTabs() + `${S.pvTab === "full" ? "" : `<p class="mut peq" style="margin:4px 0 10px">Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó.</p>`}
     <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
     <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${fullN || S.recFil === "full" ? `<button type="button" data-f="full" class="${S.recFil === "full" ? "on" : ""}">Retirar de Full · ${S.fullRet?.pendientes ?? 0}</button>` : ""}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
     <div class="rec-lista">${S.recFil === "full" ? fullRetirosHTML(S.fullRet) : lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
       || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
+  enlazarPvTabs();
+  if (S.pvTab === "full") { $("#recEsc")?.closest(".rec-acc")?.remove(); $("#recFil")?.remove(); } else $('#recFil [data-f="full"]')?.remove();
   escucharClientes(() => VISTAS.devoluciones());
-  $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
-  $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
+  if ($("#recEsc")) $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
+  if ($("#recFil")) $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = async (e) => {
     const u = e.target.closest("#frAct");
     if (u) { u.disabled = true; u.textContent = "Consultando MercadoLibre…"; const x = await seguro(() => api("full_retiros", { cliente_id: emp, forzar: true })); if (x) S.fullRet = x; VISTAS.devoluciones(); return; }
@@ -6676,6 +6799,7 @@ function fullRetirosHTML(fr) {
 
 // ---------- detalle de una devolución: cómo llegó ----------
 async function detalleDevolucion(id) {
+  if (S.pvTab === "reclamos") S.pvTab = "devoluciones";
   await detalleDevolucion0(id);
   if (S.tab !== "devoluciones" || S.devId !== id || $("#dNot")) return;
   $("#main").insertAdjacentHTML("beforeend", `<section class="panel" style="margin-top:16px"><div class="fila" style="align-items:center"><h2 class="rec-h" style="margin:0">Notas internas</h2><div class="n"><button class="btn lin chico" type="button" id="dCompartir">Compartir en el chat</button></div></div><div class="notas" id="dNot" style="margin-top:10px"><p class="mut">Cargando las notas…</p></div></section>`);
@@ -6690,7 +6814,7 @@ async function detalleDevolucion0(id) {
   const motivoTxt = (k) => r.motivos.find((m) => m.id === k)?.texto ?? k;
   const tip = r.tipicos ?? {};
   const chips = [...(tip.historial ?? []).map((t) => ({ t, de: "ya pasó" })), ...(tip.ia ?? []).map((t) => ({ t, de: "" }))];
-  const cab = `<button class="btn lin chico" id="recVolver" type="button">‹ Devoluciones</button>
+  const cab = `<button class="btn lin chico" id="recVolver" type="button">‹ Posventa</button>
     <div class="panel rec-cab">${foto(d.item_foto)}<div><h1 style="font-size:20px;margin:0 0 4px">${esc(d.item_titulo ?? "Producto")}</h1>
       <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
