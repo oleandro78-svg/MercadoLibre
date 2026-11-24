@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241549";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241604";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6817,13 +6817,29 @@ async function subirFoto(file, etiqueta) {
   return api("devolucion_foto", { cliente_id: (S.tab === "mensajes" && S.fotoEmp) || empRec(), datos, tipo, etiqueta });
 }
 // Casillas de fotos guiadas; devuelve el estado (lista de fotos) que se va llenando
-function casillasFotos(caja, guias, fotos, cambio) {
+// Descarga las fotos al teléfono o a la computadora (una por una, con el nombre de lo que muestran)
+async function descargarFotos(fotos, base = "foto") {
+  const nombre = (f, i) => `${base}-${String(f.etiqueta ?? "foto").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "foto"}-${i + 1}.${/png/.test(f.tipo ?? "") ? "png" : "jpg"}`;
+  let n = 0;
+  for (const [i, f] of fotos.entries()) {
+    if (!f.url) continue;
+    try {
+      const b = await (await fetch(f.url)).blob();
+      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nombre(f, i);
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      n++; await new Promise((x) => setTimeout(x, 400));
+    } catch { window.open(f.url, "_blank"); }
+  }
+  aviso(n ? `${n === 1 ? "Se descargó 1 foto" : `Se descargaron ${n} fotos`}` : "No se pudieron descargar las fotos");
+}
+function casillasFotos(caja, guias, fotos, cambio, base) {
   const pintar = () => {
     const usadas = new Set(fotos.map((f) => f.etiqueta));
     const libres = guias.filter((g) => !usadas.has(g));
     caja.innerHTML = `<div class="fotos-g">${fotos.map((f, i) => `<div class="foto-c"><img src="${esc(f.url ?? "")}" alt="${esc(f.etiqueta ?? "Foto")}"><span>${esc(f.etiqueta ?? "Foto")}</span><button type="button" class="foto-x" data-x="${i}" aria-label="Quitar foto">×</button></div>`).join("")}
       ${libres.map((g) => `<label class="foto-c nueva">${ICONO_R.cam}<span>${esc(g)}</span><input type="file" accept="image/*" capture="environment" data-g="${esc(g)}" hidden></label>`).join("")}
-      <label class="foto-c nueva otra">${ICONO_R.cam}<span>Otra foto</span><input type="file" accept="image/*" multiple data-g="Foto" hidden></label></div>`;
+      <label class="foto-c nueva otra">${ICONO_R.cam}<span>Otra foto</span><input type="file" accept="image/*" multiple data-g="Foto" hidden></label></div>
+      ${fotos.some((f) => f.url) ? `<button type="button" class="btn lin chico" data-bajar style="margin-top:8px">Descargar las fotos (${fotos.filter((f) => f.url).length})</button>` : ""}`;
   };
   caja.onchange = async (e) => {
     const inp = e.target.closest("input[type=file]"); if (!inp?.files?.length) return;
@@ -6831,7 +6847,7 @@ function casillasFotos(caja, guias, fotos, cambio) {
     for (const f of [...inp.files].slice(0, 6)) { const r = await seguro(() => subirFoto(f, inp.dataset.g)); if (r) fotos.push(r); }
     pintar(); cambio?.();
   };
-  caja.onclick = (e) => { const x = e.target.closest("[data-x]"); if (!x) return; e.preventDefault(); fotos.splice(Number(x.dataset.x), 1); pintar(); cambio?.(); };
+  caja.onclick = (e) => { if (e.target.closest("[data-bajar]")) { descargarFotos(fotos, base); return; } const x = e.target.closest("[data-x]"); if (!x) return; e.preventDefault(); fotos.splice(Number(x.dataset.x), 1); pintar(); cambio?.(); };
   pintar();
 }
 
@@ -7005,9 +7021,10 @@ async function detalleDevolucion0(id) {
   if (enviada) {
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rv.resultado === "ok" ? "Se confirmó que llegó bien" : "Se informó a MercadoLibre que llegó con un problema"}</h2>
       ${rv.resultado === "falla" ? `<p style="margin:0 0 6px"><b>${esc(motivoTxt(rv.motivo))}</b></p><p class="pre" style="margin:0 0 10px">${esc(rv.descripcion ?? "")}</p>` : ""}
-      ${rv.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div>` : ""}
+      ${rv.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div><button type="button" class="btn lin chico" id="recBajar" style="margin-top:8px">Descargar las fotos (${rv.fotos.length})</button>` : ""}
       <p class="peq mut" style="margin:10px 0 0">Enviada el ${fecha(rv.enviado_at).replace(/\.$/, "")}. Ya no se puede cambiar: el resto lo resuelve MercadoLibre.</p></div>`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
+    if ($("#recBajar")) $("#recBajar").onclick = () => descargarFotos(rv.fotos, `devolucion-${id}`);
     return;
   }
   const env = r.enviado ?? {};
@@ -7068,7 +7085,7 @@ async function detalleDevolucion0(id) {
       ${registrar() ? `<div class="env-que"><b>Qué pasa al registrar</b><p>Queda guardado en la app cómo llegó, con las fotos, como respaldo. MercadoLibre ya resolvió este reclamo: no se le envía nada.</p></div>` : `
       <div class="env-que"><b>Qué pasa al confirmar</b><p>MercadoLibre da la devolución por buena y le devuelve la plata al comprador. Después ya no se puede reclamar por esta devolución.</p>
         ${d.vence_at ? `<p>Si no la revisás ${venceRec(d.vence_at)}, MercadoLibre la da por buena igual.</p>` : ""}</div>`}`;
-    casillasFotos($("#recFotosOk"), ["Producto", "Embalaje"], st.fotos, null);
+    casillasFotos($("#recFotosOk"), ["Producto", "Embalaje"], st.fotos, null, `devolucion-${id}`);
   };
   const pintarFalla = () => {
     const caja = $("#recFalla");
@@ -7089,7 +7106,7 @@ async function detalleDevolucion0(id) {
       <textarea id="recDesc" rows="5" maxlength="2000" placeholder="Contá qué encontraste al abrir el paquete. Podés tocar los problemas típicos de arriba o pedirle la descripción a la IA.">${esc(st.descripcion)}</textarea>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn lin chico" id="recIA">✨ Sugerir descripción con IA</button><span class="peq mut" id="recIAt" style="align-self:center"></span></div>
       <div class="env-que"><b>Qué pasa al enviar</b><p>MercadoLibre revisa tu reporte con las fotos y decide. Mientras tanto la plata queda retenida. Una vez enviado no se puede cambiar.</p></div>`;
-    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null, `devolucion-${id}`);
     $("#recDesc").oninput = () => { st.descripcion = $("#recDesc").value; };
     pintarPie();
   };
@@ -7133,7 +7150,7 @@ async function detalleDevolucion0(id) {
     const f = r.despacho.flatMap((x) => x.fotos).find((y) => y.path === c.dataset.desp);
     if (c.checked && f && !st.fotos.some((y) => y.path === f.path)) st.fotos.push({ ...f, etiqueta: "Al despachar" });
     if (!c.checked) { const i = st.fotos.findIndex((y) => y.path === c.dataset.desp); if (i >= 0) st.fotos.splice(i, 1); }
-    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null);
+    casillasFotos($("#recFotos"), ["Embalaje como llegó", "Etiqueta", "Producto", "Daño o faltante"], st.fotos, null, `devolucion-${id}`);
   };
   pintarFalla();
 }
