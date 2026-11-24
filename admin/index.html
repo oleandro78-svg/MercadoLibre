@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241604";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241612";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6611,6 +6611,9 @@ function estadoDev(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
+  // Revisada desde MercadoLibre (no desde la app)
+  const rml = EX(d).revision_ml;
+  if (r?.estado !== "enviada" && rml?.vendedor && rml.vendedor !== "pending") return { t: rml.vendedor === "claimed" ? "Problema informado desde MercadoLibre" : "Revisada desde MercadoLibre", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "registrada") return { t: r.resultado === "ok" ? "Registrada: llegó bien" : "Registrada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   // Devolución de Full que el depósito de MercadoLibre revisó y le manda al vendedor
   const tri = EX(d).triage;
@@ -6630,6 +6633,9 @@ function estadoDev(d) {
     if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
     return { t: d.ml_detalle?.titulo ?? "Cerrada", c: "", grupo: "cerradas" };
   }
+  // Ya llegó y MercadoLibre no pide más la revisión: se hizo desde MercadoLibre (o venció) y ahora decide MercadoLibre
+  if (d.llegada_at && d.se_puede_revisar === false && d.destino === "seller_address" && r?.estado !== "para_aprobar")
+    return { t: d.abierto ? "Ya se revisó en MercadoLibre: ahora decide MercadoLibre" : "Revisada en MercadoLibre", c: "", grupo: d.abierto ? "ml" : "enviadas" };
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
   if (d.envio_estado === "shipped") return { t: `En camino a tu dirección${por}`, c: "", grupo: "camino" };
   if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
@@ -7016,6 +7022,24 @@ async function detalleDevolucion0(id) {
       ${d.ml_detalle?.titulo ? `<div class="estado e-pend"><span><b>${esc(d.ml_detalle.titulo)}</b>${d.ml_detalle.descripcion ? `<br>${esc(d.ml_detalle.descripcion)}` : ""}</span></div>` : ""}</div>
       ${seguimientoCorreoHtml(d)}`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
+    return;
+  }
+  const rml = EX(d).revision_ml;
+  if (!enviada && rml?.vendedor && rml.vendedor !== "pending") {
+    const mt = rml.motivo ? (r.motivos.find((m) => m.id === rml.motivo)?.texto ?? rml.motivo) : "";
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${rml.vendedor === "claimed" ? "El problema se informó desde MercadoLibre" : "Se revisó desde MercadoLibre"}</h2>
+      ${mt ? `<p style="margin:0 0 6px"><b>${esc(mt)}</b></p>` : ""}<p class="peq mut" style="margin:0">${rml.at ? `El ${fecha(rml.at).replace(/\.$/, "")}. ` : ""}Ya no hace falta revisarla en la app: el resto lo resuelve MercadoLibre.</p>
+      ${rv?.fotos?.length ? `<div class="fotos-g" style="margin-top:12px">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div><button type="button" class="btn lin chico" id="recBajar" style="margin-top:8px">Descargar las fotos (${rv.fotos.length})</button>` : ""}</div>`;
+    $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
+    if ($("#recBajar")) $("#recBajar").onclick = () => descargarFotos(rv.fotos, `devolucion-${id}`);
+    return;
+  }
+  if (!enviada && !deposito && d.llegada_at && !d.se_puede_revisar && d.destino === "seller_address" && rv?.estado !== "para_aprobar") {
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Ya se revisó en MercadoLibre</h2>
+      <p style="margin:0 0 10px">MercadoLibre ya no pide la revisión de esta devolución: se hizo desde MercadoLibre${d.abierto ? " y ahora decide MercadoLibre" : ""}.</p>
+      ${rv?.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div><button type="button" class="btn lin chico" id="recBajar" style="margin-top:8px">Descargar las fotos (${rv.fotos.length})</button>` : ""}</div>`;
+    $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
+    if ($("#recBajar")) $("#recBajar").onclick = () => descargarFotos(rv.fotos, `devolucion-${id}`);
     return;
   }
   if (enviada) {
