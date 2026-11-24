@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241346";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241404";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -893,7 +893,12 @@ section.et-seg{display:grid;gap:8px;padding:12px 14px;border-radius:12px;backgro
 .lt-det,.lt-cod{display:block;font-size:12.5px;color:var(--piz);margin-top:1px}.lt-cod .nw{white-space:nowrap}
 .linea-t::before{content:"";position:absolute;left:4px;top:8px;bottom:14px;width:1px;background:var(--linea)}
 .resumen-movil{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:10px 14px 0;padding:8px 12px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);font-size:13px}
-.rc-item[hidden],.rc-g[hidden],.rc-vacio[hidden],.rec-it[hidden],.fr-pub[hidden],.ds-it[hidden]{display:none!important}.mod-bus{margin:0 0 12px}.mod-bus .m-bus{margin-top:0}
+.rc-item[hidden],.rc-g[hidden],.rc-vacio[hidden],.rec-it[hidden],.fr-pub[hidden],.ds-it[hidden]{display:none!important}.rec-it.urg{box-shadow:inset 4px 0 0 var(--ladrillo)}
+.rc-det{max-width:760px}.rc-det-cab{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}
+.rc-det-venta{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--linea);border-radius:14px;background:var(--sup);margin-bottom:14px}.rc-det-venta>div{display:grid;gap:2px;min-width:0}
+.rc-det-venta .foto{width:52px;height:52px;border-radius:10px;object-fit:cover;font-size:10px;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px var(--linea)}
+.rc-det-p{display:block}.rc-det-p .rec-pie{position:static;margin-top:14px;padding:0;background:none;border:0;box-shadow:none}
+.mod-bus{margin:0 0 12px}.mod-bus .m-bus{margin-top:0}
 .bq-fuera{border:1px dashed var(--linea);border-radius:14px;padding:14px;background:var(--sup);display:grid;gap:10px;margin:0 0 12px}.bq-fuera p{margin:0;color:var(--piz);font-size:14px}
 .bq-v{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;padding:10px;border-radius:12px;background:var(--sup2)}.bq-v:focus-visible{outline:2px solid var(--cielo)}
 .bq-v .foto{width:48px;height:48px;border-radius:10px;object-fit:cover;font-size:10px;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--piz)}.bq-v>span{display:grid;gap:2px;min-width:0}.bq-v>span>span{color:var(--piz);font-size:13.5px}
@@ -1317,7 +1322,7 @@ function elegirCliente(id) {
   S.rol = m?.rol === "admin" ? "cliente" : "operador";
   try { localStorage.setItem("mostrador_cliente_sel", id); } catch {}
 }
-const inicio = () => S.rol === "operador" ? (modsActuales().has("preguntas") ? "bandeja" : "mensajes") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
+const inicio = () => S.rol === "operador" ? ([["preguntas", "bandeja"], ["mensajes", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].find(([m]) => modsActuales().has(m))?.[1] ?? "chat") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
 const clienteYo = (id) => S.yo?.clientes.find((x) => x.id === id);
 const iniciales = (n) => { const w = String(n ?? "").replace(/\bS\.?R\.?L\.?|\bS\.?A\.?(?=\s|$)/gi, "").trim().split(/\s+/).filter(Boolean); return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "").slice(0, 2)).toUpperCase(); };
 function etiquetaCliente(id) {
@@ -1550,7 +1555,7 @@ function armarNav() {
   const tot = [...$("#nav").querySelectorAll("button")].filter((bt) => !(conPreg && ["hoy", "bandeja"].includes(bt.dataset.t)))
     .reduce((x, bt) => x + (Number(bt.querySelector(".cuenta-n")?.textContent) || 0), 0) + (C.ventas_nuevas && $("#nav .cuenta-nueva") ? C.ventas_nuevas : 0);
   const bm = $("#abrirRiel"); if (bm) { bm.querySelector(".cuenta-n")?.remove(); if (tot) bm.insertAdjacentHTML("beforeend", `<span class="cuenta-n" aria-label="${tot} pendientes">${tot > 99 ? "99+" : tot}</span>`); }
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") S.recFil = "revisar"; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.recFil = "revisar"; S.pvRec = null; } ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
   bannerReclamos();
 }
@@ -1646,14 +1651,17 @@ function medirAlto() { const h = window.visualViewport?.height ?? innerHeight; d
 medirAlto(); window.visualViewport?.addEventListener("resize", medirAlto); addEventListener("resize", medirAlto);
 document.addEventListener("click", (e) => { if (e.target.closest("#volverBtn")) pedirVolver(); });
 function ir(t) {
+  // Un operador no entra a los módulos que no tiene asignados (por ejemplo, desde un enlace o una notificación vieja)
+  const MOD_TAB = { bandeja: "preguntas", preguntas: "preguntas", mensajes: "mensajes", despacho: "despacho", devoluciones: "devoluciones" };
+  if (S.rol === "operador" && MOD_TAB[t] && !modsActuales().has(MOD_TAB[t])) t = inicio();
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
   setTimeout(pintarVolver, 0);
   if (t !== "mensajes") S.msjId = null;
-  if (t !== "devoluciones") S.devId = null;
+  if (t !== "devoluciones") { S.devId = null; S.pvRec = null; }
   if (t !== "chat") { S.chatId = null; S.chatCitas = false; clearTimeout(S.chatTimer); }
   // La pantalla actual queda en la dirección: al actualizar la página se vuelve a la misma
-  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : t === "chat" && S.chatId ? `#chat/${S.chatId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
+  try { const h = t === "mensajes" && S.msjId ? `#mensajes/${S.msjId}` : t === "devoluciones" && S.devId ? `#devoluciones/${S.devId}` : t === "devoluciones" && S.pvRec ? `#posventa/reclamo/${S.pvRec}` : t === "chat" && S.chatId ? `#chat/${S.chatId}` : `#${t}`; if (location.hash !== h) history.replaceState(null, "", location.pathname + location.search + h); } catch {}
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const tb = $(".barra-movil b"); if (tb && tituloPantalla(t)) tb.textContent = tituloPantalla(t);
@@ -2500,7 +2508,6 @@ function sumarPersona(emp, libres) {
   const v = cajon(`<div class="cajon-cab"><div><h2>Sumar persona</h2><p class="mut peq" style="margin:4px 0 0">${libres ? `Te ${libres === 1 ? "queda 1 lugar" : `quedan ${libres} lugares`} para operadores.` : ""}</p></div><button class="btn lin chico" data-cerrar>Cerrar</button></div>
     <label class="et" for="sNom">Nombre</label><input id="sNom" autocomplete="off">
     <label class="et" for="sEm">Email</label><input id="sEm" type="email" autocomplete="off">
-    <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro negocio en el panel, se le suma este y entra con su misma clave.</p>
     <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: trabaja en lo que le asignes (preguntas, ventas, despacho, posventa)</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
     <button class="btn pri" style="margin-top:18px" id="sOk">Sumar</button>`, true);
   $("#sOk", v).onclick = async () => {
@@ -4063,6 +4070,25 @@ const ETQ = {
     ["Compacta", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
     ["Completa", { img: ["foto"], r1: ["prod"], esq: [], r2: ["comprador", "orden"], r3: ["motivo"], r4: [], mar: ["estado", "notas", "asig"] }],
   ] },
+  reclamos: { titulo: "Reclamos", datos: {
+    foto: ["Foto", (x) => foto(x.foto)],
+    prod: ["Producto", (x) => esc(x.titulo ?? "Producto")], comprador: ["Comprador", (x) => esc(x.comprador ?? "")], nick: ["Usuario de ML", (x) => esc(x.nick ?? "")],
+    tipo: ["Reclamo, mediación o devolución", (x) => esc(x.tipo ?? "")],
+    vence: ["Vence", (x) => x.responder && x.vence ? `<span class="rc-vence">Vence ${esc(fechaRec(x.vence).replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""],
+    estado: ["Estado", (x) => x.responder ? `<span class="rc-chip r">Te toca responder</span>` : x.abierto ? `<span class="rc-chip a">Esperando al comprador o a MercadoLibre</span>` : `<span class="rc-chip">Cerrado</span>`],
+    etapa: ["Con quién está", (x) => x.etapa ? `<span class="rc-chip c">${esc(x.etapa)}</span>` : ""],
+    carrito: ["N° de venta", (x) => x.pack_id ? `#${etqCp(String(x.pack_id))}` : ""],
+    reclamo: ["N° de reclamo", (x) => x.reclamo ? `Reclamo ${etqCp(String(x.reclamo))}` : ""],
+    precio: ["Precio que pagó", (x) => x.pagado != null ? esc(plata(x.pagado, x.moneda ?? "ARS")) : ""],
+    var: ["Variante", (x) => esc(x.variante ?? "")], sku: ["SKU", (x) => x.sku ? `SKU ${etqCp(x.sku)}` : ""],
+    fventa: ["Fecha de la venta", (x) => x.fecha_venta ? `Vendida ${etqFechaHora(x.fecha_venta)}` : ""],
+    freclamo: ["Fecha del reclamo", (x) => x.abierto_at ? `Reclamo ${etqFechaHora(x.abierto_at)}` : ""],
+    hace: ["Último movimiento", (x) => x.actualizado ? haceVivo(x.actualizado) : ""],
+  }, plantillas: [
+    ["Como está", { img: ["foto"], r1: ["prod"], esq: ["vence"], r2: ["comprador", "tipo"], r3: [], r4: [], mar: ["estado", "etapa"] }],
+    ["Compacta", { img: ["foto"], r1: ["prod"], esq: ["vence"], r2: ["comprador"], r3: [], r4: [], mar: ["estado"] }],
+    ["Completa", { img: ["foto"], r1: ["prod"], esq: ["vence"], r2: ["comprador", "carrito"], r3: ["tipo", "fventa"], r4: [], mar: ["estado", "etapa"] }],
+  ] },
 };
 // Configuración guardada del cliente (se trae una vez por cliente)
 // Si la pantalla no tiene el negocio a mano (el administrador de la empresa entra sin elegirlo), se usa el de la sesión
@@ -4104,7 +4130,7 @@ document.addEventListener("keydown", (e) => { const b = e.target.closest?.("[dat
 // Editor: plantillas arriba, la etiqueta con casilleros, los datos sin usar y cómo se ve con filas reales
 // Copiar la etiqueta de una lista a otra: los datos con otro nombre se traducen y los que no existen en la otra lista quedan afuera
 const ETQ_EQUIV = { ventas: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, despacho: { comprador: "nombre", carrito: "nro", seguimiento: "seguim" }, devoluciones: { nombre: "comprador", nro: "carrito", seguim: "seguimiento" } };
-const ETQ_MOD_APP = { ventas: "mensajes", despacho: "despacho", devoluciones: "devoluciones" };
+const ETQ_MOD_APP = { ventas: "mensajes", despacho: "despacho", devoluciones: "devoluciones", reclamos: "devoluciones" };
 function etqTraducir(cfg, destino) {
   const D = ETQ[destino].datos, eq = ETQ_EQUIV[destino] ?? {}, out = {}, fuera = [];
   for (const [k] of ETQ_CASILLEROS) out[k] = [];
@@ -4447,6 +4473,7 @@ async function fueraMod(k, emp, q, n, donde) {
   let caja = $(`#bmFuera_${k}`);
   if (!q || n) { caja?.remove(); return; }
   if (!caja) { $(`#bm_${k}`)?.closest(".mod-bus")?.insertAdjacentHTML("afterend", `<div class="bq-fuera" id="bmFuera_${k}"></div>`); caja = $(`#bmFuera_${k}`); if (!caja) return; }
+  if (!modsActuales().has("mensajes")) { caja.innerHTML = `<b>No encontré nada con eso en ${donde}</b>`; return; }
   caja.innerHTML = `<b>No está en ${donde}</b><p>${buscandoTxt("Buscando en todas las ventas")}</p>`;
   const r = await api("mensajes", { cliente_id: emp, filtro: "todas", buscar: q, desde: 0, limite: 5, filtros: {} }).catch(() => null);
   if (S.busMod[k] !== q || !caja.isConnected) return;
@@ -5047,7 +5074,7 @@ function datosReclamo(id) {
 async function cargarReclamo(id) {
   const caja = $("#cRec"); caja.dataset.listo = "1";
   const r = await datosReclamo(id).catch((e) => ({ error: e.message }));
-  if (S.msjId !== id || !$("#cRec")) return;
+  if ((S.msjId !== id && S.pvRec !== id) || !$("#cRec")) return;
   if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el reclamo: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cRecOtra">Probar de nuevo</button>`; $("#cRecOtra").onclick = () => cargarReclamo(id); return; }
   const lista = r.reclamos ?? [];
   const abierto = lista.some((x) => x.abierto);
@@ -5084,7 +5111,7 @@ function accionesReclamo(pie) {
 }
 function enlazarAccionesReclamo(id, pie) {
   const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
-  const c = S.msjConv?.conversacion ?? {};
+  const c = (S.pvRec === id ? S.pvRecConv : S.msjConv?.conversacion) ?? {};
   const monto = plata(c.pagado ?? c.total ?? 0, c.moneda ?? "ARS");
   caja.onclick = (e) => {
     const b = e.target.closest("[data-racc]"); if (!b) return;
@@ -6789,20 +6816,21 @@ function posventaTabs() {
     <div class="pestanas pv-tabs" role="tablist" aria-label="Posventa">${t.map(([k, x, n, c]) => `<button type="button" role="tab" data-pv="${k}" class="${S.pvTab === k ? "on" : ""}" aria-selected="${S.pvTab === k}">${x}${n ? ` <span class="cuenta-n ${c}">${n}</span>` : ""}</button>`).join("")}</div>`;
 }
 function enlazarPvTabs() {
-  $("#main .pv-tabs").onclick = (e) => { const b = e.target.closest("[data-pv]"); if (b && b.dataset.pv !== S.pvTab) { S.pvTab = b.dataset.pv; VISTAS.devoluciones(); } };
+  $("#main .pv-tabs").onclick = (e) => { const b = e.target.closest("[data-pv]"); if (b && b.dataset.pv !== S.pvTab) { S.pvTab = b.dataset.pv; S.pvRec = null; VISTAS.devoluciones(); } };
 }
 const fechaRec = (f) => f ? cuandoPlazo(f) : "";
 async function vistaReclamos() {
   const emp = empRec();
   $("#main").innerHTML = posventaTabs() + `<p class="mut">${buscandoTxt("Buscando reclamos")}</p>`; enlazarPvTabs();
-  const r = await seguro(() => api("posventa_reclamos", { cliente_id: emp }));
-  if (!r || S.tab !== "devoluciones" || S.pvTab !== "reclamos" || S.devId) return;
+  if (S.pvRec) return detalleReclamoPV(S.pvRec);
+  const [r] = await Promise.all([seguro(() => api("posventa_reclamos", { cliente_id: emp })), etqCargar(emp)]);
+  if (!r || S.tab !== "devoluciones" || S.pvTab !== "reclamos" || S.devId || S.pvRec) return;
+  S.pvRecs = Object.fromEntries([...r.abiertos, ...r.cerrados].map((x) => [x.conv, x]));
   S.rcFil ??= "abiertos";
   const resp = r.abiertos.filter((x) => x.responder);
   if ((S.cont ?? {}).reclamos !== resp.length) { S.cont = { ...(S.cont ?? {}), reclamos: resp.length }; armarNav(); }
-  const fila = (x) => `<button type="button" class="rc-item ${x.responder ? "urg" : ""}" data-conv="${x.conv}" data-g="${x.responder ? "responder" : x.abierto ? "espera" : "cerrado"}" ${busAttr(x.titulo, x.comprador, x.tipo, x.pack_id, x.orden_ids, x.envio_id, x.reclamo)}>
-      ${foto(x.foto)}<div class="rc-tx">${x.responder && x.vence ? `<span class="rc-vence">Vence ${esc(fechaRec(x.vence).replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""}<b>${esc(x.titulo ?? "Venta")}</b><span class="p">${esc(x.comprador)} · ${esc(x.tipo)}</span>
-      <span class="rc-chips">${x.responder ? `<span class="rc-chip r">Te toca responder</span>` : x.abierto ? `<span class="rc-chip a">Esperando al comprador o a MercadoLibre</span>` : `<span class="rc-chip">Cerrado</span>`}${x.etapa ? `<span class="rc-chip c">${esc(x.etapa)}</span>` : ""}</span></div></button>`;
+  // Cada fila muestra lo que eligió el administrador en Configuración → Listas → Reclamos
+  const fila = (x) => `<button type="button" class="rec-it ${x.responder ? "urg" : ""}" data-conv="${x.conv}" data-g="${x.responder ? "responder" : x.abierto ? "espera" : "cerrado"}" ${busAttr(x.titulo, x.comprador, x.nick, x.tipo, x.pack_id, x.orden_ids, x.envio_id, x.reclamo)}>${etqFilaHTML(etqPartes("reclamos", x, etqConfig("reclamos", emp)))}</button>`;
   const esperan = r.abiertos.filter((x) => !x.responder);
   // Están todos en la lista; se muestran según el filtro, o los que coinciden con lo que se busca (abiertos y cerrados)
   const cuerpo = (resp.length ? `<div class="rc-g" data-gg="responder">Te toca responder</div>${resp.map(fila).join("")}` : "")
@@ -6814,8 +6842,8 @@ async function vistaReclamos() {
   const mostrar = (q) => {
     const ver = { abiertos: ["responder", "espera"], responder: ["responder"], cerrados: ["cerrado"] }[S.rcFil] ?? ["responder", "espera"];
     let n = 0;
-    $("#main").querySelectorAll(".rc-item").forEach((b) => { const si = q ? coincideBus(q, b.dataset.bus) : ver.includes(b.dataset.g); b.hidden = !si; if (si) n++; });
-    $("#main").querySelectorAll(".rc-g").forEach((g) => { g.hidden = !!q || S.rcFil !== "abiertos" || !$(`#main .rc-item[data-g="${g.dataset.gg}"]`); });
+    $("#main").querySelectorAll(".rc-lista .rec-it").forEach((b) => { const si = q ? coincideBus(q, b.dataset.bus) : ver.includes(b.dataset.g); b.hidden = !si; if (si) n++; });
+    $("#main").querySelectorAll(".rc-g").forEach((g) => { g.hidden = !!q || S.rcFil !== "abiertos" || !$(`#main .rc-lista .rec-it[data-g="${g.dataset.gg}"]`); });
     const v = $("#main .rc-vacio"); v.hidden = !!q || n > 0;
     v.innerHTML = `<b>${S.rcFil === "cerrados" ? "No hay reclamos cerrados en los últimos 3 meses" : S.rcFil === "responder" ? "No hay reclamos para responder" : "No hay reclamos abiertos"}</b>${S.rcFil === "cerrados" ? "" : "Cuando se abra uno, te avisamos al celular."}`;
     return n;
@@ -6824,8 +6852,31 @@ async function vistaReclamos() {
   enlazarBusMod("reclamos", emp, mostrar, "Reclamos");
   enlazarPvTabs();
   $("#rcFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (!b) return; S.rcFil = b.dataset.f; $("#rcFil").querySelectorAll("[data-f]").forEach((x) => x.classList.toggle("on", x === b)); ponerBus("reclamos", ""); mostrar(""); };
-  $("#main .rc-lista").onclick = (e) => { const b = e.target.closest("[data-conv]"); if (!b) return; const id = Number(b.dataset.conv); S.convTab = { ...(S.convTab ?? {}), [id]: "reclamo" }; S.msjId = id; ir("mensajes"); };
+  $("#main .rc-lista").onclick = (e) => { const b = e.target.closest("[data-conv]"); if (!b) return; S.pvRec = Number(b.dataset.conv); detalleReclamoPV(S.pvRec); };
   escucharClientes(() => { if (S.pvTab === "reclamos") vistaReclamos(); });
+}
+// Un reclamo abierto dentro de Posventa: la venta arriba, el reclamo con sus mensajes y las acciones abajo
+async function detalleReclamoPV(id) {
+  // Desde una notificación todavía no está la lista: se trae para mostrar la venta arriba
+  if (!S.pvRecs?.[id]) {
+    $("#main").innerHTML = `<p class="mut">${buscandoTxt("Trayendo el reclamo")}</p>`;
+    const r = await api("posventa_reclamos", { cliente_id: empRec() }).catch(() => null);
+    if (r) S.pvRecs = { ...(S.pvRecs ?? {}), ...Object.fromEntries([...r.abiertos, ...r.cerrados].map((y) => [y.conv, y])) };
+    if (S.pvRec !== id || S.tab !== "devoluciones") return;
+  }
+  const x = S.pvRecs?.[id] ?? {};
+  S.pvRecConv = { id, pagado: x.pagado, total: x.total, moneda: x.moneda };
+  try { history.replaceState(null, "", `#posventa/reclamo/${id}`); } catch {}
+  S.recDatos = {};
+  window.scrollTo(0, 0);
+  $("#main").innerHTML = `<div class="rc-det">
+    <div class="rc-det-cab"><button class="btn lin chico" type="button" id="rcVolver">← Reclamos</button>
+      ${modsActuales().has("mensajes") ? `<button class="btn lin chico" type="button" id="rcVenta">Ver la venta</button>` : ""}</div>
+    <div class="rc-det-venta">${foto(x.foto)}<div><b>${esc(x.titulo ?? "Venta")}</b><span class="mut peq">${esc(x.comprador ?? "")}${x.pack_id ? ` · Venta #${esc(String(x.pack_id))}` : ""}${x.pagado != null ? ` · ${esc(plata(x.pagado, x.moneda ?? "ARS"))}` : ""}</span></div></div>
+    <div class="c-pane rc-det-p" id="cpRec"><div class="rec-cuerpo" id="cRec"><p class="mut">${buscandoTxt("Trayendo el reclamo")}</p></div></div></div>`;
+  $("#rcVolver").onclick = () => { S.pvRec = null; try { history.replaceState(null, "", "#devoluciones"); } catch {} vistaReclamos(); };
+  if ($("#rcVenta")) $("#rcVenta").onclick = () => { S.pvRec = null; S.msjId = id; S.msjBus = ""; S.convTab = { ...(S.convTab ?? {}), [id]: "reclamo" }; ir("mensajes"); };
+  await cargarReclamo(id);
 }
 VISTAS.devoluciones = async () => {
   if (S.devId) return detalleDevolucion(S.devId);
@@ -8030,20 +8081,21 @@ VISTAS.listas = async () => {
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Elegí un cliente.</p></div></div>`; return; }
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>${buscandoTxt("Cargando")}</p></div></div>`;
   const mods = modsActuales();
-  const [cfg, rv, rd, rr] = await Promise.all([etqCargar(emp),
+  const [cfg, rv, rd, rr, rc] = await Promise.all([etqCargar(emp),
     mods.has("mensajes") ? api("mensajes", { cliente_id: emp, filtro: "todas", desde: 0, limite: 2, filtros: {} }).catch(() => null) : null,
     mods.has("despacho") ? api("despacho_lista", { cliente_id: emp, rapido: true }).catch(() => null) : null,
-    mods.has("devoluciones") ? api("devoluciones", { cliente_id: emp }).catch(() => null) : null]);
+    mods.has("devoluciones") ? api("devoluciones", { cliente_id: emp }).catch(() => null) : null,
+    mods.has("devoluciones") ? api("posventa_reclamos", { cliente_id: emp }).catch(() => null) : null]);
   if (S.tab !== "listas") return;
   if (!cfg?.puede_editar) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Solo el administrador del negocio elige qué se ve en las listas.</p></div></div>`; return; }
-  const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })) };
-  const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
+  const muestras = { ventas: rv?.filas ?? [], despacho: rd?.envios ?? [], devoluciones: (rr?.devoluciones ?? []).map((d) => ({ ...d, est: estadoDev(d) })), reclamos: [...(rc?.abiertos ?? []), ...(rc?.cerrados ?? [])] };
+  const habil = [["ventas", "mensajes"], ["despacho", "despacho"], ["reclamos", "devoluciones"], ["devoluciones", "devoluciones"]].filter(([, m]) => mods.has(m)).map(([k]) => k);
   const plantillaDe = (k) => { const c = etqConfig(k, emp); return ETQ[k].plantillas.find(([, x]) => ETQ_CASILLEROS.every(([s]) => JSON.stringify(x[s] ?? []) === JSON.stringify(c[s] ?? [])))?.[0] ?? "Personalizada"; };
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Listas</h1><p>Qué datos se ven en cada venta de las listas. Elegís una plantilla y, si querés, la ajustás arrastrando los datos. Vale para todos los que trabajan en el negocio; lo que no se muestra en la lista se sigue viendo al abrir la venta.</p></div></div>
     ${habil.map((k) => `<section class="panel etq-card"><div class="fila" style="align-items:center"><div><h2 style="margin:0">${ETQ[k].titulo}</h2><span class="peq mut">Plantilla: ${esc(plantillaDe(k))}</span></div>
       <div class="n"><button class="btn lin chico" type="button" data-etq="${k}">Cambiar</button></div></div>
       <div class="etq-prev" style="margin-top:12px">${muestras[k].slice(0, 2).map((c) => { const p = etqPartes(k, c, etqConfig(k, emp)); return `<div class="etq-fila">${etqFilaHTML(p)}</div>`; }).join("")
-        || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
+        || `<p class="peq mut" style="padding:12px;margin:0">Todavía no hay ${k === "devoluciones" ? "devoluciones" : k === "reclamos" ? "reclamos" : "ventas"} para mostrar de ejemplo.</p>`}</div></section>`).join("")
       || `<div class="panel vacio">Tu negocio no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
 };
@@ -8140,7 +8192,7 @@ function abrirDesdeEnlace(h) {
   const t = String(h || "");
   // El dueño de la app ve lo de un cliente entrando como soporte: un aviso de una venta, pregunta, devolución,
   // despacho, chat o calendario lo hace entrar solo, en el cliente de la que es parte, y después abre lo avisado
-  if (S.rol === "admin" && !S.soporte && /^#(mensajes|pregunta|devoluciones|reclamos|despacho|chat|calendario)\b/.test(t)) {
+  if (S.rol === "admin" && !S.soporte && /^#(mensajes|pregunta|devoluciones|reclamos|posventa|despacho|chat|calendario)\b/.test(t)) {
     const em = (S.yo?.clientes ?? []).find((x) => x.rol === "admin") ?? (S.yo?.clientes ?? [])[0];
     if (!em) return false;
     S.soporte = em.id; S.soporteNom = em.nombre; S.filtros.cuenta_id = ""; S.confCta = ""; S.confEmp = "";
@@ -8155,6 +8207,9 @@ function abrirDesdeEnlace(h) {
   if (mca) { S.calAbrir = Number(mca[1]); ir("calendario"); return true; }
   // Aviso de una nota en la que citaron a la persona: se abre directo en las notas
   if (/\/notas$/.test(t)) { S.irNotas = true; if (mm) { S.convTab = S.convTab ?? {}; S.convTab[Number(mm[1])] = "notas"; } }
+  // Reclamos: se abren en Posventa (uno o la lista)
+  const mpr = t.match(/^#posventa\/reclamo\/(\d+)/);
+  if (mpr || /^#posventa\/reclamos$/.test(t)) { if (!modsActuales().has("devoluciones")) return false; S.devId = null; S.pvTab = "reclamos"; S.pvRec = mpr ? Number(mpr[1]) : null; ir("devoluciones"); return true; }
   if (mr) { if (!modsActuales().has("devoluciones")) return false; S.devId = Number(mr[1]); ir("devoluciones"); return true; }
   if (mm) {
     if (!modsActuales().has("mensajes")) return false;
