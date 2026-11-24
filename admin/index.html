@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241612";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241758";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1136,6 +1136,27 @@ h3 .te{font-size:13px;margin-left:4px}
 const API = "https://lltewpywhctcqpegambl.supabase.co/functions/v1/ml-bot/panel";
 // Clave pública del proyecto (solo permite entrar con email y clave; los permisos los controla el servidor)
 const sb = window.supabase.createClient("https://lltewpywhctcqpegambl.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsdGV3cHl3aGN0Y3FwZWdhbWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1OTMwNTAsImV4cCI6MjExMDE2OTA1MH0.3kV1aF92-hSrbvt1dcY_fEddKbQqZsdP6J-DcLpvxmo");
+// Período, filtros y orden de cada módulo: se recuerdan por persona (en el servidor, así valen en todos sus dispositivos)
+const VISTA_CLAVES = ["msjFil", "msjFx", "dsF", "recFil", "recMio", "rcFil", "pvTab", "per", "perDesde", "perHasta", "asigVista", "rendVista", "actPer"];
+function vistaFoto() {
+  const o = {};
+  for (const k of VISTA_CLAVES) if (S[k] !== undefined && S[k] !== null && S[k] !== "") o[k] = S[k];
+  if (S.filtros?.estado) o.filtros = { estado: S.filtros.estado };
+  return o;
+}
+function aplicarVistas(v) {
+  if (S.vistasAplicadas) return;
+  S.vistasAplicadas = true;
+  if (v && typeof v === "object") { for (const k of VISTA_CLAVES) if (v[k] !== undefined) S[k] = v[k]; if (v.filtros?.estado) S.filtros.estado = v.filtros.estado; }
+  S.vistaUlt = JSON.stringify(vistaFoto());
+}
+setInterval(() => {
+  if (typeof S === "undefined" || !S.vistasAplicadas || !S.yo?.usuario?.id) return;
+  const j = JSON.stringify(vistaFoto());
+  if (j === S.vistaUlt) return;
+  S.vistaUlt = j;
+  api("vistas_guardar", { valor: JSON.parse(j) }).catch(() => {});
+}, 4000);
 let S = { modo: "usuario", cliente: "", clave: "", rol: null, res: null, yo: null, clienteId: "", empSel: "", tab: "hoy", filtros: { estado: "", cuenta_id: "", buscar: "", desde: 0 }, confCta: "", confNivel: "", confEmp: "", conoc: "documentos", soporte: "", soporteNom: "", per: "30d", perDesde: "", perHasta: "", platEmp: "", platFil: null, platVer: 30, plat: null, planes: null, rankN: 5, rankC: "lento", rankPl: "" };
 let sondeo = null;
 
@@ -1286,7 +1307,7 @@ $("#fCodigo").onsubmit = async (e) => {
 // Entrada con usuario: decide qué ve según sus clientes y su rol en cada una
 async function entrarUsuario() {
   S.modo = "usuario"; S.clienteId = "";
-  S.yo = await api("yo");
+  S.yo = await api("yo"); aplicarVistas(S.yo?.vistas);
   // Dos links: el de clientes y operadores, y el del dueño de la app. Cada uno manda al otro a quien no corresponde
   // (la sesión es la misma, así que entra directo).
   const link = window.MOSTRADOR_LINK;
@@ -1508,7 +1529,7 @@ sb.auth.getSession().then(({ data }) => { if (data?.session) entrarUsuario().cat
 async function recargar() {
   if (S.rol === "operador") {
     // El operador no ve la configuración del cliente: solo sus clientes y sus preguntas
-    S.yo = await api("yo");
+    S.yo = await api("yo"); aplicarVistas(S.yo?.vistas);
     if (S.clienteId && !clienteYo(S.clienteId)) { elegirCliente(S.yo.clientes.length > 1 ? "*" : S.yo.clientes[0]?.id); armarSelector(); }
     S.res = { cuentas: [], clientes: S.yo.clientes, stats: {}, sitios: [] };
     return;
@@ -1556,7 +1577,7 @@ function armarNav() {
   const tot = [...$("#nav").querySelectorAll("button")].filter((bt) => !(conPreg && ["hoy", "bandeja"].includes(bt.dataset.t)))
     .reduce((x, bt) => x + (Number(bt.querySelector(".cuenta-n")?.textContent) || 0), 0) + (C.ventas_nuevas && $("#nav .cuenta-nueva") ? C.ventas_nuevas : 0);
   const bm = $("#abrirRiel"); if (bm) { bm.querySelector(".cuenta-n")?.remove(); if (tot) bm.insertAdjacentHTML("beforeend", `<span class="cuenta-n" aria-label="${tot} pendientes">${tot > 99 ? "99+" : tot}</span>`); }
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.recFil = "revisar"; S.pvRec = null; } ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.pvRec = null; } ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarPerfil();
   bannerReclamos();
 }
@@ -5403,7 +5424,7 @@ function cuandoPlazo(f) {
 }
 const entTipo = (t, extra) => { const [cls, ico, tit, txt] = ENT_TIPOS[t] ?? ENT_TIPOS.otro; return `<div class="et-tipo"><span class="et-ico ${cls}">${ENT_ICO[ico]}</span><div><b>${tit}</b><p>${extra ?? txt}</p></div></div>`; };
 const entSeg = (u, fuente) => u ? `<section class="et-seg"><h3>Seguimiento</h3><div class="et-ult"><span class="et-pt"></span><div><b>${esc(u.texto)}</b>${u.fecha || u.lugar ? `<small>${[u.fecha ? fecha(u.fecha) : "", u.lugar ?? ""].filter(Boolean).map(esc).join(" · ")}</small>` : ""}</div></div>
-  <div class="et-segp"><span class="mut">Datos de ${esc(fuente ?? u.fuente ?? "MercadoLibre")}</span><button type="button" class="urg-marcar" data-et-hist>Ver historial completo</button></div></section>` : "";
+  <div class="et-segp"><span class="mut">Datos de ${esc(fuente ?? u.fuente ?? "MercadoLibre")}</span></div></section>` : "";
 
 function pintarEntrega(e, c) {
   const caja = $("#mEnt"); if (!caja) return;
@@ -5431,7 +5452,6 @@ function pintarEntrega(e, c) {
 function enlazarEntrega(caja) {
   caja.querySelector("[data-cp-dir]")?.addEventListener("click", async (ev) => { const t = ev.currentTarget.dataset.cpDir; try { await navigator.clipboard.writeText(t); aviso("Domicilio copiado"); } catch { prompt("Copiá el domicilio:", t); } });
   caja.querySelector("[data-et-desp]")?.addEventListener("click", () => ir("despacho"));
-  caja.querySelectorAll("[data-et-hist]").forEach((b) => b.onclick = () => { pestConv("venta"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
 }
 async function cargarEntrega(c) {
   let e = null; try { e = await api("venta_entrega", { id: c.id }); } catch { /* se muestra el aviso */ }
@@ -6617,7 +6637,10 @@ function estadoDev(d) {
   if (r?.estado === "registrada") return { t: r.resultado === "ok" ? "Registrada: llegó bien" : "Registrada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   // Devolución de Full que el depósito de MercadoLibre revisó y le manda al vendedor
   const tri = EX(d).triage;
-  if (tri?.destino === "seller") return { t: `Te la manda el depósito de Full: ${tri.condicion === "unsaleable" ? "no apta para la venta" : "revisada por MercadoLibre"}${tri.motivo === "damaged" ? " (dañada)" : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: Date.now() - new Date(tri.fecha ?? 0).getTime() < 45 * 86400_000 ? "revisar" : "cerradas" };
+  // MercadoLibre usa el mismo destino cuando la vuelve a poner a la venta en tu stock de Full: esas no vienen
+  if (tri?.destino === "seller" && tri.condicion !== "unsaleable") return { t: "Volvió a la venta en Full", c: "c-ok", grupo: "cerradas" };
+  if (tri?.destino === "seller" && (tri.vendedor === "success" || tri.etapa === "closed")) return { t: "Revisada en MercadoLibre", c: "", grupo: "enviadas" };
+  if (tri?.destino === "seller") return { t: `Te la manda el depósito de Full: ${tri.condicion === "unsaleable" ? "no apta para la venta" : "revisada por MercadoLibre"}${tri.motivo === "damaged" ? " (dañada)" : tri.motivo === "open_box" ? " (caja abierta)" : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: Date.now() - new Date(tri.fecha ?? 0).getTime() < 45 * 86400_000 ? "revisar" : "cerradas" };
   if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
@@ -7011,14 +7034,14 @@ async function detalleDevolucion0(id) {
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
       ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
       ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
-  const deposito = EX(d).triage?.destino === "seller", soloRegistrar = deposito && !d.se_puede_revisar;
+  const deposito = EX(d).triage?.destino === "seller" && EX(d).triage?.condicion === "unsaleable", soloRegistrar = deposito && !d.se_puede_revisar;
   // Del depósito, MercadoLibre a veces solo habilita informar un problema: "llegó bien" se registra en la app
   const sinOk = !(d.acciones ?? []).some((a) => /return_review(_unified)?_ok/.test(a.accion));
   const registrar = () => soloRegistrar || (deposito && sinOk && st.resultado === "ok");
   if (d.destino === "warehouse" && !enviada && !deposito) {
     // Las devoluciones de Full no llegan al vendedor: las revisa MercadoLibre en su depósito
     $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">Esta devolución no llega a tu depósito</h2>
-      <p style="margin:0 0 10px">Vuelve al depósito de MercadoLibre (Full) y la revisa MercadoLibre. No hay que escanearla ni sacarle fotos.</p>
+      <p style="margin:0 0 10px">${EX(d).triage?.condicion === "saleable" ? "MercadoLibre la revisó en su depósito y <b>la volvió a poner a la venta</b> en tu stock de Full. No te la manda." : "Vuelve al depósito de MercadoLibre (Full) y la revisa MercadoLibre."} No hay que escanearla ni sacarle fotos.</p>
       ${d.ml_detalle?.titulo ? `<div class="estado e-pend"><span><b>${esc(d.ml_detalle.titulo)}</b>${d.ml_detalle.descripcion ? `<br>${esc(d.ml_detalle.descripcion)}` : ""}</span></div>` : ""}</div>
       ${seguimientoCorreoHtml(d)}`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
@@ -7083,7 +7106,7 @@ async function detalleDevolucion0(id) {
     ${enviadoHtml}
     ${rv?.estado === "para_aprobar" ? `<div class="estado e-pend" style="margin-bottom:12px"><span>${yo.admin ? "La cargó alguien del equipo y espera tu aprobación. Podés cambiar lo que haga falta antes de enviarla." : "Está esperando que un administrador la apruebe."}</span></div>` : ""}
     ${rv?.estado === "error" ? `<div class="estado e-blo" style="margin-bottom:12px"><span>MercadoLibre no la aceptó: ${esc(rv.error ?? "")}</span></div>` : ""}
-    ${deposito ? `<div class="estado e-pend" style="margin-bottom:12px"><span><b>Viene del depósito de Full.</b> MercadoLibre la revisó en su depósito${EX(d).triage.condicion === "unsaleable" ? ", la marcó como no apta para la venta" : ""}${EX(d).triage.motivo === "damaged" ? " (dañada)" : ""} y te la manda. ${soloRegistrar ? "No hay una revisión para enviarle: dejá registrado cómo llegó, con fotos, como respaldo." : "Revisala y contale a MercadoLibre cómo llegó."}</span></div>`
+    ${deposito ? `<div class="estado e-pend" style="margin-bottom:12px"><span><b>Viene del depósito de Full.</b> MercadoLibre la revisó en su depósito${EX(d).triage.condicion === "unsaleable" ? ", la marcó como no apta para la venta" : ""}${EX(d).triage.motivo === "damaged" ? " (dañada)" : EX(d).triage.motivo === "open_box" ? " (caja abierta)" : ""} y te la manda. ${soloRegistrar ? "No hay una revisión para enviarle: dejá registrado cómo llegó, con fotos, como respaldo." : "Revisala y contale a MercadoLibre cómo llegó."}</span></div>`
       : !d.se_puede_revisar ? `<div class="estado e-pend" style="margin-bottom:12px"><span>MercadoLibre habilita la revisión cuando la devolución llega. Podés dejarla preparada y enviarla después.</span></div>` : ""}
     <h2 class="rec-h">¿Cómo llegó?</h2>
     <div class="rec-dos"><button type="button" class="rec-op ok ${st.resultado === "ok" ? "on" : ""}" data-r="ok">${ICONO_R.ok}<b>Llegó bien</b></button>
