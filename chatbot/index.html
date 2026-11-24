@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241228";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241235";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6721,7 +6721,7 @@ function posventaTabs() {
   const C = S.cont ?? {};
   const dv = S.devN ?? 0, fl = S.fullRet?.pendientes ?? 0;
   const t = [["reclamos", "Reclamos", C.reclamos, "rojo"], ["devoluciones", "Devoluciones", dv, ""], ["full", "Retiros Full", fl, ""]];
-  return `<div class="cabecera"><div><h1>Posventa</h1><p>Reclamos, devoluciones y retiros de Full</p></div></div>
+  return `<div class="cabecera"><div><h1>Posventa</h1></div></div>
     <div class="pestanas pv-tabs" role="tablist" aria-label="Posventa">${t.map(([k, x, n, c]) => `<button type="button" role="tab" data-pv="${k}" class="${S.pvTab === k ? "on" : ""}" aria-selected="${S.pvTab === k}">${x}${n ? ` <span class="cuenta-n ${c}">${n}</span>` : ""}</button>`).join("")}</div>`;
 }
 function enlazarPvTabs() {
