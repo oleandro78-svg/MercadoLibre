@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241342";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241346";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1867,8 +1867,6 @@ VISTAS.equipo = async () => {
     const opciones = baja ? [["reactivar", "Volver a sumar"], ["quitar", "Quitar de la lista", "pel"]] : [
       ["nombre", "Cambiar nombre"],
       ...(m.estado === "invitado" || !m.vos ? [["codigo", m.estado === "invitado" ? "Nuevo código de invitación" : "Código para nueva clave"]] : []),
-      ...(m.rol === "operador" ? [["publicar", m.puede_publicar ? "Que sus respuestas las apruebe un administrador" : "Que publique sin aprobación"]] : []),
-      ...(m.rol === "operador" && modsActuales().has("devoluciones") ? [["recapr", m.devoluciones_sin_aprobacion !== false ? "Que sus revisiones de devoluciones las apruebe un administrador" : "Que envíe revisiones de devoluciones sin aprobación"]] : []),
       ...(!m.vos ? [["rol", m.rol === "admin" ? "Pasar a operador" : "Hacer administrador"], ["baja", "Dar de baja", "pel"]] : []),
     ];
     let avisos = "";
@@ -1889,8 +1887,6 @@ VISTAS.equipo = async () => {
         <div class="mut peq p-mail">${esc(m.email ?? "")}</div>
         <div class="p-chips"><span class="rol-t ${m.rol}">${m.rol === "admin" ? "Administrador" : "Operador"}</span>
           ${m.estado === "invitado" ? `<span class="chip c-borrador">Invitado, todavía no entró</span>` : baja ? `<span class="chip">Dado de baja${m.baja_at ? " el " + fechaCorta(m.baja_at) : ""}</span>` : ""}
-          ${m.rol === "operador" && !baja ? `<span class="mut peq">${m.puede_publicar ? "Publica sin aprobación" : "Sus respuestas las aprueba un administrador"}</span>` : ""}
-          ${m.rol === "operador" && !baja && modsActuales().has("devoluciones") ? `<span class="mut peq">${m.devoluciones_sin_aprobacion !== false ? "Envía revisiones de devoluciones sin aprobación" : "Sus revisiones de devoluciones las aprueba un administrador"}</span>` : ""}</div></div>
       <details class="menu-p"><summary class="btn lin chico" aria-label="Opciones de ${esc(nombre)}">Opciones</summary>
         <div class="menu-l" role="menu">${opciones.map(([a, t, c]) => `<button type="button" role="menuitem" data-a="${a}" class="${c ?? ""}">${t}</button>`).join("")}</div></details>
       ${avisos}
@@ -2506,12 +2502,11 @@ function sumarPersona(emp, libres) {
     <label class="et" for="sEm">Email</label><input id="sEm" type="email" autocomplete="off">
     <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro negocio en el panel, se le suma este y entra con su misma clave.</p>
     <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: trabaja en lo que le asignes (preguntas, ventas, despacho, posventa)</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
-    <label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="sPub" checked style="width:20px;height:20px"> Puede publicar respuestas sin que un administrador las apruebe</label>
     <button class="btn pri" style="margin-top:18px" id="sOk">Sumar</button>`, true);
   $("#sOk", v).onclick = async () => {
     const email = $("#sEm", v).value.trim(), nombre = $("#sNom", v).value.trim();
     if (!email) return aviso("Escribí el email");
-    const r = await seguro(() => api("miembro_invitar", { cliente_id: emp, email, nombre, rol: $("#sRol", v).value, puede_publicar: $("#sPub", v).checked }));
+    const r = await seguro(() => api("miembro_invitar", { cliente_id: emp, email, nombre, rol: $("#sRol", v).value }));
     if (!r) return;
     v.remove(); VISTAS.equipo();
     if (r.nuevo) mostrarCodigo(nombre || email, r.email, r.codigo, true);
@@ -2628,6 +2623,18 @@ async function datosAsignaciones(emp) {
   return r;
 }
 
+// Qué puede hacer cada operador sin que lo apruebe un administrador (en Preguntas y en Devoluciones)
+const APROB_ASIG = {
+  preguntas: ["puede_publicar", "Publicar respuestas sin aprobación", "Si está apagado, sus respuestas quedan esperando que las apruebe un administrador."],
+  devoluciones: ["devoluciones_sin_aprobacion", "Enviar revisiones de devoluciones sin aprobación", "Si está apagado, sus revisiones quedan esperando que las apruebe un administrador."],
+};
+function aprobAsigHTML(r) {
+  const x = APROB_ASIG[S.asigMod]; if (!x) return "";
+  const ops = r.miembros.filter((m) => m.rol === "operador");
+  if (!ops.length) return "";
+  return `<div class="panel" style="margin-top:16px"><h2 style="margin:0">${x[1]}</h2><p class="mut peq" style="margin:4px 0 8px">${x[2]} Los administradores no necesitan aprobación.</p>
+    ${ops.map((m) => nfFila(`<span style="display:inline-flex;gap:10px;align-items:center">${avatarM(m, 28)}${esc(m.nombre)}</span>`, m.estado === "invitado" ? "Todavía no entró" : "", nfSw(`data-aprob="${m.id}"`, m[x[0]] !== false))).join("")}</div>`;
+}
 VISTAS.asignaciones = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Asignaciones</h1><p>Elegí un cliente para ver sus asignaciones.</p></div></div>`; return; }
@@ -2683,6 +2690,7 @@ VISTAS.asignaciones = async () => {
       <div class="leyenda">${r.miembros.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.corto)}</span>`).join("")}<span><i class="rayado"></i>Sin nadie</span></div></div>
     ${avisoAsig(r)}
     <div class="panel" style="padding:0;overflow-x:auto">${cuerpo}<p class="mut peq" style="margin:0;padding:12px 20px">Cada casilla es un día de 0 a 24 h. Donde hay dos colores, la pregunta les llega a los dos y la responde el primero que la toma.</p></div>
+    ${aprobAsigHTML(r)}
     <div class="g2" style="display:grid;gap:16px;margin-top:16px">
       <div class="panel"><h2 style="margin:0">Por un tiempo</h2><p class="mut peq" style="margin:4px 0 8px">Reemplazos o refuerzos con fecha de inicio o de fin.</p>
         ${temporales.length ? temporales.map((a) => `<div class="item-t"><div class="fecha-t"><span>${mes(a.fecha_desde ?? a.fecha_hasta)}</span><b>${Number((a.fecha_desde ?? a.fecha_hasta).slice(8))}</b></div>
@@ -2692,6 +2700,12 @@ VISTAS.asignaciones = async () => {
           <div style="flex:1;min-width:0"><b>${m ? esc(m.nombre) : "Todo el equipo"}</b> · ${esc(x.motivo ?? (m ? "Ausencia" : "Feriado"))}<div class="mut peq">${x.desde === x.hasta ? fechaTxt(x.desde) : `Del ${fechaTxt(x.desde)} al ${fechaTxt(x.hasta)}`}</div></div><button class="btn pel chico" data-borrar="${x.id}">Quitar</button></div>`; }).join("") : `<p class="mut peq" style="margin:8px 0 0">No hay ausencias cargadas.</p>`}</div>
     </div>`;
   pestModulo("asigMod", VISTAS.asignaciones);
+  $("#main").querySelectorAll("[data-aprob]").forEach((b) => b.onclick = async (e) => {
+    e.stopPropagation();
+    const m = r.m(b.dataset.aprob), k = APROB_ASIG[S.asigMod]?.[0]; if (!m || !k) return;
+    const nuevo = m[k] === false;
+    if (await seguro(() => api("miembro_cambiar", { id: m.id, [k]: nuevo }))) { m[k] = nuevo; b.classList.toggle("on", nuevo); b.setAttribute("aria-checked", String(nuevo)); aviso("Guardado"); }
+  });
   $("#main").onclick = async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.v) { S.asigVista = b.dataset.v; VISTAS.asignaciones(); }
