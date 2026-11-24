@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241316";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611241333";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -893,6 +893,10 @@ section.et-seg{display:grid;gap:8px;padding:12px 14px;border-radius:12px;backgro
 .lt-det,.lt-cod{display:block;font-size:12.5px;color:var(--piz);margin-top:1px}.lt-cod .nw{white-space:nowrap}
 .linea-t::before{content:"";position:absolute;left:4px;top:8px;bottom:14px;width:1px;background:var(--linea)}
 .resumen-movil{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:10px 14px 0;padding:8px 12px;background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);font-size:13px}
+.rc-item[hidden],.rc-g[hidden],.rc-vacio[hidden],.rec-it[hidden],.fr-pub[hidden],.ds-it[hidden]{display:none!important}.mod-bus{margin:0 0 12px}.mod-bus .m-bus{margin-top:0}
+.bq-fuera{border:1px dashed var(--linea);border-radius:14px;padding:14px;background:var(--sup);display:grid;gap:10px;margin:0 0 12px}.bq-fuera p{margin:0;color:var(--piz);font-size:14px}
+.bq-v{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;padding:10px;border-radius:12px;background:var(--sup2)}.bq-v:focus-visible{outline:2px solid var(--cielo)}
+.bq-v .foto{width:48px;height:48px;border-radius:10px;object-fit:cover;font-size:10px;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--piz)}.bq-v>span{display:grid;gap:2px;min-width:0}.bq-v>span>span{color:var(--piz);font-size:13.5px}
 .venta-f{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;gap:2px;padding:10px 12px;border:1px solid var(--linea);border-radius:var(--r-m);margin-bottom:8px}
 .venta-f:hover{background:var(--sup2)}.venta-f .chip{justify-self:start;margin-top:4px}.venta-f:focus-visible{outline:2px solid var(--cielo)}
 @media (max-width:960px){
@@ -2086,15 +2090,15 @@ VISTAS.notificaciones = async () => {
       ${nfFila("Si sigue sin responder", "Volver a notificar, a más gente. Con 0 no se vuelve a notificar.", `<input type="number" class="nf-num" min="0" max="240" step="5" value="${esc_.min}" data-esc="min"> min ${nfSeg("_esc", "a", esc_.a, [["admins", "Administradores"], ["equipo", "Todo el equipo"]])}`)}</section>`);
     if (mods.has("mensajes")) b.push(`<section class="panel nf-mod"><h2>Ventas</h2>
       ${nfFila("Mensajes del comprador", "", nfSeg("ventas", "mensajes", n.ventas.mensajes, [["todos", "Todos"], ["urgentes", "Solo urgentes"], ["asignadas", "Solo de ventas asignadas"]]))}
-      ${nfFila("Venta nueva", mods.has("despacho") ? "Las que no se despachan desde el depósito (Full). De las Flex, Turbo y colecta notifica Despacho." : "", nfSeg("ventas", "nueva", n.ventas.nueva, [["todas", "Todas"], ["monto", "Desde un monto"], ["ninguna", "Ninguna"]]) + (n.ventas.nueva === "monto" ? ` <span class="nf-monto">$ <input type="number" class="nf-num" min="0" step="1000" value="${n.ventas.monto}" data-num="ventas.monto"></span>` : ""))}
-      ${nfFila("Reclamo o mediación nueva", "Tiene plazo para responder", nfSw(`data-swsec="ventas" data-swk="reclamo"`, n.ventas.reclamo))}</section>`);
+      ${nfFila("Venta nueva", mods.has("despacho") ? "Las que no se despachan desde el depósito (Full). De las Flex, Turbo y colecta notifica Despacho." : "", nfSeg("ventas", "nueva", n.ventas.nueva, [["todas", "Todas"], ["monto", "Desde un monto"], ["ninguna", "Ninguna"]]) + (n.ventas.nueva === "monto" ? ` <span class="nf-monto">$ <input type="number" class="nf-num" min="0" step="1000" value="${n.ventas.monto}" data-num="ventas.monto"></span>` : ""))}</section>`);
     if (mods.has("despacho")) b.push(`<section class="panel nf-mod"><h2>Despacho</h2>
       ${nfFila("Venta para despachar", "", nfSeg("despacho", "como", n.despacho.como, [["una", "Una por una"], ["resumen", "Resumen a una hora fija"], ["ninguna", "Ninguna"]]) + (n.despacho.como === "resumen" ? ` <input type="time" class="nf-num" value="${esc(n.despacho.hora)}" data-txt="despacho.hora">` : ""))}
       ${nfFila("Recordatorio antes del límite", "Si la etiqueta todavía no se imprimió", `<input type="number" class="nf-num" min="10" max="600" step="10" value="${n.despacho.recordatorio_min}" data-num="despacho.recordatorio_min"> min antes ${nfSw(`data-swsec="despacho" data-swk="recordatorio"`, n.despacho.recordatorio)}`)}</section>`);
-    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Devoluciones</h2>
+    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Posventa</h2>
+      ${nfFila("Reclamo o mediación nueva", "A las personas de Posventa. Si nadie responde, los recordatorios de 24 h, 4 h, 2 h y 1 h antes de que venza llegan siempre", nfSw(`data-swsec="ventas" data-swk="reclamo"`, n.ventas.reclamo))}${mods.has("devoluciones") ? `
       ${nfFila("Llegó una devolución para revisar", "", nfSeg("devoluciones", "a", n.devoluciones.a, [["toca", "A quien le toca"], ["admins", "Solo administradores"]]))}
       ${nfFila("Recordatorio antes del vencimiento", "Si todavía no se revisó", `<input type="number" class="nf-num" min="1" max="72" value="${n.devoluciones.recordatorio_h}" data-num="devoluciones.recordatorio_h"> h antes ${nfSw(`data-swsec="devoluciones" data-swk="recordatorio"`, n.devoluciones.recordatorio)}`)}
-      ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}</section>`);
+      ${nfFila("Revisión para aprobar", "A los administradores", nfSw(`data-swsec="devoluciones" data-swk="aprobar"`, n.devoluciones.aprobar))}` : ""}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Este celular</h2>${nfFila("Probar las notificaciones", "Para ver que le llegan a este celular", `<button type="button" class="btn lin chico" id="nfProbarAdm">Mandarme una de prueba</button>`)}${nfFila("Las mías", "Pausar, horario propio, qué tipos te llegan", `<button type="button" class="btn lin chico" id="nfMias">Configurar</button>`)}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Operadores</h2><p class="mut" style="margin:0">Las notificaciones les llegan solo en el horario que tienen asignado en Asignaciones. Fuera de ese horario no les llega ninguna; si abren la app, ven todas las novedades, y al empezar el turno reciben un resumen de lo que pasó.</p></section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat, notas y calendario</h2>
@@ -2155,9 +2159,9 @@ VISTAS.misnotif = async () => {
       ${p.cuando === "turno" ? `<p class="mut peq" style="margin:0 0 10px">Te llegan solo mientras estás de turno según las asignaciones del equipo.</p>` : ""}
       ${nfFila("Las urgentes me llegan siempre", "Reclamos, mensajes urgentes de compradores y recordatorios de vencimiento, aunque esté fuera de horario o en No molestar", nfSw(`id="nfUrg"`, p.urgentes !== false))}</section>`);
     if (mods.has("preguntas")) b.push(`<section class="panel nf-mod"><h2>Preguntas</h2>${tog("pregunta", "Preguntas para responder")}</section>`);
-    if (mods.has("mensajes")) b.push(`<section class="panel nf-mod"><h2>Ventas</h2>${tog("venta_mensaje", "Mensajes del comprador")}${tog("venta_nueva", "Venta nueva")}${tog("venta_reclamo", "Reclamo o mediación")}</section>`);
+    if (mods.has("mensajes")) b.push(`<section class="panel nf-mod"><h2>Ventas</h2>${tog("venta_mensaje", "Mensajes del comprador")}${tog("venta_nueva", "Venta nueva")}</section>`);
     if (mods.has("despacho")) b.push(`<section class="panel nf-mod"><h2>Despacho</h2>${tog("despacho", "Ventas para despachar y recordatorios")}</section>`);
-    if (mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Devoluciones</h2>${tog("devolucion", "Devoluciones para revisar")}${r.admin ? tog("devolucion_aprobar", "Revisiones para aprobar") : ""}</section>`);
+    if (mods.has("mensajes") || mods.has("devoluciones")) b.push(`<section class="panel nf-mod"><h2>Posventa</h2>${tog("venta_reclamo", "Reclamo o mediación")}${mods.has("devoluciones") ? tog("devolucion", "Devoluciones para revisar") + (r.admin ? tog("devolucion_aprobar", "Revisiones para aprobar") : "") : ""}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Chat</h2>${nfFila("", "", nfSeg("_p", "chat", p.chat ?? "", [["", "Como el equipo"], ["todos", "Todos"], ["directos", "Directos y menciones"], ["nada", "Nada"]]))}
       ${r.grupos.map((g) => nfFila(esc(g.nombre), g.silenciado ? "Silenciado: solo te notifica si te nombran" : "", nfSw(`data-grupo="${g.id}"`, !g.silenciado))).join("")}</section>`);
     b.push(`<section class="panel nf-mod"><h2>Notas y calendario</h2>${nfFila("Me mencionan en una nota", "No se puede apagar", nfSw("", true, true))}${tog("nota_asignado", "Nota nueva en algo asignado a mí")}${tog("cal_invitacion", "Invitaciones a eventos")}${tog("cal_recordatorio", "Recordatorios de eventos")}</section>`);
@@ -2501,7 +2505,7 @@ function sumarPersona(emp, libres) {
     <label class="et" for="sNom">Nombre</label><input id="sNom" autocomplete="off">
     <label class="et" for="sEm">Email</label><input id="sEm" type="email" autocomplete="off">
     <p class="mut peq" style="margin:6px 0 0">Si esa persona ya trabaja para otro negocio en el panel, se le suma este y entra con su misma clave.</p>
-    <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: responde las preguntas</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
+    <label class="et" for="sRol">Rol</label><select id="sRol"><option value="operador">Operador: trabaja en lo que le asignes (preguntas, ventas, despacho, posventa)</option><option value="admin">Administrador: además maneja equipo, cuentas y configuración</option></select>
     <label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="sPub" checked style="width:20px;height:20px"> Puede publicar respuestas sin que un administrador las apruebe</label>
     <button class="btn pri" style="margin-top:18px" id="sOk">Sumar</button>`, true);
   $("#sOk", v).onclick = async () => {
@@ -4391,6 +4395,52 @@ async function ventaEncontrada(emp, r, texto) {
   if (r.ids?.length > 1) { S.msjBus = texto; if ($("#mBus")) $("#mBus").value = texto; cargarHilos(emp); aviso(`Hay ${r.ids.length} ventas con ese dato`); return; }
   const vi = [...(r.leido?.numeros ?? []), ...(r.leido?.nombres ?? [])];
   aviso(r.leido ? (vi.length ? `Leí ${vi.slice(0, 4).join(", ")}, pero no encontré ninguna venta con esos datos` : "No pude leer datos en la foto. Probá con más luz o más cerca.") : "No encontré ninguna venta con ese código");
+}
+// ---------- Buscador de los módulos (Despacho y Posventa) ----------
+// La misma caja que en Ventas, con el botón de escanear la etiqueta. Filtra la lista del módulo; si no queda nada,
+// busca en todas las ventas del negocio y ofrece abrirla.
+S.busMod ??= {};
+const normBus = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function coincideBus(q, texto) { const t = normBus(q).trim(); if (!t) return true; const x = normBus(texto); return t.split(/\s+/).every((w) => x.includes(w)); }
+const busTxt = (...c) => c.flat(2).filter((x) => x != null && x !== "").join(" ");
+const busAttr = (...c) => `data-bus="${esc(busTxt(...c))}"`;
+function busModHTML(k, conEsc = true) {
+  return `<div class="m-bus-fila mod-bus"><input type="search" id="bm_${k}" class="m-bus" placeholder="Buscar comprador, producto o número de venta" value="${esc(S.busMod[k] ?? "")}" aria-label="Buscar" autocomplete="off">
+    ${conEsc ? `<button class="btn lin m-esc" type="button" id="bmEsc_${k}" aria-label="Escanear la etiqueta del envío" title="Escanear la etiqueta del envío">${ICONO_R.scan}</button>` : ""}</div>`;
+}
+// aplicar(q) filtra la lista y devuelve cuántos quedaron; donde: "Despacho", "Reclamos"… (para "No está en …")
+function enlazarBusMod(k, emp, aplicar, donde, alEscanear) {
+  const inp = $(`#bm_${k}`); if (!inp) return;
+  const correr = () => { const q = S.busMod[k] = inp.value.trim(); fueraMod(k, emp, q, aplicar(q), donde); };
+  let t; inp.oninput = () => { clearTimeout(t); t = setTimeout(correr, 250); };
+  const esc_ = $(`#bmEsc_${k}`); if (esc_) esc_.onclick = alEscanear ?? (() => escanearBus(k, emp));
+  if (S.busMod[k]) correr();
+}
+function ponerBus(k, q) { const i = $(`#bm_${k}`); if (!i) return; i.value = q; S.busMod[k] = q; i.dispatchEvent(new Event("input")); }
+// La etiqueta trae el número de envío (o, en la foto, números y nombres): se pone en la caja y se busca con eso
+function escanearBus(k, emp) {
+  escanear("Escanear la etiqueta del envío", (c) => { let x = String(c ?? "").trim(); try { const j = JSON.parse(x); x = String(j.id ?? x); } catch {} ponerBus(k, x.replace(/[^0-9A-Za-z]/g, "")); },
+    async (f) => {
+      const espera = abrirHoja(`<div style="padding:28px 8px;text-align:center"><p style="margin:0 0 6px"><b>Leyendo la etiqueta…</b></p><p class="peq" style="margin:0">Busco los números y nombres que se ven.</p></div>`);
+      const img = await achicar(f, 2000);
+      const r = await seguro(() => api("venta_leer_etiqueta", { cliente_id: emp, imagen: img.datos, tipo: img.tipo }));
+      espera.remove();
+      const q = r?.por_nombre ?? r?.leido?.numeros?.[0];
+      if (q) ponerBus(k, q); else if (r) aviso("No pude leer datos en la foto. Probá con más luz o más cerca.");
+    });
+}
+async function fueraMod(k, emp, q, n, donde) {
+  let caja = $(`#bmFuera_${k}`);
+  if (!q || n) { caja?.remove(); return; }
+  if (!caja) { $(`#bm_${k}`)?.closest(".mod-bus")?.insertAdjacentHTML("afterend", `<div class="bq-fuera" id="bmFuera_${k}"></div>`); caja = $(`#bmFuera_${k}`); if (!caja) return; }
+  caja.innerHTML = `<b>No está en ${donde}</b><p>${buscandoTxt("Buscando en todas las ventas")}</p>`;
+  const r = await api("mensajes", { cliente_id: emp, filtro: "todas", buscar: q, desde: 0, limite: 5, filtros: {} }).catch(() => null);
+  if (S.busMod[k] !== q || !caja.isConnected) return;
+  const fs = r?.filas ?? [];
+  caja.innerHTML = !r ? `<b>No está en ${donde}</b><p>No se pudo buscar en las demás ventas. Probá de nuevo en un momento.</p>`
+    : !fs.length ? `<b>No encontré ventas con eso</b><p>Ni en ${donde} ni en las demás ventas.</p>`
+    : `<b>No está en ${donde}</b><p>${fs.length === 1 ? "Encontré esta venta" : "Encontré estas ventas"} en las demás:</p>${fs.map((c) => `<button type="button" class="bq-v" data-abrir="${c.id}">${foto(c.item_thumbnail)}<span><b>${esc(c.comprador_nombre || c.comprador_nick || "Comprador")}</b><span>${esc(c.item_titulo ?? "Venta")}${c.fecha_venta ? ` · venta del ${esc(new Date(c.fecha_venta).toLocaleDateString("es-AR", { day: "numeric", month: "short" }))}` : ""}</span></span></button>`).join("")}`;
+  caja.onclick = (e) => { const b = e.target.closest("[data-abrir]"); if (!b) return; S.msjId = Number(b.dataset.abrir); S.msjBus = ""; S.convTab = { ...(S.convTab ?? {}), [S.msjId]: "chat" }; ir("mensajes"); };
 }
 async function ventaPorCodigo(emp, codigo) {
   const r = await seguro(() => api("venta_codigo", { cliente_id: emp, codigo }));
@@ -6736,19 +6786,30 @@ async function vistaReclamos() {
   S.rcFil ??= "abiertos";
   const resp = r.abiertos.filter((x) => x.responder);
   if ((S.cont ?? {}).reclamos !== resp.length) { S.cont = { ...(S.cont ?? {}), reclamos: resp.length }; armarNav(); }
-  const fila = (x) => `<button type="button" class="rc-item ${x.responder ? "urg" : ""}" data-conv="${x.conv}">
+  const fila = (x) => `<button type="button" class="rc-item ${x.responder ? "urg" : ""}" data-conv="${x.conv}" data-g="${x.responder ? "responder" : x.abierto ? "espera" : "cerrado"}" ${busAttr(x.titulo, x.comprador, x.tipo, x.pack_id, x.orden_ids, x.envio_id, x.reclamo)}>
       ${foto(x.foto)}<div class="rc-tx">${x.responder && x.vence ? `<span class="rc-vence">Vence ${esc(fechaRec(x.vence).replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""}<b>${esc(x.titulo ?? "Venta")}</b><span class="p">${esc(x.comprador)} · ${esc(x.tipo)}</span>
       <span class="rc-chips">${x.responder ? `<span class="rc-chip r">Te toca responder</span>` : x.abierto ? `<span class="rc-chip a">Esperando al comprador o a MercadoLibre</span>` : `<span class="rc-chip">Cerrado</span>`}${x.etapa ? `<span class="rc-chip c">${esc(x.etapa)}</span>` : ""}</span></div></button>`;
-  const lista = S.rcFil === "responder" ? resp : S.rcFil === "cerrados" ? r.cerrados : r.abiertos;
   const esperan = r.abiertos.filter((x) => !x.responder);
-  const cuerpo = S.rcFil === "abiertos"
-    ? (resp.length ? `<div class="rc-g">Te toca responder</div>${resp.map(fila).join("")}` : "") + (esperan.length ? `<div class="rc-g">Esperando al comprador o a MercadoLibre</div>${esperan.map(fila).join("")}` : "")
-    : lista.map(fila).join("");
+  // Están todos en la lista; se muestran según el filtro, o los que coinciden con lo que se busca (abiertos y cerrados)
+  const cuerpo = (resp.length ? `<div class="rc-g" data-gg="responder">Te toca responder</div>${resp.map(fila).join("")}` : "")
+    + (esperan.length ? `<div class="rc-g" data-gg="espera">Esperando al comprador o a MercadoLibre</div>${esperan.map(fila).join("")}` : "")
+    + r.cerrados.map(fila).join("");
   $("#main").innerHTML = posventaTabs() + `
-    <div class="m-fil" id="rcFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${[["abiertos", "Abiertos", r.abiertos.length], ["responder", "Te toca responder", resp.length], ["cerrados", "Cerrados", 0]].map(([k, t, n]) => `<button type="button" data-f="${k}" class="${S.rcFil === k ? "on" : ""}">${t}${n ? ` <b>${n}</b>` : ""}</button>`).join("")}</div>
-    <div class="rc-lista">${cuerpo || `<div class="panel vacio"><b>${S.rcFil === "cerrados" ? "No hay reclamos cerrados en los últimos 3 meses" : "No hay reclamos abiertos"}</b>${S.rcFil === "cerrados" ? "" : "Cuando se abra uno, te avisamos al celular."}</div>`}</div>`;
+    ${busModHTML("reclamos")}<div class="m-fil" id="rcFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${[["abiertos", "Abiertos", r.abiertos.length], ["responder", "Te toca responder", resp.length], ["cerrados", "Cerrados", 0]].map(([k, t, n]) => `<button type="button" data-f="${k}" class="${S.rcFil === k ? "on" : ""}">${t}${n ? ` <b>${n}</b>` : ""}</button>`).join("")}</div>
+    <div class="rc-lista">${cuerpo}<div class="panel vacio rc-vacio" hidden></div></div>`;
+  const mostrar = (q) => {
+    const ver = { abiertos: ["responder", "espera"], responder: ["responder"], cerrados: ["cerrado"] }[S.rcFil] ?? ["responder", "espera"];
+    let n = 0;
+    $("#main").querySelectorAll(".rc-item").forEach((b) => { const si = q ? coincideBus(q, b.dataset.bus) : ver.includes(b.dataset.g); b.hidden = !si; if (si) n++; });
+    $("#main").querySelectorAll(".rc-g").forEach((g) => { g.hidden = !!q || S.rcFil !== "abiertos" || !$(`#main .rc-item[data-g="${g.dataset.gg}"]`); });
+    const v = $("#main .rc-vacio"); v.hidden = !!q || n > 0;
+    v.innerHTML = `<b>${S.rcFil === "cerrados" ? "No hay reclamos cerrados en los últimos 3 meses" : S.rcFil === "responder" ? "No hay reclamos para responder" : "No hay reclamos abiertos"}</b>${S.rcFil === "cerrados" ? "" : "Cuando se abra uno, te avisamos al celular."}`;
+    return n;
+  };
+  mostrar(S.busMod.reclamos ?? "");
+  enlazarBusMod("reclamos", emp, mostrar, "Reclamos");
   enlazarPvTabs();
-  $("#rcFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { S.rcFil = b.dataset.f; vistaReclamos(); } };
+  $("#rcFil").onclick = (e) => { const b = e.target.closest("[data-f]"); if (!b) return; S.rcFil = b.dataset.f; $("#rcFil").querySelectorAll("[data-f]").forEach((x) => x.classList.toggle("on", x === b)); ponerBus("reclamos", ""); mostrar(""); };
   $("#main .rc-lista").onclick = (e) => { const b = e.target.closest("[data-conv]"); if (!b) return; const id = Number(b.dataset.conv); S.convTab = { ...(S.convTab ?? {}), [id]: "reclamo" }; S.msjId = id; ir("mensajes"); };
   escucharClientes(() => { if (S.pvTab === "reclamos") vistaReclamos(); });
 }
@@ -6768,19 +6829,32 @@ VISTAS.devoluciones = async () => {
   S.devN = n("revisar") + n("necesita") + n("aprobar");
   const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
   const fullN = (S.fullRet?.pendientes ?? 0) + (S.fullRet?.pedidas ?? 0);
-  $("#main").innerHTML = posventaTabs() + `${S.pvTab === "full" ? "" : `<p class="mut peq" style="margin:4px 0 10px">Cuando llega un paquete devuelto, buscalo por la etiqueta, comparalo con lo que se envió y decí cómo llegó.</p>`}
-    <div class="rec-acc"><button class="btn pri grande" id="recEsc">${ICONO_R.scan} Escanear etiqueta</button></div>
-    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:16px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${fullN || S.recFil === "full" ? `<button type="button" data-f="full" class="${S.recFil === "full" ? "on" : ""}">Retirar de Full · ${S.fullRet?.pendientes ?? 0}</button>` : ""}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
-    <div class="rec-lista">${S.recFil === "full" ? fullRetirosHTML(S.fullRet) : lista.filter((d) => d.est.grupo === S.recFil).map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}">${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
-      || `<div class="panel vacio"><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
+  const kb = S.pvTab === "full" ? "full" : "devoluciones";
+  $("#main").innerHTML = posventaTabs() + `${busModHTML(kb, kb === "devoluciones")}
+    <div class="m-fil" id="recFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${grupos.filter(([k]) => n(k) || k === "revisar" || k === S.recFil).map(([k, t]) => `<button type="button" data-f="${k}" class="${S.recFil === k ? "on" : ""}">${t} · ${n(k)}</button>`).join("")}${fullN || S.recFil === "full" ? `<button type="button" data-f="full" class="${S.recFil === "full" ? "on" : ""}">Retirar de Full · ${S.fullRet?.pendientes ?? 0}</button>` : ""}${r.con_asignaciones ? `<button type="button" data-mio="1" class="${S.recMio ? "on" : ""}" aria-pressed="${!!S.recMio}">Para mí</button>` : ""}</div>
+    <div class="rec-lista">${S.recFil === "full" ? fullRetirosHTML(S.fullRet) : lista.map((d) => `<button type="button" class="rec-it" data-id="${d.claim_id}" data-g="${d.est.grupo}" ${busAttr(d.comprador, d.item_titulo, d.orden_id, d.claim_id, d.extra?.pack_id, d.extra?.envio_id)}>${etqFilaHTML(etqPartes("devoluciones", d, etqConfig("devoluciones", emp)))}</button>`).join("")
+      + `<div class="panel vacio rc-vacio" hidden><b>${S.recFil === "revisar" ? "No hay devoluciones esperando revisión" : "No hay nada acá"}</b>${S.recFil === "revisar" ? "Cuando llegue una, te avisamos al celular." : ""}</div>`}</div>`;
   enlazarPvTabs();
-  if (S.pvTab === "full") { $("#recEsc")?.closest(".rec-acc")?.remove(); $("#recFil")?.remove(); } else $('#recFil [data-f="full"]')?.remove();
+  if (S.pvTab === "full") $("#recFil")?.remove(); else $('#recFil [data-f="full"]')?.remove();
   escucharClientes(() => VISTAS.devoluciones());
-  if ($("#recEsc")) $("#recEsc").onclick = () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion"));
+  // Buscador: en Devoluciones busca en todas (no solo en el filtro elegido); en Full, por publicación o venta
+  const mostrar = (q) => {
+    let n = 0;
+    if (kb === "full") { $("#main").querySelectorAll(".fr-pub").forEach((x) => { const si = coincideBus(q, x.dataset.bus); x.hidden = !si; if (si) n++; }); return q ? n : 1; }
+    $("#main").querySelectorAll(".rec-it").forEach((x) => { const si = q ? coincideBus(q, x.dataset.bus) : x.dataset.g === S.recFil; x.hidden = !si; if (si) n++; });
+    const v = $("#main .rc-vacio"); if (v) v.hidden = !!q || n > 0;
+    return n;
+  };
+  mostrar(S.busMod[kb] ?? "");
+  enlazarBusMod(kb, emp, mostrar, kb === "full" ? "Retiros Full" : "Devoluciones",
+    () => escanear("Escanear etiqueta de la devolución", (c) => buscarEtiqueta(c, "devolucion"), (f) => leerEtiquetaFoto(f, "devolucion")));
+  // Retiros Full: se muestra lo último que se consultó y, si tiene más de un minuto, se vuelve a preguntar a MercadoLibre
+  if (kb === "full" && S.fullRet && Date.now() - new Date(S.fullRet.actualizado ?? 0).getTime() > 60_000 && !S.frConsultando) {
+    S.frConsultando = true;
+    api("full_retiros", { cliente_id: emp, forzar: true }).then((x) => { if (x) S.fullRet = x; S.frConsultando = false; if (x && S.tab === "devoluciones" && S.pvTab === "full" && !S.devId) VISTAS.devoluciones(); }, () => { S.frConsultando = false; });
+  }
   if ($("#recFil")) $("#recFil").onclick = (e) => { const m = e.target.closest("[data-mio]"); if (m) { S.recMio = !S.recMio; VISTAS.devoluciones(); return; } const b = e.target.closest("[data-f]"); if (b) { S.recFil = b.dataset.f; VISTAS.devoluciones(); } };
   $("#main").querySelector(".rec-lista").onclick = async (e) => {
-    const u = e.target.closest("#frAct");
-    if (u) { u.disabled = true; u.textContent = "Consultando MercadoLibre…"; const x = await seguro(() => api("full_retiros", { cliente_id: emp, forzar: true })); if (x) S.fullRet = x; VISTAS.devoluciones(); return; }
     const b = e.target.closest("[data-id]"); if (b) { S.devId = Number(b.dataset.id); ir("devoluciones"); }
   };
 };
@@ -6789,9 +6863,9 @@ function fullRetirosHTML(fr) {
   if (!fr) return `<div class="panel vacio"><b>Todavía no se pudo consultar el stock de Full</b>Probá de nuevo en unos minutos.</div>`;
   const cuando = fr.actualizado ? haceVivo(fr.actualizado) : "";
   const cab = `<p class="peq mut fr-cab">${fr.pendientes ? `Hay <b>${fr.pendientes} ${fr.pendientes === 1 ? "unidad" : "unidades"}</b> que no se pueden vender y todavía no pediste retirar.` : "No hay unidades para retirar que no hayas pedido."}${fr.pedidas ? ` De ${fr.pedidas === 1 ? "una unidad" : `${fr.pedidas} unidades`} ya pediste el retiro.` : ""}
-    Es el stock de Full según MercadoLibre${cuando ? ` (consultado ${cuando})` : ""}. <button type="button" class="enlace" id="frAct">Actualizar</button></p>`;
+    Es el stock de Full según MercadoLibre${S.frConsultando ? ` ${buscandoTxt("(consultando")})` : cuando ? ` (consultado ${cuando})` : ""}.</p>`;
   if (!fr.publicaciones?.length) return cab;
-  return cab + fr.publicaciones.map((p) => `<div class="panel fr-pub">
+  return cab + fr.publicaciones.map((p) => `<div class="panel fr-pub" ${busAttr(p.titulo, p.variante, p.grupos?.map((g) => g.ordenes))}>
       <div class="fr-c">${foto(p.foto)}<div class="fr-t"><b>${esc(p.titulo)}</b>${p.variante ? `<span class="peq mut">${esc(p.variante)}</span>` : ""}</div><span class="fr-n">${p.cantidad} u.</span></div>
       <ul class="fr-g">${p.grupos.map((g) => `<li${g.proceso ? ' class="fr-proc"' : ""}><span>${g.pedido ? `<span class="chip c-cal">Ya pediste el retiro</span> ` : ""}${/^(retiro ya pedido|ya pediste el retiro)$/i.test(g.motivo) ? "" : esc(g.motivo)}</span><b>${g.cantidad}</b>${g.ordenes?.length ? `<span class="peq mut fr-o">Volvió de la venta ${g.ordenes.map((o) => `#${esc(o)}`).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("");
 }
@@ -7769,7 +7843,9 @@ VISTAS.despacho = async (op = {}) => {
   // Productos de la lista, con su foto (uno por título)
   const productos = [...env.reduce((m, c) => m.has(tit(c)) ? m : m.set(tit(c), c.item_thumbnail ?? null), new Map())].sort((a, b) => a[0].localeCompare(b[0]));
   F.productos = (F.productos ?? []).filter((p) => productos.some(([x]) => x === p));
-  const pasa = (c, sin = "") => (sin === "plazo" || F.plazo === "todos" || grupoDespacho(c) === F.plazo)
+  // Con algo escrito en el buscador se busca en todo lo que hay para despachar, sin los demás filtros
+  const busDs = (c) => busTxt(c.comprador_nombre, c.comprador_nick, c.item_titulo, c.item_variacion, c.item_sku, c.pack_id, c.orden_ids, c.envio_id);
+  const pasa = (c, sin = "") => S.busMod.despacho ? coincideBus(S.busMod.despacho, busDs(c)) : (sin === "plazo" || F.plazo === "todos" || grupoDespacho(c) === F.plazo)
     && (sin === "tipos" || !F.tipos.length || F.tipos.includes(c.envio_logistica))
     && (sin === "etiqueta" || F.etiqueta === "todas" || (F.etiqueta === "impresas") === impresa(c))
     && (sin === "producto" || !F.productos.length || F.productos.includes(tit(c)))
@@ -7790,7 +7866,7 @@ VISTAS.despacho = async (op = {}) => {
       const pt = etqPartes("despacho", c, etqConfig("despacho", emp));
       const fila = etqFilaHTML({ ...pt, img: "" });
       return `${cab}<label class="ds-it"><span class="ds-fc ${pt.img ? "con-foto" : ""}">${pt.img}<input type="checkbox" data-id="${c.id}" ${sel.has(c.id) ? "checked" : ""}></span>${conCirc ? fila.slice(0, -7) + pasosHTML(c, ci) + "</span>" : fila}</label>`;
-    }).join("") : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
+    }).join("") : S.busMod.despacho ? "" : `<div class="vacio"><p>No hay envíos con estos filtros.</p></div>`;
     if ($("#dsFp")) {
       const FALTA = { armado: "Falta armar", verificacion: "Falta verificar", foto: "Falta foto", entrega: "Falta entregar" };
       $("#dsFp").innerHTML = `<button type="button" data-fp="" aria-pressed="${!F.paso}">Todos ${env.filter((c) => pasa(c, "paso")).length}</button>${pasosFil.map((k) => `<button type="button" data-fp="${k}" aria-pressed="${F.paso === k}">${FALTA[k]} ${env.filter((c) => pasa(c, "paso") && faltaPaso(ci, c, k)).length}</button>`).join("")}`;
@@ -7815,7 +7891,7 @@ VISTAS.despacho = async (op = {}) => {
     $("#dsAct").innerHTML = elegidos.map(([k, t]) => `<button type="button" data-qd="${esc(k)}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("");
     $("#dsAct").classList.toggle("oculto", !elegidos.length);
   };
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Despacho</h1><p>Envíos que despachás (Flex, Turbo, colecta y punto de despacho). Filtrá, elegí cuáles y se imprimen las etiquetas de MercadoLibre en el orden de la lista.</p></div></div>${chipsClientes("despacho", emp)}
+  $("#main").innerHTML = `<div class="cabecera pv-cab"><div><h1>Despacho</h1></div></div>${chipsClientes("despacho", emp)}${busModHTML("despacho")}
     <div class="ds-imp">${conCirc && ci.armado.modo !== "apagado" ? `<button class="btn lin" type="button" id="dsArm">Armar</button>` : ""}<button class="btn lin" type="button" id="dsVer">Verificar paquete</button>${conCirc && ci.entrega.modo !== "apagado" ? `<button class="btn lin" type="button" id="dsEnt">Entregar al transporte</button>` : ""}${imps.length ? `<label class="et" for="dsSelImp" style="margin:0">Imprimís en</label>
       <select id="dsSelImp"><option value="">Elegí una impresora</option>${imps.map((i) => `<option value="${i.id}" ${i.id === impId ? "selected" : ""}>${esc(i.nombre)} · ${i.formato === "pdf" ? "común" : "térmica"}</option>`).join("")}</select>`
       : `<span class="peq">Todavía no hay impresoras cargadas: las etiquetas salen en PDF.${adminEmp ? ` <button class="lnk" type="button" id="dsIrImp">Cargar impresoras</button>` : " Pedile al administrador que las cargue."}</span>`}</div>
@@ -7834,6 +7910,7 @@ VISTAS.despacho = async (op = {}) => {
       <button class="btn pri" type="button" id="dsImp" disabled><span id="dsN">Imprimir etiquetas</span></button></div>`;
   if (op.rapido) { requestAnimationFrame(() => { window.scrollTo(0, scroll); if (foco) document.getElementById(foco)?.focus(); }); }
   pintar();
+  enlazarBusMod("despacho", emp, () => { pintar(); return visibles().length; }, "Despacho");
   escucharClientes(() => { S.dsSel = new Set(); VISTAS.despacho(); });
   $("#dsBarra").onclick = (e) => {
     if (e.target.closest("#dsPl")) { e.stopPropagation(); const m = $("#dsPlM"), ab = m.classList.contains("oculto"); m.classList.toggle("oculto", !ab); $("#dsPl").setAttribute("aria-expanded", String(ab)); return; }
