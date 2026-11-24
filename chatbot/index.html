@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241307";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241316";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1039,7 +1039,7 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:absolute;right:8px;top:6px}.etq-fila.cf .etq-esq{padding-right:30px}.etq-fila.cf .etq-r1{padding-right:30px}
 @media (max-width:560px){.etq-molde{grid-template-columns:72px minmax(0,1fr) minmax(84px,34%)}}
 .m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{column-gap:4px;align-items:center}@media (max-width:960px){#mFil{justify-content:space-between}#mFil .ord-der{margin-left:0}}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
-@media (max-width:960px){#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
+@media (max-width:960px){#main .cabecera.pv-cab{display:none}#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 @media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
 .etq-ld{display:flex!important;align-items:baseline;gap:6px 10px;-webkit-line-clamp:unset!important}.etq-ld .etq-esq{margin-left:auto}.etq-li{min-width:0;flex:0 1 auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.etq-ld .etq-esq{text-align:right;flex:none;max-width:45%}
 .fav-in,.hilo-w .fav-in,.etq-fila .fav-in{position:static;width:24px;height:24px;vertical-align:middle;margin:-4px 0}.fav-in svg{width:18px;height:18px}.tags .fav-in{margin:0}
@@ -1176,7 +1176,8 @@ const CARGADA = Date.now();
 async function revisarRecarga() {
   if (document.hidden || !S.rol || typeof api !== "function") return;
   let r; try { r = await api("recarga_ver", { version: window.MOSTRADOR_BUILD ?? "", link: window.MOSTRADOR_LINK ?? "", dispositivo: PRES.disp, tipo: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? (matchMedia("(display-mode: standalone)").matches ? "celular-app" : "celular-web") : "computadora" }); } catch { return; }
-  if (!r?.recarga || new Date(r.recarga).getTime() <= CARGADA) return;
+  const marca = r?.recarga ? new Date(r.recarga).getTime() : NaN;
+  if (!Number.isFinite(marca) || marca <= CARGADA) return; // una marca que no es fecha no recarga nada
   const escribiendo = [...PRES.tecleo.values()].some((t) => Date.now() - t < 20000);
   if (escribiendo) return; // se vuelve a intentar en la próxima vuelta
   try { aviso("Actualizando la app…"); } catch {}
@@ -6720,7 +6721,7 @@ function posventaTabs() {
   const C = S.cont ?? {};
   const dv = S.devN ?? 0, fl = S.fullRet?.pendientes ?? 0;
   const t = [["reclamos", "Reclamos", C.reclamos, "rojo"], ["devoluciones", "Devoluciones", dv, ""], ["full", "Retiros Full", fl, ""]];
-  return `<div class="cabecera"><div><h1>Posventa</h1></div></div>
+  return `<div class="cabecera pv-cab"><div><h1>Posventa</h1></div></div>
     <div class="pestanas pv-tabs" role="tablist" aria-label="Posventa">${t.map(([k, x, n, c]) => `<button type="button" role="tab" data-pv="${k}" class="${S.pvTab === k ? "on" : ""}" aria-selected="${S.pvTab === k}">${x}${n ? ` <span class="cuenta-n ${c}">${n}</span>` : ""}</button>`).join("")}</div>`;
 }
 function enlazarPvTabs() {
