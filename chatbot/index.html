@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611240149";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611241132";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -854,7 +854,26 @@ input[type=file]{max-width:100%}
 .m-venta h3{font-size:13px;color:var(--piz);font-weight:600;margin:18px 0 8px}.m-venta h3:first-child{margin-top:0}
 .prod{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
 .prod .foto{width:56px;height:56px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
-.ent-pane{padding:16px 14px 24px;max-width:640px}.ent{display:grid;gap:2px}.ent-dir{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--sup2,#F1F3F5);font-size:14px}.ent-dir b{font-size:15.5px}.ent-cto{margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)}.ent-cto a{font-weight:600}
+.ent-pane{padding:16px 14px 24px;max-width:640px}
+.et{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;font-size:15px}.et *{min-width:0}.et h3{margin:0 0 6px;font-size:13.5px;color:var(--piz);font-weight:600}
+.et-tipo{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--sup);border:1px solid var(--linea)}.et-tipo b{display:block;font-size:16px}.et-tipo p{margin:2px 0 0;color:var(--piz);font-size:14px;line-height:1.4}
+.et-ico{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center}.et-ico svg{width:22px;height:22px}.et-ico.ml{background:var(--cielo-2);color:var(--cielo)}.et-ico.vos{background:var(--pino-2);color:var(--pino)}.et-ico.acu{background:var(--ambar-2);color:var(--ambar-t)}
+.et-lim{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--ambar-2);color:var(--ambar-t);font-size:14px}.et-lim b{font-size:16px;white-space:nowrap}
+.et-acc{display:flex;gap:8px;flex-wrap:wrap}.et-acc .btn{flex:1;justify-content:center;text-decoration:none;white-space:nowrap}.et-acc.col{flex-direction:column}.et-acc.col .btn{width:100%}
+.et-seg{display:flex;border:1px solid var(--linea);border-radius:10px;overflow:hidden;background:var(--sup)}.et-seg button{flex:1;border:0;background:none;padding:9px 4px;font:inherit;font-size:13px;overflow:hidden;text-overflow:ellipsis;color:var(--tinta);white-space:nowrap;cursor:pointer}.et-seg button.on{background:var(--pino);color:var(--sobre-pino);font-weight:600}
+section.et-seg{display:grid;gap:8px;padding:12px 14px;border-radius:12px;background:var(--sup);border:1px solid var(--linea);overflow:visible}section.et-seg h3{margin:0}
+.et-ult{display:flex;gap:10px;align-items:flex-start}.et-ult>div{display:grid;gap:1px}.et-ult small{color:var(--piz);font-size:13px}.et-pt{flex:none;width:10px;height:10px;border-radius:50%;background:var(--pino);margin-top:6px}
+.et-segp{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px}.et-segp .urg-marcar{padding:0;font-size:14px}
+.et-pasos{display:flex;gap:4px}.et-pasos span{flex:1;text-align:center;font-size:10.5px;overflow-wrap:normal;word-break:normal;hyphens:none;color:var(--piz);padding-top:8px;border-top:4px solid var(--linea)}.et-pasos .ok{border-color:var(--pino);color:var(--pino-t)}.et-pasos .act{border-color:var(--pino);color:var(--tinta);font-weight:700}
+.et-modo{display:flex;flex-wrap:wrap;gap:8px}.et-modo button{font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--linea);border-radius:999px;background:var(--sup);color:var(--tinta);cursor:pointer}.et-modo button.on{background:var(--pino-2);border-color:var(--pino);color:var(--pino-t);font-weight:700}
+.et-c{display:grid;gap:4px}.et-c>span{font-size:13px;color:var(--piz)}.et-c input,.et-c select,.et-c textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--linea);border-radius:10px;background:var(--sup);color:var(--tinta);width:100%;box-sizing:border-box}
+.et-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.et-res{background:var(--sup2);border-radius:12px;padding:12px 14px;display:grid;gap:6px;font-size:14.5px}.et-res div{display:flex;justify-content:space-between;gap:10px}.et-res span{color:var(--piz)}.et-res b{text-align:right}
+.et-fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.et-foto{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--sup2);border:1px solid var(--linea)}.et-foto img{width:100%;height:100%;object-fit:cover}.et-foto span{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:11.5px;font-weight:600;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+.et-nota{margin:-2px 0 0;font-size:12.5px;color:var(--piz)}
+.et-tl .e{display:grid;grid-template-columns:18px 1fr;gap:10px;padding-bottom:14px;position:relative}.et-tl .e:before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--linea)}.et-tl .e:last-child:before{display:none}
+.et-tl .p{width:12px;height:12px;border-radius:50%;background:var(--linea);margin-top:4px;position:relative;z-index:1}.et-tl .p.ok{background:var(--pino)}.et-tl .p.co{background:var(--cielo)}.et-tl .p.mal{background:var(--ladrillo)}
+.et-tl b{font-size:15px}.et-tl small{display:block;color:var(--piz);font-size:13px}.et-tl .q{font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--cielo-2);color:var(--cielo);margin-left:6px;vertical-align:1px}.et-tl .q.n{background:var(--pino-2);color:var(--pino-t)}.ent{display:grid;gap:2px}.ent-dir{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--sup2,#F1F3F5);font-size:14px}.ent-dir b{font-size:15.5px}.ent-cto{margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)}.ent-cto a{font-weight:600}
 .ent-aviso{margin:8px 0 0;padding:8px 10px;border-radius:8px;background:var(--ambar-2,#FFF4DB);color:var(--ambar-t,#7A5200);font-size:13px}.ent-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ent-acc a{text-decoration:none}
 .dv{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--linea)}.dv span:first-child{color:var(--piz)}
 .linea-t{position:relative;padding-left:18px;font-size:13.5px}
@@ -4693,7 +4712,7 @@ function pintarChat(d) {
       ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
       <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
       <button type="button" role="tab" data-ct="factura">Factura</button>
-      ${c.envio_id ? `<button type="button" role="tab" data-ct="entrega">Entrega</button>` : ""}
+      ${c.envio_id || c.estado_orden !== "cancelled" ? `<button type="button" role="tab" data-ct="entrega">Entrega</button>` : ""}
       <button type="button" role="tab" data-ct="venta" class="solo-movil">Historial</button></div>
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
@@ -4703,7 +4722,7 @@ function pintarChat(d) {
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
     <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
     <div class="c-pane" id="cpFac" hidden><div class="fx" id="cFac"><p class="mut">Cargando…</p></div></div>
-    ${c.envio_id ? `<div class="c-pane" id="cpEnt" hidden><div class="ent-pane"><div id="mEnt"><p class="peq mut" style="margin:0">${buscandoTxt("Buscando el domicilio")}</p></div></div></div>` : ""}
+    ${c.envio_id || c.estado_orden !== "cancelled" ? `<div class="c-pane" id="cpEnt" hidden><div class="ent-pane"><div id="mEnt"><p class="peq mut" style="margin:0">${buscandoTxt("Buscando la entrega")}</p></div></div></div>` : ""}
     <div class="c-pane" id="cpVen" hidden></div>`;
   if (movil) { rescatarVen(); $("#cpVen")?.appendChild($("#mVen")); }
   const bur = $("#mBur"); bur.scrollTop = bur.scrollHeight;
@@ -4762,7 +4781,7 @@ function pestConv(t) {
   if (t === "chat") { const bur = $("#mBur"); if (bur) bur.scrollTop = bur.scrollHeight; }
   if (t === "reclamo" && !$("#cRec").dataset.listo) cargarReclamo(c.id);
   if (t === "factura" && !$("#cFac").dataset.listo) cargarFactura(c.id);
-  if (t === "entrega" && $("#mEnt") && !$("#mEnt").dataset.listo) { $("#mEnt").dataset.listo = "1"; cargarEntrega(c); }
+  if (t === "entrega" && $("#mEnt") && !$("#mEnt").dataset.listo) { $("#mEnt").dataset.listo = "1"; if (S.entrega?.id === c.id && S.entrega.e && Date.now() - (S.entrega.at ?? 0) < 60000) pintarEntrega(S.entrega.e, c); else cargarEntrega(c); }
 }
 // ---------- Solapa "Factura": datos para facturar, la factura cargada en MercadoLibre (en miniatura) y lo vendido ----------
 const pdfJs = async () => { const l = await cargarScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js", "pdfjsLib"); l.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; return l; };
@@ -5189,24 +5208,200 @@ async function redactarMotivo(d) {
 }
 
 // Domicilio de entrega (cualquier tipo de envío): dónde hay que entregar (se lee de MercadoLibre al abrir la venta; no se guarda)
-function pintarEntrega(e) {
+// ---------- Entrega (según el tipo de envío) ----------
+const ENT_ICO = {
+  caja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>',
+  rayo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  moto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h5l3-7h-4M14 6h3l1.5 4"/></svg>',
+  camion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  mano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V6.5a1.5 1.5 0 0 1 3 0V11M10 10V5a1.5 1.5 0 0 1 3 0v5M13 10V6a1.5 1.5 0 0 1 3 0v6M16 9.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7L3.5 14a1.5 1.5 0 0 1 2.4-1.8L7 13.5"/></svg>',
+};
+const ENT_TIPOS = {
+  full: ["ml", "caja", "Full", "Lo envía MercadoLibre desde su depósito. No hay que preparar nada."],
+  turbo: ["ml", "rayo", "Turbo", "Lo retira un repartidor de MercadoLibre y llega en el día."],
+  flex: ["vos", "moto", "Flex", "Lo entregás vos o tu repartidor, con la app de MercadoLibre."],
+  colecta: ["ml", "camion", "Colecta", "MercadoLibre pasa a retirarlo por tu depósito."],
+  punto: ["ml", "pin", "Punto de envío", "Lo llevás a un punto de despacho de MercadoLibre con la etiqueta pegada."],
+  otro: ["ml", "caja", "Envío de MercadoLibre", "Lo maneja MercadoLibre."],
+  acordar: ["acu", "mano", "Acordar con el comprador", "La entrega la coordinan ustedes."],
+};
+// Plazos: "Hoy 13:00", "Mañana 11:00" o la fecha
+function cuandoPlazo(f) {
+  const d = new Date(f); if (isNaN(d)) return "";
+  const dia = (x) => x.toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
+  const hoy = new Date(), man = new Date(Date.now() + 86400000);
+  const hora = d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "America/Argentina/Buenos_Aires" });
+  const h = hora === "00:00" ? "" : ` ${hora}`;
+  return dia(d) === dia(hoy) ? `Hoy${h}` : dia(d) === dia(man) ? `Mañana${h}` : `${fechaCorta(f)}${h}`;
+}
+const entTipo = (t, extra) => { const [cls, ico, tit, txt] = ENT_TIPOS[t] ?? ENT_TIPOS.otro; return `<div class="et-tipo"><span class="et-ico ${cls}">${ENT_ICO[ico]}</span><div><b>${tit}</b><p>${extra ?? txt}</p></div></div>`; };
+const entSeg = (u, fuente) => u ? `<section class="et-seg"><h3>Seguimiento</h3><div class="et-ult"><span class="et-pt"></span><div><b>${esc(u.texto)}</b>${u.fecha || u.lugar ? `<small>${[u.fecha ? fecha(u.fecha) : "", u.lugar ?? ""].filter(Boolean).map(esc).join(" · ")}</small>` : ""}</div></div>
+  <div class="et-segp"><span class="mut">Datos de ${esc(fuente ?? u.fuente ?? "MercadoLibre")}</span><button type="button" class="urg-marcar" data-et-hist>Ver historial completo</button></div></section>` : "";
+
+function pintarEntrega(e, c) {
   const caja = $("#mEnt"); if (!caja) return;
-  if (!e?.calle) { caja.innerHTML = `<p class="mut" style="margin:0">MercadoLibre no informa el domicilio de entrega de esta venta.</p>`; return; }
+  c ??= S.msjConv?.conversacion;
+  if (!e) { caja.innerHTML = `<p class="mut" style="margin:0">No se pudo leer la entrega de esta venta. Probá de nuevo en un rato.</p>`; return; }
+  if (e.tipo_envio === "acordar") return pintarPropia(e.propia, c);
+  const t = e.tipo_envio ?? "otro";
   const linea1 = [e.calle, e.numero].filter(Boolean).join(" ");
   const zona = [e.barrio, e.localidad].filter((x, i, a) => x && a.indexOf(x) === i).join(", ") + (e.cp ? ` (CP ${e.cp})` : "");
   const completa = [linea1, e.indicaciones, zona, e.provincia].filter(Boolean).join(", ");
   const mapa = e.lat && e.lng ? `https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(completa)}`;
-  caja.innerHTML = `<div class="ent">
-      <div class="ent-dir"><b>${esc(linea1)}</b>${e.indicaciones ? `<span>${esc(e.indicaciones)}</span>` : ""}<span>${esc(zona)}${e.provincia ? `, ${esc(e.provincia)}` : ""}</span>${e.entre ? `<span class="mut">Entre ${esc(e.entre)}</span>` : ""}${e.recibe || e.telefono ? `<span class="ent-cto">${e.recibe ? `Recibe ${esc(e.recibe)}` : ""}${e.recibe && e.telefono ? " · " : ""}${e.telefono ? `<a href="tel:${esc(e.telefono.replace(/[^\d+]/g, ""))}">${esc(e.telefono)}</a>` : ""}</span>` : ""}</div>
-      ${e.tipo ? `<div class="dv"><span>Tipo de domicilio</span><span>${e.tipo === "business" ? "Comercio" : "Casa"}</span></div>` : ""}
-      ${e.distinto_fiscal ? `<p class="ent-aviso">Es distinto del domicilio fiscal del comprador. El fiscal está en la solapa Factura.</p>` : ""}
-      <div class="ent-acc"><a class="btn lin chico" href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a><button type="button" class="btn lin chico" data-cp-dir="${esc(completa)}">Copiar domicilio</button></div></div>`;
-  caja.querySelector("[data-cp-dir]").onclick = async (ev) => { try { await navigator.clipboard.writeText(ev.currentTarget.dataset.cpDir); aviso("Domicilio copiado"); } catch { prompt("Copiá el domicilio:", ev.currentTarget.dataset.cpDir); } };
+  const desp = ["turbo", "colecta", "punto"].includes(t) && e.plazo && modsActuales().has("despacho");
+  caja.innerHTML = `<div class="et">
+      ${entTipo(t)}
+      ${e.plazo ? `<div class="et-lim"><span>${esc(e.plazo.texto)}</span><b>${esc(cuandoPlazo(e.plazo.fecha))}</b></div>` : ""}
+      ${e.calle ? `<section><h3>Domicilio de entrega</h3><div class="ent-dir"><b>${esc(linea1)}</b>${e.indicaciones ? `<span>${esc(e.indicaciones)}</span>` : ""}<span>${esc(zona)}${e.provincia ? `, ${esc(e.provincia)}` : ""}</span>${e.entre ? `<span class="mut">Entre ${esc(e.entre)}</span>` : ""}${e.recibe || e.telefono ? `<span class="ent-cto">${e.recibe ? `Recibe ${esc(e.recibe)}` : ""}${e.recibe && e.telefono ? " · " : ""}${e.telefono ? `<a href="tel:${esc(e.telefono.replace(/[^\d+]/g, ""))}">${esc(e.telefono)}</a>` : ""}</span>` : ""}</div>
+        ${t === "flex" && e.tipo ? `<div class="dv"><span>Tipo de domicilio</span><span>${e.tipo === "business" ? "Comercio" : "Casa"}</span></div>` : ""}
+        ${e.distinto_fiscal ? `<p class="ent-aviso">Es distinto del domicilio fiscal del comprador. El fiscal está en la solapa Factura.</p>` : ""}</section>` : `<p class="mut" style="margin:0">MercadoLibre no informa el domicilio de entrega de esta venta.</p>`}
+      ${t === "flex" && e.calle ? `<div class="et-acc"><a class="btn lin" href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a><button type="button" class="btn lin" data-cp-dir="${esc(completa)}">Copiar domicilio</button></div>` : ""}
+      ${desp ? `<div class="et-acc"><button type="button" class="btn osc" data-et-desp>Ir a Despacho</button></div>` : ""}
+      ${entSeg(e.ultimo)}
+    </div>`;
+  enlazarEntrega(caja);
+}
+function enlazarEntrega(caja) {
+  caja.querySelector("[data-cp-dir]")?.addEventListener("click", async (ev) => { const t = ev.currentTarget.dataset.cpDir; try { await navigator.clipboard.writeText(t); aviso("Domicilio copiado"); } catch { prompt("Copiá el domicilio:", t); } });
+  caja.querySelector("[data-et-desp]")?.addEventListener("click", () => ir("despacho"));
+  caja.querySelectorAll("[data-et-hist]").forEach((b) => b.onclick = () => { pestConv("venta"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
 }
 async function cargarEntrega(c) {
-  if (!$("#mEnt")) return;
   let e = null; try { e = await api("venta_entrega", { id: c.id }); } catch { /* se muestra el aviso */ }
-  if (S.msjConv?.conversacion?.id === c.id) pintarEntrega(e);
+  if (S.msjConv?.conversacion?.id !== c.id) return;
+  S.entrega = { id: c.id, e, at: Date.now() };
+  pintarEntrega(e, c);
+  if (e?.tipo_envio === "acordar") pintarHistPropia(e.propia);
+}
+
+// ---------- Entrega acordada con el comprador ----------
+const ENT_PASOS = [["a_coordinar", "A coordinar"], ["coordinado", "Coordinado"], ["preparado", "Preparado"], ["despachado", "Despachado"], ["entregado", "Entregado"]];
+const ENT_MODOS = [["retiro", "Retira en el local"], ["propio", "Moto o flete propio"], ["expreso", "Expreso o transporte"], ["correo", "Correo"], ["otro", "Otro"]];
+const ENT_CORREOS = ["Andreani", "OCA", "Correo Argentino"];
+const ENT_SITIO = { "Andreani": "https://www.andreani.com/", "OCA": "https://www.oca.com.ar/", "Correo Argentino": "https://www.correoargentino.com.ar/" };
+const entNomEstado = { coordinado: "Coordinado", preparado: "Preparado", despachado: "Despachado", entregado: "Entregado", no_entregado: "No se pudo entregar" };
+function entComo(p) {
+  const m = ENT_MODOS.find((x) => x[0] === p.modo)?.[1] ?? "";
+  return [p.modo === "correo" || p.modo === "expreso" ? p.empresa || m : m, p.servicio === "sucursal" ? "a sucursal" : p.servicio === "domicilio" ? "a domicilio" : ""].filter(Boolean).join(", ");
+}
+function pintarPropia(p, c, editar = false) {
+  const caja = $("#mEnt"); if (!caja || !p) return;
+  const est = p.estado ?? "a_coordinar";
+  const pasos = p.modo === "retiro" ? ENT_PASOS.filter((x) => x[0] !== "despachado") : ENT_PASOS;
+  const idx = est === "no_entregado" ? pasos.findIndex((x) => x[0] === "despachado") : pasos.findIndex((x) => x[0] === est);
+  const barra = `<div class="et-pasos">${pasos.map((x, i) => `<span class="${i < idx ? "ok" : i === idx ? "act" : ""}">${x[1]}</span>`).join("")}</div>`;
+  const ult = (p.seguimiento ?? []).slice(-1)[0];
+  if (editar || est === "a_coordinar") {
+    const d = { ...p, fotos: [...(p.fotos ?? [])] };
+    const lleva = (m) => m === "correo" || m === "expreso";
+    const pintarF = () => {
+      caja.innerHTML = `<div class="et">${entTipo("acordar")}${barra}
+        <section><h3>Cómo se entrega</h3><div class="et-modo">${ENT_MODOS.map(([k, t]) => `<button type="button" class="${d.modo === k ? "on" : ""}" data-modo="${k}">${t}</button>`).join("")}</div></section>
+        ${lleva(d.modo) ? `<div class="et-2"><label class="et-c"><span>Empresa</span>${d.modo === "correo" ? `<select id="etEmp">${["", ...ENT_CORREOS, "Otra"].map((x) => `<option value="${esc(x)}"${(d.empresa ?? "") === x || (x === "Otra" && d.empresa && !ENT_CORREOS.includes(d.empresa)) ? " selected" : ""}>${x || "Elegí…"}</option>`).join("")}</select>` : `<input id="etEmp" value="${esc(d.empresa ?? "")}" placeholder="Ej.: Vía Cargo">`}</label>
+          <div class="et-c"><span>Entrega</span><div class="et-seg">${[["domicilio", "A domicilio"], ["sucursal", "A sucursal"]].map(([k, t]) => `<button type="button" class="${(d.servicio ?? "domicilio") === k ? "on" : ""}" data-serv="${k}">${t}</button>`).join("")}</div></div></div>
+          ${d.modo === "correo" && d.empresa && !ENT_CORREOS.includes(d.empresa) || (d.modo === "correo" && d._otra) ? `<label class="et-c"><span>Nombre de la empresa</span><input id="etEmpOtra" value="${esc(ENT_CORREOS.includes(d.empresa ?? "") ? "" : d.empresa ?? "")}"></label>` : ""}` : ""}
+        ${d.modo && d.modo !== "retiro" ? `<label class="et-c"><span>Domicilio de entrega</span><textarea id="etDom" rows="2" placeholder="Copialo del chat: calle, número, piso, localidad, CP y provincia">${esc(d.domicilio ?? "")}</textarea></label>` : ""}
+        ${lleva(d.modo) ? `<label class="et-c"><span>Número de guía</span><input id="etGuia" value="${esc(d.guia ?? "")}" placeholder="Lo da la empresa al despachar" inputmode="text"></label>` : ""}
+        ${d.modo && d.modo !== "retiro" ? `<div class="et-2"><label class="et-c"><span>Costo del envío</span><input id="etCosto" inputmode="decimal" value="${d.costo ?? ""}" placeholder="$"></label>
+          <div class="et-c"><span>Lo paga</span><div class="et-seg">${[["comprador", "Comprador"], ["vendedor", "Nosotros"]].map(([k, t]) => `<button type="button" class="${(d.paga ?? "comprador") === k ? "on" : ""}" data-paga="${k}">${t}</button>`).join("")}</div></div></div>
+          <div class="et-2"><label class="et-c"><span>Bultos</span><input id="etBul" inputmode="numeric" value="${d.bultos ?? 1}"></label><label class="et-c"><span>Llegada estimada</span><input id="etLle" type="date" value="${esc(d.llegada ?? "")}"></label></div>` : ""}
+        ${d.modo ? `<section><h3>Fotos</h3><div id="etFotos"></div></section>` : ""}
+        <div class="et-acc col"><button type="button" class="btn osc" id="etGuardar"${d.modo ? "" : " disabled"}>Guardar</button>${editar ? `<button type="button" class="btn lin" id="etCancelar">Cancelar</button>` : ""}</div></div>`;
+      S.fotoEmp = c.cliente_id ?? null;
+      if ($("#etFotos")) casillasFotos($("#etFotos"), d.modo === "retiro" ? ["Paquete armado", "Remito firmado"] : ["Paquete armado", "Guía del correo", "Remito firmado"], d.fotos, null);
+    };
+    const leer = () => {
+      const v = (id) => $(id)?.value ?? undefined;
+      let emp = v("#etEmp"); if (emp === "Otra") { d._otra = true; emp = v("#etEmpOtra") ?? ""; }
+      if (emp !== undefined) d.empresa = emp;
+      for (const [id, k] of [["#etDom", "domicilio"], ["#etGuia", "guia"], ["#etCosto", "costo"], ["#etBul", "bultos"], ["#etLle", "llegada"]]) { const x = v(id); if (x !== undefined) d[k] = x; }
+    };
+    pintarF();
+    caja.onclick = async (ev) => {
+      const b = ev.target.closest("button"); if (!b) return;
+      if (b.dataset.modo) { leer(); d.modo = b.dataset.modo; if (d.modo === "correo" && d.empresa && !ENT_CORREOS.includes(d.empresa)) d._otra = true; pintarF(); }
+      else if (b.dataset.serv) { leer(); d.servicio = b.dataset.serv; pintarF(); }
+      else if (b.dataset.paga) { leer(); d.paga = b.dataset.paga; pintarF(); }
+      else if (b.id === "etCancelar") pintarPropia(p, c);
+      else if (b.id === "etGuardar") {
+        leer();
+        const costo = String(d.costo ?? "").replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
+        b.disabled = true;
+        const r = await seguro(() => api("entrega_guardar", { id: c.id, datos: { modo: d.modo, empresa: d.empresa, servicio: d.servicio ?? "domicilio", domicilio: d.domicilio, guia: d.guia, costo: costo === "" ? null : Number(costo), paga: d.paga ?? "comprador", bultos: d.bultos, llegada: d.llegada, fotos: d.fotos.map((f) => ({ path: f.path, etiqueta: f.etiqueta })) } }));
+        b.disabled = false;
+        if (r) { aviso("Entrega guardada"); S.entrega = { id: c.id, e: { tipo_envio: "acordar", propia: r }, at: Date.now() }; pintarPropia(r, c); pintarHistPropia(r); }
+      }
+    };
+    caja.onchange = null;
+    return;
+  }
+  // Resumen y próximos pasos
+  const sig = { coordinado: ["preparado", "Marcar como preparado"], preparado: p.modo === "retiro" ? ["entregado", "Marcar como entregado"] : ["despachado", p.modo === "propio" ? "Marcar como salió a entregar" : "Marcar como despachado"], despachado: ["entregado", "Marcar como entregado"] }[est];
+  const quien = (k) => { const x = [...(p.eventos ?? [])].reverse().find((y) => y.estado === k); return x ? `${x.quien ?? "Alguien"}, ${fecha(x.at)}` : null; };
+  const filas = [
+    ["Cómo se entrega", entComo(p)],
+    p.guia ? ["Guía", p.guia] : null,
+    p.costo != null ? ["Costo del envío", `${plata(p.costo, "ARS")}, ${p.paga === "vendedor" ? "lo pagamos nosotros" : "paga el comprador"}`] : null,
+    p.bultos > 1 ? ["Bultos", String(p.bultos)] : null,
+    p.llegada && est !== "entregado" ? ["Llegada estimada", fechaCorta(p.llegada + "T12:00:00")] : null,
+    quien("despachado") ? [p.modo === "propio" ? "Salió" : "Despachó", quien("despachado")] : null,
+    quien("entregado") ? ["Entregado", quien("entregado")] : null,
+    est === "no_entregado" ? ["No se pudo entregar", p.motivo ?? ""] : null,
+  ].filter(Boolean);
+  const sitio = ENT_SITIO[p.empresa];
+  caja.innerHTML = `<div class="et">${entTipo("acordar", p.modo ? `La entrega la coordinan ustedes${p.empresa && (p.modo === "correo" || p.modo === "expreso") ? `. Va por ${esc(p.empresa)}` : ""}.` : null)}${barra}
+    <div class="et-res">${filas.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}</div>
+    ${p.domicilio ? `<section><h3>Domicilio de entrega</h3><div class="ent-dir"><b>${esc(p.domicilio)}</b></div></section>` : ""}
+    ${p.fotos?.length ? `<section><h3>Fotos</h3><div class="et-fotos">${p.fotos.map((f) => `<a href="${esc(f.url ?? "#")}" target="_blank" rel="noopener" class="et-foto"><img src="${esc(f.url ?? "")}" alt="${esc(f.etiqueta ?? "Foto")}"><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div></section>` : ""}
+    ${ult ? entSeg({ texto: ult.texto, fecha: ult.fecha, lugar: ult.lugar }, p.empresa) : ""}
+    ${p.guia && p.con_seguimiento && est === "despachado" ? `<div class="et-acc"><button type="button" class="btn lin" id="etSeg">Actualizar el seguimiento de ${esc(p.empresa)}</button></div>` : ""}
+    ${p.guia && !p.con_seguimiento && sitio && est === "despachado" ? `<div class="et-acc"><button type="button" class="btn lin" id="etSitio">Copiar la guía y abrir ${esc(p.empresa)}</button></div>` : ""}
+    <div class="et-acc col">
+      ${sig ? `<button type="button" class="btn osc" data-est="${sig[0]}">${sig[1]}</button>` : ""}
+      ${p.guia && ["despachado", "entregado"].includes(est) ? `<button type="button" class="btn lin" id="etAvisar">Mandar los datos al comprador</button><p class="et-nota">Te armamos el mensaje en el chat; lo revisás y lo enviás vos.</p>` : ""}
+      ${est === "despachado" ? `<button type="button" class="btn lin" data-est="no_entregado">No se pudo entregar</button>` : ""}
+      ${est !== "entregado" ? `<button type="button" class="btn lin" id="etEditar">Editar los datos</button>` : ""}
+    </div></div>`;
+  enlazarEntrega(caja);
+  caja.onchange = null;
+  caja.onclick = async (ev) => {
+    const b = ev.target.closest("button"); if (!b) return;
+    if (b.id === "etEditar") return pintarPropia(p, c, true);
+    if (b.id === "etSitio") { try { await navigator.clipboard.writeText(p.guia); aviso("Guía copiada"); } catch { /* sin portapapeles */ } window.open(sitio, "_blank", "noopener"); return; }
+    if (b.id === "etSeg") {
+      b.disabled = true; const r = await seguro(() => api("entrega_seguimiento", { id: c.id })); b.disabled = false;
+      if (r?.error) aviso(r.error); else if (r && !r.eventos?.length) aviso(`${p.empresa} todavía no informa movimientos de esa guía`);
+      return cargarEntrega(c);
+    }
+    if (b.id === "etAvisar") {
+      const txt = `¡Hola! Tu compra ya salió${p.empresa ? ` por ${p.empresa}` : ""}. Número de guía: ${p.guia}.${p.llegada ? ` Llegada estimada: ${fechaCorta(p.llegada + "T12:00:00")}.` : ""} Cualquier consulta, escribinos por acá.`;
+      pestConv("chat");
+      const tx = $("#mTx");
+      if (!tx) return aviso("El chat de esta venta todavía no permite escribir libremente: MercadoLibre lo habilita cuando el comprador escribe");
+      tx.value = txt; tx.dispatchEvent(new Event("input", { bubbles: true })); tx.focus();
+      return;
+    }
+    if (b.dataset.est) {
+      let motivo = null;
+      if (b.dataset.est === "no_entregado") { motivo = prompt("¿Por qué no se pudo entregar?"); if (!motivo) return; }
+      b.disabled = true;
+      const r = await seguro(() => api("entrega_estado", { id: c.id, estado: b.dataset.est, motivo }));
+      b.disabled = false;
+      if (r) { aviso(entNomEstado[b.dataset.est] ?? "Listo"); S.entrega = { id: c.id, e: { tipo_envio: "acordar", propia: r }, at: Date.now() }; pintarPropia(r, c); pintarHistPropia(r); }
+    }
+  };
+}
+// Historial de una entrega acordada: pasos del equipo y movimientos de la empresa de transporte
+function pintarHistPropia(p) {
+  const caja = $("#mProp"); if (!caja || !p) return;
+  const c = S.msjConv?.conversacion;
+  const ev = [{ t: "Venta", at: c?.fecha_venta, q: null, k: "ok" },
+    ...(p.eventos ?? []).map((x) => ({ t: entNomEstado[x.estado] ?? x.estado, at: x.at, q: "Equipo", det: [x.quien, x.dato].filter(Boolean).join(" · "), k: x.estado === "no_entregado" ? "mal" : "ok" })),
+    ...(p.seguimiento ?? []).map((x) => ({ t: x.texto, at: x.fecha, q: p.empresa, det: [x.lugar, x.motivo].filter(Boolean).join(" · "), k: "co" }))]
+    .filter((x) => x.t).sort((a, b) => String(a.at ?? "").localeCompare(String(b.at ?? "")));
+  caja.innerHTML = `<div class="et-tl">${ev.map((x) => `<div class="e"><span class="p ${x.k}"></span><div><b>${esc(x.t)}</b>${x.q ? `<span class="q ${x.q === "Equipo" ? "n" : ""}">${esc(x.q)}</span>` : ""}<small>${[x.at ? fecha(x.at) : "", x.det ?? ""].filter(Boolean).map(esc).join(" · ")}</small></div></div>`).join("")}</div>
+    ${!(p.eventos ?? []).length ? `<p class="peq mut" style="margin:6px 0 0">Todavía no se cargó cómo se entrega. Hacelo en la solapa Entrega.</p>` : ""}`;
 }
 function pintarVenta(d) {
   const c = d.conversacion, env = c.envio ?? {};
@@ -5216,10 +5411,10 @@ function pintarVenta(d) {
     ${pz ? `<div class="dev-glob ${pz.c}"><b>${pz.t}</b><span>${pz.s}</span></div>` : ""}
     ${Number(c.devuelto) > 0 ? `<div class="dv"><span>Devuelto al comprador</span><span style="color:var(--ladrillo)">${plata(c.devuelto, c.moneda)}</span></div>` : ""}
     ${c.estado_orden && c.estado_orden !== "paid" ? `<div class="dv"><span>Estado</span><span${c.estado_orden === "cancelled" ? ' style="color:var(--ladrillo);font-weight:600"' : ""}>${esc(ORDEN_E[c.estado_orden] ?? c.estado_orden)}</span></div>` : ""}
-    <h3 id="mLineaT">Envío ${tipoEnvio(c) || "—"}</h3>
+    <h3 id="mLineaT">${c.envio_id || c.estado_orden === "cancelled" ? `Envío ${tipoEnvio(c) || "—"}` : "Entrega acordada con el comprador"}</h3>
     ${c.envio_id ? `<div class="linea-t" id="mLinea">${paso(true, "Venta", c.fecha_venta)}${paso(!!env.despachado, "Despachado", env.despachado)}${paso(!!(env.entregado || c.envio_entregado_at), c.envio_estado === "not_delivered" ? "No entregado" : "Recibido por el comprador", env.entregado || c.envio_entregado_at)}</div>
       ${env.estimada && !env.entregado ? `<p class="peq mut" id="mEst" style="margin:0">Llegada estimada: ${fechaCorta(env.estimada)}</p>` : ""}
-      ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : `<p class="peq mut">Sin envío de MercadoLibre.</p>`}
+      ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : c.estado_orden === "cancelled" ? `<p class="peq mut">Sin envío de MercadoLibre.</p>` : `<div id="mProp"><p class="peq mut" style="margin:0">Entrega acordada con el comprador.</p></div>`}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button> · <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir en MercadoLibre</a></p>`
       : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0">Tuvo un reclamo que ya está cerrado. <button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>` : ""}
     ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
@@ -5227,6 +5422,7 @@ function pintarVenta(d) {
   $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
   if (c.mediacion || c.reclamo_ids?.length) historiaVenta(c);
   else if (modsActuales().has("despacho")) lineaCircuito(c);
+  if ($("#mProp")) { if (S.entrega?.id === c.id && S.entrega.e?.propia && Date.now() - (S.entrega.at ?? 0) < 60000) pintarHistPropia(S.entrega.e.propia); else cargarEntrega(c); }
 }
 // Línea de tiempo de la venta con los pasos del circuito de despacho: lo hecho (quién y cuándo), lo que falta (con el botón
 // para hacerlo) y lo que informa MercadoLibre
@@ -6418,7 +6614,7 @@ async function achicar(file, max = 1600) {
 }
 async function subirFoto(file, etiqueta) {
   const { datos, tipo } = await achicar(file);
-  return api("devolucion_foto", { cliente_id: empRec(), datos, tipo, etiqueta });
+  return api("devolucion_foto", { cliente_id: (S.tab === "mensajes" && S.fotoEmp) || empRec(), datos, tipo, etiqueta });
 }
 // Casillas de fotos guiadas; devuelve el estado (lista de fotos) que se va llenando
 function casillasFotos(caja, guias, fotos, cambio) {
