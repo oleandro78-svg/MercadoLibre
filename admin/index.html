@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611240011";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611240021";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -854,7 +854,7 @@ input[type=file]{max-width:100%}
 .m-venta h3{font-size:13px;color:var(--piz);font-weight:600;margin:18px 0 8px}.m-venta h3:first-child{margin-top:0}
 .prod{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center}
 .prod .foto{width:56px;height:56px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--linea)}
-.ent{display:grid;gap:2px}.ent-dir{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--sup2,#F1F3F5);font-size:14px}.ent-dir b{font-size:15.5px}
+.ent{display:grid;gap:2px}.ent-dir{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--sup2,#F1F3F5);font-size:14px}.ent-dir b{font-size:15.5px}.ent-cto{margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)}.ent-cto a{font-weight:600}
 .ent-aviso{margin:8px 0 0;padding:8px 10px;border-radius:8px;background:var(--ambar-2,#FFF4DB);color:var(--ambar-t,#7A5200);font-size:13px}.ent-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ent-acc a{text-decoration:none}
 .dv{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--linea)}.dv span:first-child{color:var(--piz)}
 .linea-t{position:relative;padding-left:18px;font-size:13.5px}
@@ -5191,9 +5191,7 @@ function pintarEntrega(e) {
   const completa = [linea1, e.indicaciones, zona, e.provincia].filter(Boolean).join(", ");
   const mapa = e.lat && e.lng ? `https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(completa)}`;
   caja.innerHTML = `<div class="ent">
-      <div class="ent-dir"><b>${esc(linea1)}</b>${e.indicaciones ? `<span>${esc(e.indicaciones)}</span>` : ""}<span>${esc(zona)}${e.provincia ? `, ${esc(e.provincia)}` : ""}</span>${e.entre ? `<span class="mut">Entre ${esc(e.entre)}</span>` : ""}</div>
-      ${e.recibe ? `<div class="dv"><span>Recibe</span><span>${esc(e.recibe)}</span></div>` : ""}
-      ${e.telefono ? `<div class="dv"><span>Teléfono</span><a href="tel:${esc(e.telefono.replace(/[^\d+]/g, ""))}">${esc(e.telefono)}</a></div>` : ""}
+      <div class="ent-dir"><b>${esc(linea1)}</b>${e.indicaciones ? `<span>${esc(e.indicaciones)}</span>` : ""}<span>${esc(zona)}${e.provincia ? `, ${esc(e.provincia)}` : ""}</span>${e.entre ? `<span class="mut">Entre ${esc(e.entre)}</span>` : ""}${e.recibe || e.telefono ? `<span class="ent-cto">${e.recibe ? `Recibe ${esc(e.recibe)}` : ""}${e.recibe && e.telefono ? " · " : ""}${e.telefono ? `<a href="tel:${esc(e.telefono.replace(/[^\d+]/g, ""))}">${esc(e.telefono)}</a>` : ""}</span>` : ""}</div>
       ${e.tipo ? `<div class="dv"><span>Tipo de domicilio</span><span>${e.tipo === "business" ? "Comercio" : "Casa"}</span></div>` : ""}
       ${e.distinto_fiscal ? `<p class="ent-aviso">Es distinto del domicilio fiscal del comprador. El fiscal está en la solapa Factura.</p>` : ""}
       <div class="ent-acc"><a class="btn lin chico" href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a><button type="button" class="btn lin chico" data-cp-dir="${esc(completa)}">Copiar domicilio</button></div></div>`;
