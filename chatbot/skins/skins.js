@@ -4,10 +4,10 @@
 // no cambia cómo funciona nada. Para agregar otra: sumarla en SKINS y crear su archivo .css.
 (function () {
   const BASE = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "");
-  const VER = "2"; // subir al cambiar los .css para que los teléfonos no usen la copia vieja
+  const VER = "3"; // subir al cambiar los .css para que los teléfonos no usen la copia vieja
   const SKINS = {
     clasica: { nombre: "Clásica", desc: "El diseño de siempre de Mostrador", muestra: ["#F2F5F7", "#16202A", "#0D7A64"] },
-    wa: { nombre: "Estilo WhatsApp", desc: "Listas, colores y barra de abajo como en WhatsApp", css: "whatsapp.css", muestra: ["#FFFFFF", "#111B21", "#25D366"] },
+    wa: { nombre: "Estilo WhatsApp", desc: "Listas, colores y barra de abajo como en WhatsApp", css: "whatsapp.css", muestra: ["#FFFFFF", "#111B21", "#1DAB61"] },
   };
   const CLAVE = "mostrador_skin";
   const leer = () => { try { const v = localStorage.getItem(CLAVE); return SKINS[v] ? v : "clasica"; } catch { return "clasica"; } };
