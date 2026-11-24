@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611240040";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611240104";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4362,7 +4362,7 @@ async function ventaPorFoto(emp, file) {
   espera.remove();
   ventaEncontrada(emp, r, r?.por_nombre ?? r?.leido?.numeros?.[0] ?? "");
 }
-// El panel de datos de la venta (#mVen): en el celular se muestra dentro de la solapa "Envío" del chat.
+// El panel de datos de la venta (#mVen): en el celular se muestra dentro de la solapa "Historial" del chat.
 // Antes de volver a dibujar el chat se lo devuelve a su lugar (si no, se borraría junto con el chat); si falta, se crea.
 function rescatarVen() {
   const caja = $(".msj"); if (!caja) return;
@@ -4376,7 +4376,7 @@ async function abrirConv(id) {
   const caja = $(".msj"); if (!caja) return;
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
   document.querySelectorAll("#mHilos .hilo").forEach((h) => h.classList.toggle("on", Number(h.dataset.c) === id));
-  rescatarVen(); // en el celular los datos de la venta viven dentro del chat (solapa Envío): se sacan antes de borrarlo
+  rescatarVen(); // en el celular los datos de la venta viven dentro del chat (solapa Historial): se sacan antes de borrarlo
   $("#mChat").innerHTML = `<p class="mut" style="padding:22px">Cargando la conversación…</p>`; $("#mVen").innerHTML = "";
   let d = null, err = null; const t0 = Date.now();
   try { d = await api("mensajes_conversacion", { id }); } catch (e) { err = e; }
@@ -4666,7 +4666,7 @@ function conX(html, convId) {
 
 function pintarChat(d) {
   const c = d.conversacion, movil = anchoMovil();
-  // En el celular el panel de la venta vive dentro de la solapa "Envío": antes de redibujar el chat vuelve a su lugar
+  // En el celular el panel de la venta vive dentro de la solapa "Historial": antes de redibujar el chat vuelve a su lugar
   rescatarVen();
   let estado;
   if (c.conv_estado === "active") estado = "";
@@ -4693,7 +4693,7 @@ function pintarChat(d) {
       <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
       <button type="button" role="tab" data-ct="factura">Factura${c.facturada === false && c.estado_orden !== "cancelled" ? ` <span class="chip c-esp">Falta</span>` : ""}</button>
       ${c.envio_id ? `<button type="button" role="tab" data-ct="entrega">Entrega</button>` : ""}
-      <button type="button" role="tab" data-ct="venta" class="solo-movil">Envío</button></div>
+      <button type="button" role="tab" data-ct="venta" class="solo-movil">Historial</button></div>
     <div class="c-pane" id="cpChat">
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
