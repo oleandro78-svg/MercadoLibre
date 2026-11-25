@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611242102";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611250519";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -5627,7 +5627,13 @@ function pintarVenta(d) {
       ${env.seguimiento ? `<p class="peq mut" style="margin:4px 0 0">Seguimiento: ${esc(env.seguimiento)}</p>` : ""}` : c.estado_orden === "cancelled" ? `<p class="peq mut">Sin envío de MercadoLibre.</p>` : `<div id="mProp"><p class="peq mut" style="margin:0">Entrega acordada con el comprador.</p></div>`}
     ${c.mediacion ? `<h3>${esc(c.mediacion.tipo)} abierta</h3><p class="peq" style="margin:0 0 4px;color:var(--ladrillo)">${c.mediacion.etapa ? `${esc(c.mediacion.etapa[0].toUpperCase() + c.mediacion.etapa.slice(1))}. ` : ""}${c.mediacion.tenes_que_responder && c.mediacion.vence ? `Respondé antes del ${esc(venceTxt(c.mediacion.vence))}.` : "Se gestiona desde MercadoLibre."}</p><p class="peq" style="margin:0"><button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>`
       : c.reclamo_ids?.length ? `<h3>Reclamo</h3><p class="peq" style="margin:0">Tuvo un reclamo que ya está cerrado. <button class="urg-marcar" style="padding:0" type="button" data-ver-rec>Ver el reclamo</button></p>` : ""}
-    ${d.preguntas?.length ? `<h3>Preguntó antes de comprar</h3>${d.preguntas.map((p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`).join("")}` : ""}
+    ${(() => {
+      // Las preguntas se separan según la fecha de la venta: no es lo mismo preguntar antes de comprar que después
+      const fv = new Date(c?.fecha_venta ?? 0).getTime(), l = d.preguntas ?? [];
+      const ver = (p) => `<div class="peq" style="margin-bottom:10px"><b>${esc(p.texto_pregunta)}</b> <span class="mut">· ${esc(fechaHora(p.fecha_pregunta))}</span>${p.respuesta_enviada ? `<div class="mut">${esc(p.respuesta_enviada)}</div>` : ""}</div>`;
+      const desp = l.filter((p) => fv && new Date(p.fecha_pregunta).getTime() > fv), ant = l.filter((p) => !desp.includes(p));
+      return (desp.length ? `<h3>Preguntó después de comprar</h3>${desp.map(ver).join("")}` : "") + (ant.length ? `<h3>Preguntó antes de comprar</h3>${ant.map(ver).join("")}` : "");
+    })()}
     ${d.material?.length ? `<h3>Documentación de la publicación</h3>${d.material.map((m) => `<div class="peq" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${m.tipo === "enlace" ? ICONO_M.link : ICONO_M.clip}<span>${esc(m.titulo)}</span></div>`).join("")}` : ""}`;
   $("#mVen").querySelectorAll("[data-ver-rec]").forEach((b) => b.onclick = () => { pestConv("reclamo"); if (anchoMovil()) $("#mChat").scrollIntoView({ block: "start" }); });
   if (c.mediacion || c.reclamo_ids?.length) historiaVenta(c);
