@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251916";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251933";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -3847,7 +3847,7 @@ VISTAS.no_incluido = () => {
 
 // ================= MENSAJES (posventa) =================
 const LIM_MSJ = 350;
-const LOGISTICA = { fulfillment: "Full", self_service: "Flex", turbo: "Turbo", cross_docking: "Colecta", drop_off: "Correo", xd_drop_off: "Places", default: "Acordar con el comprador", custom: "Envío propio", not_specified: "Sin envío", retiro: "Retiro en el local" };
+const LOGISTICA = { fulfillment: "Full", self_service: "Flex", turbo: "Turbo", cross_docking: "Colecta", drop_off: "Correo", xd_drop_off: "Agencia", default: "Acordar con el comprador", custom: "Envío propio", not_specified: "Sin envío", retiro: "Retiro en el local" };
 // Tipo de envío como lo marca MercadoLibre: Full va en verde, en mayúsculas cursivas y con el rayo
 const RAYO = `<svg viewBox="0 0 12 16" width="9" height="12" aria-hidden="true"><path d="M7.5 0 0 9h4.5L3.5 16 12 6.5H7.2z" fill="currentColor"/></svg>`;
 function tipoEnvio(c) {
@@ -3913,8 +3913,20 @@ function estadoVenta(c) {
   if (c.estado_orden === "cancelled") return "Cancelada";
   if (recibida(c)) return `Recibida el ${diaMes(recibida(c))}`;
   if (c.entregada || c.envio_estado === "delivered") return "Entregada";
-  if (c.envio_estado) return `${ENVIO_E[c.envio_estado] ?? "Sin entregar"}${envioDemorado(c) ? " · demorado" : ""}`;
+  if (c.envio_estado) return `${estadoEnvioML(c)}${envioDemorado(c) ? " · demorado" : ""}`;
   return c.envio_id ? "Sin entregar" : "Sin envío de MercadoLibre";
+}
+// Estado del envío con los mismos nombres que usa MercadoLibre en su listado de ventas
+function estadoEnvioML(c) {
+  const e = c.envio_estado, sub = c.envio_subestado;
+  if (e === "ready_to_ship" || e === "handling" || e === "pending") {
+    if (c.envio_logistica === "fulfillment") return "Procesando en la bodega de Full";
+    if (["in_packing_list", "in_hub", "picked_up", "dropped_off", "in_transit"].includes(sub)) return "En camino";
+    if (sub === "ready_to_print") return "Etiqueta lista para imprimir";
+    if (sub === "printed") return "Listo para despachar";
+    if (sub === "buffered" || e === "pending") return "Etiqueta en procesamiento";
+  }
+  return ENVIO_E[e] ?? "Sin entregar";
 }
 // Envío que no llegó en la fecha prometida (MercadoLibre lo muestra como demorado y afecta la reputación)
 function envioDemorado(c) {
@@ -5144,7 +5156,7 @@ async function panelNotas(caja, origen, ref, alContar) {
   };
 }
 const QUIEN_REC = { comprador: "Comprador", vendedor: "Vos", mercadolibre: "MercadoLibre" };
-const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/\n/g, "<br>");
 // Se pide una sola vez por venta abierta: lo usan la pestaña Reclamo y la línea de tiempo
 function datosReclamo(id) {
   S.recDatos = S.recDatos ?? {};
@@ -5153,7 +5165,8 @@ function datosReclamo(id) {
 async function cargarReclamo(id) {
   const caja = $("#cRec"); caja.dataset.listo = "1";
   const r = await datosReclamo(id).catch((e) => ({ error: e.message }));
-  if ((S.msjId !== id && S.pvRec !== id) || !$("#cRec")) return;
+  // Si mientras tanto se abrió otro reclamo, esta respuesta ya no va (nunca mostrar acciones de otro reclamo)
+  if ((S.msjId !== id && S.pvRec !== id) || !caja.isConnected || caja !== $("#cRec")) return;
   if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el reclamo: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cRecOtra">Probar de nuevo</button>`; $("#cRecOtra").onclick = () => cargarReclamo(id); return; }
   const lista = r.reclamos ?? [];
   const abierto = lista.some((x) => x.abierto);
@@ -5174,7 +5187,7 @@ async function cargarReclamo(id) {
 // Acciones sobre el reclamo abierto: solo las que MercadoLibre habilita ahora; cada una se confirma antes
 const REC_ACC = [
   ["mensaje", ["send_message_to_complainant"], "Responder al comprador", "osc"],
-  ["mensaje_mediador", ["send_message_to_mediator"], "Escribirle a MercadoLibre", "osc"],
+  ["mensaje_mediador", ["send_message_to_mediator"], "Escribirle a Mercado Libre", "osc"],
   ["devolucion", ["allow_return", "allow_return_label"], "Aceptar la devolución del producto", "lin"],
   ["reembolso", ["refund"], "Reembolsar dinero", "lin"],
   ["mediacion", ["open_dispute"], "Contactar a Mercado Libre", "lin"],
@@ -5184,13 +5197,13 @@ function accionesReclamo(pie) {
   const ob = (pie.acciones ?? []).filter((a) => a.obligatoria && a.vence).sort((a, b) => String(a.vence).localeCompare(String(b.vence)))[0];
   const bts = REC_ACC.filter(([, ks]) => ks.some((k) => hab.has(k)));
   return `<div class="rec-pie rc-accs">
-    ${pie.dev_en_curso ? `<div class="rc-full">${pie.dev_en_curso === "full"
-      ? `<b>No tenés que hacer nada</b><span>${pie.dev_llego ? "El producto ya está en el depósito de Full. MercadoLibre lo revisa y te avisa el resultado." : "El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado."}</span>`
+    ${pie.dev_en_curso && pie.etapa_ml === "claim" ? `<div class="rc-full">${pie.dev_en_curso === "full"
+      ? `<b>No tenés que hacer nada</b><span>${esc(pie.descripcion || "El producto vuelve al depósito de Full y MercadoLibre te avisa el resultado de la revisión.")}</span>`
       : pie.dev_llego ? `<b>Revisá la devolución</b><span>El producto ya te llegó. Revisalo en Devoluciones e indicá cómo llegó.</span>`
-      : `<b>Ofreciste la devolución${pie.dev_creada ? ` el ${esc(new Date(pie.dev_creada).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }))}` : ""}</b><span>${pie.dev_despachada ? "El comprador ya la despachó. Cuando te llegue, revisala en Devoluciones." : "Cuando el comprador la despache, MercadoLibre le reintegra el dinero y el envío es gratis para vos."}</span>`}</div>` : ""}
+      : `<b>Resolviste el reclamo ofreciendo la devolución${pie.dev_creada ? ` el ${esc(new Date(pie.dev_creada).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }))}` : ""}</b><span>${pie.dev_despachada ? "El comprador ya la despachó. Cuando te llegue, revisala en Devoluciones." : "Cuando el comprador realice el despacho, le reintegraremos el dinero y el envío será gratis para vos."}</span>`}</div>` : ""}
     ${ob ? `<div class="rc-plazo"><span>Tenés que responder antes de</span><b>${esc(cuandoPlazo(ob.vence))}</b></div>` : ""}
     ${bts.length ? bts.map(([k, , t, c]) => `<button type="button" class="btn ${c}" data-racc="${k}">${t}</button>`).join("") + `<p class="et-nota">Antes de cada acción te mostramos qué va a pasar y te pedimos confirmación. Queda registrado quién lo hizo.</p>`
-      : pie.dev_en_curso === "full" ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
+      : pie.dev_en_curso === "full" && pie.etapa_ml === "claim" ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
 }
 function enlazarAccionesReclamo(id, pie) {
   const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
@@ -5260,13 +5273,13 @@ function fichaReclamo(x) {
     return `${sep}<div class="b ${clase}"><span class="quien">${esc(quien)}</span>${m.texto ? negritas(m.texto) : ""}${adj}${m.moderado ? `<div class="mod-x">${m.moderado === "rejected" ? "MercadoLibre no lo entregó" : "En revisión de MercadoLibre"}</div>` : ""}<small>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</small></div>`;
   }).join("");
   return `<div class="rec-ficha">
-      <div class="rec-cab"><h4>${esc(x.tipo)} n.º ${esc(x.id)}</h4><span class="chip ${x.abierto ? "c-urg" : "c-blo"}">${x.abierto ? "Abierto" : "Cerrado"}</span></div>
+      <div class="rec-cab"><h4>${esc(x.tipo)} n.º ${esc(x.id)}</h4><span class="chip ${x.abierto && !x.recontacto ? "c-urg" : "c-blo"}">${x.recontacto ? "Cerrado · lo revisa MercadoLibre" : x.abierto ? "Abierto" : "Cerrado"}</span></div>
       ${x.titulo ? `<p><b>${esc(x.titulo)}</b></p>` : ""}${x.descripcion ? `<p class="peq">${negritas(x.descripcion)}</p>` : ""}
       ${urgente ? `<p class="peq" style="color:var(--ladrillo);font-weight:600">Tenés que responder${urgente.vence ? ` antes del ${esc(f(urgente.vence))}` : ""}.</p>` : ""}
       ${fila("Motivo del comprador", esc(x.motivo ?? ""))}
       ${fila("Etapa", x.abierto ? esc(x.etapa ?? "") : "")}
-      ${fila("Abierto", esc(f(x.abierto_at)))}
-      ${res ? fila("Cerrado", esc(f(res.fecha))) : ""}
+      ${fila("Se abrió", esc(f(x.abierto_at)))}
+      ${res ? fila("Se cerró", esc(f(res.fecha))) : ""}
       ${res?.texto ? fila("Resolución", esc(res.texto)) : ""}
       ${favor ? fila("A favor de", esc(favor)) : ""}
       ${res?.cobertura ? fila("Costo", "Lo cubrió MercadoLibre") : ""}
@@ -5274,7 +5287,7 @@ function fichaReclamo(x) {
       ${dev?.estado ? fila("Devolución", esc(dev.estado)) : ""}
       ${dev?.envio_id ? fila("Envío de vuelta", `${esc(dev.envio_id)}${dev.envio_estado ? ` · ${esc(dev.envio_estado)}` : ""}`) : ""}
       ${dev?.revision_id && modsActuales().has("devoluciones") ? `<p class="peq"><button class="urg-marcar" style="padding:0" type="button" data-rdev="${esc(dev.revision_id)}">Ver la revisión de la devolución</button></p>` : ""}
-      <p class="peq"><a href="${esc(x.url)}" target="_blank" rel="noopener">Ver la venta en MercadoLibre</a></p>
+      <p class="peq"><a href="${esc(x.url)}" target="_blank" rel="noopener">Ver la venta en MercadoLibre</a>${x.url_reclamo ? ` · <a href="${esc(x.url_reclamo)}" target="_blank" rel="noopener">Ver el reclamo en MercadoLibre</a>` : ""}</p>
     </div>
     ${msjs ? `<div class="rec-msjs">${msjs}</div>` : `<p class="mut peq">No hay mensajes en este reclamo.</p>`}`;
 }
@@ -7162,6 +7175,7 @@ async function detalleDevolucion0(id) {
       <div class="peq">${esc(d.comprador ?? "Comprador")} · venta #${esc(d.extra?.pack_id ?? d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
+      ${d.ml_detalle?.titulo ? `<div class="peq" style="margin-top:4px"><b>MercadoLibre:</b> ${esc(d.ml_detalle.titulo)}${d.ml_detalle.descripcion ? `. ${esc(d.ml_detalle.descripcion)}` : ""}</div>` : ""}
       ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
       ${d.sucursal ? `<div class="peq" style="margin-top:4px"><b>Sucursal:</b> ${esc([d.sucursal.nombre, d.sucursal.direccion, d.sucursal.horario].filter(Boolean).join(" · "))}</div>` : ""}</div></div>`;
   const deposito = EX(d).triage?.destino === "seller" && EX(d).triage?.condicion === "unsaleable", soloRegistrar = deposito && !d.se_puede_revisar;
@@ -7193,6 +7207,16 @@ async function detalleDevolucion0(id) {
       ${rv?.fotos?.length ? `<div class="fotos-g">${rv.fotos.map((f) => `<a class="foto-c" href="${esc(f.url ?? "")}" target="_blank" rel="noopener"><img src="${esc(f.url ?? "")}" alt=""><span>${esc(f.etiqueta ?? "Foto")}</span></a>`).join("")}</div><button type="button" class="btn lin chico" id="recBajar" style="margin-top:8px">Descargar las fotos (${rv.fotos.length})</button>` : ""}</div>`;
     $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
     if ($("#recBajar")) $("#recBajar").onclick = () => descargarFotos(rv.fotos, `devolucion-${id}`);
+    return;
+  }
+  // Todavía no llegó (o no va a llegar): MercadoLibre recién habilita la revisión cuando la recibís
+  const retiroPend = deposito && ["reservado", "en_deposito"].includes(EX(d).full_retiro?.estado);
+  if (!enviada && rv?.estado !== "para_aprobar" && (retiroPend || (!deposito && !d.llegada_at && !d.se_puede_revisar))) {
+    const noLlega = ["not_delivered", "cancelled", "expired"].includes(d.estado) || (!d.abierto && !["shipped", "label_generated", "pending"].includes(d.estado));
+    $("#main").innerHTML = `${cab}<div class="panel"><h2 style="margin:0 0 8px">${noLlega ? "Esta devolución no llegó" : retiroPend ? "Todavía no salió del depósito de Full" : "Todavía no llegó"}</h2>
+      <p style="margin:0">${noLlega ? "No hay nada para revisar." : "Cuando te llegue la vas a poder revisar acá: MercadoLibre habilita la revisión recién cuando la recibís."}</p></div>
+      ${seguimientoCorreoHtml(d)}`;
+    $("#recVolver").onclick = () => { S.devId = null; ir("devoluciones"); };
     return;
   }
   if (enviada) {
@@ -8077,7 +8101,7 @@ function grupoDespacho(c) {
   const fin = new Date(); fin.setHours(23, 59, 59, 999);
   return new Date(c.despachar_hasta) <= fin ? "hoy" : "proximos";
 }
-const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta todavía no disponible", "c-blo"] };
+const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta en procesamiento: se imprime el día del despacho", "c-blo"] };
 
 // Los menús desplegables (orden, resumen, etc.) se cierran al tocar afuera
 document.addEventListener("click", (e) => { if (!e.target.closest(".mas-caja")) document.querySelectorAll(".mas-menu:not(.oculto)").forEach((m) => m.classList.add("oculto")); });
