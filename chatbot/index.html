@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251725";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251810";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8314,6 +8314,9 @@ VISTAS.correo = async () => {
     : !c.customer_id ? `<span class="chip c-cal">Falta el número de cliente</span>`
     : c.ultimo_error ? `<span class="chip c-error">Con error</span>` : c.validado_at ? `<span class="chip c-ok">Funcionando · probada ${esc(fechaCorta(c.validado_at))}</span>` : `<span class="chip c-cal">Cargada, sin probar</span>`;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Correo Argentino</h1><p>En las publicaciones con la entrega <b>a acordar con el vendedor</b>, cuando un comprador pregunta cuánto sale el envío y da su código postal, el bot lo cotiza con tu cuenta MiCorreo y le responde el precio y la demora. Si no da el código postal, se lo pide.</p></div></div>
+    <div class="panel"><div class="fila" style="align-items:center;gap:12px"><div style="flex:1"><b>Cotizar envíos con Correo Argentino</b><div class="peq mut">${c.activo ? "Activado: el bot cotiza el envío cuando le preguntan." : "Desactivado: el bot no cotiza; responde las preguntas de envío como siempre."}</div></div>
+      <button class="btn ${c.activo ? "lin" : "pri"}" type="button" id="caAct">${c.activo ? "Deshabilitar" : "Habilitar"}</button></div>
+      ${!c.activo || (c.tiene_credenciales && c.customer_id && c.cp_origen) ? "" : `<p class="peq" style="color:var(--ladrillo);margin:8px 0 0">Está habilitado, pero todavía no cotiza: faltan ${[!c.tiene_credenciales && "el usuario y la clave de la API", !c.customer_id && "el número de cliente", !c.cp_origen && "el código postal de origen"].filter(Boolean).join(", ")}.</p>`}</div>
     <div class="panel"><h3 style="margin-top:0">Tu cuenta MiCorreo ${estado}</h3>
       ${c.ultimo_error ? `<p class="peq" style="color:var(--ladrillo)">${esc(c.ultimo_error)}</p>` : ""}
       <form id="caF" class="imp-form">
@@ -8353,6 +8356,7 @@ VISTAS.correo = async () => {
     const r = await seguro(() => api("correo_guardar", body));
     if (r?.ok) { aviso("Guardado"); VISTAS.correo(); }
   };
+  $("#caAct").onclick = async () => { const r = await seguro(() => api("correo_guardar", { cliente_id: emp, activo: !c.activo })); if (r?.ok) { aviso(c.activo ? "Correo Argentino deshabilitado" : "Correo Argentino habilitado"); VISTAS.correo(); } };
   if ($("#caB")) $("#caB").onclick = async () => { if (!confirm("¿Quitar el usuario y la clave de la API? El bot deja de cotizar hasta que los vuelvas a cargar.")) return; const r = await seguro(() => api("correo_borrar", { cliente_id: emp })); if (r?.ok) VISTAS.correo(); };
   $("#caT").onsubmit = async (ev) => {
     ev.preventDefault();
