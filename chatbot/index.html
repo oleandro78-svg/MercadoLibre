@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251810";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251814";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -146,6 +146,10 @@ textarea{min-height:110px;resize:vertical;line-height:1.5}
 textarea.grande{min-height:440px;font-size:13.5px}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--pino)}
 input[type=range]{width:100%;accent-color:var(--pino)}
+.llave{position:relative;display:inline-flex;flex:none;width:52px;height:30px;cursor:pointer}.llave input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer}
+.llave i{position:absolute;inset:0;border-radius:99px;background:var(--piz);transition:background .18s}.llave i::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+.llave input:checked+i{background:var(--pino)}.llave input:checked+i::after{transform:translateX(22px)}.llave input:focus-visible+i{outline:2px solid var(--tinta);outline-offset:2px}.llave input:disabled+i{opacity:.5}
+@media (prefers-reduced-motion:reduce){.llave i,.llave i::after{transition:none}}
 .check{display:flex;gap:9px;align-items:flex-start;margin:10px 0;cursor:pointer}
 .check input{margin-top:3px;flex:none}
 .fila{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}.fila>*{flex:1;min-width:170px}.fila>.n{flex:0 0 auto;min-width:0}
@@ -8315,7 +8319,7 @@ VISTAS.correo = async () => {
     : c.ultimo_error ? `<span class="chip c-error">Con error</span>` : c.validado_at ? `<span class="chip c-ok">Funcionando · probada ${esc(fechaCorta(c.validado_at))}</span>` : `<span class="chip c-cal">Cargada, sin probar</span>`;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Correo Argentino</h1><p>En las publicaciones con la entrega <b>a acordar con el vendedor</b>, cuando un comprador pregunta cuánto sale el envío y da su código postal, el bot lo cotiza con tu cuenta MiCorreo y le responde el precio y la demora. Si no da el código postal, se lo pide.</p></div></div>
     <div class="panel"><div class="fila" style="align-items:center;gap:12px"><div style="flex:1"><b>Cotizar envíos con Correo Argentino</b><div class="peq mut">${c.activo ? "Activado: el bot cotiza el envío cuando le preguntan." : "Desactivado: el bot no cotiza; responde las preguntas de envío como siempre."}</div></div>
-      <button class="btn ${c.activo ? "lin" : "pri"}" type="button" id="caAct">${c.activo ? "Deshabilitar" : "Habilitar"}</button></div>
+      <label class="llave" title="${c.activo ? "Deshabilitar" : "Habilitar"}"><input type="checkbox" role="switch" id="caAct" aria-label="Cotizar envíos con Correo Argentino" ${c.activo ? "checked" : ""}><i></i></label></div>
       ${!c.activo || (c.tiene_credenciales && c.customer_id && c.cp_origen) ? "" : `<p class="peq" style="color:var(--ladrillo);margin:8px 0 0">Está habilitado, pero todavía no cotiza: faltan ${[!c.tiene_credenciales && "el usuario y la clave de la API", !c.customer_id && "el número de cliente", !c.cp_origen && "el código postal de origen"].filter(Boolean).join(", ")}.</p>`}</div>
     <div class="panel"><h3 style="margin-top:0">Tu cuenta MiCorreo ${estado}</h3>
       ${c.ultimo_error ? `<p class="peq" style="color:var(--ladrillo)">${esc(c.ultimo_error)}</p>` : ""}
@@ -8356,7 +8360,7 @@ VISTAS.correo = async () => {
     const r = await seguro(() => api("correo_guardar", body));
     if (r?.ok) { aviso("Guardado"); VISTAS.correo(); }
   };
-  $("#caAct").onclick = async () => { const r = await seguro(() => api("correo_guardar", { cliente_id: emp, activo: !c.activo })); if (r?.ok) { aviso(c.activo ? "Correo Argentino deshabilitado" : "Correo Argentino habilitado"); VISTAS.correo(); } };
+  $("#caAct").onchange = async (e) => { const sw = e.target, quiere = sw.checked; sw.disabled = true; const r = await seguro(() => api("correo_guardar", { cliente_id: emp, activo: quiere })); if (r?.ok) { aviso(quiere ? "Correo Argentino habilitado" : "Correo Argentino deshabilitado"); VISTAS.correo(); } else { sw.checked = !quiere; sw.disabled = false; } };
   if ($("#caB")) $("#caB").onclick = async () => { if (!confirm("¿Quitar el usuario y la clave de la API? El bot deja de cotizar hasta que los vuelvas a cargar.")) return; const r = await seguro(() => api("correo_borrar", { cliente_id: emp })); if (r?.ok) VISTAS.correo(); };
   $("#caT").onsubmit = async (ev) => {
     ev.preventDefault();
