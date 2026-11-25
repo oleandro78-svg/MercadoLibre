@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611250523";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251135";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1546,7 +1546,7 @@ const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["uso", "Plan y uso"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "posventa"], ["chat", "Chat"], ["calendario", "Calendario"],
@@ -8241,6 +8241,96 @@ VISTAS.listas = async () => {
       || `<div class="panel vacio">Tu negocio no tiene Ventas, Despacho ni Devoluciones.</div>`}`;
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
 };
+// Correo Argentino: lo habilita el dueño de la app (ajuste por cliente); el administrador del negocio lo configura
+const correoHab = () => S.rol !== "operador" && (S.res?.cuentas ?? []).some((c) => c.cotizar_correo_ar === true);
+VISTAS.correo = async () => {
+  const emp = empRec();
+  const d = await seguro(() => api("correo_ver", { cliente_id: emp }));
+  if (!d || S.tab !== "correo") return;
+  if (!d.habilitado) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Correo Argentino</h1><p>La cotización con Correo Argentino no está habilitada para tu negocio.</p></div></div>`; return; }
+  const c = d.cuenta ?? {}, ent = c.entregas ?? ["D", "S"];
+  const estado = !c.tiene_credenciales ? `<span class="chip c-error">Sin conectar</span>`
+    : !c.customer_id ? `<span class="chip c-cal">Falta el número de cliente</span>`
+    : c.ultimo_error ? `<span class="chip c-error">Con error</span>` : c.validado_at ? `<span class="chip c-ok">Funcionando · probada ${esc(fechaCorta(c.validado_at))}</span>` : `<span class="chip c-cal">Cargada, sin probar</span>`;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Correo Argentino</h1><p>En las publicaciones con la entrega <b>a acordar con el vendedor</b>, cuando un comprador pregunta cuánto sale el envío y da su código postal, el bot lo cotiza con tu cuenta MiCorreo y le responde el precio y la demora. Si no da el código postal, se lo pide.</p></div></div>
+    <div class="panel"><h3 style="margin-top:0">Tu cuenta MiCorreo ${estado}</h3>
+      ${c.ultimo_error ? `<p class="peq" style="color:var(--ladrillo)">${esc(c.ultimo_error)}</p>` : ""}
+      <form id="caF" class="imp-form">
+        <p class="peq mut" style="margin:0">El usuario y la clave de la API los da Correo Argentino al pedir el acceso a la API de MiCorreo. Se guardan cifrados y no se vuelven a mostrar${c.tiene_credenciales ? ": escribilos solo si los querés cambiar" : ""}.</p>
+        <div><label class="et" for="caU">Usuario de la API</label><input id="caU" autocomplete="off" ${c.tiene_credenciales ? `placeholder="Ya cargado"` : ""}></div>
+        <div><label class="et" for="caK">Clave de la API</label><input id="caK" type="password" autocomplete="new-password" ${c.tiene_credenciales ? `placeholder="Ya cargada"` : ""}></div>
+        <div><label class="et" for="caA">Ambiente</label><select id="caA"><option value="prod" ${c.ambiente !== "test" ? "selected" : ""}>Real</option><option value="test" ${c.ambiente === "test" ? "selected" : ""}>Pruebas de Correo Argentino</option></select></div>
+        <div><label class="et" for="caC">Número de cliente MiCorreo</label><input id="caC" value="${esc(c.customer_id ?? "")}" placeholder="Si no lo sabés, completá el correo y la clave de abajo"></div>
+        <details ${c.customer_id ? "" : "open"}><summary class="peq">Obtener el número de cliente con el correo y la clave de MiCorreo</summary>
+          <p class="peq mut">Se usan una sola vez para pedirle el número a Correo Argentino y no se guardan.</p>
+          <div><label class="et" for="caE">Correo de la cuenta MiCorreo</label><input id="caE" type="email" autocomplete="off"></div>
+          <div><label class="et" for="caP">Clave de la cuenta MiCorreo</label><input id="caP" type="password" autocomplete="new-password"></div>
+        </details>
+        <div><label class="et" for="caO">Código postal desde donde despachás</label><input id="caO" inputmode="numeric" maxlength="8" value="${esc(c.cp_origen ?? "")}" placeholder="Por ejemplo: 1090"></div>
+        <fieldset class="imp-opc"><legend>Qué opciones se le ofrecen al comprador</legend>
+          <label class="ck"><input type="checkbox" id="caD" ${ent.includes("D") ? "checked" : ""}><span>Envío a domicilio</span></label>
+          <label class="ck"><input type="checkbox" id="caS" ${ent.includes("S") ? "checked" : ""}><span>Retiro en sucursal de Correo Argentino</span></label>
+        </fieldset>
+        <div class="imp-bt"><button class="btn pri" type="submit">Guardar</button>${c.tiene_credenciales ? `<button class="btn lin" type="button" id="caB">Quitar las credenciales</button>` : ""}</div>
+      </form>
+    </div>
+    <div class="panel"><h3 style="margin-top:0">Probar una cotización</h3>
+      <form id="caT" class="imp-form"><div><label class="et" for="caTcp">Código postal de destino</label><input id="caTcp" inputmode="numeric" maxlength="8" placeholder="Por ejemplo: 5000"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="et">Peso (g)<input id="caTp" inputmode="numeric" value="1000" style="width:90px"></label><label class="et">Alto (cm)<input id="caTa" inputmode="numeric" value="10" style="width:70px"></label><label class="et">Ancho (cm)<input id="caTn" inputmode="numeric" value="20" style="width:70px"></label><label class="et">Largo (cm)<input id="caTl" inputmode="numeric" value="30" style="width:70px"></label></div>
+        <div class="imp-bt"><button class="btn lin" type="submit">Cotizar</button></div></form>
+      <div id="caTr"></div>
+    </div>
+    <div class="panel"><h3 style="margin-top:0">Publicaciones que se cotizan</h3><div id="caPub"><p class="mut">Buscando tus publicaciones con entrega a acordar…</p></div></div>`;
+  const val = (id) => $(id).value.trim();
+  $("#caF").onsubmit = async (ev) => {
+    ev.preventDefault();
+    const e = [...($("#caD").checked ? ["D"] : []), ...($("#caS").checked ? ["S"] : [])];
+    if (!e.length) return aviso("Elegí al menos una opción: domicilio o sucursal");
+    const body = { cliente_id: emp, ambiente: $("#caA").value, cp_origen: val("#caO"), entregas: e };
+    if (val("#caU") || $("#caK").value) { if (!val("#caU") || !$("#caK").value) return aviso("Completá el usuario y la clave de la API"); body.api_usuario = val("#caU"); body.api_clave = $("#caK").value; }
+    if (val("#caC")) body.customer_id = val("#caC"); else if (val("#caE") && $("#caP").value) { body.micorreo_email = val("#caE"); body.micorreo_clave = $("#caP").value; }
+    const r = await seguro(() => api("correo_guardar", body));
+    if (r?.ok) { aviso("Guardado"); VISTAS.correo(); }
+  };
+  if ($("#caB")) $("#caB").onclick = async () => { if (!confirm("¿Quitar el usuario y la clave de la API? El bot deja de cotizar hasta que los vuelvas a cargar.")) return; const r = await seguro(() => api("correo_borrar", { cliente_id: emp })); if (r?.ok) VISTAS.correo(); };
+  $("#caT").onsubmit = async (ev) => {
+    ev.preventDefault();
+    $("#caTr").innerHTML = `<p class="mut">Cotizando…</p>`;
+    const r = await seguro(() => api("correo_probar", { cliente_id: emp, cp: val("#caTcp"), peso_g: val("#caTp"), alto: val("#caTa"), ancho: val("#caTn"), largo: val("#caTl") }));
+    if (!r) { $("#caTr").innerHTML = ""; return; }
+    const pl = (t) => t.min != null && t.max != null ? (t.min === t.max ? ` · ${t.min} días hábiles` : ` · ${t.min} a ${t.max} días hábiles`) : "";
+    $("#caTr").innerHTML = r.tarifas?.length ? `<ul class="peq">${r.tarifas.map((t) => `<li>${t.tipo === "S" ? "Sucursal" : "Domicilio"}${t.nombre ? ` (${esc(t.nombre)})` : ""}: <b>$${Number(t.precio).toLocaleString("es-AR")}</b>${pl(t)}</li>`).join("")}</ul>` : `<p class="mut">Correo Argentino no devolvió opciones para ese código postal.</p>`;
+  };
+  // Publicaciones con entrega a acordar: cuáles se cotizan y con qué medidas
+  const p = await seguro(() => api("correo_ver", { cliente_id: emp, con_publicaciones: true }));
+  if (!p || S.tab !== "correo") return;
+  const pubs = p.publicaciones ?? [], excl = new Set(c.excluidas ?? []);
+  if (!pubs.length) { $("#caPub").innerHTML = `<p class="mut">No tenés publicaciones activas con la entrega a acordar con el vendedor. Solo esas se cotizan con Correo Argentino.</p>`; return; }
+  $("#caPub").innerHTML = `<p class="peq mut" style="margin-top:0">Solo aparecen las publicaciones activas con la entrega a acordar con el vendedor. El peso y las medidas del paquete salen de la publicación; si faltan o no son las del paquete, cargalas.</p>
+    ${pubs.map((x) => `<div class="imp-it ca-pub" data-id="${esc(x.id)}" style="align-items:flex-start"><label class="ck" style="flex:1"><input type="checkbox" data-inc ${excl.has(x.id) ? "" : "checked"}><span><b>${esc(x.titulo)}</b><span class="peq mut" style="display:block">${esc(x.id)}${x.cuenta ? ` · ${esc(x.cuenta)}` : ""}</span>
+      ${x.paquete ? `<span class="peq" style="display:block">Paquete: ${x.paquete.peso_g} g · ${x.paquete.alto} × ${x.paquete.ancho} × ${x.paquete.largo} cm${x.medidas_propias ? " (cargadas acá)" : " (de la publicación)"}</span>` : `<span class="peq" style="display:block;color:var(--ladrillo)">Faltan el peso y las medidas del paquete: sin eso no se puede cotizar</span>`}</span></label>
+      <button class="btn lin chico" type="button" data-med>${x.paquete ? "Cambiar medidas" : "Cargar medidas"}</button></div>`).join("")}
+    <div class="imp-bt"><button class="btn pri" type="button" id="caPubG">Guardar publicaciones</button></div>`;
+  $("#caPub").onclick = async (ev) => {
+    const bm = ev.target.closest("[data-med]");
+    if (bm) {
+      const id = bm.closest(".ca-pub").dataset.id, x = pubs.find((q) => q.id === id), q = x.paquete ?? {};
+      const h = abrirHoja(`<div class="cajon-cab"><h2>Peso y medidas del paquete</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+        <p class="peq mut">${esc(x.titulo)}</p>
+        <form id="caMf" class="imp-form"><div style="display:flex;gap:8px;flex-wrap:wrap"><label class="et">Peso (g)<input id="caMp" inputmode="numeric" value="${q.peso_g ?? ""}" style="width:90px"></label><label class="et">Alto (cm)<input id="caMa" inputmode="numeric" value="${q.alto ?? ""}" style="width:70px"></label><label class="et">Ancho (cm)<input id="caMn" inputmode="numeric" value="${q.ancho ?? ""}" style="width:70px"></label><label class="et">Largo (cm)<input id="caMl" inputmode="numeric" value="${q.largo ?? ""}" style="width:70px"></label></div>
+        <div class="imp-bt"><button class="btn pri" type="submit">Guardar</button>${x.medidas_propias ? `<button class="btn lin" type="button" id="caMq">Usar las de la publicación</button>` : ""}</div></form>`);
+      const g = async (v) => { const r = await seguro(() => api("correo_guardar", { cliente_id: emp, medidas: { [id]: v } })); if (r?.ok) { h.remove(); VISTAS.correo(); } };
+      h.querySelector("#caMf").onsubmit = (e2) => { e2.preventDefault(); g({ peso_g: h.querySelector("#caMp").value, alto: h.querySelector("#caMa").value, ancho: h.querySelector("#caMn").value, largo: h.querySelector("#caMl").value }); };
+      if (h.querySelector("#caMq")) h.querySelector("#caMq").onclick = () => g(null);
+      return;
+    }
+    if (ev.target.id === "caPubG") {
+      const excluidas = [...$("#caPub").querySelectorAll(".ca-pub")].filter((el) => !el.querySelector("[data-inc]").checked).map((el) => el.dataset.id);
+      const r = await seguro(() => api("correo_guardar", { cliente_id: emp, excluidas }));
+      if (r?.ok) aviso("Guardado");
+    }
+  };
+};
 VISTAS.impresoras = async () => {
   const emp = empRec();
   if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Impresoras</h1><p>Elegí un cliente.</p></div></div>`; return; }
@@ -8370,7 +8460,7 @@ function vistasPermitidas() {
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
   else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
   l.push("misnotif");
-  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras", "circuito"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t))));
+  return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras", "circuito"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t)) && (t !== "correo" || correoHab())));
 }
 // Notificación tocada con la app ya abierta: llega la dirección completa; se usa solo lo que va después de "#"
 navigator.serviceWorker?.addEventListener("message", (e) => {
