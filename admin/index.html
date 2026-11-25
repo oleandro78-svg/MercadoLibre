@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251948";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251952";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6780,11 +6780,11 @@ function estadoDev0(d) {
     // Primero, lo que dicen las operaciones de stock de Full de esa misma devolución
     const rf = EX(d).full_retiro, cuando = rf?.fecha ? new Date(rf.fecha).toLocaleDateString("es-AR", { day: "numeric", month: "numeric" }) : "";
     if (rf?.estado === "salio") return { t: `Salió del depósito de Full hacia vos el ${cuando} (${mot}): registrá cómo llegó`, c: "c-urg", grupo: "revisar" };
-    if (rf?.estado === "reservado") return { t: `Retiro pedido el ${cuando}: sale del depósito de Full hacia vos (${mot})`, c: "c-cal", grupo: "camino" };
+    if (rf?.estado === "reservado") return { t: `Retiro pedido el ${cuando}: sale del depósito de Full hacia vos (${mot})`, c: "c-cal", grupo: "concretadas" };
     if (rf?.estado === "en_deposito") return { t: `Quedó en tu stock de Full como no apta (${mot}): solicitá el retiro en Control de stock de Full`, c: "c-urg", grupo: "necesita" };
-    if (fr?.ordenes?.[o] === "pedido") return { t: `Retiro pedido: sale del depósito de Full hacia vos (${mot})`, c: "c-cal", grupo: "camino" };
+    if (fr?.ordenes?.[o] === "pedido") return { t: `Retiro pedido: sale del depósito de Full hacia vos (${mot})`, c: "c-cal", grupo: "concretadas" };
     // Sin una salida registrada en el stock de Full no se da por enviada (la unidad puede no haber entrado nunca al stock)
-    return { t: `En revisión dentro del depósito de Full (${mot}): todavía no se puede retirar. Cuando figure como no apta en Control de stock de Full, pedí el retiro`, c: "c-cal", grupo: "camino" };
+    return { t: `En revisión dentro del depósito de Full (${mot}): todavía no se puede retirar. Cuando figure como no apta en Control de stock de Full, pedí el retiro`, c: "c-cal", grupo: "ml" };
   }
   if (d.correo_vencido_at && d.destino === "seller_address" && envEst !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(envEst) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
