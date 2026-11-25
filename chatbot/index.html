@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251135";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251447";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -767,7 +767,7 @@ input[type=file]{max-width:100%}
 .ch-msjs{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:6px}
 .ch-msjs{background:var(--wa-fondo)}
 .ch-b{max-width:72%;align-self:flex-start;background:var(--wa-entra);color:var(--wa-txt);border-radius:8px;border-top-left-radius:0;padding:6px 9px 5px;box-shadow:var(--wa-sombra);font-size:14.5px;line-height:1.45;display:grid;gap:4px;overflow-wrap:anywhere}
-.ch-b.mio{align-self:flex-end;background:var(--wa-sale);border-top-left-radius:8px;border-top-right-radius:0}.ch-b .ch-pie{color:var(--wa-meta)}.ch-b.mio .ch-pie{color:var(--wa-meta-sale)}
+.ch-imgs{display:flex;gap:8px;flex-wrap:wrap}.ch-imgs:empty{display:none}.ch-img-p{position:relative;display:inline-block}.ch-img-p img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}.ch-img-p button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#000a;color:#fff;font-size:15px;line-height:1;cursor:pointer}.ch-fotos{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px}.ch-fotos img{max-width:240px;max-height:260px;width:100%;object-fit:cover;border-radius:6px;display:block}.ch-b.mio{align-self:flex-end;background:var(--wa-sale);border-top-left-radius:8px;border-top-right-radius:0}.ch-b .ch-pie{color:var(--wa-meta)}.ch-b.mio .ch-pie{color:var(--wa-meta-sale)}
 .ch-autor{font-size:12.5px;font-weight:700;color:var(--cielo)}
 .ch-tx a{color:var(--cielo);text-decoration:underline;word-break:break-all}
 .ch-pie{display:flex;gap:8px;justify-content:flex-end;align-items:center;font-size:11.5px;color:var(--piz)}
@@ -5313,6 +5313,17 @@ function redactarLibre(d) {
   $("#mOpc").onclick = () => abrirMenu($("#mOpc"), [
     ["arch", ICO_SUBIR_WA, "Subir archivo del dispositivo"], ["reg", ICONO.escudo, "Revisar reglas"], ["mej", ICONO.varita, "Mejorar redacción"], ["otro", ICONO.varita, "Otro borrador"],
   ], (k) => { if (k === "arch") $("#mArch").click(); else if (k === "reg") $("#mReg").click(); else if (k === "mej") $("#mMej").click(); else if (k === "otro") $("#mOtro").click(); }, true);
+  $("#mTx").addEventListener("paste", async (e) => {
+    const fs = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file" && /^image\/(png|jpe?g)$/.test(i.type)).map((i) => i.getAsFile()).filter(Boolean);
+    if (!fs.length) { if ([...(e.clipboardData?.items ?? [])].some((i) => i.kind === "file" && /^image\//.test(i.type))) aviso("MercadoLibre acepta solo fotos JPG o PNG"); return; }
+    if (!e.clipboardData.getData("text/plain")) e.preventDefault();
+    for (const f of fs) {
+      if (f.size > 8 * 1048576) { aviso("La foto tiene que pesar menos de 8 MB"); continue; }
+      const ext = f.type === "image/png" ? "png" : "jpg";
+      sueltos.push({ nombre: /\.(png|jpe?g)$/i.test(f.name ?? "") && f.name !== "image.png" ? f.name : `foto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.${ext}`, mime: f.type, bytes: f.size, datos: await leerB64(f) });
+    }
+    pintarSueltos();
+  });
   $("#mArch").onchange = async () => {
     for (const f of $("#mArch").files) {
       if (!/\.(jpe?g|png|pdf|txt)$/i.test(f.name)) { aviso(`${f.name}: MercadoLibre acepta solo JPG, PNG, PDF o TXT`); continue; }
@@ -6261,11 +6272,11 @@ async function abrirChat(id) {
   S.chatId = id; S.chatCitas = false; clearTimeout(S.chatTimer);
   try { history.replaceState(null, "", location.pathname + location.search + "#chat/" + id); } catch {}
   marcarLista(`[data-chat="${id}"]`);
-  const st = { refs: [], resp: null, ultimo: 0, msjs: [] };
+  const st = { refs: [], resp: null, ultimo: 0, msjs: [], imgs: [] };
   S.chatSt = st;
   $("#chConv").innerHTML = `<div class="chat-cab">${anchoMovil() ? `<button class="btn lin chico m-atras" type="button" aria-label="Volver">${ICONO_M.atras}</button>` : ""}<div class="t"><b id="chNom">…</b><span class="mut peq" id="chMiem"></span></div><div class="n" id="chAcc"></div></div>
     <div class="ch-msjs" id="chMsjs"><p class="mut">Cargando…</p></div>
-    <div class="ch-comp"><div id="chResp"></div><div id="chRefs" class="ch-refs"></div><div id="chMen" class="ch-men" hidden></div>
+    <div class="ch-comp"><div id="chResp"></div><div id="chImgs" class="ch-imgs"></div><div id="chRefs" class="ch-refs"></div><div id="chMen" class="ch-men" hidden></div>
       <div class="ch-emo" id="chEmoP" hidden></div>
       <div class="wa-comp"><div class="wa-pill wa-pill-ch wa-pill-izq"><button type="button" class="wa-ic" id="chEmo" title="Emojis" aria-label="Emojis" aria-expanded="false">${ICO_EMOJI_WA}</button>
         <button type="button" class="wa-ic" id="chRef" title="Hacer referencia a una venta, pregunta, devolución o publicación" aria-label="Hacer referencia a una venta, pregunta, devolución o publicación">${ICO_REF_WA}</button>
@@ -6280,6 +6291,20 @@ async function abrirChat(id) {
     $("#chRefs").innerHTML = (r.fichas ?? []).map((f) => fichaHtml(f, true)).join("");
   };
   $("#chRefs").onclick = (e) => { const q = e.target.closest("[data-quitar-ficha]"); if (!q) return; e.stopPropagation(); const [o, r] = q.dataset.quitarFicha.split(":"); st.refs = st.refs.filter((x) => !(x.origen === o && x.ref === r)); pintarRefs(); };
+  // Fotos: se pegan desde el portapapeles (Ctrl+V o mantener apretado → Pegar) y quedan arriba del cuadro hasta enviar
+  const pintarImgs = () => { $("#chImgs").innerHTML = st.imgs.map((im, i) => `<span class="ch-img-p"><img src="${im.url}" alt="Foto para enviar"><button type="button" data-quitar-img="${i}" aria-label="Quitar la foto">×</button></span>`).join(""); };
+  $("#chImgs").onclick = (e) => { const q = e.target.closest("[data-quitar-img]"); if (!q) return; const [x] = st.imgs.splice(Number(q.dataset.quitarImg), 1); if (x) URL.revokeObjectURL(x.url); pintarImgs(); tx.focus(); };
+  tx.addEventListener("paste", async (e) => {
+    const fs = [...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file" && /^image\//.test(i.type)).map((i) => i.getAsFile()).filter(Boolean);
+    if (!fs.length) return;
+    if (!e.clipboardData.getData("text/plain")) e.preventDefault();
+    for (const f of fs) {
+      if (st.imgs.length >= 4) { aviso("Se pueden mandar hasta 4 fotos por mensaje"); break; }
+      if (f.size > 8 * 1048576) { aviso("La foto tiene que pesar menos de 8 MB"); continue; }
+      st.imgs.push({ datos: await leerB64(f), mime: f.type || "image/png", url: URL.createObjectURL(f) });
+    }
+    pintarImgs();
+  });
   $("#chRef").onclick = () => elegirFicha(empChat(), (f) => { if (!st.refs.some((x) => x.origen === f.origen && x.ref === f.ref)) st.refs.push(f); pintarRefs(); tx.focus(); });
   // "@" muestra la gente del chat para citarla; "#" abre el buscador de referencias
   tx.oninput = () => {
@@ -6299,10 +6324,11 @@ async function abrirChat(id) {
     tx.value = antes + tx.value.slice(pos); tx.focus(); tx.selectionStart = tx.selectionEnd = antes.length; $("#chMen").hidden = true;
   };
   const enviar = async () => {
-    const t = tx.value.trim(); if (!t && !st.refs.length) return;
+    const t = tx.value.trim(); if (!t && !st.refs.length && !st.imgs.length) return;
     if ($("#chEnv").disabled) return; // ya se está enviando: no sale dos veces
     $("#chEnv").disabled = true;
-    const p = { texto: t || "(ficha compartida)", hora: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }), datos: { texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null } };
+    const p = { texto: t || (st.imgs.length ? "" : "(ficha compartida)"), fotos: st.imgs.map((x) => x.url), hora: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }), datos: { texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null, imagenes: st.imgs.map((x) => ({ datos: x.datos, mime: x.mime })) } };
+    st.imgs = []; pintarImgs();
     st.pend = [...(st.pend ?? []), p];
     tx.value = ""; ajustar(); $("#chEmoP").hidden = true; st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs();
     await mandarPend(p);
@@ -6356,6 +6382,7 @@ async function abrirChat(id) {
     return `${sep}<div class="ch-b ${m.mio ? "mio" : ""}" id="cm-${m.id}">
       ${grupo && !m.mio && (!ant || ant.autor !== m.autor || ant.aviso) ? `<span class="ch-autor">${esc(m.autor)}</span>` : ""}
       ${m.respuesta ? `<button type="button" class="ch-cita-resp mini" data-ir-msj="${m.respuesta.id}"><b>${esc(m.respuesta.autor_nombre)}</b><br>${esc(String(m.respuesta.texto).slice(0, 100))}</button>` : ""}
+      ${m.imagenes?.length ? `<div class="ch-fotos">${m.imagenes.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Foto" loading="lazy"></a>`).join("")}</div>` : ""}
       ${m.texto ? `<div class="ch-tx ${soloEmojis(m.texto) ? "ch-emo-solo" : ""}">${textoChat(m.texto, nombres)}</div>` : ""}
       ${(m.fichas ?? []).map((f) => fichaHtml(f)).join("")}
       <span class="ch-pie"><button type="button" class="ch-acc" data-responder="${m.id}">Responder</button><button type="button" class="ch-acc" data-agendar="${m.id}">Agendar</button><span>${new Date(m.fecha).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>${tilde(m)}</span></div>`;
@@ -6364,7 +6391,7 @@ async function abrirChat(id) {
     const box = $("#chMsjs"); if (!box) return;
     const abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
     // Los que se están enviando van al final con un relojito, como en WhatsApp
-    const pend = (st.pend ?? []).map((x, i) => `<div class="ch-b mio ch-pend ${x.err ? "b-err" : ""}"><div class="ch-tx">${esc(x.texto).replace(/\n/g, "<br>")}</div><span class="ch-pie"><span>${esc(x.hora)}</span>${x.err ? "" : `<span class="tilde" role="img" aria-label="Enviando">${ICO_RELOJ_WA}</span>`}</span>${x.err ? `<button type="button" class="msj-err" data-pend-err="${i}" aria-label="No se envió: tocá para reintentar o eliminar">!</button>` : ""}</div>`).join("");
+    const pend = (st.pend ?? []).map((x, i) => `<div class="ch-b mio ch-pend ${x.err ? "b-err" : ""}">${x.fotos?.length ? `<div class="ch-fotos">${x.fotos.map((u) => `<img src="${u}" alt="Foto">`).join("")}</div>` : ""}${x.texto ? `<div class="ch-tx">${esc(x.texto).replace(/\n/g, "<br>")}</div>` : ""}<span class="ch-pie"><span>${esc(x.hora)}</span>${x.err ? "" : `<span class="tilde" role="img" aria-label="Enviando">${ICO_RELOJ_WA}</span>`}</span>${x.err ? `<button type="button" class="msj-err" data-pend-err="${i}" aria-label="No se envió: tocá para reintentar o eliminar">!</button>` : ""}</div>`).join("");
     box.innerHTML = (st.msjs.map((m, i) => burbuja(m, st.msjs[i - 1])).join("") + pend) || `<div class="m-vacio"><b>Todavía no hay mensajes</b><span>Escribí el primero.</span></div>`;
     if (todo || abajo) box.scrollTop = box.scrollHeight;
   };
