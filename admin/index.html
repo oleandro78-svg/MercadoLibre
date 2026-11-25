@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611252010";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611252139";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4600,7 +4600,7 @@ function rescatarVen() {
   const chat = $("#mChat"); if (chat && chat.contains(v)) caja.appendChild(v);
 }
 async function abrirConv(id) {
-  S.msjId = id; S.recDatos = {}; S.convAbiertaAt = Date.now();
+  S.msjId = id; S.convAbiertaAt = Date.now();
   try { history.replaceState(null, "", "#mensajes/" + id); } catch {}
   const caja = $(".msj"); if (!caja) return;
   caja.classList.add("ver-chat"); caja.classList.remove("ver-lista");
@@ -5163,6 +5163,8 @@ async function panelNotas(caja, origen, ref, alContar) {
 const QUIEN_REC = { comprador: "Comprador", vendedor: "Vos", mercadolibre: "MercadoLibre" };
 const negritas = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/\n/g, "<br>");
 // Se pide una sola vez por venta abierta: lo usan la pestaña Reclamo y la línea de tiempo
+// El reclamo se trae una vez y queda guardado: al salir y volver no se vuelve a pedir. Se actualiza cuando
+// MercadoLibre avisa que cambió (llega por el canal en vivo) o después de una acción hecha desde la app.
 function datosReclamo(id) {
   S.recDatos = S.recDatos ?? {};
   return S.recDatos[id] ??= api("venta_reclamos", { id }).catch((e) => { delete S.recDatos[id]; throw e; });
@@ -6129,6 +6131,12 @@ function rtEvento(ev, p) {
     }
   } else if (ev === "despacho") {
     if (S.tab === "despacho" && !document.querySelector("#dsResM:not(.oculto)") && !document.querySelector(".velo")) rtLuego("desp", () => VISTAS.despacho({ rapido: true }), 400);
+  } else if (ev === "reclamo") {
+    // MercadoLibre avisó un cambio en un reclamo: se olvida lo guardado y, si está abierto en pantalla, se actualiza
+    const convs = p.conv ? [Number(p.conv)] : Object.keys(S.recDatos ?? {}).map(Number);
+    for (const c of convs) if (S.recDatos) delete S.recDatos[c];
+    const abierto = $("#cRec")?.isConnected ? (S.tab === "devoluciones" ? S.pvRec : S.msjId) : null;
+    if (abierto && convs.includes(abierto)) rtLuego("rec", () => { if ($("#cRec")) { $("#cRec").dataset.listo = ""; cargarReclamo(abierto); } }, 400);
   } else if (ev === "devoluciones") {
     if (S.tab === "devoluciones" && !S.devId) rtLuego("dev", () => VISTAS.devoluciones(), 400);
   } else if (ev === "notas") {
@@ -6148,7 +6156,7 @@ function rtRevisar(ponerAlDia) {
   for (const [k, ch] of RT.canales) if (ch.state && ch.state !== "joined" && ch.state !== "joining") { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); caidos++; }
   try { if (sb.realtime && !sb.realtime.isConnected()) { sb.realtime.connect(); caidos++; } } catch {}
   if (caidos) { RT.ok = false; rtSincronizar(); }
-  if (ponerAlDia || caidos) rtPonerAlDia();
+  if (ponerAlDia || caidos) { S.recDatos = {}; rtPonerAlDia(); }
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.rol) rtRevisar(true); });
 // Le pide al servidor que se fije en MercadoLibre si hubo algo nuevo (como mucho una vez por minuto)
@@ -7099,7 +7107,6 @@ async function detalleReclamoPV(id) {
   const x = S.pvRecs?.[id] ?? {};
   S.pvRecConv = { id, pagado: x.pagado, total: x.total, moneda: x.moneda };
   try { history.replaceState(null, "", `#posventa/reclamo/${id}`); } catch {}
-  S.recDatos = {};
   window.scrollTo(0, 0);
   $("#main").innerHTML = `<div class="rc-det">
     <div class="rc-det-cab"><button class="btn lin chico" type="button" id="rcVolver">← Reclamos</button>
