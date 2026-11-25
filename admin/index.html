@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251933";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251948";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6742,7 +6742,18 @@ function seguimientoCorreoHtml(d) {
     <ol class="seg-correo">${d.correo_mov.map((e) => `<li><span class="seg-f">${esc(fechaHora(e.f))}</span><span class="seg-q"><b>${esc(oracion(e.estado || e.historia))}</b>${e.estado ? `<span class="mut"> · ${esc(oracion(e.historia))}</span>` : ""}<br><span class="mut">${esc(nombrePropio(e.planta))}</span></span></li>`).join("")}</ol></div>`;
 }
 // En qué grupo va cada devolución, según dónde está el paquete y si hay que hacer algo
+// Grupos como los de MercadoLibre en Posventa → Devoluciones: lo que hay que atender, En camino (todavía no llegó),
+// En revisión de MercadoLibre, Concretadas (llegó) y No concretadas (no llegó: cancelada, vencida, no entregada)
 function estadoDev(d) {
+  const e = estadoDev0(d);
+  if (e.grupo === "enviadas") return { ...e, grupo: "concretadas" };
+  if (e.grupo === "cerradas") {
+    const llego = d.llegada_at || d.envio_estado === "delivered" || d.estado === "delivered" || EX(d).triage;
+    return { ...e, grupo: llego ? "concretadas" : "noconc" };
+  }
+  return e;
+}
+function estadoDev0(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
   // El envío de la devolución puede seguir "listo para despachar" aunque el correo ya lo retiró: manda el estado de la devolución
   const envEst = d.envio_estado === "ready_to_ship" && (d.estado === "shipped" || ["picked_up", "in_hub", "in_transit", "out_for_delivery"].includes(d.envio_sub)) ? "shipped" : d.envio_estado;
@@ -6785,7 +6796,8 @@ function estadoDev(d) {
       if (fr && !fr.ordenes?.[o] && (fr.limpios ?? []).includes(d.item_id)) return { t: "Ya no queda en el depósito de Full", c: "c-ok", grupo: "cerradas" };
       return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
     }
-    if (envEst === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
+    // Llegó al depósito: mientras MercadoLibre la revisa (o media) está "En revisión de MercadoLibre"
+    if (envEst === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto || /en revisi[oó]n|mediaci[oó]n|analizando/i.test(d.ml_detalle?.titulo ?? "") ? "ml" : "cerradas" };
     if (envEst === "shipped") return { t: `En camino al depósito de MercadoLibre${por}`, c: "", grupo: "camino" };
     if (envEst === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
     return { t: d.ml_detalle?.titulo ?? "Cerrada", c: "", grupo: "cerradas" };
@@ -7109,7 +7121,7 @@ VISTAS.devoluciones = async () => {
   if (S.recFil === "otras") S.recFil = "revisar";
   if (S.pvTab === "full") S.recFil = "full"; else if (S.recFil === "full") S.recFil = "revisar";
   S.devN = n("revisar") + n("necesita") + n("aprobar");
-  const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En MercadoLibre"], ["enviadas", "Revisadas"], ["cerradas", "Cerradas"]];
+  const grupos = [["revisar", "Para revisar"], ["necesita", "Te necesita"], ["aprobar", "Para aprobar"], ["camino", "En camino"], ["ml", "En revisión de MercadoLibre"], ["concretadas", "Concretadas"], ["noconc", "No concretadas"]];
   const fullN = (S.fullRet?.pendientes ?? 0) + (S.fullRet?.pedidas ?? 0);
   const kb = S.pvTab === "full" ? "full" : "devoluciones";
   $("#main").innerHTML = posventaTabs() + `${kb === "devoluciones" ? busModHTML(kb) : ""}
