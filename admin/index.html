@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611250519";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611250523";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -652,7 +652,7 @@ input[type=file]{max-width:100%}
 .m-chat .estado>span{flex:1;min-width:0}.aviso-x{all:unset;cursor:pointer;flex:none;width:24px;height:24px;margin:-2px -4px -2px 0;border-radius:6px;display:grid;place-items:center;font-size:20px;line-height:1;color:inherit;opacity:.7}.aviso-x:hover,.aviso-x:focus-visible{opacity:1;background:rgba(0,0,0,.06)}.aviso-x:focus-visible{outline:2px solid var(--cielo)}
 .m-chat .estado svg{flex:none;margin-top:2px}
 .dev-glob{display:grid;gap:2px;padding:10px 14px;border-radius:14px;margin:0 0 6px;background:var(--sup2);font-size:14px}.dev-glob span{font-size:13px;opacity:.85}.dev-glob.amb{background:var(--ambar-2);color:var(--ambar-t)}.dev-glob.ok{background:var(--pino-2);color:var(--pino-t)}.dev-glob.mal{background:var(--ladrillo-2);color:var(--ladrillo)}
-.e-ok{background:var(--pino-2);color:var(--pino-t)}.chip-cal{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.chip-cal::before{display:none}.c-cal{background:var(--cielo-2);color:var(--cielo)}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input,.comp-form select{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
+.e-ok{background:var(--pino-2);color:var(--pino-t)}.chip-cal{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.chip-cal::before{display:none}.c-cal{background:var(--cielo-2);color:var(--cielo)}.ya-compro{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:13px}.ya-compro a.chip{text-decoration:none}.ya-compro a.chip::before{display:none}.m-comp:empty{display:none}.m-comp{padding:0 14px 10px}.m-comp .estado{margin:10px 0 0}.m-comp .comp-form{margin:10px 0 0}.comp-acc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.comp-form .campo{display:flex;flex-direction:column;gap:4px;font-size:14px;margin-bottom:8px;flex:1}.comp-form input,.comp-form select{font:inherit;padding:8px 10px;border:1px solid var(--linea);border-radius:8px;background:var(--sup);color:var(--tinta)}.e-mot{background:var(--ambar-2);color:var(--ambar-t)}.e-blo{background:var(--ladrillo-2);color:var(--ladrillo)}
 /* Chat con los colores de WhatsApp (claro y oscuro) */
 :root{--wa-lista:#FFFFFF;--wa-gris:#F0F2F5;--wa-verde:#1DAB61;--wa-chip-on:#D9FDD3;--wa-chip-on-txt:#15603E;--wa-fondo-info:#F5F4F2;--wa-fondo:#EFEAE2;--wa-sale:#D9FDD3;--wa-entra:#FFFFFF;--wa-txt:#111B21;--wa-meta:#667781;--wa-meta-sale:#667781;--wa-tilde:#8696A0;--wa-leido:#53BDEB;--wa-dia:#FFFFFF;--wa-dia-txt:#54656F;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wa-lista:#111B21;--wa-gris:#202C33;--wa-verde:#21C063;--wa-chip-on:#103529;--wa-chip-on-txt:#D9FDD3;--wa-fondo-info:#0B141A;--wa-fondo:#0B141A;--wa-sale:#005C4B;--wa-entra:#202C33;--wa-txt:#E9EDEF;--wa-meta:#8696A0;--wa-meta-sale:rgba(233,237,239,.6);--wa-tilde:rgba(233,237,239,.6);--wa-leido:#53BDEB;--wa-dia:#182229;--wa-dia-txt:#8696A0;--wa-sombra:0 1px .5px rgba(11,20,26,.13)}}
@@ -1791,6 +1791,7 @@ function tarjetaConv(p) {
       ${multi && emp ? `<div style="margin-bottom:4px">${etiquetaCliente(p.cliente_id)}</div>` : ""}
       <div class="cab"><b>${esc(p.item_titulo ?? p.ml_item_id ?? "Publicación")}</b><span>${haceVivo(p.fecha_pregunta ?? p.created_at)}</span></div>
       <div class="burbuja">${esc(p.texto_pregunta)}</div>
+      ${p.compras?.length ? `<div class="ya-compro"><b>Ya compró esta publicación</b>${p.compras.map((v) => `<a href="#mensajes/${v.id}" class="chip c-cal">#${esc(String(v.venta))} · ${esc(fechaCorta(v.fecha))}</a>`).join("")}</div>` : ""}
     </div>
     <div class="respuesta ${duda ? "duda" : ""}">
       ${multi && emp ? `<div class="como" style="background:${esc(emp.color)}">Respondés como <b>${esc(emp.nombre)}</b></div>` : ""}
