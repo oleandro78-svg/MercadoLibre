@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611252001";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611252010";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8573,6 +8573,8 @@ function abrirDesdeEnlace(h) {
   }
   // Notificación agrupada: la lista solo con lo que contaba la notificación
   const mav = t.match(/^#mensajes\/aviso\/(venta|msj)\/([\d,]+)/), mpa = t.match(/^#preguntas\/aviso\/([\d,]+)/);
+  // "Mensajes sin responder en N ventas": Ventas con el filtro "Sin responder" (las mismas que cuenta la notificación)
+  if (/^#mensajes\/sin-responder/.test(t) && S.rol) { if (!modsActuales().has("mensajes")) return false; S.msjAviso = null; S.msjFil = "pendientes"; S.msjFx = { dias: S.msjFx?.dias ?? DIAS_DEF, ...(S.msjFx?.orden ? { orden: S.msjFx.orden } : {}) }; S.msjId = null; S.msjBus = ""; ir("mensajes"); return true; }
   if (mav && S.rol) { if (!modsActuales().has("mensajes")) return false; S.msjAviso = { tipo: mav[1], ids: mav[2].split(",").map(Number).filter(Boolean) }; S.msjId = null; S.msjBus = ""; ir("mensajes"); return true; }
   if (mpa && S.rol) { S.pregAviso = mpa[1].split(",").map(Number).filter(Boolean); S.filtros.estado = ""; S.filtros.desde = 0; S.filtros.buscar = ""; ir("preguntas"); return true; }
   if (/^#despacho\/hoy$/.test(t) && S.rol) { S.dsF = { plazo: "hoy", tipos: [], etiqueta: "todas", productos: [], mio: null, orden: S.dsF?.orden ?? "plazo" }; ir("despacho"); return true; }
@@ -8593,6 +8595,8 @@ function abrirDesdeEnlace(h) {
   }
   if (mp) { ir(inicio()); detalle(Number(mp[1])); return true; }
   // Notificación de varias ventas/devoluciones/chats: se abre la lista, no la última conversación abierta
+  const sec = t.match(/^#([a-z_]+)\//)?.[1];
+  if (!mv && sec && vistasPermitidas().has(sec)) { if (sec === "mensajes") S.msjId = null; ir(sec); return true; }
   if (mv && vistasPermitidas().has(mv[1])) { if (mv[1] === "mensajes") S.msjId = null; if (mv[1] === "devoluciones") S.devId = null; if (mv[1] === "chat") S.chatId = null; ir(mv[1]); return true; }
   return false;
 }
