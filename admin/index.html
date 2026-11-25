@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251903";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251916";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -5176,20 +5176,21 @@ const REC_ACC = [
   ["mensaje", ["send_message_to_complainant"], "Responder al comprador", "osc"],
   ["mensaje_mediador", ["send_message_to_mediator"], "Escribirle a MercadoLibre", "osc"],
   ["devolucion", ["allow_return", "allow_return_label"], "Aceptar la devolución del producto", "lin"],
-  ["reembolso", ["refund"], "Devolver el dinero", "lin"],
-  ["mediacion", ["open_dispute"], "Pedir que intervenga MercadoLibre", "lin"],
+  ["reembolso", ["refund"], "Reembolsar dinero", "lin"],
+  ["mediacion", ["open_dispute"], "Contactar a Mercado Libre", "lin"],
 ];
 function accionesReclamo(pie) {
   const hab = new Set((pie.acciones ?? []).map((a) => a.accion));
   const ob = (pie.acciones ?? []).filter((a) => a.obligatoria && a.vence).sort((a, b) => String(a.vence).localeCompare(String(b.vence)))[0];
   const bts = REC_ACC.filter(([, ks]) => ks.some((k) => hab.has(k)));
   return `<div class="rec-pie rc-accs">
-    ${pie.dev_en_curso ? `<div class="rc-full"><b>${pie.dev_en_curso === "vendedor" && pie.dev_llego ? "Revisá la devolución" : "No tenés que hacer nada"}</b><span>${pie.dev_en_curso === "full"
-      ? (pie.dev_llego ? "El producto ya está en el depósito de Full. MercadoLibre lo revisa y te avisa el resultado." : "El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado.")
-      : pie.dev_llego ? "El producto ya te llegó. Revisalo en Devoluciones e indicá cómo llegó." : "El comprador te está devolviendo el producto y MercadoLibre le reintegra el dinero solo. Cuando te llegue, revisalo en Devoluciones."}</span></div>` : ""}
+    ${pie.dev_en_curso ? `<div class="rc-full">${pie.dev_en_curso === "full"
+      ? `<b>No tenés que hacer nada</b><span>${pie.dev_llego ? "El producto ya está en el depósito de Full. MercadoLibre lo revisa y te avisa el resultado." : "El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado."}</span>`
+      : pie.dev_llego ? `<b>Revisá la devolución</b><span>El producto ya te llegó. Revisalo en Devoluciones e indicá cómo llegó.</span>`
+      : `<b>Ofreciste la devolución${pie.dev_creada ? ` el ${esc(new Date(pie.dev_creada).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }))}` : ""}</b><span>${pie.dev_despachada ? "El comprador ya la despachó. Cuando te llegue, revisala en Devoluciones." : "Cuando el comprador la despache, MercadoLibre le reintegra el dinero y el envío es gratis para vos."}</span>`}</div>` : ""}
     ${ob ? `<div class="rc-plazo"><span>Tenés que responder antes de</span><b>${esc(cuandoPlazo(ob.vence))}</b></div>` : ""}
     ${bts.length ? bts.map(([k, , t, c]) => `<button type="button" class="btn ${c}" data-racc="${k}">${t}</button>`).join("") + `<p class="et-nota">Antes de cada acción te mostramos qué va a pasar y te pedimos confirmación. Queda registrado quién lo hizo.</p>`
-      : pie.dev_en_curso ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
+      : pie.dev_en_curso === "full" ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
 }
 function enlazarAccionesReclamo(id, pie) {
   const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
@@ -5203,8 +5204,8 @@ function enlazarAccionesReclamo(id, pie) {
       mensaje: ["Responder al comprador", "El mensaje le llega al comprador dentro del reclamo."],
       mensaje_mediador: ["Escribirle a MercadoLibre", "El mensaje le llega al mediador de MercadoLibre dentro del reclamo."],
       devolucion: ["¿Aceptar la devolución?", "El comprador va a poder mandar el producto de vuelta con la etiqueta de MercadoLibre. Cuando llegue, lo revisás en Posventa → Devoluciones."],
-      reembolso: [`¿Devolver ${monto}?`, `Se le devuelven ${monto} al comprador y el reclamo se cierra. El comprador se queda con el producto. Esto no se puede deshacer.`],
-      mediacion: ["¿Pedir que intervenga MercadoLibre?", "El reclamo pasa a mediación: MercadoLibre revisa el caso y decide. Ya no se resuelve solo entre el comprador y vos."],
+      reembolso: [`¿Reembolsar ${monto}?`, `Se le devuelven ${monto} al comprador y el reclamo se cierra. El comprador se queda con el producto. Esto no se puede deshacer.`],
+      mediacion: ["¿Contactar a Mercado Libre?", "El reclamo pasa a mediación: MercadoLibre revisa el caso y decide. Ya no se resuelve solo entre el comprador y vos."],
     }[k];
     const v = cajon(`<div class="cajon-cab"><h2>${esc(TXT[0])}</h2><button class="btn lin chico" data-cerrar>Cancelar</button></div>
       <p class="mut">${esc(TXT[1])}</p>
