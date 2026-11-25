@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251818";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251845";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -146,6 +146,7 @@ textarea{min-height:110px;resize:vertical;line-height:1.5}
 textarea.grande{min-height:440px;font-size:13.5px}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--pino)}
 input[type=range]{width:100%;accent-color:var(--pino)}
+.rc-full{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:12px;background:var(--sup2);margin-bottom:10px;font-size:14px}.rc-full b{font-size:15px}
 .ca-cta{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--linea)}.ca-cta>div{flex:1;min-width:0}.ca-cta .ca-act{margin:0;min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:15px;white-space:nowrap}.ca-act input{width:20px;height:20px;margin:0;cursor:pointer}
 .check{display:flex;gap:9px;align-items:flex-start;margin:10px 0;cursor:pointer}
 .check input{margin-top:3px;flex:none}
@@ -5172,9 +5173,10 @@ function accionesReclamo(pie) {
   const ob = (pie.acciones ?? []).filter((a) => a.obligatoria && a.vence).sort((a, b) => String(a.vence).localeCompare(String(b.vence)))[0];
   const bts = REC_ACC.filter(([, ks]) => ks.some((k) => hab.has(k)));
   return `<div class="rec-pie rc-accs">
+    ${pie.a_full ? `<div class="rc-full"><b>No tenés que hacer nada</b><span>El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado.</span></div>` : ""}
     ${ob ? `<div class="rc-plazo"><span>Tenés que responder antes de</span><b>${esc(cuandoPlazo(ob.vence))}</b></div>` : ""}
     ${bts.length ? bts.map(([k, , t, c]) => `<button type="button" class="btn ${c}" data-racc="${k}">${t}</button>`).join("") + `<p class="et-nota">Antes de cada acción te mostramos qué va a pasar y te pedimos confirmación. Queda registrado quién lo hizo.</p>`
-      : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
+      : pie.a_full ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
 }
 function enlazarAccionesReclamo(id, pie) {
   const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
