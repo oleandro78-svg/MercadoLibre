@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251845";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611251903";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1050,7 +1050,11 @@ h3 .te{font-size:13px;margin-left:4px}
 .etq-prev{border:1px solid var(--linea);border-radius:14px;background:var(--sup)}
 .etq-fila{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--linea);position:relative}.etq-fila:last-child{border-bottom:0}.etq-fila .foto{width:44px;height:44px;border-radius:10px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--linea)}.etq-fila .foto.sin{display:grid;place-items:center;font-size:10px;color:var(--piz);text-align:center;line-height:1.1}.etq-fila .rec-tx{flex:1;min-width:0}.etq-fila .fav-h{position:absolute;right:8px;top:6px}.etq-fila.cf .etq-esq{padding-right:30px}.etq-fila.cf .etq-r1{padding-right:30px}
 @media (max-width:560px){.etq-molde{grid-template-columns:72px minmax(0,1fr) minmax(84px,34%)}}
-.m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}#mFil{column-gap:4px;align-items:center}@media (max-width:960px){#mFil{justify-content:space-between}#mFil .ord-der{margin-left:0}}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
+.m-fil .ord-der,.ds-barra .ord-der{margin-left:auto}
+/* Ventas: período, filtros y orden van siempre en una sola fila; si la columna es angosta, el orden queda solo con su ícono */
+#mFil{container-type:inline-size}#mFil>.mas-caja,#mFil>#mFx{flex:none}#mFil>.pend-fila,#mFil>.fx-act{flex-basis:100%}
+@container (max-width:400px){#mFil .ord-txt{display:none}#mFil .ord-der{margin-left:auto!important}}
+@container (max-width:250px){#mFil .fx-bt{padding-left:8px;padding-right:8px}}#mFil{column-gap:4px;align-items:center}@media (max-width:960px){#mFil{justify-content:space-between}#mFil .ord-der{margin-left:0}}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
 @media (max-width:960px){#main .cabecera.pv-cab{display:none}#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 @media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
 .etq-ld{display:flex!important;align-items:baseline;gap:6px 10px;-webkit-line-clamp:unset!important}.etq-ld .etq-esq{margin-left:auto}.etq-li{min-width:0;flex:0 1 auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.etq-ld .etq-esq{text-align:right;flex:none;max-width:45%}
@@ -3909,8 +3913,14 @@ function estadoVenta(c) {
   if (c.estado_orden === "cancelled") return "Cancelada";
   if (recibida(c)) return `Recibida el ${diaMes(recibida(c))}`;
   if (c.entregada || c.envio_estado === "delivered") return "Entregada";
-  if (c.envio_estado) return ENVIO_E[c.envio_estado] ?? "Sin entregar";
+  if (c.envio_estado) return `${ENVIO_E[c.envio_estado] ?? "Sin entregar"}${envioDemorado(c) ? " · demorado" : ""}`;
   return c.envio_id ? "Sin entregar" : "Sin envío de MercadoLibre";
+}
+// Envío que no llegó en la fecha prometida (MercadoLibre lo muestra como demorado y afecta la reputación)
+function envioDemorado(c) {
+  if (!c.estimada || c.entregada || !["pending", "handling", "ready_to_ship", "shipped"].includes(c.envio_estado) || c.estado_orden === "cancelled") return false;
+  const fin = new Date(c.estimada); fin.setHours(23, 59, 59, 999);
+  return fin < new Date();
 }
 // Nombre y apellido (o razón social) del comprador, con su usuario de MercadoLibre entre paréntesis
 const nombreComp = (c) => c.comprador_nombre || c.comprador_nick || "Comprador";
@@ -3974,6 +3984,7 @@ function etqLlega(c) {
   if (c.envio_entregado_at) return `Llegó el ${diaMes(c.envio_entregado_at)}`;
   if (!c.estimada || ["delivered", "cancelled", "not_delivered"].includes(c.envio_estado)) return "";
   const d = new Date(c.estimada), hoy = new Date(), man = new Date(Date.now() + 86400_000);
+  if (envioDemorado(c)) return `Demorado: tenía que llegar el ${diaMes(c.estimada)}`;
   if (d.toDateString() === hoy.toDateString()) return "Llega hoy";
   if (d.toDateString() === man.toDateString()) return "Llega mañana";
   return `Llega el ${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}`;
@@ -4115,9 +4126,9 @@ const ETQ = {
   reclamos: { titulo: "Reclamos", datos: {
     foto: ["Foto", (x) => foto(x.foto)],
     prod: ["Producto", (x) => esc(x.titulo ?? "Producto")], comprador: ["Comprador", (x) => esc(x.comprador ?? "")], nick: ["Usuario de ML", (x) => esc(x.nick ?? "")],
-    tipo: ["Reclamo, mediación o devolución", (x) => esc(x.tipo ?? "")],
+    tipo: ["Reclamo, devolución o cancelación", (x) => esc(x.tipo ?? "")],
     vence: ["Vence", (x) => x.responder && x.vence ? `<span class="rc-vence">Vence ${esc(fechaRec(x.vence).replace(/^Hoy/, "hoy").replace(/^Mañana/, "mañana"))}</span>` : ""],
-    estado: ["Estado", (x) => x.responder ? `<span class="rc-chip r">Te toca responder</span>` : x.abierto ? `<span class="rc-chip a">Esperando al comprador o a MercadoLibre</span>` : `<span class="rc-chip">Cerrado</span>`],
+    estado: ["Estado (lo que dice MercadoLibre)", (x) => !x.abierto ? `<span class="rc-chip">Cerrado</span>` : `<span class="rc-chip ${x.responder ? "r" : "a"}">${esc(x.ml_titulo || (x.responder ? "Te toca responder" : esperaDe(x)))}</span>`],
     etapa: ["Con quién está", (x) => x.etapa ? `<span class="rc-chip c">${esc(x.etapa)}</span>` : ""],
     carrito: ["N° de venta", (x) => x.pack_id ? `#${etqCp(String(x.pack_id))}` : ""],
     reclamo: ["N° de reclamo", (x) => x.reclamo ? `Reclamo ${etqCp(String(x.reclamo))}` : ""],
@@ -4450,7 +4461,7 @@ async function cargarHilos(emp, mas = false) {
         <span class="mas-menu oculto per-m" id="mPerM" role="menu" style="top:calc(100% + 6px);bottom:auto">${opsPer.map(([v, t]) => `<button type="button" role="menuitemradio" data-dias="${v}" aria-checked="${String(S.msjFx.dias) === v}"><b>${t}</b><span class="peq mut">${v === "custom" ? (S.msjFx.dias === "custom" ? textoRango(S.msjFx) : "Elegí desde y hasta qué día") : textoRango({ dias: v })}</span></button>`).join("")}
           <span class="per-fechas oculto" id="mPerF"><label>Desde<input type="date" id="mPerD" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.desde ?? "")}"></label><label>Hasta<input type="date" id="mPerH" max="${new Date().toLocaleDateString("en-CA")}" value="${esc(S.msjFx.hasta ?? new Date().toLocaleDateString("en-CA"))}"></label><button class="btn pri chico" type="button" id="mPerOk">Aplicar</button></span></span></span>`
       + `<button type="button" id="mFx" class="fx-bt ${elegidos.length ? "on" : ""}" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar${elegidos.length ? ` · ${elegidos.length}` : ""}</button>`
-      + `<span class="mas-caja ord-der"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)} <span aria-hidden="true">⌄</span></button>
+      + `<span class="mas-caja ord-der"><button type="button" id="mOrd" class="fx-bt" aria-expanded="false" aria-controls="mOrdM" aria-label="Ordenar: ${esc(ordT)}">${ICONO_ORDEN}<span class="ord-txt">${esc(ORDEN_CORTO[S.msjFx.orden] ?? ordT)}</span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="mOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_MSJ.map(([k, t]) => `<button type="button" role="menuitemradio" data-ord="${k}" aria-checked="${S.msjFx.orden === k}">${t}</button>`).join("")}</span></span>`
       + (() => { const pend = r.pendientes && S.msjFil !== "pendientes" && !S.msjBus, tot = Number(r.total ?? 0);
           if (!pend && !tot) return "";
@@ -5173,10 +5184,12 @@ function accionesReclamo(pie) {
   const ob = (pie.acciones ?? []).filter((a) => a.obligatoria && a.vence).sort((a, b) => String(a.vence).localeCompare(String(b.vence)))[0];
   const bts = REC_ACC.filter(([, ks]) => ks.some((k) => hab.has(k)));
   return `<div class="rec-pie rc-accs">
-    ${pie.a_full ? `<div class="rc-full"><b>No tenés que hacer nada</b><span>El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado.</span></div>` : ""}
+    ${pie.dev_en_curso ? `<div class="rc-full"><b>${pie.dev_en_curso === "vendedor" && pie.dev_llego ? "Revisá la devolución" : "No tenés que hacer nada"}</b><span>${pie.dev_en_curso === "full"
+      ? (pie.dev_llego ? "El producto ya está en el depósito de Full. MercadoLibre lo revisa y te avisa el resultado." : "El producto vuelve al depósito de Full. Cuando llegue, MercadoLibre lo revisa, le devuelve el dinero al comprador y te avisa el resultado.")
+      : pie.dev_llego ? "El producto ya te llegó. Revisalo en Devoluciones e indicá cómo llegó." : "El comprador te está devolviendo el producto y MercadoLibre le reintegra el dinero solo. Cuando te llegue, revisalo en Devoluciones."}</span></div>` : ""}
     ${ob ? `<div class="rc-plazo"><span>Tenés que responder antes de</span><b>${esc(cuandoPlazo(ob.vence))}</b></div>` : ""}
     ${bts.length ? bts.map(([k, , t, c]) => `<button type="button" class="btn ${c}" data-racc="${k}">${t}</button>`).join("") + `<p class="et-nota">Antes de cada acción te mostramos qué va a pasar y te pedimos confirmación. Queda registrado quién lo hizo.</p>`
-      : pie.a_full ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
+      : pie.dev_en_curso ? "" : `<p class="mut" style="margin:0">Por ahora MercadoLibre no te pide nada en este reclamo.</p>`}</div>`;
 }
 function enlazarAccionesReclamo(id, pie) {
   const caja = $("#cpRec")?.querySelector(".rc-accs"); if (!caja) return;
@@ -6717,10 +6730,16 @@ function seguimientoCorreoHtml(d) {
 // En qué grupo va cada devolución, según dónde está el paquete y si hay que hacer algo
 function estadoDev(d) {
   const r = d.revision, q = quienTrae(d), por = q ? ` · ${q}` : "";
+  // El envío de la devolución puede seguir "listo para despachar" aunque el correo ya lo retiró: manda el estado de la devolución
+  const envEst = d.envio_estado === "ready_to_ship" && (d.estado === "shipped" || ["picked_up", "in_hub", "in_transit", "out_for_delivery"].includes(d.envio_sub)) ? "shipped" : d.envio_estado;
+  // Revisada, pero el reclamo sigue abierto: ahora decide MercadoLibre (lo que dice MercadoLibre va en el texto)
+  const decideML = (t) => ({ t: d.ml_detalle?.titulo ? `${t}. MercadoLibre: ${d.ml_detalle.titulo}` : `${t}: ahora decide MercadoLibre`, c: "", grupo: "ml" });
+  if (r?.estado === "enviada" && d.abierto) return decideML(r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema");
   if (r?.estado === "enviada") return { t: r.resultado === "ok" ? "Revisada: llegó bien" : "Revisada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "para_aprobar") return { t: "Para aprobar", c: "c-borrador", grupo: "aprobar" };
   // Revisada desde MercadoLibre (no desde la app)
   const rml = EX(d).revision_ml;
+  if (r?.estado !== "enviada" && rml?.vendedor && rml.vendedor !== "pending" && d.abierto) return decideML(rml.vendedor === "claimed" ? "Informaste un problema" : "La revisaste");
   if (r?.estado !== "enviada" && rml?.vendedor && rml.vendedor !== "pending") return { t: rml.vendedor === "claimed" ? "Problema informado desde MercadoLibre" : "Revisada desde MercadoLibre", c: "c-ok", grupo: "enviadas" };
   if (r?.estado === "registrada") return { t: r.resultado === "ok" ? "Registrada: llegó bien" : "Registrada: llegó con problema", c: "c-ok", grupo: "enviadas" };
   // Devolución de Full que el depósito de MercadoLibre revisó y le manda al vendedor
@@ -6742,7 +6761,7 @@ function estadoDev(d) {
     // Sin una salida registrada en el stock de Full no se da por enviada (la unidad puede no haber entrado nunca al stock)
     return { t: `En revisión dentro del depósito de Full (${mot}): todavía no se puede retirar. Cuando figure como no apta en Control de stock de Full, pedí el retiro`, c: "c-cal", grupo: "camino" };
   }
-  if (d.correo_vencido_at && d.destino === "seller_address" && d.envio_estado !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(d.envio_estado) ? "necesita" : "cerradas" };
+  if (d.correo_vencido_at && d.destino === "seller_address" && envEst !== "delivered") return { t: textoVencido(d.correo_mov), c: "c-urg", grupo: d.abierto || ["shipped", "ready_to_ship"].includes(envEst) ? "necesita" : "cerradas" };
   if (enSucursal(d)) return { t: `Quedó en ${d.correo_suc ? `la sucursal ${nombrePropio(d.correo_suc)} de ` : "una sucursal de "}${q || "el correo"}: retirala${!d.correo_suc && d.sucursal?.nombre ? ` en ${d.sucursal.nombre}` : ""}`, c: "c-urg", grupo: "necesita" };
   if (d.destino === "warehouse") {
     if (/retiro/i.test(d.ml_detalle?.titulo ?? "")) {
@@ -6752,19 +6771,19 @@ function estadoDev(d) {
       if (fr && !fr.ordenes?.[o] && (fr.limpios ?? []).includes(d.item_id)) return { t: "Ya no queda en el depósito de Full", c: "c-ok", grupo: "cerradas" };
       return { t: `MercadoLibre te pide que solicites el retiro del producto`, c: "c-urg", grupo: "necesita" };
     }
-    if (d.envio_estado === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
-    if (d.envio_estado === "shipped") return { t: `En camino al depósito de MercadoLibre${por}`, c: "", grupo: "camino" };
-    if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
+    if (envEst === "delivered") return { t: d.ml_detalle?.titulo ? `En el depósito de MercadoLibre: ${d.ml_detalle.titulo}` : "Llegó al depósito de MercadoLibre", c: "", grupo: d.abierto ? "ml" : "cerradas" };
+    if (envEst === "shipped") return { t: `En camino al depósito de MercadoLibre${por}`, c: "", grupo: "camino" };
+    if (envEst === "ready_to_ship") return { t: "El comprador todavía no la despachó (va al depósito de MercadoLibre)", c: "", grupo: "camino" };
     return { t: d.ml_detalle?.titulo ?? "Cerrada", c: "", grupo: "cerradas" };
   }
   // Ya llegó y MercadoLibre no pide más la revisión: se hizo desde MercadoLibre (o venció) y ahora decide MercadoLibre
   if (d.llegada_at && d.se_puede_revisar === false && d.destino === "seller_address" && r?.estado !== "para_aprobar")
     return { t: d.abierto ? "Ya se revisó en MercadoLibre: ahora decide MercadoLibre" : "Revisada en MercadoLibre", c: "", grupo: d.abierto ? "ml" : "enviadas" };
   if (d.se_puede_revisar || d.llegada_at) return { t: `Llegó${d.llegada_at ? ` el ${diaMes(d.llegada_at)}` : ""}${d.vence_at ? ` · revisala ${venceRec(d.vence_at)}` : ""}`, c: "c-urg", grupo: "revisar" };
-  if (d.envio_estado === "shipped") return { t: `En camino a tu dirección${por}`, c: "", grupo: "camino" };
-  if (d.envio_estado === "ready_to_ship") return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
-  if (d.envio_estado === "not_delivered") return { t: `No entregada: quedó en ${quienTrae(d) || "el correo"} y no se retiró`, c: "", grupo: "cerradas" };
-  if (!d.abierto) return { t: d.envio_estado === "cancelled" ? "Cancelada: el comprador no la despachó" : "Cerrada", c: "", grupo: "cerradas" };
+  if (envEst === "shipped") return { t: `${d.envio_sub === "out_for_delivery" ? "Sale hoy a entregarse en tu dirección" : "En camino a tu dirección"}${por}`, c: "", grupo: "camino" };
+  if (envEst === "ready_to_ship") return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
+  if (envEst === "not_delivered") return { t: `No entregada: quedó en ${quienTrae(d) || "el correo"} y no se retiró`, c: "", grupo: "cerradas" };
+  if (!d.abierto) return { t: envEst === "cancelled" ? "Cancelada: el comprador no la despachó" : "Cerrada", c: "", grupo: "cerradas" };
   return { t: "El comprador todavía no la despachó", c: "", grupo: "camino" };
 }
 
@@ -7008,17 +7027,19 @@ async function vistaReclamos() {
   const resp = r.abiertos.filter((x) => x.responder);
   if ((S.cont ?? {}).reclamos !== resp.length) { S.cont = { ...(S.cont ?? {}), reclamos: resp.length }; armarNav(); }
   // Cada fila muestra lo que eligió el administrador en Configuración → Listas → Reclamos
-  const fila = (x) => `<button type="button" class="rec-it ${x.responder ? "urg" : ""}" data-conv="${x.conv}" data-g="${x.responder ? "responder" : x.abierto ? "espera" : "cerrado"}" ${busAttr(x.titulo, x.comprador, x.nick, x.tipo, x.pack_id, x.orden_ids, x.envio_id, x.reclamo)}>${etqFilaHTML(etqPartes("reclamos", x, etqConfig("reclamos", emp)))}</button>`;
-  const esperan = r.abiertos.filter((x) => !x.responder);
+  const grupoRec = (x) => !x.abierto ? "cerrado" : x.responder ? "responder" : x.responsable === "mediator" ? "espera_ml" : "espera";
+  const fila = (x) => `<button type="button" class="rec-it ${x.responder ? "urg" : ""}" data-conv="${x.conv}" data-g="${grupoRec(x)}" ${busAttr(x.titulo, x.comprador, x.nick, x.tipo, x.pack_id, x.orden_ids, x.envio_id, x.reclamo)}>${etqFilaHTML(etqPartes("reclamos", x, etqConfig("reclamos", emp)))}</button>`;
+  const esperan = r.abiertos.filter((x) => grupoRec(x) === "espera"), esperanML = r.abiertos.filter((x) => grupoRec(x) === "espera_ml");
   // Están todos en la lista; se muestran según el filtro, o los que coinciden con lo que se busca (abiertos y cerrados)
   const cuerpo = (resp.length ? `<div class="rc-g" data-gg="responder">Te toca responder</div>${resp.map(fila).join("")}` : "")
-    + (esperan.length ? `<div class="rc-g" data-gg="espera">Esperando al comprador o a MercadoLibre</div>${esperan.map(fila).join("")}` : "")
+    + (esperan.length ? `<div class="rc-g" data-gg="espera">Esperando al comprador</div>${esperan.map(fila).join("")}` : "")
+    + (esperanML.length ? `<div class="rc-g" data-gg="espera_ml">Esperando a MercadoLibre</div>${esperanML.map(fila).join("")}` : "")
     + r.cerrados.map(fila).join("");
   $("#main").innerHTML = posventaTabs() + `
     ${busModHTML("reclamos")}<div class="m-fil" id="rcFil" role="group" aria-label="Mostrar" style="margin:4px 0 12px">${[["abiertos", "Abiertos", r.abiertos.length], ["responder", "Te toca responder", resp.length], ["cerrados", "Cerrados", 0]].map(([k, t, n]) => `<button type="button" data-f="${k}" class="${S.rcFil === k ? "on" : ""}">${t}${n ? ` <b>${n}</b>` : ""}</button>`).join("")}</div>
     <div class="rc-lista">${cuerpo}<div class="panel vacio rc-vacio" hidden></div></div>`;
   const mostrar = (q) => {
-    const ver = { abiertos: ["responder", "espera"], responder: ["responder"], cerrados: ["cerrado"] }[S.rcFil] ?? ["responder", "espera"];
+    const ver = { abiertos: ["responder", "espera", "espera_ml"], responder: ["responder"], cerrados: ["cerrado"] }[S.rcFil] ?? ["responder", "espera", "espera_ml"];
     let n = 0;
     $("#main").querySelectorAll(".rc-lista .rec-it").forEach((b) => { const si = q ? coincideBus(q, b.dataset.bus) : ver.includes(b.dataset.g); b.hidden = !si; if (si) n++; });
     $("#main").querySelectorAll(".rc-g").forEach((g) => { g.hidden = !!q || S.rcFil !== "abiertos" || !$(`#main .rc-lista .rec-it[data-g="${g.dataset.gg}"]`); });
@@ -7033,6 +7054,8 @@ async function vistaReclamos() {
   $("#main .rc-lista").onclick = (e) => { const b = e.target.closest("[data-conv]"); if (!b) return; S.pvRec = Number(b.dataset.conv); detalleReclamoPV(S.pvRec); };
   escucharClientes(() => { if (S.pvTab === "reclamos") vistaReclamos(); });
 }
+// A quién espera un reclamo abierto (según MercadoLibre)
+const esperaDe = (x) => x.responsable === "mediator" ? "Esperando a MercadoLibre" : x.responsable === "complainant" ? "Esperando al comprador" : "Esperando al comprador o a MercadoLibre";
 // Un reclamo abierto dentro de Posventa: la venta arriba, el reclamo con sus mensajes y las acciones abajo
 async function detalleReclamoPV(id) {
   // Desde una notificación todavía no está la lista: se trae para mostrar la venta arriba
@@ -7135,7 +7158,7 @@ async function detalleDevolucion0(id) {
   const chips = [...(tip.historial ?? []).map((t) => ({ t, de: "ya pasó" })), ...(tip.ia ?? []).map((t) => ({ t, de: "" }))];
   const cab = `<button class="btn lin chico" id="recVolver" type="button">‹ Posventa</button>
     <div class="panel rec-cab">${foto(d.item_foto)}<div><h1 style="font-size:20px;margin:0 0 4px">${esc(d.item_titulo ?? "Producto")}</h1>
-      <div class="peq">${esc(d.comprador ?? "Comprador")} · venta ${esc(d.orden_id ?? "")}</div>
+      <div class="peq">${esc(d.comprador ?? "Comprador")} · venta #${esc(d.extra?.pack_id ?? d.orden_id ?? "")}</div>
       ${d.motivo_comprador_txt ? `<div class="peq" style="margin-top:4px"><b>Por qué lo devolvió:</b> ${esc(d.motivo_comprador_txt)}</div>` : ""}
       <div class="peq mut" style="margin-top:4px">${esc(estadoDev({ ...d, revision: rv }).t)}</div>
       ${d.tracking ? `<div class="peq" style="margin-top:4px"><b>${esc(quienTrae(d) || "Seguimiento")}:</b> ${d.seguimiento_url ? `<a href="${esc(d.seguimiento_url)}" target="_blank" rel="noopener">${esc(d.tracking)}</a>` : esc(d.tracking)}${etqCopiar(d.tracking)}${enSucursal(d) && !d.correo_suc ? " · abrí el seguimiento para ver la sucursal y el horario" : ""}</div>` : ""}
