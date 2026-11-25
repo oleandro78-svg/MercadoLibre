@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611252139";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611252143";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4961,8 +4961,10 @@ function pintarChat(d) {
   if ($("#mListo")) $("#mListo").onclick = async () => { if (await seguro(() => api("mensaje_listo", { id: c.id }))) { aviso("Listo: salió de pendientes"); cargarHilos(empMsj()); abrirConv(c.id); } };
   bur.onclick = async (e) => {
     const b = e.target.closest("[data-adj]"); if (!b) return;
+    if (b.querySelector("img[src]")) { const imgs = [...bur.querySelectorAll("[data-adj] img[src]")]; verFotos(imgs.map((x) => x.src), Math.max(0, imgs.indexOf(b.querySelector("img[src]")))); return; }
     b.disabled = true; const r = await seguro(() => traerAdjunto(c.id, b.dataset.adj)); b.disabled = false;
     if (!r) return;
+    if (/^image\//.test(r.tipo)) { verFotos([`data:${r.tipo};base64,${r.datos}`], 0); return; }
     const bin = atob(r.datos), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([u], { type: r.tipo }));
     const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener";
@@ -5186,7 +5188,10 @@ async function cargarReclamo(id) {
   caja.querySelectorAll("[data-rdev]").forEach((b) => b.onclick = () => { S.devId = Number(b.dataset.rdev); ir("devoluciones"); });
   caja.onclick = async (e) => {
     const b = e.target.closest("[data-radj]"); if (!b) return;
+    // Fotos: se ven dentro de la app (pasando de una a otra), sin salir de la pantalla del reclamo
+    if (b.querySelector("img[src]")) { const imgs = [...caja.querySelectorAll("[data-radj] img[src]")]; verFotos(imgs.map((x) => x.src), Math.max(0, imgs.indexOf(b.querySelector("img[src]")))); return; }
     b.disabled = true; const a = await seguro(() => adjReclamo(id, b.dataset.rec, b.dataset.radj, b.dataset.nom)); b.disabled = false;
+    if (a && /^image\//.test(a.tipo)) { verFotos([`data:${a.tipo};base64,${a.datos}`], 0); return; }
     if (a) abrirArchivo(a);
   };
   minisReclamo(id);
@@ -6127,7 +6132,7 @@ function rtEvento(ev, p) {
     rtLuego("av", revisarAvisos, 200);
     if (S.tab === "mensajes") {
       rtLuego("hil", () => cargarHilos(empMsj()), 400);
-      if (S.msjId && p.conv === S.msjId && Date.now() - (S.convAbiertaAt ?? 0) > 5000) rtLuego("conv", () => refrescarConv(S.msjId), 500);
+      if (S.msjId && p.conv === S.msjId && Date.now() - (S.convAbiertaAt ?? 0) > 5000 && S.convTab?.[S.msjId] !== "reclamo") rtLuego("conv", () => refrescarConv(S.msjId), 500);
     }
   } else if (ev === "despacho") {
     if (S.tab === "despacho" && !document.querySelector("#dsResM:not(.oculto)") && !document.querySelector(".velo")) rtLuego("desp", () => VISTAS.despacho({ rapido: true }), 400);
@@ -6138,7 +6143,7 @@ function rtEvento(ev, p) {
     const abierto = $("#cRec")?.isConnected ? (S.tab === "devoluciones" ? S.pvRec : S.msjId) : null;
     if (abierto && convs.includes(abierto)) rtLuego("rec", () => { if ($("#cRec")) { $("#cRec").dataset.listo = ""; cargarReclamo(abierto); } }, 400);
   } else if (ev === "devoluciones") {
-    if (S.tab === "devoluciones" && !S.devId) rtLuego("dev", () => VISTAS.devoluciones(), 400);
+    if (S.tab === "devoluciones" && !S.devId && !S.pvRec) rtLuego("dev", () => VISTAS.devoluciones(), 400);
   } else if (ev === "notas") {
     for (const [caja, a] of NOTAS_ABIERTAS) {
       if (!caja.isConnected) { NOTAS_ABIERTAS.delete(caja); continue; }
@@ -6156,7 +6161,10 @@ function rtRevisar(ponerAlDia) {
   for (const [k, ch] of RT.canales) if (ch.state && ch.state !== "joined" && ch.state !== "joining") { try { sb.removeChannel(ch); } catch {} RT.canales.delete(k); caidos++; }
   try { if (sb.realtime && !sb.realtime.isConnected()) { sb.realtime.connect(); caidos++; } } catch {}
   if (caidos) { RT.ok = false; rtSincronizar(); }
-  if (ponerAlDia || caidos) { S.recDatos = {}; rtPonerAlDia(); }
+  // Si la conexión en vivo estuvo cortada, pudo perderse un aviso de reclamo: lo guardado se descarta (se vuelve a
+  // traer la próxima vez que se abra, no ahora: el reclamo que está en pantalla no se recarga)
+  if (caidos) S.recDatos = Object.fromEntries(Object.entries(S.recDatos ?? {}).filter(([k]) => Number(k) === (S.tab === "devoluciones" ? S.pvRec : S.msjId)));
+  if (ponerAlDia || caidos) rtPonerAlDia();
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.rol) rtRevisar(true); });
 // Le pide al servidor que se fije en MercadoLibre si hubo algo nuevo (como mucho una vez por minuto)
@@ -6168,9 +6176,9 @@ function rtPonerAlDia() {
   ponerAlDiaML(); S.contDevAt = 0;
   revisarAvisos(); contarChat();
   // Las demás pantallas se vuelven a pintar si no hay nada abierto encima (una hoja, un formulario)
-  if (!document.querySelector(".velo, .mi-velo, .hoja-v") && ["hoy", "devoluciones", "calendario", "preguntas", "bandeja", "rendimiento", "inicio"].includes(S.tab) && !(S.tab === "devoluciones" && S.devId) && VISTAS[S.tab]) VISTAS[S.tab]();
+  if (!document.querySelector(".velo, .mi-velo, .hoja-v") && ["hoy", "devoluciones", "calendario", "preguntas", "bandeja", "rendimiento", "inicio"].includes(S.tab) && !(S.tab === "devoluciones" && (S.devId || S.pvRec)) && VISTAS[S.tab]) VISTAS[S.tab]();
   if (S.tab === "chat" && S.chatTraer) S.chatTraer();
-  if (S.tab === "mensajes") { cargarHilos(empMsj()); if (S.msjId && !document.querySelector(".velo")) refrescarConv(S.msjId); }
+  if (S.tab === "mensajes") { cargarHilos(empMsj()); if (S.msjId && !document.querySelector(".velo") && S.convTab?.[S.msjId] !== "reclamo") refrescarConv(S.msjId); }
   if (S.tab === "despacho" && !document.querySelector(".velo")) VISTAS.despacho({ rapido: true });
 }
 
@@ -7385,7 +7393,12 @@ function verFotos(fotos, i) {
   const v = cajon(`<div class="cajon-cab"><h2>Foto ${i + 1} de ${fotos.length}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
     <img src="${esc(fotos[i])}" alt="" style="width:100%;max-height:70vh;object-fit:contain;background:#fff;border-radius:12px">
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn lin" data-p="-1" type="button" ${i ? "" : "disabled"} style="flex:1;justify-content:center">‹ Anterior</button><button class="btn lin" data-p="1" type="button" ${i < fotos.length - 1 ? "" : "disabled"} style="flex:1;justify-content:center">Siguiente ›</button></div>`, true);
-  v.querySelectorAll("[data-p]").forEach((b) => b.onclick = () => { v.remove(); verFotos(fotos, i + Number(b.dataset.p)); });
+  const ir2 = (d) => { const j = i + d; if (j < 0 || j >= fotos.length) return; v.remove(); verFotos(fotos, j); };
+  v.querySelectorAll("[data-p]").forEach((b) => b.onclick = () => ir2(Number(b.dataset.p)));
+  // En el celular se pasa de foto deslizando con el dedo
+  let x0 = null; const img = v.querySelector("img");
+  img.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  img.addEventListener("touchend", (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) ir2(dx < 0 ? 1 : -1); });
 }
 // Antes de mandar a MercadoLibre: resumen de lo que se envía, con confirmación
 function confirmarEnvio(d, st, r) {
