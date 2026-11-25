@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251620";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251725";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8321,7 +8321,7 @@ VISTAS.correo = async () => {
         <div><label class="et" for="caU">Usuario de la API</label><input id="caU" autocomplete="off" ${c.tiene_credenciales ? `placeholder="Ya cargado"` : ""}></div>
         <div><label class="et" for="caK">Clave de la API</label><input id="caK" type="password" autocomplete="new-password" ${c.tiene_credenciales ? `placeholder="Ya cargada"` : ""}></div>
         <div><label class="et" for="caA">Ambiente</label><select id="caA"><option value="prod" ${c.ambiente !== "test" ? "selected" : ""}>Real</option><option value="test" ${c.ambiente === "test" ? "selected" : ""}>Pruebas de Correo Argentino</option></select></div>
-        <div><label class="et" for="caC">Número de cliente MiCorreo</label><input id="caC" value="${esc(c.customer_id ?? "")}" placeholder="Si no lo sabés, completá el correo y la clave de abajo"></div>
+        <div><label class="et" for="caC">Número de cliente MiCorreo</label><input id="caC" inputmode="numeric" value="${esc(c.customer_id ?? "")}" placeholder="Solo números. Si no lo sabés, dejalo vacío"></div>
         <details ${c.customer_id ? "" : "open"}><summary class="peq">Obtener el número de cliente con el correo y la clave de MiCorreo</summary>
           <p class="peq mut">Se usan una sola vez para pedirle el número a Correo Argentino y no se guardan.</p>
           <div><label class="et" for="caE">Correo de la cuenta MiCorreo</label><input id="caE" type="email" autocomplete="off"></div>
