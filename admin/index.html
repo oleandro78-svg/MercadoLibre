@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251502";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611251620";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -6354,6 +6354,7 @@ async function abrirChat(id) {
     $("#chEnv").disabled = true;
     const p = { texto: t || (st.imgs.length ? "" : "(ficha compartida)"), fotos: st.imgs.map((x) => x.url), hora: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }), datos: { texto: t, refs: st.refs, respuesta_a: st.resp?.id ?? null, imagenes: st.imgs.map((x) => ({ datos: x.datos, mime: x.mime })) } };
     st.imgs = []; pintarImgs();
+    p.ultimoId = Math.max(0, ...st.msjs.map((m) => Number(m.id) || 0));
     st.pend = [...(st.pend ?? []), p];
     tx.value = ""; ajustar(); $("#chEmoP").hidden = true; st.refs = []; st.resp = null; $("#chResp").innerHTML = ""; pintarRefs();
     await mandarPend(p);
@@ -6415,7 +6416,15 @@ async function abrirChat(id) {
   const pintar = (todo) => {
     const box = $("#chMsjs"); if (!box) return;
     const abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
-    // Los que se están enviando van al final con un relojito, como en WhatsApp
+    // Los que se están enviando van al final con un relojito, como en WhatsApp. Si el mensaje ya llegó por la
+    // actualización automática antes de que termine el envío, el pendiente se saca para que no se vea dos veces
+    const usados = new Set();
+    st.pend = (st.pend ?? []).filter((x) => {
+      if (x.err) return true;
+      const m = st.msjs.find((y) => y.mio && !usados.has(y.id) && Number(y.id) > (x.ultimoId ?? 0) && (y.texto ?? "") === (x.datos?.texto ?? ""));
+      if (!m) return true;
+      usados.add(m.id); return false;
+    });
     const pend = (st.pend ?? []).map((x, i) => `<div class="ch-b mio ch-pend ${x.err ? "b-err" : ""}">${x.fotos?.length ? `<div class="ch-fotos">${x.fotos.map((u) => `<img src="${u}" alt="Foto">`).join("")}</div>` : ""}${x.texto ? `<div class="ch-tx">${esc(x.texto).replace(/\n/g, "<br>")}</div>` : ""}<span class="ch-pie"><span>${esc(x.hora)}</span>${x.err ? "" : `<span class="tilde" role="img" aria-label="Enviando">${ICO_RELOJ_WA}</span>`}</span>${x.err ? `<button type="button" class="msj-err" data-pend-err="${i}" aria-label="No se envió: tocá para reintentar o eliminar">!</button>` : ""}</div>`).join("");
     box.innerHTML = (st.msjs.map((m, i) => burbuja(m, st.msjs[i - 1])).join("") + pend) || `<div class="m-vacio"><b>Todavía no hay mensajes</b><span>Escribí el primero.</span></div>`;
     if (todo || abajo) box.scrollTop = box.scrollHeight;
