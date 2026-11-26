@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261955";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611262050";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -9029,8 +9029,9 @@ function pintarCompra() {
       ${d.tributos_sueltos.map((t, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label>${inp(`datos.tributos_sueltos.${i}.nombre`, t.nombre)}</div><div><label class="et">Moneda</label><select data-rp="datos.tributos_sueltos.${i}.moneda">${optMon(t.moneda ?? "USD")}</select></div><div><label class="et">Importe</label>${inp(`datos.tributos_sueltos.${i}.monto`, nTxt(t.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tratamiento</label><select data-rp="datos.tributos_sueltos.${i}.trato">${optsTrato(t.trato ?? "costo")}</select></div><div class="n"><button class="btn pel chico" type="button" data-rq="tributos_sueltos.${i}">Quitar</button></div></div>`).join("")}
       <button class="btn chico lin" type="button" data-ra="tributos_sueltos" style="margin-top:6px">+ Agregar tributo</button></div>
     <div class="panel"><h2>Flete internacional</h2>
-      <div class="rt-radio"><label><input type="radio" name="rcFm" value="origen" ${d.flete.modo !== "destino" ? "checked" : ""}> Pagado en origen (incluido en el precio o pagado al proveedor)</label><label><input type="radio" name="rcFm" value="destino" ${d.flete.modo === "destino" ? "checked" : ""}> Pagado en destino</label></div>
-      ${d.flete.modo === "destino" ? `<div class="fila"><div><label class="et">A quién</label>${inp("datos.flete.proveedor", d.flete.proveedor)}</div><div><label class="et">Moneda</label><select data-rp="datos.flete.moneda">${optMon(d.flete.moneda)}</select></div><div><label class="et">Importe</label>${inp("datos.flete.monto", nTxt(d.flete.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tipo de cambio del pago</label>${inp("datos.flete.tc", nTxt(d.flete.tc, 6), `inputmode="decimal" data-num`)}</div><div><label class="et">IVA de la factura (pesos)</label>${inp("datos.flete.iva", nTxt(d.flete.iva), `inputmode="decimal" data-num`)}</div></div>` : `<p class="mut peq" style="margin:0">Si el flete se pagó aparte al proveedor, cargalo como gasto o sumalo al precio de los productos.</p>`}</div>` : ""}
+      <div class="rt-radio"><label><input type="radio" name="rcFm" value="origen" ${d.flete.modo !== "destino" ? "checked" : ""}> Pagado en origen</label><label><input type="radio" name="rcFm" value="destino" ${d.flete.modo === "destino" ? "checked" : ""}> Pagado en destino</label></div>
+      <div class="fila"><div><label class="et">A quién</label>${inp("datos.flete.proveedor", d.flete.proveedor)}</div><div><label class="et">Moneda</label><select data-rp="datos.flete.moneda">${optMon(d.flete.moneda)}</select></div><div><label class="et">Importe</label>${inp("datos.flete.monto", nTxt(d.flete.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tipo de cambio del pago</label>${inp("datos.flete.tc", nTxt(d.flete.tc, 6), `inputmode="decimal" data-num`)}</div><div><label class="et">IVA de la factura (pesos)</label>${inp("datos.flete.iva", nTxt(d.flete.iva), `inputmode="decimal" data-num`)}</div></div>
+      <p class="mut peq" style="margin:6px 0 0">Si el flete vino incluido en el precio de los productos, dejá el importe vacío. Lo que se cobró en otra moneda va como gasto.</p></div>` : ""}
     <div class="panel"><h2>${imp ? "Productos: lo que se le pagó al fabricante" : "Productos e insumos"}</h2>
       ${imp ? `<p class="mut peq" style="margin:0 0 8px">El precio de la factura comercial y el FOB del despacho son referencia: cargá el precio realmente pagado por unidad de venta y el tipo de cambio de ese pago. Las unidades son las que se venden, incluidas las que vinieron sin cargo.</p>` : ""}
       ${d.renglones.length > 12 ? `<input type="search" id="rcFil" placeholder="Buscar código o producto" value="${esc(S.rcFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
@@ -9040,7 +9041,7 @@ function pintarCompra() {
         ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
           ${imp ? `<td>${inp(`datos.renglones.${i}.codigo_proveedor`, r.codigo_proveedor, `style="width:100px"`)}</td><td>${inp(`datos.renglones.${i}.item_despacho`, r.item_despacho, `style="width:70px"`)}</td><td>${inp(`datos.renglones.${i}.fob_usd`, nTxt(r.fob_usd), `inputmode="decimal" data-num style="width:100px"`)}</td>` : ""}
           <td>${inp(`datos.renglones.${i}.unidades`, nTxt(r.unidades, 4), `inputmode="decimal" data-num style="width:90px"`)}</td>
-          ${sinI ? "" : `<td class="mut">${r.precio_factura != null && r.precio_factura !== "" ? `${esc(r.moneda_factura ?? r.moneda ?? "")} ${nTxt(r.precio_factura, 5)}` : imp && Number(r.fob_usd) && Number(r.unidades) ? `FOB USD ${nTxt(Number(r.fob_usd) / Number(r.unidades), 5)}` : "—"}</td>`}
+          ${sinI ? "" : `<td>${inp(`datos.renglones.${i}.precio_factura`, nTxt(r.precio_factura, 6), `inputmode="decimal" data-num data-rpf="${i}" style="width:100px" placeholder="${imp && Number(r.fob_usd) && Number(r.unidades) ? "FOB " + nTxt(Number(r.fob_usd) / Number(r.unidades), 4) : ""}"`)}</td>`}
           <td>${sinI ? `<input data-rtotal="${i}" inputmode="decimal" value="${esc(r.unidades && r.precio_unit ? nTxt(Number(r.unidades) * Number(r.precio_unit)) : "")}" style="width:120px">` : inp(`datos.renglones.${i}.precio_unit`, nTxt(r.precio_unit, 6), `inputmode="decimal" data-num data-rpu="${i}" style="width:110px"`)}</td>
           ${sinI ? "" : `<td><select data-rp="datos.renglones.${i}.moneda" style="width:80px">${optMon(r.moneda)}</select></td><td>${r.moneda === "ARS" ? "—" : inp(`datos.renglones.${i}.tc`, nTxt(r.tc, 6), `inputmode="decimal" data-num style="width:100px"`)}</td>`}
           ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td>` : ""}
@@ -9063,6 +9064,17 @@ function pintarCompra() {
     const x = e.target;
     if (x.dataset.rp) setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value);
     if (x.dataset.rpu != null) d.renglones[Number(x.dataset.rpu)].precio_editado = true;
+    if (x.dataset.rpf != null) {
+      // Corrección del precio de la factura: si el precio pagado no se cambió a mano, se ajusta en la misma proporción
+      const r = d.renglones[Number(x.dataset.rpf)], nuevo = nAR(x.value);
+      if (!r.precio_editado) {
+        S.rcPfBase ??= new WeakMap();
+        if (!S.rcPfBase.has(r)) S.rcPfBase.set(r, { pf: x.defaultValue ? nAR(x.defaultValue) : 0, pu: Number(r.precio_unit) || 0 });
+        const base = S.rcPfBase.get(r);
+        r.precio_unit = base.pf ? Math.round(base.pu * nuevo / base.pf * 1000000) / 1000000 : nuevo;
+        const inpP = $(`#main [data-rpu="${x.dataset.rpf}"]`); if (inpP) inpP.value = nTxt(r.precio_unit, 6);
+      }
+    }
     const mu = x.dataset.rp?.match(/^datos\.renglones\.(\d+)\.unidades$/);
     if (mu) { const r = d.renglones[Number(mu[1])]; if (!r.precio_editado && r.precio_factura != null && Number(r.unidades_factura) && Number(r.unidades)) { const otros = d.renglones.filter((y) => y !== r && String(y.codigo_proveedor).toLowerCase() === String(r.codigo_proveedor).toLowerCase()); if (!otros.length) { r.precio_unit = Math.round(r.precio_factura * r.unidades_factura / Number(r.unidades) * 100000) / 100000; const inpP = $(`#main [data-rpu="${mu[1]}"]`); if (inpP) inpP.value = nTxt(r.precio_unit, 6); } } }
     if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_editado = true; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
