@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261630";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261637";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8781,7 +8781,7 @@ VISTAS.rentabilidad = async () => {
   const filas = d.filas;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Lo que dejó cada publicación: ventas, cargos, envíos, publicidad, impuestos y costo del producto. Período: ${esc(nombrePer())}. Montos sin IVA${d.cuentas.some((c) => c.condicion_iva !== "ri") ? " (salvo razones sociales que no son responsables inscriptas)" : ""}.</p></div>
       <div class="fila" style="flex:0 0 auto;gap:8px">${d.cuentas.length > 1 || S.rentCta ? `<select id="rtCta" aria-label="Razón social" style="width:auto"><option value="">Todas las razones sociales</option>${(await rentCuentas()).map((c) => `<option value="${c.cuenta_id}" ${c.cuenta_id === S.rentCta ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select>` : ""}${selPeriodo()}</div></div>
-    ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por el ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Las ventas anteriores a esa fecha todavía no figuran.</p>` : ""}
+    ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por las del ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Hasta que termine, los números de este período pueden estar incompletos.</p>` : ""}
     ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
     ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad no está incluida.</p>` : ""}
     <div class="medidas rt-med">
@@ -8956,6 +8956,7 @@ VISTAS.rent_fiscal = async () => {
 // ---------- Compras ----------
 VISTAS.rent_compras = async () => {
   if (sinEmpRent("Compras")) return;
+  await rentCuentas().catch(() => null);
   if (S.rcEd) return pintarCompra();
   const r = await seguro(() => rApi("rent_compras")); if (!r || S.tab !== "rent_compras") return;
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Compras</h1><p>Importaciones, compras con impuestos y compras sin impuestos. Cada una le da costo a sus productos e insumos desde su fecha.</p></div>
@@ -8996,7 +8997,7 @@ function pintarCompra() {
   const faltaProd = d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).length;
   const trib = {};
   for (const it of d.items_despacho ?? []) for (const t of it.tributos ?? []) { trib[t.codigo] ??= { codigo: t.codigo, nombre: t.nombre || TRIB_NOMBRE[t.codigo] || t.codigo, usd: 0, alics: new Set() }; trib[t.codigo].usd += Number(t.usd) || 0; if (t.alicuota != null) trib[t.codigo].alics.add(t.alicuota); }
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? "" : "Nueva "}${TIPO_COMPRA[c.tipo].toLowerCase().replace(/^./, (x) => x.toUpperCase())}</h1><p>${imp ? "Subí el despacho (y el archivo de subítems, si viene aparte): la app lee los ítems, los tributos y los productos. El precio pagado al fabricante se carga a mano." : conI ? "Datos de la factura de compra. El IVA se recupera si es factura A y la razón social es responsable inscripta." : "Compra sin impuestos: todo lo pagado queda como costo."}</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? TIPO_COMPRA[c.tipo] : "Nueva " + TIPO_COMPRA[c.tipo].toLowerCase()}</h1><p>${imp ? "Subí el despacho (y el archivo de subítems, si viene aparte): la app lee los ítems, los tributos y los productos. El precio pagado al fabricante se carga a mano." : conI ? "Datos de la factura de compra. El IVA se recupera si es factura A y la razón social es responsable inscripta." : "Compra sin impuestos: todo lo pagado queda como costo."}</p></div>
       <div class="fila n" style="gap:8px"><button class="btn lin" id="rcV" type="button">Volver</button>${c.id ? `<button class="btn pel" id="rcB" type="button">Borrar</button>` : ""}<button class="btn pri" id="rcG" type="button">Guardar</button></div></div>
     <div class="panel"><div class="fila">
       <div><label class="et">Fecha</label><input type="date" data-rp="fecha" value="${esc(c.fecha)}"></div>
