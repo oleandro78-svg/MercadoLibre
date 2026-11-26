@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260124";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260149";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1062,6 +1062,9 @@ h3 .te{font-size:13px;margin-left:4px}
 /* Ventas: período, filtros y orden van siempre en una sola fila; si la columna es angosta, el orden queda solo con su ícono */
 #mFil{container-type:inline-size}#mFil>.mas-caja,#mFil>#mFx{flex:none}#mFil>.pend-fila,#mFil>.fx-act{flex-basis:100%}
 @container (max-width:400px){#mFil .ord-txt{display:none}#mFil .ord-der{margin-left:auto!important}}
+/* Despacho: período, Filtrar y orden en una sola línea; si no entra, el orden queda solo con su ícono */
+#dsBarra{container-type:inline-size;flex-wrap:wrap}#dsBarra>.mas-caja,#dsBarra>#dsFx{flex:none}#dsBarra>.fx-act{flex-basis:100%}
+@container (max-width:520px){#dsBarra .ord-txt{display:none}#dsBarra .ord-der{margin-left:auto!important}}
 @container (max-width:250px){#mFil .fx-bt{padding-left:8px;padding-right:8px}}#mFil{column-gap:4px;align-items:center}@media (max-width:960px){#mFil{justify-content:space-between}#mFil .ord-der{margin-left:0}}#mFil .fx-bt{white-space:nowrap;font-size:13px;gap:4px}#mFil .fx-bt svg{width:15px!important;height:15px!important}#mFil .fx-bt{padding:6px 3px}#mFil .fx-bt svg{width:16px;height:16px}
 @media (max-width:960px){#main .cabecera.pv-cab{display:none}#main .cabecera h1,#main .m-cab>h1{display:none}#main .cabecera p{margin-top:0}}
 @media (min-width:961px){.c-tabs .solo-movil{display:none}}@media (max-width:960px){.c-tabs .largo{display:none}.c-tabs{flex-wrap:nowrap;overflow-x:auto}}
@@ -8266,7 +8269,7 @@ VISTAS.despacho = async (op = {}) => {
       <span class="mas-caja"><button type="button" id="dsPl" class="fx-bt" aria-expanded="false" aria-controls="dsPlM">${ICONO_CAL}<span id="dsPlT"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto per-m" id="dsPlM" role="menu" style="top:calc(100% + 6px);bottom:auto">${[["hoy", "Para hoy", "Hay que despacharlos hoy"], ["proximos", "Próximos días", "Se despachan de mañana en adelante"], ["todos", "Todos los plazos", "Todo lo que falta despachar"]].map(([k, t, x]) => `<button type="button" role="menuitemradio" data-pl="${k}"><b>${t} · <span class="n"></span></b><span class="peq mut">${x}</span></button>`).join("")}</span></span>
       <button type="button" id="dsFx" class="fx-bt" aria-haspopup="dialog">${ICONO_M.filtro} Filtrar<span id="dsFxN"></span></button>
-      <span class="mas-caja ord-der"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT"></span> <span aria-hidden="true">⌄</span></button>
+      <span class="mas-caja ord-der"><button type="button" id="dsOrd" class="fx-bt" aria-expanded="false" aria-controls="dsOrdM">${ICONO_ORDEN}<span id="dsOrdT" class="ord-txt"></span> <span aria-hidden="true">⌄</span></button>
         <span class="mas-menu oculto" id="dsOrdM" role="menu" style="top:calc(100% + 6px);bottom:auto;left:auto;right:0">${ORDEN_DS.map(([k, t]) => `<button type="button" role="menuitemradio" data-dord="${k}">${t}</button>`).join("")}</span></span>
       <div class="fx-act" id="dsAct"></div></div>
     ${conCirc ? `<div class="ds-fp" id="dsFp" aria-label="Qué falta"></div>` : ""}
