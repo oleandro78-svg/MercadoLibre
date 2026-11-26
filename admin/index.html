@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611262328";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611262342";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8854,8 +8854,8 @@ VISTAS.rent_productos = async () => {
       <button class="btn pri" id="rpNuevo" type="button">Agregar producto o insumo</button></div>
     <div class="panel" style="padding:10px 14px"><input type="search" id="rpBus" placeholder="Buscar por nombre o código" value="${esc(S.rentProdFil ?? "")}" style="max-width:360px;margin-bottom:6px">
     <div class="tabla-scroll"><table class="tabla apilable"><tr><th>Producto o insumo</th><th>Tipo</th><th>Código</th><th>Se usa por</th><th>Costo por unidad</th><th>Recuperable</th><th>Compras</th><th></th></tr>
-    ${xs.map((p) => `<tr><td><b>${esc(p.nombre)}</b></td><td>${TIPO_PROD[p.tipo] ?? p.tipo}</td><td>${esc(p.codigo ?? "—")}</td><td>${esc(p.unidad)}</td><td>${p.costo == null ? `<span class="rt-falta">sin compras</span>` : pz(p.costo)}</td><td>${p.recuperable ? pz(p.recuperable) : "—"}</td><td>${num(p.compras)}</td>
-      <td><button class="btn chico lin" type="button" data-rpe="${p.id}">Editar</button></td></tr>`).join("")}</table></div>
+    ${xs.map((p) => `<tr><td><b>${esc(p.nombre)}</b></td><td>${TIPO_PROD[p.tipo] ?? p.tipo}</td><td>${esc(p.codigo ?? "—")}</td><td>${esc(p.unidad)}</td><td>${p.costo == null ? `<span class="rt-falta">sin compras</span>` : pz(p.costo) + (p.costo_manual != null ? ` <span class="mut peq">(a mano)</span>` : "")}</td><td>${p.recuperable ? pz(p.recuperable) : "—"}</td><td>${num(p.compras)}</td>
+      <td><button class="btn chico lin" type="button" data-rpe="${p.id}">Editar o cambiar costo</button></td></tr>`).join("")}</table></div>
     ${xs.length ? "" : `<div class="vacio"><b>${r.productos.length ? "No hay coincidencias" : "Todavía no hay productos"}</b>${r.productos.length ? "" : "Agregalos acá o al cargar una compra."}</div>`}</div>`;
   $("#rpBus").oninput = () => { S.rentProdFil = $("#rpBus").value; clearTimeout(S.rpT); S.rpT = setTimeout(() => { VISTAS.rent_productos().then(() => { const b = $("#rpBus"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }); }, 300); };
   $("#rpNuevo").onclick = () => editarProducto(null, () => VISTAS.rent_productos());
@@ -8867,12 +8867,41 @@ function editarProducto(p, alGuardar, nombre = "") {
     <div class="fila"><div><label class="et" for="epT">Tipo</label><select id="epT">${Object.entries(TIPO_PROD).map(([k, t]) => `<option value="${k}" ${k === (p?.tipo ?? "mercaderia") ? "selected" : ""}>${t}</option>`).join("")}</select></div>
       <div><label class="et" for="epU">Se usa por</label><input id="epU" value="${esc(p?.unidad ?? "unidad")}" placeholder="unidad, metro, caja"></div></div>
     <label class="et" for="epC">Código (opcional)</label><input id="epC" value="${esc(p?.codigo ?? "")}" placeholder="El del proveedor o el SKU que usás">
+    <h3 style="font-size:15px;margin:20px 0 4px">Costo</h3>
+    <div id="epCosto"><p class="mut peq">${p ? "Cargando…" : "Se calcula con las compras. También podés cargarlo a mano:"}</p></div>
+    <div class="fila"><div><label class="et" for="epM">Costo por unidad a mano (pesos, sin IVA)</label><input id="epM" inputmode="decimal" value="${p?.costo_manual != null ? nTxt(p.costo_manual) : ""}" placeholder="vacío: el de las compras"></div>
+      <div><label class="et" for="epMD">Desde</label><input id="epMD" type="date" value="${esc(p?.costo_manual_desde ?? "")}"></div></div>
+    <p class="mut peq" style="margin:4px 0 0">Si cargás un costo a mano, desde esa fecha reemplaza al que sale de las compras. Sin fecha, vale para todas las ventas.</p>
     <div class="fila" style="margin-top:18px"><button class="btn pri" id="epG" type="button">Guardar</button>${p ? `<button class="btn pel" id="epB" type="button">Borrar</button>` : ""}</div>`);
   v.querySelector("#epG").onclick = async () => {
-    const r = await seguro(() => rApi("rent_producto_guardar", { id: p?.id, nombre: v.querySelector("#epN").value, tipo: v.querySelector("#epT").value, unidad: v.querySelector("#epU").value, codigo: v.querySelector("#epC").value }));
+    const r = await seguro(() => rApi("rent_producto_guardar", { id: p?.id, nombre: v.querySelector("#epN").value, tipo: v.querySelector("#epT").value, unidad: v.querySelector("#epU").value, codigo: v.querySelector("#epC").value,
+      costo_manual: v.querySelector("#epM").value.trim() === "" ? "" : nAR(v.querySelector("#epM").value), costo_manual_desde: v.querySelector("#epMD").value }));
     if (r) { v.remove(); aviso("Guardado"); alGuardar?.(r.id); }
   };
   if (p) v.querySelector("#epB").onclick = async () => { if (!confirm(`¿Borrar "${p.nombre}"?`)) return; if (await seguro(() => rApi("rent_producto_borrar", { id: p.id }))) { v.remove(); alGuardar?.(); } };
+  if (!p) return;
+  // Precio pagado en cada compra de este producto: se corrige acá mismo (no cambia impuestos ni gastos)
+  const pintarCostos = async () => {
+    const r = await seguro(() => rApi("rent_producto_detalle", { id: p.id })); if (!r) return;
+    const caja = v.querySelector("#epCosto");
+    caja.innerHTML = `<p style="margin:0 0 8px">Costo actual: <b>${r.costo_actual == null ? "sin compras" : pz(r.costo_actual)}</b>${r.recuperable_actual ? ` · recuperable ${pz(r.recuperable_actual)}` : ""}${r.producto.costo_manual != null ? " (cargado a mano)" : ""}</p>
+      ${r.compras.length ? `<div class="tabla-scroll"><table class="tabla peq rt-reng"><tr><th>Compra</th><th>Unidades</th><th>Precio en la factura</th><th>Precio pagado por unidad</th><th>Tipo de cambio</th><th>Costo por unidad</th><th></th></tr>
+        ${r.compras.map((x, k) => `<tr><td>${new Date(x.fecha + "T12:00").toLocaleDateString("es-AR")}<div class="mut">${esc(TIPO_COMPRA[x.tipo])}${x.comprobante ? ` · ${esc(x.comprobante)}` : ""}${x.item ? ` · ítem ${esc(x.item)}` : ""}</div></td><td>${nTxt(x.unidades, 4)}</td>
+          <td class="mut">${x.precio_factura != null && x.precio_factura !== "" ? `${esc(x.moneda ?? "")} ${nTxt(x.precio_factura, 6)}` : "—"}</td>
+          <td><div class="fila" style="gap:4px;flex-wrap:nowrap;align-items:center"><span class="n mut">${esc(x.moneda ?? "ARS")}</span><input data-epp="${k}" inputmode="decimal" value="${nTxt(x.precio_unit, 6)}" style="width:110px"></div></td>
+          <td>${(x.moneda ?? "ARS") === "ARS" ? "—" : `<input data-ept="${k}" inputmode="decimal" value="${nTxt(x.tc, 6)}" style="width:100px">`}</td>
+          <td>${pz(x.costo_unit)}</td><td><button class="btn chico osc" type="button" data-eps="${k}">Guardar precio</button></td></tr>`).join("")}</table></div>
+        <p class="mut peq" style="margin:6px 0 0">Corregir el precio pagado cambia solo el costo del producto; los impuestos, las tasas y los gastos de la compra quedan como se pagaron.</p>` : `<p class="mut peq">Este producto todavía no tiene compras cargadas.</p>`}`;
+    caja.querySelectorAll("[data-eps]").forEach((bt) => bt.onclick = async () => {
+      const k = Number(bt.dataset.eps), x = r.compras[k];
+      const pu = nAR(caja.querySelector(`[data-epp="${k}"]`).value), tcI = caja.querySelector(`[data-ept="${k}"]`);
+      bt.disabled = true;
+      const ok = await seguro(() => rApi("rent_producto_precio", { compra_id: x.compra_id, idx: x.idx, producto_id: p.id, precio_unit: pu, tc: tcI ? nAR(tcI.value) : "" }, 60_000));
+      bt.disabled = false;
+      if (ok) { aviso("Precio corregido"); pintarCostos(); }
+    });
+  };
+  pintarCostos();
 }
 
 // ---------- Qué lleva cada publicación ----------
