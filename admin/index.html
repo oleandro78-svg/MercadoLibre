@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261637";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261638";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8783,7 +8783,7 @@ VISTAS.rentabilidad = async () => {
       <div class="fila" style="flex:0 0 auto;gap:8px">${d.cuentas.length > 1 || S.rentCta ? `<select id="rtCta" aria-label="Razón social" style="width:auto"><option value="">Todas las razones sociales</option>${(await rentCuentas()).map((c) => `<option value="${c.cuenta_id}" ${c.cuenta_id === S.rentCta ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select>` : ""}${selPeriodo()}</div></div>
     ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por las del ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Hasta que termine, los números de este período pueden estar incompletos.</p>` : ""}
     ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
-    ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad no está incluida.</p>` : ""}
+    ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad del período va en costos generales, según la factura de MercadoLibre.</p>` : ""}
     <div class="medidas rt-med">
       <div class="medida"><b>${pz(t.venta + t.devoluciones)}</b><span>vendido neto de devoluciones (${num(t.ventas)} ventas, ${num(t.unidades)} unidades)</span></div>
       <div class="medida"><b class="${signo(t.ganancia)}">${pz(t.ganancia)}</b><span>ganancia de las publicaciones${t.venta ? ` (${String(Math.round(t.ganancia / t.venta * 1000) / 10).replace(".", ",")}% de lo vendido)` : ""}</span></div>
