@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611260223";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611260407";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -816,6 +816,19 @@ input[type=file]{max-width:100%}
 }
 
 .nt-ref[hidden],.c-tabs .chip[hidden]{display:none}
+.din{padding:14px 16px 24px;max-width:640px}.din-res{padding:14px;border-radius:14px;background:var(--sup2)}.din-gran{font-size:30px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+.din-barra{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:12px 0 6px;background:var(--linea)}.din-barra i{display:block}.din-barra .b-q{background:var(--pino)}.din-barra .b-ml{background:var(--piz)}.din-barra .b-env{background:#9AA7B4}.din-barra .b-ot{background:var(--ladrillo)}
+.din-ley{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--piz)}.din-ley span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;background:var(--c)}
+.din-est{margin-top:10px}.din-ret{margin-top:10px;font-size:13.5px;padding:8px 10px;border-radius:10px;display:block}
+.din-sec{margin-top:18px}.din-sec h4{font-size:14px;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}.din-sec h4 small{font-weight:400;color:var(--piz);font-size:12.5px}
+.din-l{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:7px 0;border-top:1px solid var(--linea);font-size:14px}.din-sec h4+.din-l,.din-ev .din-c+.din-l{border-top:0}
+.din-m{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.din-m.neg{color:var(--ladrillo)}.din-m.pos{color:var(--pino-t)}
+.din-d{grid-column:1/-1;font-size:12.5px;color:var(--piz);margin-top:-2px}.din-tot{font-weight:700;border-top:1.5px solid var(--tinta)!important}
+.din-ev{border:1px solid var(--linea);border-radius:12px;padding:10px 12px;margin-top:10px}.din-ev .din-l{font-size:13.5px;padding:5px 0}
+.din-t{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.din-t .din-m{font-weight:700}.din-c{font-size:12.5px;color:var(--piz);margin:2px 0 4px;overflow-wrap:anywhere}
+.din-ev.aparte{border-style:dashed;background:var(--ambar-2)}.din-ev.aparte .din-c{color:var(--ambar-t)}
+.din-ev .lnk{all:unset;cursor:pointer;color:var(--cielo);font-weight:600;font-size:13px;margin-top:4px}
+.din-cp{margin-top:18px;border-top:1px solid var(--linea);padding-top:10px}.din-cp summary{cursor:pointer;font-weight:600;font-size:14px}.din-priv{margin-top:14px}
 .c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
 .rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
 .rec-ficha{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:14px 16px;display:grid;gap:8px;font-size:14px}
@@ -4945,6 +4958,7 @@ function pintarChat(d) {
       ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
       <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
       <button type="button" role="tab" data-ct="factura">Factura</button>
+      ${verDinero(c) ? `<button type="button" role="tab" data-ct="dinero">Dinero</button>` : ""}
       ${c.envio_id || c.estado_orden !== "cancelled" ? `<button type="button" role="tab" data-ct="entrega">Entrega</button>` : ""}
       <button type="button" role="tab" data-ct="venta" class="solo-movil">Historial</button></div>
     <div class="c-pane" id="cpChat">
@@ -4957,6 +4971,7 @@ function pintarChat(d) {
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
     <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
     <div class="c-pane" id="cpFac" hidden><div class="fx" id="cFac"><p class="mut">Cargando…</p></div></div>
+    ${verDinero(c) ? `<div class="c-pane" id="cpDin" hidden><div class="din" id="cDin"><p class="mut">Cargando…</p></div></div>` : ""}
     ${c.envio_id || c.estado_orden !== "cancelled" ? `<div class="c-pane" id="cpEnt" hidden><div class="ent-pane"><div id="mEnt"><p class="peq mut" style="margin:0">${buscandoTxt("Buscando la entrega")}</p></div></div></div>` : ""}
     <div class="c-pane" id="cpVen" hidden></div>`;
   if (movil) { rescatarVen(); $("#cpVen")?.appendChild($("#mVen")); }
@@ -5011,14 +5026,62 @@ function pestConv(t) {
   const c = S.msjConv?.conversacion; if (!c || !$("#cpChat")) return;
   if (t === "reclamo" && !$("#cpRec")) t = "chat";
   if (t === "entrega" && !$("#cpEnt")) t = "chat";
+  if (t === "dinero" && !$("#cpDin")) t = "chat";
   if (t === "venta" && !anchoMovil()) t = "chat";
   S.convTab = S.convTab ?? {}; S.convTab[c.id] = t;
   $("#mChat").querySelectorAll("[data-ct]").forEach((b) => { const on = b.dataset.ct === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
-  $("#cpChat").hidden = t !== "chat"; if ($("#cpRec")) $("#cpRec").hidden = t !== "reclamo"; $("#cpNot").hidden = t !== "notas"; if ($("#cpVen")) $("#cpVen").hidden = t !== "venta"; $("#cpFac").hidden = t !== "factura"; if ($("#cpEnt")) $("#cpEnt").hidden = t !== "entrega";
+  $("#cpChat").hidden = t !== "chat"; if ($("#cpRec")) $("#cpRec").hidden = t !== "reclamo"; $("#cpNot").hidden = t !== "notas"; if ($("#cpVen")) $("#cpVen").hidden = t !== "venta"; $("#cpFac").hidden = t !== "factura"; if ($("#cpEnt")) $("#cpEnt").hidden = t !== "entrega"; if ($("#cpDin")) $("#cpDin").hidden = t !== "dinero";
+  if (t === "dinero" && !$("#cDin").dataset.listo) cargarDinero(c.id);
   if (t === "chat") { const bur = $("#mBur"); if (bur) bur.scrollTop = bur.scrollHeight; }
   if (t === "reclamo" && !$("#cRec").dataset.listo) cargarReclamo(c.id);
   if (t === "factura" && !$("#cFac").dataset.listo) cargarFactura(c.id);
   if (t === "entrega" && $("#mEnt") && !$("#mEnt").dataset.listo) { $("#mEnt").dataset.listo = "1"; if (S.entrega?.id === c.id && S.entrega.e && Date.now() - (S.entrega.at ?? 0) < 60000) pintarEntrega(S.entrega.e, c); else cargarEntrega(c); }
+}
+// ---------- Solapa "Dinero": lo que le quedó al negocio de la venta, con lo que pasó después (solo administradores) ----------
+const verDinero = (c) => dueno() || S.rol === "cliente" || clienteYo(c?.cliente_id)?.rol === "admin";
+const pesosD = (n) => (n < 0 ? "−" : "") + "$" + Math.abs(Number(n)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const lineaD = (l) => `<div class="din-l"><span>${esc(l.etiqueta)}</span><span class="din-m ${l.monto < 0 ? "neg" : l.monto > 0 && l.etiqueta !== "Precio" ? "pos" : ""}">${l.etiqueta === "Precio" ? pesosD(l.monto) : (l.monto > 0 ? "+" : "") + pesosD(l.monto)}</span>${l.detalle ? `<span class="din-d">${esc(l.detalle)}</span>` : ""}</div>`;
+async function cargarDinero(id) {
+  const caja = $("#cDin"); if (!caja) return;
+  caja.innerHTML = `<p class="mut">${buscandoTxt("Buscando el dinero de la venta")}</p>`;
+  const r = await seguro(() => api("venta_dinero", { conversacion_id: id }));
+  if (!r || S.msjConv?.conversacion?.id !== id || !caja.isConnected) return;
+  caja.dataset.listo = "1";
+  if (r.sin_datos) { caja.innerHTML = `<p class="mut">${r.estado_pago ? `El pago está "${esc(r.estado_pago)}": todavía no hay dinero de esta venta.` : "Mercado Pago todavía no tiene movimientos de esta venta."}</p>`; return; }
+  const pct = r.precio ? Math.round((r.quedo / r.precio) * 1000) / 10 : null;
+  const b = r.barra ?? {}; const tot = r.precio || 1;
+  const seg = (v, cl) => v > 0 ? `<i class="${cl}" style="width:${Math.min(100, (v / tot) * 100).toFixed(2)}%"></i>` : "";
+  const barraOk = r.quedo >= 0 && b.ml >= 0 && b.envio >= 0 && b.otros >= -0.01;
+  const estado = r.estado === "liberado" ? `Liberado en Mercado Pago el ${diaMes(r.liberado_at)}` : r.estado === "a_liberar" ? `A liberar${r.libera_at ? ` el ${diaMes(r.libera_at)}` : ""}` : "Liberado en Mercado Pago";
+  const reclamoTxt = (rc) => rc ? `reclamo n.º ${esc(rc.id)}${rc.problema ? ` · ${esc(rc.problema)}` : ""}${rc.titulo ? ` · ${esc(rc.titulo)}` : ""}` : "";
+  const ev = (e) => `<div class="din-ev ${e.aparte ? "aparte" : ""}">
+    <div class="din-t"><b>${esc(e.titulo)}</b><span class="din-m ${e.neto < 0 ? "neg" : "pos"}">${e.neto > 0 ? "+" : ""}${pesosD(e.neto)}</span></div>
+    <div class="din-c">${esc(diaMes(e.fecha))}${e.reclamo ? ` · ${reclamoTxt(e.reclamo)}` : ""}</div>
+    ${e.aparte ? `<div class="din-c">${esc(e.aparte)}</div>` : ""}
+    ${e.lineas.length > 1 || (e.lineas[0] && Math.abs(e.lineas[0].monto - e.neto) > 0.009) ? e.lineas.map(lineaD).join("") : ""}
+    ${e.reclamo ? `<button type="button" class="lnk" data-ct-ir="reclamo">Ver el reclamo</button>` : ""}</div>`;
+  const cp = r.comprador;
+  caja.innerHTML = `<div class="din-res">
+      <div class="mut peq">${r.provisorio ? "Te va a quedar de esta venta" : "Te quedó de esta venta"}</div>
+      <div class="din-gran">${pesosD(r.quedo)}</div>
+      ${pct !== null ? `<div class="mut peq">${String(pct).replace(".", ",")}% de los ${pesosD(r.precio)} del precio</div>` : ""}
+      ${barraOk ? `<div class="din-barra" aria-hidden="true">${seg(r.quedo, "b-q")}${seg(b.ml, "b-ml")}${seg(b.envio, "b-env")}${seg(b.otros, "b-ot")}</div>
+      <div class="din-ley"><span style="--c:var(--pino)">Te quedó</span><span style="--c:var(--piz)">MercadoLibre e impuestos</span><span style="--c:#9AA7B4">Envío</span>${b.otros > 0.009 ? `<span style="--c:var(--ladrillo)">Devoluciones y otros</span>` : ""}</div>` : ""}
+      <span class="chip ${r.estado === "a_liberar" ? "c-cal" : "c-ok"} din-est">${esc(estado)}</span>
+      ${r.retenido ? `<div class="estado e-mot din-ret">${pesosD(Math.abs(r.retenido))} retenidos por un reclamo o devolución en curso. Vuelven o se descuentan según cómo se resuelva.</div>` : ""}
+    </div>
+    <div class="din-sec"><h4>Cuando se vendió <small>${esc(diaMes(r.vendido_at))}</small></h4>${r.venta.map(lineaD).join("")}
+      <div class="din-l din-tot"><span>${r.provisorio && r.estado === "a_liberar" ? "A cobrar" : "Cobrado"}</span><span class="din-m">${pesosD(r.cobrado)}</span></div></div>
+    ${r.eventos.length ? `<div class="din-sec"><h4>Después de la venta <small>${r.eventos.length === 1 ? "1 movimiento" : r.eventos.length + " movimientos"}</small></h4>${r.eventos.map(ev).join("")}</div>` : ""}
+    ${cp ? `<details class="din-cp"><summary>Lo que pagó el comprador</summary>
+      ${lineaD({ etiqueta: "Precio", monto: cp.precio })}
+      ${cp.intereses ? `<div class="din-l"><span>Intereses de ${cp.cuotas} cuotas</span><span class="din-m">+${pesosD(cp.intereses)}</span><span class="din-d">Los cobra Mercado Pago, no pasan por tu cuenta</span></div>` : ""}
+      ${cp.cupon_ml ? `<div class="din-l"><span>Cupón de MercadoLibre</span><span class="din-m">−${pesosD(cp.cupon_ml)}</span><span class="din-d">Lo paga MercadoLibre, no vos</span></div>` : ""}
+      <div class="din-l din-tot"><span>Pagó</span><span class="din-m">${pesosD(cp.pago)}</span></div>
+      ${cp.le_devolvieron ? `<div class="din-l"><span>Le devolvieron</span><span class="din-m">${pesosD(cp.le_devolvieron)}</span>${Math.abs(cp.le_devolvieron - cp.devuelto_precio) > 0.009 ? `<span class="din-d">${pesosD(cp.devuelto_precio)} del precio y ${pesosD(cp.le_devolvieron - cp.devuelto_precio)} de intereses u otros cargos que había pagado</span>` : ""}</div>` : ""}
+    </details>` : ""}
+    <p class="din-priv mut peq">${r.provisorio && r.estado === "a_liberar" ? "Montos según el pago: pueden cambiar hasta que se libere. " : ""}Solo lo ven los administradores del negocio.</p>`;
+  caja.querySelectorAll("[data-ct-ir]").forEach((x) => x.onclick = () => pestConv(x.dataset.ctIr));
 }
 // ---------- Solapa "Factura": datos para facturar, la factura cargada en MercadoLibre (en miniatura) y lo vendido ----------
 const pdfJs = async () => { const l = await cargarScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js", "pdfjsLib"); l.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; return l; };
