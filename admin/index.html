@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261336";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261630";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -403,6 +403,17 @@ input[type=file]{max-width:100%}
 .barras .b{flex:1;min-width:2px;height:100%;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden}
 .barras .b i{display:block;min-height:2px}
 .ejes{display:flex;justify-content:space-between;font-size:12.5px;color:var(--piz);margin-top:6px}
+.rt-nota{background:var(--ambar-2,#FDF1D9);color:var(--ambar-t,#6B4A05);border-radius:10px;padding:8px 12px;font-size:13.5px;margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rt-neg{color:var(--ladrillo)}.rt-pos{color:var(--pino-t)}.rt-falta{color:var(--ambar-t,#6B4A05);font-weight:600}
+.rt-tabla{min-width:1180px;font-variant-numeric:tabular-nums}.rt-tabla td,.rt-tabla th{text-align:right;white-space:nowrap;vertical-align:middle}.rt-tabla td:first-child,.rt-tabla th:first-child{text-align:left;white-space:normal;min-width:260px}
+.rt-tabla tr.rt-tot td{border-top:2px solid var(--tinta);font-weight:600}.rt-det>td{background:var(--papel);text-align:left!important;white-space:normal!important}
+.rt-pub{display:flex;gap:10px;align-items:center}.rt-foto{width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none;background:var(--sup2)}.rt-foto.sin{font-size:0}
+.rt-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;padding:6px 4px}.rt-g>b{display:block;font-size:13px;margin-bottom:4px}
+.rt-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--linea);font-size:13.5px;font-variant-numeric:tabular-nums}.rt-l>span:last-child{white-space:nowrap}.rt-l.rt-t{font-weight:700;border-top:1.5px solid var(--tinta)}
+.rt-dos{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rt-med .medida b{font-variant-numeric:tabular-nums}
+.rt-reng td{vertical-align:middle}.rt-reng select{min-width:180px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
+.rt-radio{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px}.rt-radio label{display:flex;gap:6px;align-items:center}
+@media(max-width:700px){.rt-med{grid-template-columns:1fr 1fr}}
 .tabla-scroll{overflow-x:auto}
 .tabla.rd{min-width:820px}.tabla.rd td{vertical-align:middle}
 .rd-p{display:flex;gap:10px;align-items:center}
@@ -1590,10 +1601,11 @@ async function recargar() {
 }
 // Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
 const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
-  ["conocimiento", "Conocimiento"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
+  ["conocimiento", "Conocimiento"], ["rentabilidad", "Rentabilidad"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
+  rentabilidad: [["rentabilidad", "Tablero"], ["rent_compras", "Compras"], ["rent_productos", "Productos e insumos"], ["rent_publicaciones", "Qué lleva cada publicación"], ["rent_fiscal", "Configuración fiscal"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
   cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["uso", "Plan y uso"]],
 };
@@ -8738,6 +8750,437 @@ function abrirDesdeEnlace(h) {
   return false;
 }
 // Pantallas a las que se puede volver al actualizar la página, según quién entró y qué módulos tiene
+// ================= RENTABILIDAD (administrador del negocio y dueño de la app) =================
+const empRent = () => S.rol === "admin" ? S.empSel : null;
+const rApi = (accion, datos = {}) => api(accion, { cliente_id: empRent(), ...datos });
+const sinEmpRent = (titulo) => { if (S.rol === "admin" && !S.empSel) { $("#main").innerHTML = `<div class="cabecera"><div><h1>${titulo}</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return true; } return false; };
+const pz = (n) => n == null || n === "" ? "—" : pesosD(Number(n));
+const nAR = (s) => { if (s == null) return 0; const t = String(s).trim(); if (!t) return 0; return Number(/,\d{1,6}$/.test(t) || /\.\d{3}(\.|,|$)/.test(t) ? t.replace(/\./g, "").replace(",", ".") : t.replace(",", ".")) || 0; };
+const nTxt = (n, d = 2) => n == null || n === "" ? "" : Number(n).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: d });
+const signo = (n) => Number(n) < 0 ? "rt-neg" : Number(n) > 0 ? "rt-pos" : "";
+const TIPO_COMPRA = { importacion: "Importación", con_impuestos: "Compra con impuestos", sin_impuestos: "Compra sin impuestos" };
+const TIPO_PROD = { mercaderia: "Mercadería", embalaje: "Embalaje", otro: "Otro" };
+const TRATOS = [["costo", "Costo"], ["iva", "Crédito fiscal IVA"], ["a_cuenta_iva", "A cuenta de IVA"], ["ganancias", "A cuenta de Ganancias"], ["iibb", "A cuenta de Ingresos Brutos"], ["otro_recuperable", "Otro recuperable"]];
+const optsTrato = (v) => TRATOS.map(([k, t]) => `<option value="${k}" ${k === v ? "selected" : ""}>${t}</option>`).join("");
+const TRIB_NOMBRE = { "010": "Derechos de importación", "011": "Tasa de estadística", "061": "Tasa de estadística (monto máximo)", "500": "Arancel SIM", "415": "IVA", "422": "IVA adicional (percepción)", "424": "Percepción de Ganancias", "900": "Percepción de Ingresos Brutos", "096": "Pago a cuenta Impuesto PAIS" };
+const TRIB_TRATO = { "010": "costo", "011": "costo", "061": "costo", "500": "costo", "415": "iva", "422": "a_cuenta_iva", "424": "ganancias", "900": "iibb", "096": "ganancias" };
+const DET_RENT = { venta: "Ventas", devuelto: "Devoluciones de dinero", reclamos: "Reclamos y mediaciones", comision: "Cargos por vender", financiacion: "Costo por ofrecer cuotas", cupon: "Cupones a tu cargo", cargos_a_liberar: "Cargos (ventas sin liberar)",
+  envio_cobrado: "Envíos a tu cargo", bonif_envio: "Bonificaciones de envío", factura_venta: "Cargos de la factura de MercadoLibre", publicidad: "Publicidad (Product Ads)",
+  imp_dyc: "Impuesto a los débitos y créditos", imp_iibb: "Retenciones de Ingresos Brutos", imp_ganancias: "Retenciones de Ganancias", imp_iva: "Retenciones de IVA", imp_otros: "Impuestos sin detallar" };
+
+// ---------- Tablero ----------
+VISTAS.rentabilidad = async () => {
+  if (sinEmpRent("Rentabilidad")) return;
+  const { desde, hasta } = rangoPer();
+  const d = await seguro(() => rApi("rent_tablero", { desde, hasta, cuenta_id: S.rentCta || null }));
+  if (!d || S.tab !== "rentabilidad") return;
+  if (d.sin_cuentas) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad</h1></div></div><div class="vacio"><b>No hay cuentas de MercadoLibre conectadas</b></div>`; return; }
+  const t = d.totales, hist = d.historial.filter((h) => !h.completo);
+  const ivaNeto = t.iva_debito - t.iva_credito - t.iva_retenido;
+  const col = (v) => `<td class="${signo(v)}">${pz(v)}</td>`;
+  const filas = d.filas;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Lo que dejó cada publicación: ventas, cargos, envíos, publicidad, impuestos y costo del producto. Período: ${esc(nombrePer())}. Montos sin IVA${d.cuentas.some((c) => c.condicion_iva !== "ri") ? " (salvo razones sociales que no son responsables inscriptas)" : ""}.</p></div>
+      <div class="fila" style="flex:0 0 auto;gap:8px">${d.cuentas.length > 1 || S.rentCta ? `<select id="rtCta" aria-label="Razón social" style="width:auto"><option value="">Todas las razones sociales</option>${(await rentCuentas()).map((c) => `<option value="${c.cuenta_id}" ${c.cuenta_id === S.rentCta ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select>` : ""}${selPeriodo()}</div></div>
+    ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por el ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Las ventas anteriores a esa fecha todavía no figuran.</p>` : ""}
+    ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
+    ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad no está incluida.</p>` : ""}
+    <div class="medidas rt-med">
+      <div class="medida"><b>${pz(t.venta + t.devoluciones)}</b><span>vendido neto de devoluciones (${num(t.ventas)} ventas, ${num(t.unidades)} unidades)</span></div>
+      <div class="medida"><b class="${signo(t.ganancia)}">${pz(t.ganancia)}</b><span>ganancia de las publicaciones${t.venta ? ` (${String(Math.round(t.ganancia / t.venta * 1000) / 10).replace(".", ",")}% de lo vendido)` : ""}</span></div>
+      <div class="medida"><b class="${signo(t.generales)}">${pz(t.generales)}</b><span>costos generales del período (no se reparten)</span></div>
+      <div class="medida"><b class="${signo(t.resultado)}">${pz(t.resultado)}</b><span>resultado del negocio</span></div>
+    </div>
+    ${t.a_cobrar || t.estimadas ? `<p class="mut peq" style="margin:10px 0 0">${t.a_cobrar ? `${num(t.a_cobrar)} ventas todavía no se liberaron: se usan los montos del reporte de liquidaciones de Mercado Pago. ` : ""}${t.estimadas ? `${num(t.estimadas)} ventas todavía no figuran en Mercado Pago: se usa lo que dice la venta.` : ""}${t.retenido ? ` Hay ${pz(t.retenido)} retenidos por reclamos.` : ""}</p>` : ""}
+    <div class="panel" style="margin-top:16px;padding:6px 10px"><div class="tabla-scroll"><table class="tabla rt-tabla">
+      <tr><th>Publicación</th><th>Unid.</th><th>Vendido</th><th>Devoluciones</th><th>Cargos ML</th><th>Envíos</th><th>Publicidad</th><th>Factura ML</th><th>Impuestos</th><th>Costo producto</th><th>Ganancia</th><th>Margen</th></tr>
+      ${filas.map((f, i) => `<tr class="fila-click" data-rf="${i}" tabindex="0"><td><div class="rt-pub">${foto(f.thumbnail, "rt-foto")}<div><b>${esc(f.titulo)}</b><div class="peq mut">${esc(f.item_id)}${f.sin_costo ? ` · <span class="rt-falta">${num(f.sin_costo)} sin costo</span>` : ""}</div></div></div></td>
+        <td>${num(f.unidades)}</td>${col(f.venta)}${col(f.devoluciones)}${col(f.cargos)}${col(f.envios)}${col(f.publicidad)}${col(f.factura)}${col(f.impuestos)}${col(f.costo)}<td class="${signo(f.ganancia)}"><b>${pz(f.ganancia)}</b></td><td>${f.margen == null ? "—" : String(f.margen).replace(".", ",") + "%"}</td></tr>
+        <tr class="rt-det oculto" data-rd="${i}"><td colspan="12"></td></tr>`).join("")}
+      <tr class="rt-tot"><td><b>Total</b></td><td>${num(t.unidades)}</td>${col(t.venta)}${col(t.devoluciones)}${col(t.cargos)}${col(t.envios)}${col(t.publicidad)}${col(t.factura)}${col(t.impuestos)}${col(t.costo)}<td class="${signo(t.ganancia)}"><b>${pz(t.ganancia)}</b></td><td></td></tr>
+    </table></div>${filas.length ? "" : `<div class="vacio"><b>No hay ventas en este período</b></div>`}</div>
+    <div class="grilla rt-dos" style="margin-top:16px">
+      <div class="panel"><h2>Costos generales</h2><p class="mut peq" style="margin:0 0 8px">De la factura de MercadoLibre, sin venta ni publicación: colecta y almacenamiento de Full, mantenimiento de la tienda y otros. No se reparten entre publicaciones.</p>
+        ${d.generales.length ? d.generales.map((g) => `<div class="rt-l"><span>${esc(g.concepto)}</span><span class="${signo(g.monto)}">${pz(g.monto)}</span></div>`).join("") + `<div class="rt-l rt-t"><span>Total</span><span class="${signo(t.generales)}">${pz(t.generales)}</span></div>` : `<p class="mut">No hubo en el período.</p>`}</div>
+      <div class="panel"><h2>Impuestos</h2><p class="mut peq" style="margin:0 0 8px">Lo que se recupera no está en la ganancia: es IVA o pagos a cuenta de otros impuestos.</p>
+        <div class="rt-l"><span>IVA de las ventas (débito)</span><span>${pz(t.iva_debito)}</span></div>
+        <div class="rt-l"><span>IVA de cargos, envíos, publicidad y factura de MercadoLibre (crédito)</span><span>${pz(-t.iva_credito)}</span></div>
+        ${t.iva_retenido ? `<div class="rt-l"><span>Retenciones de IVA</span><span>${pz(-t.iva_retenido)}</span></div>` : ""}
+        <div class="rt-l rt-t"><span>IVA de las ventas menos créditos de MercadoLibre</span><span>${pz(ivaNeto)}</span></div>
+        <div class="rt-l"><span>Recuperable del costo de los productos (IVA de compras, percepciones de importación)</span><span class="rt-pos">${pz(t.costo_recuperable)}</span></div>
+        <div class="rt-l"><span>Retenciones de Ingresos Brutos (a cuenta)</span><span class="rt-pos">${pz(t.rec_iibb)}</span></div>
+        <div class="rt-l"><span>Débitos y créditos y retenciones a cuenta de Ganancias</span><span class="rt-pos">${pz(t.rec_ganancias)}</span></div>
+        ${d.percepciones_ml.length ? `<h3 class="peq" style="margin:14px 0 4px">Percepciones de la factura de MercadoLibre (a cuenta)</h3>${d.percepciones_ml.map((x) => `<div class="rt-l"><span>${esc(x.concepto)}</span><span class="rt-pos">${pz(x.monto)}</span></div>`).join("")}` : ""}
+      </div>
+    </div>`;
+  enlazarPeriodo(VISTAS.rentabilidad);
+  if ($("#rtCta")) $("#rtCta").onchange = () => { S.rentCta = $("#rtCta").value || null; VISTAS.rentabilidad(); };
+  if ($("#rtIrComp")) $("#rtIrComp").onclick = () => ir("rent_publicaciones");
+  $("#main").querySelectorAll("tr[data-rf]").forEach((tr) => tr.onclick = () => {
+    const i = Number(tr.dataset.rf), det = $(`#main tr[data-rd="${i}"]`);
+    if (!det.classList.contains("oculto")) { det.classList.add("oculto"); tr.classList.remove("on"); return; }
+    det.firstElementChild.innerHTML = detalleRent(filas[i]); det.classList.remove("oculto"); tr.classList.add("on");
+    det.querySelector("[data-rcomp]")?.addEventListener("click", () => { S.rentPubFil = filas[i].item_id; ir("rent_publicaciones"); });
+  });
+};
+function detalleRent(f) {
+  const ks = Object.entries(f.detalle).filter(([, v]) => Math.abs(v) >= 0.01);
+  const grupo = (tit, filtro) => { const xs = ks.filter(([k]) => filtro(k)); return xs.length ? `<div class="rt-g"><b>${tit}</b>${xs.map(([k, v]) => `<div class="rt-l"><span>${esc(k.startsWith("prod_") ? k.slice(5) : k.startsWith("fsv_") ? k.slice(4) : DET_RENT[k] ?? k)}</span><span class="${signo(v)}">${pz(v)}</span></div>`).join("")}</div>` : ""; };
+  return `<div class="rt-detalle">
+    ${grupo("Ventas y devoluciones", (k) => ["venta", "devuelto", "reclamos"].includes(k))}
+    ${grupo("MercadoLibre y Mercado Pago", (k) => ["comision", "financiacion", "cupon", "cargos_a_liberar", "envio_cobrado", "bonif_envio", "factura_venta", "publicidad"].includes(k) || k.startsWith("fsv_"))}
+    ${grupo("Impuestos de los cobros", (k) => k.startsWith("imp_"))}
+    ${grupo("Costo del producto", (k) => k.startsWith("prod_"))}
+    <div class="rt-g"><b>Variantes vendidas</b>${f.variantes.map((v) => `<div class="rt-l"><span>${esc(v.atributos || "Sin variante")}${v.sku ? ` · SKU ${esc(v.sku)}` : ""}${v.con_costo ? "" : ` · <span class="rt-falta">sin costo</span>`}</span><span>${num(v.unidades)} u.</span></div>`).join("") || `<p class="mut peq">—</p>`}
+      <button class="btn chico lin" type="button" data-rcomp style="margin-top:8px">Ver qué lleva</button></div>
+    <div class="rt-g"><b>Lo que se recupera</b>
+      <div class="rt-l"><span>IVA de la venta (débito)</span><span>${pz(f.iva_debito)}</span></div>
+      <div class="rt-l"><span>IVA de cargos de MercadoLibre (crédito)</span><span>${pz(-f.iva_credito)}</span></div>
+      <div class="rt-l"><span>Ingresos Brutos a cuenta</span><span>${pz(f.rec_iibb)}</span></div>
+      <div class="rt-l"><span>A cuenta de Ganancias</span><span>${pz(f.rec_ganancias)}</span></div>
+      <div class="rt-l"><span>Recuperable del costo del producto</span><span>${pz(f.costo_recuperable)}</span></div></div>
+  </div>`;
+}
+async function rentCuentas() { S.rentCfg ??= (await rApi("rent_config")).cuentas; return S.rentCfg; }
+
+// ---------- Productos e insumos ----------
+VISTAS.rent_productos = async () => {
+  if (sinEmpRent("Productos e insumos")) return;
+  const r = await seguro(() => rApi("rent_productos")); if (!r || S.tab !== "rent_productos") return;
+  S.rentProds = r.productos;
+  const fil = (S.rentProdFil ?? "").toLowerCase();
+  const xs = r.productos.filter((p) => !fil || `${p.nombre} ${p.codigo ?? ""}`.toLowerCase().includes(fil));
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Productos e insumos</h1><p>Todo lo que se compra: mercadería, cajas, relleno, cinta. El costo sale de las compras cargadas (promedio ponderado).</p></div>
+      <button class="btn pri" id="rpNuevo" type="button">Agregar producto o insumo</button></div>
+    <div class="panel" style="padding:10px 14px"><input type="search" id="rpBus" placeholder="Buscar por nombre o código" value="${esc(S.rentProdFil ?? "")}" style="max-width:360px;margin-bottom:6px">
+    <div class="tabla-scroll"><table class="tabla apilable"><tr><th>Producto o insumo</th><th>Tipo</th><th>Código</th><th>Se usa por</th><th>Costo por unidad</th><th>Recuperable</th><th>Compras</th><th></th></tr>
+    ${xs.map((p) => `<tr><td><b>${esc(p.nombre)}</b></td><td>${TIPO_PROD[p.tipo] ?? p.tipo}</td><td>${esc(p.codigo ?? "—")}</td><td>${esc(p.unidad)}</td><td>${p.costo == null ? `<span class="rt-falta">sin compras</span>` : pz(p.costo)}</td><td>${p.recuperable ? pz(p.recuperable) : "—"}</td><td>${num(p.compras)}</td>
+      <td><button class="btn chico lin" type="button" data-rpe="${p.id}">Editar</button></td></tr>`).join("")}</table></div>
+    ${xs.length ? "" : `<div class="vacio"><b>${r.productos.length ? "No hay coincidencias" : "Todavía no hay productos"}</b>${r.productos.length ? "" : "Agregalos acá o al cargar una compra."}</div>`}</div>`;
+  $("#rpBus").oninput = () => { S.rentProdFil = $("#rpBus").value; clearTimeout(S.rpT); S.rpT = setTimeout(() => { VISTAS.rent_productos().then(() => { const b = $("#rpBus"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }); }, 300); };
+  $("#rpNuevo").onclick = () => editarProducto(null, () => VISTAS.rent_productos());
+  $("#main").querySelectorAll("[data-rpe]").forEach((b) => b.onclick = () => editarProducto(r.productos.find((p) => String(p.id) === b.dataset.rpe), () => VISTAS.rent_productos()));
+};
+function editarProducto(p, alGuardar, nombre = "") {
+  const v = cajon(`<div class="cab"><h2>${p ? "Editar" : "Agregar"} producto o insumo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <label class="et" for="epN">Nombre</label><input id="epN" value="${esc(p?.nombre ?? nombre)}" maxlength="160">
+    <div class="fila"><div><label class="et" for="epT">Tipo</label><select id="epT">${Object.entries(TIPO_PROD).map(([k, t]) => `<option value="${k}" ${k === (p?.tipo ?? "mercaderia") ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+      <div><label class="et" for="epU">Se usa por</label><input id="epU" value="${esc(p?.unidad ?? "unidad")}" placeholder="unidad, metro, caja"></div></div>
+    <label class="et" for="epC">Código (opcional)</label><input id="epC" value="${esc(p?.codigo ?? "")}" placeholder="El del proveedor o el SKU que usás">
+    <div class="fila" style="margin-top:18px"><button class="btn pri" id="epG" type="button">Guardar</button>${p ? `<button class="btn pel" id="epB" type="button">Borrar</button>` : ""}</div>`);
+  v.querySelector("#epG").onclick = async () => {
+    const r = await seguro(() => rApi("rent_producto_guardar", { id: p?.id, nombre: v.querySelector("#epN").value, tipo: v.querySelector("#epT").value, unidad: v.querySelector("#epU").value, codigo: v.querySelector("#epC").value }));
+    if (r) { v.remove(); aviso("Guardado"); alGuardar?.(r.id); }
+  };
+  if (p) v.querySelector("#epB").onclick = async () => { if (!confirm(`¿Borrar "${p.nombre}"?`)) return; if (await seguro(() => rApi("rent_producto_borrar", { id: p.id }))) { v.remove(); alGuardar?.(); } };
+}
+
+// ---------- Qué lleva cada publicación ----------
+VISTAS.rent_publicaciones = async () => {
+  if (sinEmpRent("Qué lleva cada publicación")) return;
+  const [r, pr] = await Promise.all([seguro(() => rApi("rent_publicaciones", { cuenta_id: S.rentCta || null })), seguro(() => rApi("rent_productos"))]);
+  if (!r || !pr || S.tab !== "rent_publicaciones") return;
+  S.rentProds = pr.productos;
+  const prod = new Map(pr.productos.map((p) => [Number(p.id), p]));
+  const fil = (S.rentPubFil ?? "").toLowerCase(), soloFalta = !!S.rentPubFalta;
+  const xs = r.publicaciones.filter((x) => (!fil || `${x.titulo} ${x.item_id} ${x.sku ?? ""} ${x.atributos ?? ""}`.toLowerCase().includes(fil)) && (!soloFalta || !x.componentes.length));
+  const costoDe = (cs) => cs.reduce((a, c) => { const p = prod.get(Number(c.producto_id)); return p?.costo == null || a == null ? null : a + p.costo * c.cantidad; }, 0);
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Qué lleva cada publicación</h1><p>Los productos e insumos que se usan en cada venta (por variante). Con esto se calcula el costo de cada venta.</p></div></div>
+    <div class="panel" style="padding:10px 14px"><div class="fila" style="align-items:center;margin-bottom:6px"><input type="search" id="rcBus" placeholder="Buscar por título, código o SKU" value="${esc(S.rentPubFil ?? "")}" style="max-width:360px">
+      <label class="n peq" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="rcFalta" ${soloFalta ? "checked" : ""}> Solo las que faltan</label></div>
+    <div class="tabla-scroll"><table class="tabla apilable"><tr><th>Publicación y variante</th><th>Vendidas (último año)</th><th>Lleva</th><th>Costo por venta</th><th></th></tr>
+    ${xs.slice(0, 300).map((x) => { const c = costoDe(x.componentes); const k = r.publicaciones.indexOf(x); return `<tr><td><div class="rt-pub">${foto(x.thumbnail, "rt-foto")}<div><b>${esc(x.titulo)}</b><div class="peq mut">${esc(x.item_id)}${x.atributos ? ` · ${esc(x.atributos)}` : ""}${x.sku ? ` · SKU ${esc(x.sku)}` : ""}</div></div></div></td>
+      <td>${num(x.unidades)}</td><td>${x.componentes.length ? x.componentes.map((cp) => `${nTxt(cp.cantidad)} × ${esc(prod.get(Number(cp.producto_id))?.nombre ?? "?")}`).join("<br>") : `<span class="rt-falta">falta cargar</span>`}</td>
+      <td>${x.componentes.length ? (c == null ? `<span class="rt-falta">falta la compra</span>` : pz(c)) : "—"}</td><td><button class="btn chico lin" type="button" data-rce="${k}">Editar</button></td></tr>`; }).join("")}</table></div>
+    ${xs.length > 300 ? `<p class="mut peq">Se muestran 300 de ${num(xs.length)}. Buscá para ver las demás.</p>` : ""}${xs.length ? "" : `<div class="vacio"><b>No hay publicaciones para mostrar</b>Aparecen a medida que se trae el historial de ventas.</div>`}</div>`;
+  $("#rcBus").oninput = () => { S.rentPubFil = $("#rcBus").value; clearTimeout(S.rcT); S.rcT = setTimeout(() => VISTAS.rent_publicaciones().then(() => { const b = $("#rcBus"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }), 300); };
+  $("#rcFalta").onchange = () => { S.rentPubFalta = $("#rcFalta").checked; VISTAS.rent_publicaciones(); };
+  $("#main").querySelectorAll("[data-rce]").forEach((b) => b.onclick = () => editarComposicion(r.publicaciones[Number(b.dataset.rce)], r.publicaciones));
+};
+function editarComposicion(x, todas) {
+  const hermanas = todas.filter((y) => y.item_id === x.item_id && y.cuenta_id === x.cuenta_id && y.variacion !== x.variacion);
+  let comps = x.componentes.map((c) => ({ ...c }));
+  if (!comps.length && x.sku) {
+    // Sugerencia: el SKU suele tener los códigos de lo que lleva (por ejemplo "b2472.b1100")
+    const cods = String(x.sku).toLowerCase().split(/[.+\/,;\s]+/).filter(Boolean);
+    for (const c of cods) { const p = S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === c); if (p) comps.push({ producto_id: p.id, cantidad: 1 }); }
+  }
+  if (!comps.length) comps.push({ producto_id: "", cantidad: 1 });
+  const v = cajon(`<div class="cab"><h2>Qué lleva</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <p style="margin:0"><b>${esc(x.titulo)}</b></p><p class="mut peq" style="margin:2px 0 10px">${esc(x.item_id)}${x.atributos ? ` · ${esc(x.atributos)}` : ""}${x.sku ? ` · SKU ${esc(x.sku)}` : ""}</p>
+    <div id="ecL"></div><button class="btn chico lin" id="ecA" type="button" style="margin-top:8px">+ Agregar componente</button>
+    <label class="et" for="ecI">IVA de la venta</label><select id="ecI" style="max-width:260px"><option value="">El de la razón social</option>${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${String(x.iva_venta ?? "") === String(n) ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select>
+    ${hermanas.length ? `<label class="peq" style="display:flex;gap:8px;align-items:center;margin-top:14px"><input type="checkbox" id="ecT"> Aplicar también a las otras ${hermanas.length} variantes de esta publicación</label>` : ""}
+    <p class="mut peq">Si una venta es de varias unidades, se multiplica todo. Lo que no está en la lista se agrega desde "Agregar producto o insumo".</p>
+    <div class="fila" style="margin-top:14px"><button class="btn pri" id="ecG" type="button">Guardar</button></div>`);
+  const pintar = () => {
+    v.querySelector("#ecL").innerHTML = comps.map((c, i) => `<div class="fila rt-comp" style="align-items:center;margin-top:6px"><select data-ecp="${i}" aria-label="Producto o insumo"><option value="">Elegí…</option>${S.rentProds.map((p) => `<option value="${p.id}" ${String(p.id) === String(c.producto_id) ? "selected" : ""}>${esc(p.nombre)}${p.codigo ? ` (${esc(p.codigo)})` : ""}</option>`).join("")}<option value="nuevo">+ Agregar producto o insumo…</option></select>
+      <input class="n" style="width:90px" inputmode="decimal" data-ecc="${i}" value="${nTxt(c.cantidad, 4)}" aria-label="Cantidad por venta"><button class="btn pel chico n" type="button" data-ecq="${i}" aria-label="Quitar">Quitar</button></div>`).join("");
+    v.querySelectorAll("[data-ecp]").forEach((s) => s.onchange = () => {
+      const i = Number(s.dataset.ecp);
+      if (s.value === "nuevo") { editarProducto(null, async (id) => { S.rentProds = (await rApi("rent_productos")).productos; if (id) comps[i].producto_id = id; pintar(); }); s.value = comps[i].producto_id; return; }
+      comps[i].producto_id = s.value;
+    });
+    v.querySelectorAll("[data-ecc]").forEach((s) => s.oninput = () => { comps[Number(s.dataset.ecc)].cantidad = nAR(s.value); });
+    v.querySelectorAll("[data-ecq]").forEach((s) => s.onclick = () => { comps.splice(Number(s.dataset.ecq), 1); pintar(); });
+  };
+  pintar();
+  v.querySelector("#ecA").onclick = () => { comps.push({ producto_id: "", cantidad: 1 }); pintar(); };
+  v.querySelector("#ecG").onclick = async () => {
+    const variaciones = [x.variacion, ...(v.querySelector("#ecT")?.checked ? hermanas.map((h) => h.variacion) : [])];
+    const r = await seguro(() => rApi("rent_composicion_guardar", { cuenta_id: x.cuenta_id, item_id: x.item_id, variaciones, componentes: comps.filter((c) => c.producto_id && c.cantidad > 0), iva_venta: v.querySelector("#ecI").value }));
+    if (r) { v.remove(); aviso("Guardado"); VISTAS.rent_publicaciones(); }
+  };
+}
+
+// ---------- Configuración fiscal por razón social ----------
+VISTAS.rent_fiscal = async () => {
+  if (sinEmpRent("Configuración fiscal")) return;
+  const r = await seguro(() => rApi("rent_config")); if (!r || S.tab !== "rent_fiscal") return;
+  S.rentCfg = r.cuentas;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Configuración fiscal</h1><p>Por razón social. Con esto se decide qué impuestos se recuperan y cuáles son costo.</p></div></div>
+    ${r.cuentas.map((c) => `<div class="panel" data-rfc="${c.cuenta_id}"><h2>${esc(c.nombre)}${c.nickname && c.nickname !== c.nombre ? ` <span class="mut peq">${esc(c.nickname)}</span>` : ""}</h2>
+      <div class="fila"><div><label class="et">Condición frente al IVA</label><select data-k="condicion_iva"><option value="ri" ${c.condicion_iva === "ri" ? "selected" : ""}>Responsable Inscripto</option><option value="monotributo" ${c.condicion_iva === "monotributo" ? "selected" : ""}>Monotributista</option><option value="exento" ${c.condicion_iva === "exento" ? "selected" : ""}>Exento</option></select></div>
+        <div><label class="et">IVA de las ventas (si la publicación no dice otro)</label><select data-k="iva_ventas">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(c.iva_ventas) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></div>
+        <div><label class="et">Impuesto a los débitos y créditos a cuenta de Ganancias</label><input data-k="pct_dyc_ganancias" type="number" min="0" max="100" step="0.01" value="${c.pct_dyc_ganancias}"></div></div>
+      <label class="peq" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" data-k="recupera_iibb" ${c.recupera_iibb ? "checked" : ""}> Las retenciones y percepciones de Ingresos Brutos se recuperan</label>
+      <label class="peq" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" data-k="recupera_ganancias" ${c.recupera_ganancias ? "checked" : ""}> Las retenciones y percepciones de Ganancias se recuperan</label>
+      <div style="margin-top:14px"><button class="btn pri chico" type="button" data-rfg>Guardar</button></div></div>`).join("")}
+    <p class="mut peq">Para un monotributista o un exento, el IVA de los cargos y de las compras no se recupera: queda como costo. Conviene confirmar estos valores con el contador.</p>`;
+  $("#main").querySelectorAll("[data-rfg]").forEach((b) => b.onclick = async () => {
+    const p = b.closest("[data-rfc]"), val = {};
+    p.querySelectorAll("[data-k]").forEach((x) => { val[x.dataset.k] = x.type === "checkbox" ? x.checked : x.value; });
+    if (await seguro(() => rApi("rent_config_guardar", { cuenta_id: p.dataset.rfc, valores: val }))) { S.rentCfg = null; aviso("Guardado"); }
+  });
+};
+
+// ---------- Compras ----------
+VISTAS.rent_compras = async () => {
+  if (sinEmpRent("Compras")) return;
+  if (S.rcEd) return pintarCompra();
+  const r = await seguro(() => rApi("rent_compras")); if (!r || S.tab !== "rent_compras") return;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Compras</h1><p>Importaciones, compras con impuestos y compras sin impuestos. Cada una le da costo a sus productos e insumos desde su fecha.</p></div>
+      <div class="fila n" style="gap:8px">${Object.entries(TIPO_COMPRA).map(([k, t]) => `<button class="btn ${k === "importacion" ? "pri" : "lin"}" type="button" data-rcn="${k}">${t}</button>`).join("")}</div></div>
+    <div class="panel" style="padding:6px 14px"><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Fecha</th><th>Origen</th><th>Proveedor</th><th>Comprobante</th><th>Costo</th><th>Recuperable</th><th></th></tr>
+      ${r.compras.map((c) => `<tr><td>${new Date(c.fecha + "T12:00").toLocaleDateString("es-AR")}</td><td>${TIPO_COMPRA[c.tipo]}</td><td>${esc(c.proveedor ?? "—")}</td><td>${esc(c.comprobante ?? "—")}</td><td>${pz(c.total_costo)}</td><td>${pz(c.total_recuperable)}</td><td><button class="btn chico lin" type="button" data-rco="${c.id}">Abrir</button></td></tr>`).join("")}</table></div>
+    ${r.compras.length ? "" : `<div class="vacio"><b>Todavía no hay compras</b>Elegí arriba el origen de la primera.</div>`}</div>`;
+  $("#main").querySelectorAll("[data-rcn]").forEach((b) => b.onclick = async () => { S.rcEd = nuevaCompra(b.dataset.rcn); await prodsRent(); pintarCompra(); });
+  $("#main").querySelectorAll("[data-rco]").forEach((b) => b.onclick = async () => {
+    const x = await seguro(() => rApi("rent_compra", { id: Number(b.dataset.rco) })); if (!x) return;
+    await prodsRent();
+    S.rcEd = { id: x.compra.id, tipo: x.compra.tipo, fecha: x.compra.fecha, cuenta_id: x.compra.cuenta_id, proveedor: x.compra.proveedor ?? "", comprobante: x.compra.comprobante ?? "", datos: x.compra.datos ?? {} };
+    normalizarCompra(S.rcEd); S.rcCalc = x.calculo; pintarCompra();
+  });
+};
+async function prodsRent() { S.rentProds = (await rApi("rent_productos")).productos; }
+function nuevaCompra(tipo) {
+  const c = { tipo, fecha: diaISO(new Date()), cuenta_id: S.rentCta || null, proveedor: "", comprobante: "", datos: {} };
+  normalizarCompra(c); S.rcCalc = null; return c;
+}
+function normalizarCompra(c) {
+  const d = c.datos;
+  d.renglones ??= []; d.gastos ??= [];
+  if (!d.renglones.length) d.renglones.push(renglonNuevo(c));
+  if (c.tipo === "importacion") { d.despacho ??= { numero: "", fecha: "", tc: "", fob_usd: "", flete_usd: "", seguro_usd: "" }; d.items_despacho ??= []; d.tributos_trato ??= {}; d.tributos_sueltos ??= []; d.flete ??= { modo: "origen", proveedor: "", moneda: "USD", monto: "", tc: "", iva: "" }; }
+  if (c.tipo === "con_impuestos") { d.factura_tipo ??= "A"; d.impuestos ??= []; }
+}
+const renglonNuevo = (c) => ({ producto_id: "", codigo_proveedor: "", unidades: "", precio_unit: "", moneda: c.tipo === "importacion" ? "USD" : "ARS", tc: c.tipo === "importacion" ? (c.datos?.despacho?.tc ?? "") : "", iva_pct: 21, fob_usd: "", item_despacho: "" });
+const optProd = (v) => `<option value="">Elegí…</option>${(S.rentProds ?? []).map((p) => `<option value="${p.id}" ${String(p.id) === String(v) ? "selected" : ""}>${esc(p.nombre)}${p.codigo ? ` (${esc(p.codigo)})` : ""}</option>`).join("")}<option value="nuevo">+ Agregar producto o insumo…</option>`;
+const optMon = (v) => ["ARS", "USD", "CNY", "EUR"].map((m) => `<option ${m === (v || "ARS") ? "selected" : ""}>${m}</option>`).join("");
+const inp = (path, val, extra = "") => `<input data-rp="${path}" value="${esc(val ?? "")}" ${extra}>`;
+
+function pintarCompra() {
+  const c = S.rcEd, d = c.datos, imp = c.tipo === "importacion", conI = c.tipo === "con_impuestos", sinI = c.tipo === "sin_impuestos";
+  const calc = S.rcCalc;
+  const filtro = (S.rcFil ?? "").toLowerCase();
+  const idx = d.renglones.map((r, i) => i).filter((i) => !filtro || `${d.renglones[i].codigo_proveedor} ${S.rentProds.find((p) => String(p.id) === String(d.renglones[i].producto_id))?.nombre ?? ""}`.toLowerCase().includes(filtro));
+  const faltaProd = d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).length;
+  const trib = {};
+  for (const it of d.items_despacho ?? []) for (const t of it.tributos ?? []) { trib[t.codigo] ??= { codigo: t.codigo, nombre: t.nombre || TRIB_NOMBRE[t.codigo] || t.codigo, usd: 0, alics: new Set() }; trib[t.codigo].usd += Number(t.usd) || 0; if (t.alicuota != null) trib[t.codigo].alics.add(t.alicuota); }
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? "" : "Nueva "}${TIPO_COMPRA[c.tipo].toLowerCase().replace(/^./, (x) => x.toUpperCase())}</h1><p>${imp ? "Subí el despacho (y el archivo de subítems, si viene aparte): la app lee los ítems, los tributos y los productos. El precio pagado al fabricante se carga a mano." : conI ? "Datos de la factura de compra. El IVA se recupera si es factura A y la razón social es responsable inscripta." : "Compra sin impuestos: todo lo pagado queda como costo."}</p></div>
+      <div class="fila n" style="gap:8px"><button class="btn lin" id="rcV" type="button">Volver</button>${c.id ? `<button class="btn pel" id="rcB" type="button">Borrar</button>` : ""}<button class="btn pri" id="rcG" type="button">Guardar</button></div></div>
+    <div class="panel"><div class="fila">
+      <div><label class="et">Fecha</label><input type="date" data-rp="fecha" value="${esc(c.fecha)}"></div>
+      <div><label class="et">Razón social</label><select data-rp="cuenta_id"><option value="">La principal</option>${(S.rentCfg ?? []).map((x) => `<option value="${x.cuenta_id}" ${x.cuenta_id === c.cuenta_id ? "selected" : ""}>${esc(x.nombre)}</option>`).join("")}</select></div>
+      <div><label class="et">Proveedor${sinI ? " (opcional)" : ""}</label>${inp("proveedor", c.proveedor)}</div>
+      <div><label class="et">${imp ? "Factura comercial" : conI ? "Tipo y número de factura" : "Comprobante (opcional)"}</label>${inp("comprobante", c.comprobante, sinI ? `placeholder="remito, recibo"` : "")}</div>
+      ${conI ? `<div><label class="et">Tipo de factura</label><select data-rp="datos.factura_tipo">${["A", "B", "C"].map((x) => `<option ${x === d.factura_tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>` : ""}
+    </div></div>
+    ${imp ? `<div class="panel"><h2>Despacho</h2>
+      <div class="fila" style="align-items:center"><label class="btn lin n" style="cursor:pointer">Subir PDF del despacho<input type="file" id="rcPdf" accept="application/pdf" multiple hidden></label><span class="mut peq" id="rcPdfE">${d.items_despacho.length ? `${d.items_despacho.length} ítems leídos` : "Se puede subir el despacho y el archivo de subítems juntos."}</span></div>
+      <div class="fila" style="margin-top:6px">
+        <div><label class="et">Número</label>${inp("datos.despacho.numero", d.despacho.numero)}</div>
+        <div><label class="et">Oficialización</label>${inp("datos.despacho.fecha", d.despacho.fecha, `placeholder="dd/mm/aaaa"`)}</div>
+        <div><label class="et">Tipo de cambio del despacho</label>${inp("datos.despacho.tc", nTxt(d.despacho.tc, 6), `inputmode="decimal" data-num`)}</div>
+        <div><label class="et">FOB (USD)</label>${inp("datos.despacho.fob_usd", nTxt(d.despacho.fob_usd), `inputmode="decimal" data-num`)}</div>
+        <div><label class="et">Flete declarado (USD)</label>${inp("datos.despacho.flete_usd", nTxt(d.despacho.flete_usd), `inputmode="decimal" data-num`)}</div>
+        <div><label class="et">Seguro declarado (USD)</label>${inp("datos.despacho.seguro_usd", nTxt(d.despacho.seguro_usd), `inputmode="decimal" data-num`)}</div>
+      </div>
+      ${Object.keys(trib).length ? `<h3 style="font-size:14px;margin:16px 0 6px">Tributos de la Aduana</h3><div class="tabla-scroll"><table class="tabla"><tr><th>Concepto</th><th>Alícuota</th><th>Dólares</th><th>Tratamiento</th></tr>
+        ${Object.values(trib).map((t) => `<tr><td>${esc(t.nombre)}<div class="peq mut">código ${esc(t.codigo)}</div></td><td>${[...t.alics].map((a) => nTxt(a) + "%").join(", ") || "—"}</td><td>USD ${nTxt(t.usd)}</td>
+          <td><select data-rtt="${esc(t.codigo)}">${optsTrato(d.tributos_trato[t.codigo] ?? TRIB_TRATO[t.codigo] ?? "costo")}</select></td></tr>`).join("")}
+        <tr><td><b>Total</b></td><td></td><td><b>USD ${nTxt(Object.values(trib).reduce((a, t) => a + t.usd, 0))}</b></td><td></td></tr></table></div>
+        <details style="margin-top:8px"><summary class="peq">Por ítem del despacho (${d.items_despacho.length})</summary><div class="tabla-scroll"><table class="tabla peq"><tr><th>Ítem</th><th>Posición</th><th>FOB</th><th>Valor en Aduana</th><th>Derechos</th><th>Tributos</th></tr>
+          ${d.items_despacho.map((it) => `<tr><td>${esc(it.item)}</td><td>${esc(it.posicion)}<div class="mut">${esc((it.descripcion ?? "").slice(0, 70))}</div></td><td>USD ${nTxt(it.fob_usd)}</td><td>USD ${nTxt(it.valor_aduana_usd)}</td><td>${nTxt(it.tributos.find((t) => t.codigo === "010")?.alicuota ?? "")}%</td><td>USD ${nTxt(it.tributos.reduce((a, t) => a + Number(t.usd || 0), 0))}</td></tr>`).join("")}</table></div></details>` : `<p class="mut peq">Sin el PDF, los tributos se pueden cargar a mano:</p>`}
+      <h3 style="font-size:14px;margin:14px 0 6px">Tributos cargados a mano</h3>
+      ${d.tributos_sueltos.map((t, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label>${inp(`datos.tributos_sueltos.${i}.nombre`, t.nombre)}</div><div><label class="et">Moneda</label><select data-rp="datos.tributos_sueltos.${i}.moneda">${optMon(t.moneda ?? "USD")}</select></div><div><label class="et">Importe</label>${inp(`datos.tributos_sueltos.${i}.monto`, nTxt(t.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tratamiento</label><select data-rp="datos.tributos_sueltos.${i}.trato">${optsTrato(t.trato ?? "costo")}</select></div><div class="n"><button class="btn pel chico" type="button" data-rq="tributos_sueltos.${i}">Quitar</button></div></div>`).join("")}
+      <button class="btn chico lin" type="button" data-ra="tributos_sueltos" style="margin-top:6px">+ Agregar tributo</button></div>
+    <div class="panel"><h2>Flete internacional</h2>
+      <div class="rt-radio"><label><input type="radio" name="rcFm" value="origen" ${d.flete.modo !== "destino" ? "checked" : ""}> Pagado en origen (incluido en el precio o pagado al proveedor)</label><label><input type="radio" name="rcFm" value="destino" ${d.flete.modo === "destino" ? "checked" : ""}> Pagado en destino</label></div>
+      ${d.flete.modo === "destino" ? `<div class="fila"><div><label class="et">A quién</label>${inp("datos.flete.proveedor", d.flete.proveedor)}</div><div><label class="et">Moneda</label><select data-rp="datos.flete.moneda">${optMon(d.flete.moneda)}</select></div><div><label class="et">Importe</label>${inp("datos.flete.monto", nTxt(d.flete.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tipo de cambio del pago</label>${inp("datos.flete.tc", nTxt(d.flete.tc, 6), `inputmode="decimal" data-num`)}</div><div><label class="et">IVA de la factura (pesos)</label>${inp("datos.flete.iva", nTxt(d.flete.iva), `inputmode="decimal" data-num`)}</div></div>` : `<p class="mut peq" style="margin:0">Si el flete se pagó aparte al proveedor, cargalo como gasto o sumalo al precio de los productos.</p>`}</div>` : ""}
+    <div class="panel"><h2>${imp ? "Productos: lo que se le pagó al fabricante" : "Productos e insumos"}</h2>
+      ${imp ? `<p class="mut peq" style="margin:0 0 8px">El precio de la factura comercial y el FOB del despacho son referencia: cargá el precio realmente pagado por unidad de venta y el tipo de cambio de ese pago. Las unidades son las que se venden, incluidas las que vinieron sin cargo.</p>` : ""}
+      ${d.renglones.length > 12 ? `<input type="search" id="rcFil" placeholder="Buscar código o producto" value="${esc(S.rcFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
+      ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
+      <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th><th>${sinI ? "Total pagado" : "Precio por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
+        ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
+          ${imp ? `<td>${inp(`datos.renglones.${i}.codigo_proveedor`, r.codigo_proveedor, `style="width:100px"`)}</td><td>${inp(`datos.renglones.${i}.item_despacho`, r.item_despacho, `style="width:70px"`)}</td><td>${inp(`datos.renglones.${i}.fob_usd`, nTxt(r.fob_usd), `inputmode="decimal" data-num style="width:100px"`)}</td>` : ""}
+          <td>${inp(`datos.renglones.${i}.unidades`, nTxt(r.unidades, 4), `inputmode="decimal" data-num style="width:90px"`)}</td>
+          <td>${sinI ? `<input data-rtotal="${i}" inputmode="decimal" value="${esc(r.unidades && r.precio_unit ? nTxt(Number(r.unidades) * Number(r.precio_unit)) : "")}" style="width:120px">` : inp(`datos.renglones.${i}.precio_unit`, nTxt(r.precio_unit, 6), `inputmode="decimal" data-num style="width:110px"`)}</td>
+          ${sinI ? "" : `<td><select data-rp="datos.renglones.${i}.moneda" style="width:80px">${optMon(r.moneda)}</select></td><td>${r.moneda === "ARS" ? "—" : inp(`datos.renglones.${i}.tc`, nTxt(r.tc, 6), `inputmode="decimal" data-num style="width:100px"`)}</td>`}
+          ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td>` : ""}
+          <td>${k ? pz(k.costo_unit) : "—"}</td><td>${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
+      </table></div>${idx.length > 200 ? `<p class="mut peq">Se muestran 200 de ${idx.length}. Buscá para ver los demás.</p>` : ""}
+      <button class="btn chico lin" type="button" data-ra="renglones" style="margin-top:6px">+ Agregar renglón</button></div>
+    ${conI ? `<div class="panel"><h2>Otros impuestos de la factura</h2><p class="mut peq" style="margin:0 0 6px">Percepciones de IVA o Ingresos Brutos, impuestos internos. Se reparten entre los renglones según su importe.</p>
+      ${d.impuestos.map((t, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label>${inp(`datos.impuestos.${i}.nombre`, t.nombre)}</div><div><label class="et">Importe</label>${inp(`datos.impuestos.${i}.monto`, nTxt(t.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tratamiento</label><select data-rp="datos.impuestos.${i}.trato">${optsTrato(t.trato ?? "costo")}</select></div><div class="n"><button class="btn pel chico" type="button" data-rq="impuestos.${i}">Quitar</button></div></div>`).join("")}
+      <button class="btn chico lin" type="button" data-ra="impuestos" style="margin-top:6px">+ Agregar impuesto</button></div>` : ""}
+    <div class="panel"><h2>${imp ? "Gastos del embarque" : "Gastos"}</h2><p class="mut peq" style="margin:0 0 6px">${imp ? "Despachante, depósito fiscal, flete interno, demoras, certificaciones, gastos bancarios del pago al proveedor y otros." : "Flete, embalaje u otros gastos de esta compra."} Se reparten entre los productos${imp ? " según el FOB" : " según su importe"}.</p>
+      ${d.gastos.map((g, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label><input data-rp="datos.gastos.${i}.concepto" value="${esc(g.concepto ?? "")}" list="rcGL"></div><div><label class="et">Proveedor y comprobante</label>${inp(`datos.gastos.${i}.proveedor`, g.proveedor)}</div><div><label class="et">Moneda</label><select data-rp="datos.gastos.${i}.moneda">${optMon(g.moneda)}</select></div><div><label class="et">Importe sin IVA</label>${inp(`datos.gastos.${i}.monto`, nTxt(g.monto), `inputmode="decimal" data-num`)}</div>${(g.moneda ?? "ARS") !== "ARS" ? `<div><label class="et">Tipo de cambio</label>${inp(`datos.gastos.${i}.tc`, nTxt(g.tc, 6), `inputmode="decimal" data-num`)}</div>` : ""}${sinI ? "" : `<div><label class="et">IVA (pesos)</label>${inp(`datos.gastos.${i}.iva`, nTxt(g.iva), `inputmode="decimal" data-num`)}</div><div><label class="et">Percepciones (pesos)</label>${inp(`datos.gastos.${i}.otros_recuperables`, nTxt(g.otros_recuperables), `inputmode="decimal" data-num`)}</div>`}<div class="n"><button class="btn pel chico" type="button" data-rq="gastos.${i}">Quitar</button></div></div>`).join("")}
+      <datalist id="rcGL">${["Despachante: gastos", "Despachante: honorarios", "Almacenaje del depósito fiscal", "Flete del puerto al depósito", "Flete interno", "Demora del contenedor", "Seguro", "Certificaciones y licencias", "Verificación de la Aduana", "Gastos bancarios del pago al proveedor", "Multa de la Aduana", "Embalaje"].map((x) => `<option value="${x}">`).join("")}</datalist>
+      <button class="btn chico lin" type="button" data-ra="gastos" style="margin-top:6px">+ Agregar gasto</button></div>
+    <div class="panel"><div class="fila" style="align-items:center"><button class="btn osc n" type="button" id="rcC">Calcular costos</button>
+      ${calc ? `<span class="n">Costo total <b>${pz(calc.reduce((a, x) => a + x.costo, 0))}</b> · Recuperable <b class="rt-pos">${pz(calc.reduce((a, x) => a + x.recuperable, 0))}</b></span>` : `<span class="mut peq n">Calcula el costo y lo recuperable por unidad antes de guardar.</span>`}</div></div>`;
+
+  const m = $("#main");
+  const setp = (path, val) => { const ps = path.split("."); let o = c; for (let i = 0; i < ps.length - 1; i++) o = o[ps[i]]; o[ps[ps.length - 1]] = val; };
+  m.oninput = (e) => {
+    const x = e.target;
+    if (x.dataset.rp) setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value);
+    if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
+    if (x.id === "rcFil") { S.rcFil = x.value; clearTimeout(S.rcFT); S.rcFT = setTimeout(() => { pintarCompra(); const b = $("#rcFil"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 300); }
+  };
+  m.onchange = (e) => {
+    const x = e.target;
+    if (x.dataset.rprod != null && x.value === "nuevo") { const i = Number(x.dataset.rprod); x.value = ""; editarProducto(null, async (id) => { await prodsRent(); if (id) d.renglones[i].producto_id = id; pintarCompra(); }, d.renglones[i].codigo_proveedor); return; }
+    if (x.dataset.rp) { setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value); if (x.tagName === "SELECT" && /moneda$/.test(x.dataset.rp)) pintarCompra(); }
+    if (x.dataset.rtt) d.tributos_trato[x.dataset.rtt] = x.value;
+    if (x.name === "rcFm") { d.flete.modo = x.value; if (!d.flete.tc) d.flete.tc = d.despacho.tc; pintarCompra(); }
+  };
+  m.onclick = async (e) => {
+    const a = e.target.closest("[data-ra]"), q = e.target.closest("[data-rq]");
+    if (a) { const k = a.dataset.ra; d[k].push(k === "renglones" ? renglonNuevo(c) : k === "gastos" ? { concepto: "", proveedor: "", moneda: "ARS", monto: "", tc: "", iva: "", otros_recuperables: "" } : k === "impuestos" ? { nombre: "", monto: "", trato: "costo" } : { nombre: "", moneda: "USD", monto: "", trato: "costo" }); pintarCompra(); }
+    if (q) { const [k, i] = q.dataset.rq.split("."); d[k].splice(Number(i), 1); S.rcCalc = null; pintarCompra(); }
+  };
+  $("#rcV").onclick = () => { if (!confirm("¿Salir sin guardar los cambios?")) return; S.rcEd = null; S.rcCalc = null; VISTAS.rent_compras(); };
+  $("#rcG").onclick = async () => {
+    const r = await seguro(() => rApi("rent_compra_guardar", { id: c.id, tipo: c.tipo, fecha: c.fecha, cuenta_id: c.cuenta_id || null, proveedor: c.proveedor, comprobante: c.comprobante, datos: d }));
+    if (r) { aviso("Compra guardada: el costo de sus productos ya se usa en el tablero"); S.rcEd = null; S.rcCalc = null; VISTAS.rent_compras(); }
+  };
+  if ($("#rcB")) $("#rcB").onclick = async () => { if (!confirm("¿Borrar esta compra? Sus productos dejan de tener este costo.")) return; if (await seguro(() => rApi("rent_compra_borrar", { id: c.id }))) { S.rcEd = null; VISTAS.rent_compras(); } };
+  $("#rcC").onclick = async () => { const r = await seguro(() => rApi("rent_compra_calcular", { tipo: c.tipo, cuenta_id: c.cuenta_id || null, datos: d })); if (r) { S.rcCalc = r.calculo; pintarCompra(); } };
+  if ($("#rcCrear")) $("#rcCrear").onclick = async () => {
+    const faltan = [...new Set(d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).map((r) => r.codigo_proveedor))];
+    if (!confirm(`Se van a crear ${faltan.length} productos, con el código como nombre. Después les podés cambiar el nombre. ¿Seguir?`)) return;
+    for (const cod of faltan) {
+      const ya = S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === cod.toLowerCase());
+      const id = ya?.id ?? (await seguro(() => rApi("rent_producto_guardar", { nombre: cod, codigo: cod, tipo: "mercaderia" })))?.id;
+      if (id) d.renglones.filter((r) => r.codigo_proveedor === cod && !r.producto_id).forEach((r) => { r.producto_id = id; });
+    }
+    await prodsRent(); pintarCompra();
+  };
+  if ($("#rcPdf")) $("#rcPdf").onchange = async (e) => {
+    const fs = [...e.target.files]; if (!fs.length) return;
+    $("#rcPdfE").textContent = "Leyendo…";
+    try {
+      let items = 0, subs = 0; const todosSubs = [];
+      for (const f of fs) {
+        const txt = await lineasPdf(new Uint8Array(await f.arrayBuffer()));
+        const r = leerDespacho(txt);
+        if (r.cabecera) Object.entries(r.cabecera).forEach(([k, v]) => { if (v != null && v !== "") d.despacho[k] = v; });
+        if (r.items.length) { d.items_despacho = r.items; items = r.items.length; }
+        todosSubs.push(...r.subitems); subs += r.subitems.length;
+      }
+      if (todosSubs.length || items) {
+        // Un renglón por código del proveedor dentro de cada ítem; los ítems sin subítems van como un renglón
+        const por = new Map();
+        for (const s of todosSubs) { const k = `${s.item}|${s.codigo || s.sub}`; const x = por.get(k) ?? { codigo: s.codigo || "", item: s.item, unidades: 0, fob: 0 }; x.unidades += s.cantidad; x.fob += s.fob; por.set(k, x); }
+        for (const it of d.items_despacho) if (!it.subitems) por.set(`${it.item}|${it.codigo || "item"}`, { codigo: it.codigo || `Ítem ${it.item}`, item: it.item, unidades: it.cantidad, fob: it.fob_usd });
+        const viejos = d.renglones.filter((x) => x.producto_id || x.unidades);
+        const nuevos = [...por.values()].map((x) => { const prev = viejos.find((v) => v.codigo_proveedor === x.codigo && String(v.item_despacho) === String(x.item)); const p = S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === x.codigo.toLowerCase());
+          return prev ? { ...prev, fob_usd: Math.round(x.fob * 100) / 100 } : { ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, item_despacho: x.item, unidades: x.unidades, fob_usd: Math.round(x.fob * 100) / 100, precio_unit: x.unidades ? Math.round(x.fob / x.unidades * 100000) / 100000 : "", moneda: "USD", tc: d.despacho.tc }; });
+        // Se conservan los renglones agregados a mano y los de ítems con subítems que todavía no se subieron
+        const manuales = d.renglones.filter((x) => (x.producto_id || x.unidades) && (!x.item_despacho || (!todosSubs.length && d.items_despacho.find((it) => it.item === String(x.item_despacho))?.subitems)));
+        if (nuevos.length) d.renglones = [...nuevos, ...manuales.filter((m) => !nuevos.some((n) => n.codigo_proveedor === m.codigo_proveedor && String(n.item_despacho) === String(m.item_despacho)))];
+      }
+      if (!items && !subs) throw new Error("No se encontraron ítems de despacho en el PDF");
+      if (!c.fecha || c.fecha === diaISO(new Date())) { const f = String(d.despacho.fecha ?? "").match(/(\d{2})\/(\d{2})\/(\d{4})/); if (f) c.fecha = `${f[3]}-${f[2]}-${f[1]}`; }
+      S.rcCalc = null; pintarCompra(); aviso(`Leído: ${items ? `${items} ítems` : ""}${items && subs ? " y " : ""}${subs ? `${subs} subítems` : ""}`);
+    } catch (err) { $("#rcPdfE").textContent = err.message; }
+  };
+}
+
+// Texto de un PDF por renglones (agrupa por altura y deja dos espacios donde hay separación)
+async function lineasPdf(bytes) {
+  const lib = await pdfJs();
+  const doc = await lib.getDocument({ data: bytes }).promise;
+  const out = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const pg = await doc.getPage(p), tc = await pg.getTextContent();
+    const filas = new Map();
+    for (const it of tc.items) { if (!it.str) continue; const y = Math.round(it.transform[5] / 2.5); if (!filas.has(y)) filas.set(y, []); filas.get(y).push({ x: it.transform[4], w: it.width, s: it.str }); }
+    for (const y of [...filas.keys()].sort((a, b) => b - a)) {
+      const xs = filas.get(y).sort((a, b) => a.x - b.x); let l = "", fin = null;
+      for (const t of xs) { if (fin != null) l += t.x - fin > 3 ? "   " : t.x - fin > 0.8 ? " " : ""; l += t.s; fin = t.x + t.w; }
+      out.push(l);
+    }
+    out.push("\f");
+  }
+  return out.join("\n");
+}
+// Lee un despacho de importación (carátula, ítems con su liquidación y subítems con el código de cada producto)
+function leerDespacho(t) {
+  const n = (s) => Number(String(s).replace(/\./g, "").replace(",", ".")) || 0;
+  const cab = {};
+  const num = t.match(/(\d{2})\s+(\d{3})\s+([A-Z]{2}\d{2})\s+(\d{6})\s*([A-Z])\b/); if (num) cab.numero = `${num[1]} ${num[2]} ${num[3]} ${num[4]} ${num[5]}`;
+  const of = t.match(/Oficializaci[oó]n[\s\S]{0,200}?(\d{2}\/\d{2}\/\d{4})/); if (of) cab.fecha = of[1];
+  const tc = t.match(/Cotiz\s*=\s*([\d\.,]+)/); if (tc) cab.tc = n(tc[1]);
+  const fob = t.match(/\b(?:FOB|CIF|CFR|EXW|FCA|CPT|DAP)\s+([\d\.]+,\d{2})\s+DOL\s+([\d\.]+,\d{2})\s+DOL/); if (fob) { cab.fob_usd = n(fob[1]); cab.flete_usd = n(fob[2]); }
+  const seg = t.match(/Seguro Total[^\n]*\n\s*([\d\.]+,\d{2})/); if (seg) cab.seguro_usd = n(seg[1]);
+  const items = [];
+  const bloques = t.split(/N[º°o]\s*Item\b/).slice(1);
+  for (const b of bloques) {
+    const m = b.match(/^\s*[^\n]*?\n?\s*(\d{4})\s+[A-Z]\s+(\d{4}\.\d{2}\.\d{2}\.\d{3}[A-Z])/m) ?? b.match(/(\d{4})\s+[A-Z]\s+(\d{4}\.\d{2}\.\d{2}\.\d{3}[A-Z])/);
+    if (!m) continue;
+    const va = b.match(/Valor en Aduana en D[^\n]*\n\s*([\d\.]+,\d+)\s+([\d\.]+,\d+)\s+([\d\.]+,\d+)\s+([\d\.]+,\d+)/);
+    const decl = (b.split(/DECLARACION DE LA MERCADERIA/)[1] ?? "").split(/INFORMACION DEL ITEM|Unitario en Divisa/)[0];
+    const de = decl.split("\n").filter((l) => l.trim() && !/=|Opciones|Ventajas/.test(l)).join(" ");
+    const cu = b.match(/Unitario en Divisa[^\n]*\n(?:\s*\n)*\s*(SUBITEM|[\d\.,]+)\s+([A-ZÁÉÍÓÚ]+)\s+([\d\.]+,\d+)/);
+    const ci = decl.match(/\b(?:AI|AB)\(([^)]+)\)/);
+    const tributos = [];
+    for (const l of b.split("\n")) {
+      const mm = l.match(/\(\s*(\d{3})\s*\)\s*([A-ZÁÉÍÓÚÑ\.\s]+?)(?:\s{2,}|$|\s+P\s)/); if (!mm) continue;
+      const pre = l.slice(0, mm.index).match(/[\d\.]*\d,\d+/g); if (!pre) continue;
+      tributos.push({ codigo: mm[1], nombre: mm[2].trim(), alicuota: pre.length > 1 ? n(pre[0]) : null, usd: n(pre[pre.length - 1]) });
+    }
+    if (!tributos.length) continue;
+    items.push({ item: m[1], posicion: m[2], descripcion: de.replace(/\s+/g, " ").trim(), unidad: cu ? cu[2] : "", cantidad: cu ? n(cu[3]) : 0, subitems: cu ? cu[1] === "SUBITEM" : false, codigo: ci ? ci[1] : "", fob_usd: va ? n(va[1]) : 0, valor_aduana_usd: va ? n(va[4]) : 0, tributos });
+  }
+  // Arancel SIM y otros que figuran solo en el total de la carátula
+  if (items.length) {
+    const yaCod = new Set(items.flatMap((i) => i.tributos.map((x) => x.codigo)));
+    const sim = t.match(/\(\s*500\s*\)\s*ARANCEL SIM[^\n]*?([\d\.]+,\d{2})\s*$/m);
+    if (sim && !yaCod.has("500")) items[0].tributos.push({ codigo: "500", nombre: "ARANCEL SIM IMPO", alicuota: null, usd: n(sim[1]) });
+  }
+  const subitems = [];
+  for (const b of t.split(/(?=Nro\.\s*[íi]tem:)/).slice(1)) {
+    const m = b.match(/Nro\.\s*[íi]tem:\s*(\d+)[\s\S]*?Subitem Nro\.:\s*(\d+)[\s\S]*?Monto FOB:\s*([\d\.,]+)[\s\S]*?Cantidad:\s*([\d\.,]+)/);
+    if (!m) continue;
+    const cod = b.split(/-{5,}/)[0].match(/\b(?:AI|AB)\(([^)]+)\)/);
+    subitems.push({ item: m[1], sub: m[2], fob: n(m[3]), cantidad: n(m[4]), codigo: cod ? cod[1] : "" });
+  }
+  return { cabecera: Object.keys(cab).length ? cab : null, items, subitems };
+}
+
 function vistasPermitidas() {
   const mods = modsActuales();
   let l;
