@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611262050";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611262102";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8992,7 +8992,7 @@ const inp = (path, val, extra = "") => `<input data-rp="${path}" value="${esc(va
 function pintarCompra() {
   const c = S.rcEd, d = c.datos, imp = c.tipo === "importacion", conI = c.tipo === "con_impuestos", sinI = c.tipo === "sin_impuestos";
   const calc = S.rcCalc;
-  const filtro = (S.rcFil ?? "").toLowerCase();
+  const filtro = (S.rentRenFil ?? "").toLowerCase();
   const idx = d.renglones.map((r, i) => i).filter((i) => !filtro || `${d.renglones[i].codigo_proveedor} ${S.rentProds.find((p) => String(p.id) === String(d.renglones[i].producto_id))?.nombre ?? ""}`.toLowerCase().includes(filtro));
   const faltaProd = d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).length;
   const trib = {};
@@ -9034,7 +9034,7 @@ function pintarCompra() {
       <p class="mut peq" style="margin:6px 0 0">Si el flete vino incluido en el precio de los productos, dejá el importe vacío. Lo que se cobró en otra moneda va como gasto.</p></div>` : ""}
     <div class="panel"><h2>${imp ? "Productos: lo que se le pagó al fabricante" : "Productos e insumos"}</h2>
       ${imp ? `<p class="mut peq" style="margin:0 0 8px">El precio de la factura comercial y el FOB del despacho son referencia: cargá el precio realmente pagado por unidad de venta y el tipo de cambio de ese pago. Las unidades son las que se venden, incluidas las que vinieron sin cargo.</p>` : ""}
-      ${d.renglones.length > 12 ? `<input type="search" id="rcFil" placeholder="Buscar código o producto" value="${esc(S.rcFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
+      ${d.renglones.length > 12 ? `<input type="search" id="rcRenFil" placeholder="Buscar código o producto" value="${esc(S.rentRenFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
       ${(d.controles ?? []).length ? `<details class="rt-nota" style="display:block"><summary>${d.controles.length} códigos con cantidades distintas entre la factura comercial y el despacho. Revisá cuántas unidades de venta llegaron: el precio pagado se reparte entre ellas.</summary><div class="peq" style="margin-top:6px">${d.controles.map(esc).join("<br>")}</div></details>` : ""}
       ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
       <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
@@ -9078,7 +9078,7 @@ function pintarCompra() {
     const mu = x.dataset.rp?.match(/^datos\.renglones\.(\d+)\.unidades$/);
     if (mu) { const r = d.renglones[Number(mu[1])]; if (!r.precio_editado && r.precio_factura != null && Number(r.unidades_factura) && Number(r.unidades)) { const otros = d.renglones.filter((y) => y !== r && String(y.codigo_proveedor).toLowerCase() === String(r.codigo_proveedor).toLowerCase()); if (!otros.length) { r.precio_unit = Math.round(r.precio_factura * r.unidades_factura / Number(r.unidades) * 100000) / 100000; const inpP = $(`#main [data-rpu="${mu[1]}"]`); if (inpP) inpP.value = nTxt(r.precio_unit, 6); } } }
     if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_editado = true; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
-    if (x.id === "rcFil") { S.rcFil = x.value; clearTimeout(S.rcFT); S.rcFT = setTimeout(() => { pintarCompra(); const b = $("#rcFil"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 300); }
+    if (x.id === "rcRenFil") { S.rentRenFil = x.value; clearTimeout(S.rcFT); S.rcFT = setTimeout(() => { pintarCompra(); const b = $("#rcRenFil"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 300); }
   };
   m.onchange = (e) => {
     const x = e.target;
