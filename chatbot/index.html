@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611261101";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611261255";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -820,7 +820,7 @@ input[type=file]{max-width:100%}
 .din{padding:14px 16px 24px;max-width:640px}.din-res{padding:14px;border-radius:14px;background:var(--sup2)}.din-gran{font-size:30px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
 .din-barra{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:12px 0 6px;background:var(--linea)}.din-barra i{display:block}.din-barra .b-q{background:var(--pino)}.din-barra .b-ml{background:var(--piz)}.din-barra .b-env{background:#9AA7B4}.din-barra .b-ot{background:var(--ladrillo)}
 .din-ley{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--piz)}.din-ley span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;background:var(--c)}
-.din-est{margin-top:10px}.din-ret{margin-top:10px;font-size:13.5px;padding:8px 10px;border-radius:10px;display:block}
+.din-est{margin-top:10px}.din-cob{margin-top:8px}.din-ret{margin-top:10px;font-size:13.5px;padding:8px 10px;border-radius:10px;display:block}
 .din-sec{margin-top:18px}.din-sec h4{font-size:14px;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}.din-sec h4 small{font-weight:400;color:var(--piz);font-size:12.5px}
 .din-l{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:7px 0;border-top:1px solid var(--linea);font-size:14px}.din-sec h4+.din-l,.din-ev .din-c+.din-l{border-top:0}
 .din-m{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.din-m.neg{color:var(--ladrillo)}.din-m.pos{color:var(--pino-t)}
@@ -5070,7 +5070,7 @@ async function cargarDinero(id) {
   const b = r.barra ?? {}; const tot = r.precio || 1;
   const seg = (v, cl) => v > 0 ? `<i class="${cl}" style="width:${Math.min(100, (v / tot) * 100).toFixed(2)}%"></i>` : "";
   const barraOk = r.quedo >= 0 && b.ml >= 0 && b.envio >= 0 && b.otros >= -0.01;
-  const estado = r.estado === "liberado" ? `Disponible en Mercado Pago desde el ${diaMes(r.liberado_at)}` : r.estado === "a_liberar" ? `A liberar${r.libera_at ? ` el ${diaMes(r.libera_at)}` : ""}` : "Disponible en Mercado Pago";
+  const estado = r.estado === "mediacion" ? "Cobro en mediación: retenido hasta que se resuelva el reclamo" : r.estado === "liberado" ? `Disponible en Mercado Pago desde el ${diaMes(r.liberado_at)}` : r.estado === "a_liberar" ? `A liberar${r.libera_at ? ` el ${diaMes(r.libera_at)}` : ""}` : "Disponible en Mercado Pago";
   const reclamoTxt = (rc) => rc ? `reclamo n.º ${esc(rc.id)}${rc.problema ? ` · ${esc(rc.problema)}` : ""}${rc.titulo ? ` · ${esc(rc.titulo)}` : ""}` : "";
   const ev = (e) => `<div class="din-ev ${e.aparte ? "aparte" : ""}">
     <div class="din-t"><b>${esc(e.titulo)}</b><span class="din-m ${e.neto < 0 ? "neg" : "pos"}">${e.neto > 0 ? "+" : ""}${pesosD(e.neto)}</span></div>
@@ -5087,7 +5087,9 @@ async function cargarDinero(id) {
       ${pct !== null ? `<div class="mut peq">${String(pct).replace(".", ",")}% de los ${pesosD(r.precio)} del precio</div>` : ""}
       ${barraOk ? `<div class="din-barra" aria-hidden="true">${seg(r.quedo, "b-q")}${seg(b.ml, "b-ml")}${seg(b.envio, "b-env")}${seg(b.otros, "b-ot")}</div>
       <div class="din-ley"><span style="--c:var(--pino)">Te quedó</span><span style="--c:var(--piz)">MercadoLibre e impuestos</span><span style="--c:#9AA7B4">Envío</span>${b.otros > 0.009 ? `<span style="--c:var(--ladrillo)">Devoluciones y otros</span>` : ""}</div>` : ""}
-      <span class="chip ${r.estado === "a_liberar" ? "c-cal" : "c-ok"} din-est">${esc(estado)}</span>
+      <span class="chip ${r.estado === "a_liberar" || r.estado === "mediacion" ? "c-cal" : "c-ok"} din-est">${esc(estado)}</span>
+      ${r.cobertura ? `<div class="mut peq din-cob">${esc(r.cobertura)}</div>` : ""}
+      ${r.pendiente ? `<div class="estado e-mot din-ret">${esc(r.pendiente)}</div>` : ""}
       ${r.retenido ? `<div class="estado e-mot din-ret">${pesosD(Math.abs(r.retenido))} retenidos por un reclamo o devolución en curso. Vuelven o se descuentan según cómo se resuelva.</div>` : ""}
     </div>
     <div class="din-sec"><h4>Cuando se vendió <small>${esc(diaMes(r.vendido_at))}</small></h4>
