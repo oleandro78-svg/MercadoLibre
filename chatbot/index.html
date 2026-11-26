@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611261638";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611261953";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1295,7 +1295,7 @@ function aviso(t) { const d = document.createElement("div"); d.className = "toas
 
 // Dueño de la app solo en su link; en el de la app, si administra un negocio, es un administrador más
 const comoDueno = () => !!S.yo?.usuario?.admin_app && (window.MOSTRADOR_LINK === "dueno" || !S.yo?.clientes?.length);
-async function api(accion, datos = {}) {
+async function api(accion, datos = {}, espera = 40_000) {
   const h = { "content-type": "application/json" };
   if (window.MOSTRADOR_LINK === "app") h["x-link"] = "app";
   {
@@ -1305,7 +1305,7 @@ async function api(accion, datos = {}) {
     if (S.clienteId) h["x-cliente-id"] = S.clienteId;
   }
   // Nunca se espera para siempre: si el servidor no contesta en 40 segundos, se corta con un error claro
-  const ctl = new AbortController(), corte = setTimeout(() => ctl.abort(), 40_000);
+  const ctl = new AbortController(), corte = setTimeout(() => ctl.abort(), espera);
   let r;
   try { r = await fetch(API, { method: "POST", headers: h, body: JSON.stringify({ accion, ...datos }), signal: ctl.signal }); }
   catch (e) { throw new Error(e?.name === "AbortError" ? "El servidor tardó demasiado en responder. Probá de nuevo." : "No hay conexión con el servidor. Revisá internet y probá de nuevo."); }
@@ -8752,7 +8752,7 @@ function abrirDesdeEnlace(h) {
 // Pantallas a las que se puede volver al actualizar la página, según quién entró y qué módulos tiene
 // ================= RENTABILIDAD (administrador del negocio y dueño de la app) =================
 const empRent = () => S.rol === "admin" ? S.empSel : null;
-const rApi = (accion, datos = {}) => api(accion, { cliente_id: empRent(), ...datos });
+const rApi = (accion, datos = {}, espera) => api(accion, { cliente_id: empRent(), ...datos }, espera);
 const sinEmpRent = (titulo) => { if (S.rol === "admin" && !S.empSel) { $("#main").innerHTML = `<div class="cabecera"><div><h1>${titulo}</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return true; } return false; };
 const pz = (n) => n == null || n === "" ? "—" : pesosD(Number(n));
 const nAR = (s) => { if (s == null) return 0; const t = String(s).trim(); if (!t) return 0; return Number(/,\d{1,6}$/.test(t) || /\.\d{3}(\.|,|$)/.test(t) ? t.replace(/\./g, "").replace(",", ".") : t.replace(",", ".")) || 0; };
@@ -8979,7 +8979,7 @@ function nuevaCompra(tipo) {
 }
 function normalizarCompra(c) {
   const d = c.datos;
-  d.renglones ??= []; d.gastos ??= [];
+  d.renglones ??= []; d.gastos ??= []; d.documentos ??= [];
   if (!d.renglones.length) d.renglones.push(renglonNuevo(c));
   if (c.tipo === "importacion") { d.despacho ??= { numero: "", fecha: "", tc: "", fob_usd: "", flete_usd: "", seguro_usd: "" }; d.items_despacho ??= []; d.tributos_trato ??= {}; d.tributos_sueltos ??= []; d.flete ??= { modo: "origen", proveedor: "", moneda: "USD", monto: "", tc: "", iva: "" }; }
   if (c.tipo === "con_impuestos") { d.factura_tipo ??= "A"; d.impuestos ??= []; }
@@ -8997,7 +8997,7 @@ function pintarCompra() {
   const faltaProd = d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).length;
   const trib = {};
   for (const it of d.items_despacho ?? []) for (const t of it.tributos ?? []) { trib[t.codigo] ??= { codigo: t.codigo, nombre: t.nombre || TRIB_NOMBRE[t.codigo] || t.codigo, usd: 0, alics: new Set() }; trib[t.codigo].usd += Number(t.usd) || 0; if (t.alicuota != null) trib[t.codigo].alics.add(t.alicuota); }
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? TIPO_COMPRA[c.tipo] : "Nueva " + TIPO_COMPRA[c.tipo].toLowerCase()}</h1><p>${imp ? "Subí el despacho (y el archivo de subítems, si viene aparte): la app lee los ítems, los tributos y los productos. El precio pagado al fabricante se carga a mano." : conI ? "Datos de la factura de compra. El IVA se recupera si es factura A y la razón social es responsable inscripta." : "Compra sin impuestos: todo lo pagado queda como costo."}</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? TIPO_COMPRA[c.tipo] : "Nueva " + TIPO_COMPRA[c.tipo].toLowerCase()}</h1><p>${imp ? "Subí todos los comprobantes juntos (despacho, subítems, factura comercial, flete, despachante y otros gastos): la app reconoce cada uno y acomoda sus importes. El precio pagado de cada producto siempre se puede cambiar." : conI ? "Subí la factura de compra y la app completa los renglones. El IVA se recupera si es factura A y la razón social es responsable inscripta. Los precios se pueden cambiar." : "Compra sin impuestos: todo lo pagado queda como costo. Podés subir el remito o recibo para completar los renglones."}</p></div>
       <div class="fila n" style="gap:8px"><button class="btn lin" id="rcV" type="button">Volver</button>${c.id ? `<button class="btn pel" id="rcB" type="button">Borrar</button>` : ""}<button class="btn pri" id="rcG" type="button">Guardar</button></div></div>
     <div class="panel"><div class="fila">
       <div><label class="et">Fecha</label><input type="date" data-rp="fecha" value="${esc(c.fecha)}"></div>
@@ -9006,8 +9006,11 @@ function pintarCompra() {
       <div><label class="et">${imp ? "Factura comercial" : conI ? "Tipo y número de factura" : "Comprobante (opcional)"}</label>${inp("comprobante", c.comprobante, sinI ? `placeholder="remito, recibo"` : "")}</div>
       ${conI ? `<div><label class="et">Tipo de factura</label><select data-rp="datos.factura_tipo">${["A", "B", "C"].map((x) => `<option ${x === d.factura_tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>` : ""}
     </div></div>
+    <div class="panel"><h2>Comprobantes</h2>
+      <div class="fila" style="align-items:center"><label class="btn osc n" style="cursor:pointer">Subir archivos<input type="file" id="rcDocs" accept="application/pdf,image/jpeg,image/png" multiple hidden></label><span class="mut peq" id="rcDocsE">PDF o fotos. Se pueden elegir varios a la vez.</span></div>
+      ${(d.documentos ?? []).length ? `<div style="margin-top:10px">${d.documentos.map((x) => `<div class="rt-l"><span><b>${esc(DOC_NOMBRE[x.tipo] ?? x.tipo)}</b> · ${esc(x.nombre)}${x.emisor ? ` · ${esc(x.emisor)}` : ""}${x.numero ? ` ${esc(x.numero)}` : ""}<br><span class="mut peq">${esc(x.aplicado ?? "")}</span></span><span>${x.total ? esc(x.total) : ""}</span></div>`).join("")}</div>` : ""}
+    </div>
     ${imp ? `<div class="panel"><h2>Despacho</h2>
-      <div class="fila" style="align-items:center"><label class="btn lin n" style="cursor:pointer">Subir PDF del despacho<input type="file" id="rcPdf" accept="application/pdf" multiple hidden></label><span class="mut peq" id="rcPdfE">${d.items_despacho.length ? `${d.items_despacho.length} ítems leídos` : "Se puede subir el despacho y el archivo de subítems juntos."}</span></div>
       <div class="fila" style="margin-top:6px">
         <div><label class="et">Número</label>${inp("datos.despacho.numero", d.despacho.numero)}</div>
         <div><label class="et">Oficialización</label>${inp("datos.despacho.fecha", d.despacho.fecha, `placeholder="dd/mm/aaaa"`)}</div>
@@ -9032,11 +9035,12 @@ function pintarCompra() {
       ${imp ? `<p class="mut peq" style="margin:0 0 8px">El precio de la factura comercial y el FOB del despacho son referencia: cargá el precio realmente pagado por unidad de venta y el tipo de cambio de ese pago. Las unidades son las que se venden, incluidas las que vinieron sin cargo.</p>` : ""}
       ${d.renglones.length > 12 ? `<input type="search" id="rcFil" placeholder="Buscar código o producto" value="${esc(S.rcFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
       ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
-      <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th><th>${sinI ? "Total pagado" : "Precio por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
+      <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
         ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
           ${imp ? `<td>${inp(`datos.renglones.${i}.codigo_proveedor`, r.codigo_proveedor, `style="width:100px"`)}</td><td>${inp(`datos.renglones.${i}.item_despacho`, r.item_despacho, `style="width:70px"`)}</td><td>${inp(`datos.renglones.${i}.fob_usd`, nTxt(r.fob_usd), `inputmode="decimal" data-num style="width:100px"`)}</td>` : ""}
           <td>${inp(`datos.renglones.${i}.unidades`, nTxt(r.unidades, 4), `inputmode="decimal" data-num style="width:90px"`)}</td>
-          <td>${sinI ? `<input data-rtotal="${i}" inputmode="decimal" value="${esc(r.unidades && r.precio_unit ? nTxt(Number(r.unidades) * Number(r.precio_unit)) : "")}" style="width:120px">` : inp(`datos.renglones.${i}.precio_unit`, nTxt(r.precio_unit, 6), `inputmode="decimal" data-num style="width:110px"`)}</td>
+          ${sinI ? "" : `<td class="mut">${r.precio_factura != null && r.precio_factura !== "" ? `${esc(r.moneda_factura ?? r.moneda ?? "")} ${nTxt(r.precio_factura, 5)}` : imp && Number(r.fob_usd) && Number(r.unidades) ? `FOB USD ${nTxt(Number(r.fob_usd) / Number(r.unidades), 5)}` : "—"}</td>`}
+          <td>${sinI ? `<input data-rtotal="${i}" inputmode="decimal" value="${esc(r.unidades && r.precio_unit ? nTxt(Number(r.unidades) * Number(r.precio_unit)) : "")}" style="width:120px">` : inp(`datos.renglones.${i}.precio_unit`, nTxt(r.precio_unit, 6), `inputmode="decimal" data-num data-rpu="${i}" style="width:110px"`)}</td>
           ${sinI ? "" : `<td><select data-rp="datos.renglones.${i}.moneda" style="width:80px">${optMon(r.moneda)}</select></td><td>${r.moneda === "ARS" ? "—" : inp(`datos.renglones.${i}.tc`, nTxt(r.tc, 6), `inputmode="decimal" data-num style="width:100px"`)}</td>`}
           ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td>` : ""}
           <td>${k ? pz(k.costo_unit) : "—"}</td><td>${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
@@ -9057,7 +9061,8 @@ function pintarCompra() {
   m.oninput = (e) => {
     const x = e.target;
     if (x.dataset.rp) setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value);
-    if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
+    if (x.dataset.rpu != null) d.renglones[Number(x.dataset.rpu)].precio_editado = true;
+    if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_editado = true; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
     if (x.id === "rcFil") { S.rcFil = x.value; clearTimeout(S.rcFT); S.rcFT = setTimeout(() => { pintarCompra(); const b = $("#rcFil"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 300); }
   };
   m.onchange = (e) => {
@@ -9089,35 +9094,147 @@ function pintarCompra() {
     }
     await prodsRent(); pintarCompra();
   };
-  if ($("#rcPdf")) $("#rcPdf").onchange = async (e) => {
-    const fs = [...e.target.files]; if (!fs.length) return;
-    $("#rcPdfE").textContent = "Leyendo…";
-    try {
-      let items = 0, subs = 0; const todosSubs = [];
-      for (const f of fs) {
-        const txt = await lineasPdf(new Uint8Array(await f.arrayBuffer()));
-        const r = leerDespacho(txt);
-        if (r.cabecera) Object.entries(r.cabecera).forEach(([k, v]) => { if (v != null && v !== "") d.despacho[k] = v; });
-        if (r.items.length) { d.items_despacho = r.items; items = r.items.length; }
-        todosSubs.push(...r.subitems); subs += r.subitems.length;
-      }
-      if (todosSubs.length || items) {
-        // Un renglón por código del proveedor dentro de cada ítem; los ítems sin subítems van como un renglón
-        const por = new Map();
-        for (const s of todosSubs) { const k = `${s.item}|${s.codigo || s.sub}`; const x = por.get(k) ?? { codigo: s.codigo || "", item: s.item, unidades: 0, fob: 0 }; x.unidades += s.cantidad; x.fob += s.fob; por.set(k, x); }
-        for (const it of d.items_despacho) if (!it.subitems) por.set(`${it.item}|${it.codigo || "item"}`, { codigo: it.codigo || `Ítem ${it.item}`, item: it.item, unidades: it.cantidad, fob: it.fob_usd });
-        const viejos = d.renglones.filter((x) => x.producto_id || x.unidades);
-        const nuevos = [...por.values()].map((x) => { const prev = viejos.find((v) => v.codigo_proveedor === x.codigo && String(v.item_despacho) === String(x.item)); const p = S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === x.codigo.toLowerCase());
-          return prev ? { ...prev, fob_usd: Math.round(x.fob * 100) / 100 } : { ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, item_despacho: x.item, unidades: x.unidades, fob_usd: Math.round(x.fob * 100) / 100, precio_unit: x.unidades ? Math.round(x.fob / x.unidades * 100000) / 100000 : "", moneda: "USD", tc: d.despacho.tc }; });
-        // Se conservan los renglones agregados a mano y los de ítems con subítems que todavía no se subieron
-        const manuales = d.renglones.filter((x) => (x.producto_id || x.unidades) && (!x.item_despacho || (!todosSubs.length && d.items_despacho.find((it) => it.item === String(x.item_despacho))?.subitems)));
-        if (nuevos.length) d.renglones = [...nuevos, ...manuales.filter((m) => !nuevos.some((n) => n.codigo_proveedor === m.codigo_proveedor && String(n.item_despacho) === String(m.item_despacho)))];
-      }
-      if (!items && !subs) throw new Error("No se encontraron ítems de despacho en el PDF");
-      if (!c.fecha || c.fecha === diaISO(new Date())) { const f = String(d.despacho.fecha ?? "").match(/(\d{2})\/(\d{2})\/(\d{4})/); if (f) c.fecha = `${f[3]}-${f[2]}-${f[1]}`; }
-      S.rcCalc = null; pintarCompra(); aviso(`Leído: ${items ? `${items} ítems` : ""}${items && subs ? " y " : ""}${subs ? `${subs} subítems` : ""}`);
-    } catch (err) { $("#rcPdfE").textContent = err.message; }
+  $("#rcDocs").onchange = async (e) => {
+    const fs = [...e.target.files]; e.target.value = ""; if (!fs.length) return;
+    const est = $("#rcDocsE"); const msgs = [];
+    for (const [n, f] of fs.entries()) {
+      est.textContent = `Leyendo ${n + 1} de ${fs.length}: ${f.name}…`;
+      try { msgs.push(await leerComprobante(c, f)); } catch (err) { msgs.push(`${f.name}: ${err.message}`); d.documentos.push({ nombre: f.name, tipo: "error", aplicado: err.message }); }
+    }
+    S.rcCalc = null; pintarCompra(); aviso(msgs.length === 1 ? msgs[0] : `${fs.length} archivos leídos`);
   };
+}
+const DOC_NOMBRE = { despacho: "Despacho", subitems: "Subítems del despacho", factura_comercial: "Factura comercial", factura_compra: "Factura de compra", factura_despachante: "Factura del despachante", factura_flete: "Flete", conocimiento_embarque: "Conocimiento de embarque", factura_gasto: "Gasto", remito: "Remito", otro: "No se usó", error: "No se pudo leer" };
+const b64Archivo = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); };
+// Lee un comprobante: el despacho en el navegador; el resto con la IA (texto del PDF por partes, o el archivo si es escaneado o una foto)
+async function leerComprobante(c, f) {
+  const d = c.datos; d.documentos ??= [];
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  const pdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+  let txt = "";
+  if (pdf) {
+    txt = await lineasPdf(bytes);
+    const r = leerDespacho(txt);
+    if (r.items.length || r.subitems.length) {
+      if (c.tipo !== "importacion") throw new Error("es un despacho de importación: cargalo en una compra de tipo Importación");
+      aplicarDespacho(c, r);
+      const t = r.items.length ? "despacho" : "subitems";
+      d.documentos.push({ nombre: f.name, tipo: t, numero: r.cabecera?.numero ?? "", aplicado: r.items.length ? `${r.items.length} ítems y sus tributos` : `${r.subitems.length} subítems con el código de cada producto` });
+      return `${f.name}: ${r.items.length ? `${r.items.length} ítems` : `${r.subitems.length} subítems`}`;
+    }
+  }
+  const paginas = txt.split("\f").map((x) => x.trim());
+  const conTexto = pdf && txt.replace(/\s/g, "").length > 150 * Math.max(1, paginas.filter(Boolean).length) * 0.5;
+  let doc;
+  if (conTexto) {
+    // Partes de hasta ~9.000 caracteres (por páginas), para que cada lectura sea corta
+    const partes = []; let cur = "";
+    for (const p of paginas) { if (cur && cur.length + p.length > 9000) { partes.push(cur); cur = ""; } cur += (cur ? "\n" : "") + p; }
+    if (cur) partes.push(cur);
+    const r0 = await rApi("rent_leer_documento", { nombre: f.name, texto: partes[0], parte: partes.length > 1 ? `1 de ${partes.length}` : null }, 150_000);
+    doc = r0.documento;
+    for (let i = 1; i < partes.length; i += 3) {
+      const rs = await Promise.all(partes.slice(i, i + 3).map((t, k) => rApi("rent_leer_documento", { nombre: f.name, texto: t, parte: `${i + k + 1} de ${partes.length}`, tipo_documento: doc.tipo_documento }, 150_000)));
+      for (const x of rs) { doc.renglones = [...(doc.renglones ?? []), ...(x.documento.renglones ?? [])]; doc.gastos = [...(doc.gastos ?? []), ...(x.documento.gastos ?? [])]; doc.impuestos = [...(doc.impuestos ?? []), ...(x.documento.impuestos ?? [])]; if (x.documento.totales?.total) doc.totales = x.documento.totales; }
+    }
+  } else {
+    if (bytes.length > 4.5 * 1024 * 1024) throw new Error("es muy grande para leerlo (máximo 4,5 MB)");
+    const mime = pdf ? "application/pdf" : f.type || (/\.png$/i.test(f.name) ? "image/png" : "image/jpeg");
+    doc = (await rApi("rent_leer_documento", { nombre: f.name, mime, datos: b64Archivo(bytes) }, 150_000)).documento;
+  }
+  const aplicado = aplicarDocumento(c, doc);
+  const mon = doc.moneda && doc.moneda !== "ARS" ? doc.moneda + " " : "$";
+  d.documentos.push({ nombre: f.name, tipo: doc.tipo_documento, emisor: doc.emisor ?? "", numero: [doc.letra, doc.numero].filter(Boolean).join(" "), total: doc.totales?.total ? mon + nTxt(doc.totales.total) : "", aplicado: aplicado + (doc.nota ? ` Revisar: ${doc.nota}` : "") });
+  return `${f.name}: ${DOC_NOMBRE[doc.tipo_documento] ?? doc.tipo_documento}`;
+}
+function aplicarDespacho(c, r) {
+  const d = c.datos;
+  if (r.cabecera) Object.entries(r.cabecera).forEach(([k, v]) => { if (v != null && v !== "") d.despacho[k] = v; });
+  if (r.items.length) d.items_despacho = r.items;
+  const todosSubs = r.subitems;
+  // Un renglón por código del proveedor dentro de cada ítem; los ítems sin subítems van como un renglón
+  const por = new Map();
+  for (const s of todosSubs) { const k = `${s.item}|${s.codigo || s.sub}`; const x = por.get(k) ?? { codigo: s.codigo || "", item: s.item, unidades: 0, fob: 0 }; x.unidades += s.cantidad; x.fob += s.fob; por.set(k, x); }
+  for (const it of d.items_despacho) if (!it.subitems) por.set(`${it.item}|${it.codigo || "item"}`, { codigo: it.codigo || `Ítem ${it.item}`, item: it.item, unidades: it.cantidad, fob: it.fob_usd });
+  const viejos = d.renglones.filter((x) => x.producto_id || x.unidades || x.precio_factura != null);
+  const nuevos = [...por.values()].map((x) => { const prev = viejos.find((v) => String(v.codigo_proveedor).toLowerCase() === x.codigo.toLowerCase() && (!v.item_despacho || String(v.item_despacho) === String(x.item))); const p = S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === x.codigo.toLowerCase());
+    if (prev) { prev._usado = true; return { ...prev, item_despacho: x.item, fob_usd: Math.round(x.fob * 100) / 100, unidades: prev.unidades || x.unidades }; }
+    return { ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, item_despacho: x.item, unidades: x.unidades, fob_usd: Math.round(x.fob * 100) / 100, precio_unit: x.unidades ? Math.round(x.fob / x.unidades * 100000) / 100000 : "", moneda: "USD", tc: d.despacho.tc }; });
+  // Se conservan los renglones agregados a mano y los de ítems con subítems que todavía no se subieron
+  const manuales = viejos.filter((x) => !x._usado && (!x.item_despacho || (!todosSubs.length && d.items_despacho.find((it) => it.item === String(x.item_despacho))?.subitems)));
+  viejos.forEach((x) => delete x._usado); nuevos.forEach((x) => delete x._usado);
+  if (nuevos.length) d.renglones = [...nuevos, ...manuales];
+  if (!c.fecha || c.fecha === diaISO(new Date())) { const f = String(d.despacho.fecha ?? "").match(/(\d{2})\/(\d{2})\/(\d{4})/); if (f) c.fecha = `${f[3]}-${f[2]}-${f[1]}`; }
+}
+// Acomoda lo leído de un comprobante en la compra. Devuelve qué se hizo, en una línea.
+function aplicarDocumento(c, doc) {
+  const d = c.datos, imp = c.tipo === "importacion", t = doc.tipo_documento, N = (x) => Number(x) || 0;
+  const mon = doc.moneda || (imp ? "USD" : "ARS"), tc = N(doc.tipo_cambio) || (mon === "ARS" ? "" : d.despacho?.tc ?? "");
+  const ref = [doc.emisor, [doc.letra, doc.numero].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+  const ivaDoc = (doc.impuestos ?? []).filter((x) => x.tipo === "iva").reduce((a, x) => a + N(x.importe), 0);
+  const percep = (doc.impuestos ?? []).filter((x) => /percepcion/.test(x.tipo));
+  const otrosImp = (doc.impuestos ?? []).filter((x) => x.tipo === "impuesto_interno" || x.tipo === "otro");
+  const vacio = (r) => !r.producto_id && !r.codigo_proveedor && !r.unidades;
+  const prodPor = (cod, desc) => { const k = String(cod ?? "").toLowerCase(); return (k && S.rentProds.find((p) => (p.codigo ?? "").toLowerCase() === k)) || (desc && S.rentProds.find((p) => p.nombre.toLowerCase() === String(desc).toLowerCase())) || null; };
+  const comoGasto = (concepto) => {
+    const gs = (doc.gastos ?? []).filter((g) => N(g.importe));
+    const lista = gs.length ? gs : [{ concepto, importe: N(doc.totales?.neto) + N(doc.totales?.no_gravado) || N(doc.totales?.total) - ivaDoc - percep.reduce((a, x) => a + N(x.importe), 0) }];
+    lista.forEach((g, i) => d.gastos.push({ concepto: g.concepto || concepto, proveedor: ref, moneda: g.moneda || mon, monto: N(g.importe), tc, iva: i === 0 ? ivaDoc : "", otros_recuperables: i === 0 ? percep.reduce((a, x) => a + N(x.importe), 0) || "" : "" }));
+    otrosImp.forEach((x) => d.gastos.push({ concepto: x.nombre || "Otros impuestos", proveedor: ref, moneda: mon, monto: N(x.importe), tc, iva: "", otros_recuperables: "" }));
+    return `${lista.length + otrosImp.length} ${lista.length + otrosImp.length === 1 ? "gasto agregado" : "gastos agregados"}`;
+  };
+  if (t === "factura_comercial" && imp) {
+    // Precio por código: importe total del código dividido todas sus unidades (incluidas las sin cargo)
+    const por = new Map();
+    for (const r of doc.renglones ?? []) { const k = String(r.codigo ?? "").trim().toLowerCase(); if (!k) continue; const x = por.get(k) ?? { codigo: r.codigo, desc: r.descripcion, q: 0, imp: 0, sin: 0 }; x.q += N(r.cantidad); x.imp += N(r.importe) || N(r.precio_unitario) * N(r.cantidad); if (r.sin_cargo || !N(r.importe)) x.sin += N(r.cantidad); por.set(k, x); }
+    let ok = 0, nuevos = 0, sinCargo = 0;
+    for (const [k, x] of por) {
+      const pf = x.q ? Math.round(x.imp / x.q * 100000) / 100000 : 0;
+      const rs = d.renglones.filter((r) => String(r.codigo_proveedor ?? "").toLowerCase() === k);
+      if (x.sin) sinCargo++;
+      if (rs.length) { rs.forEach((r) => { r.precio_factura = pf; r.moneda_factura = mon; r.unidades_factura = x.q; if (!r.precio_editado) { r.precio_unit = pf; r.moneda = mon; if (mon !== "ARS" && !r.tc) r.tc = tc; } }); ok++; }
+      else { const p = prodPor(x.codigo, x.desc); d.renglones = d.renglones.filter((r) => !vacio(r)); d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, unidades: x.q, precio_unit: pf, precio_factura: pf, moneda_factura: mon, moneda: mon, tc }); nuevos++; }
+    }
+    if (!c.comprobante) c.comprobante = [doc.letra, doc.numero].filter(Boolean).join(" ");
+    if (!c.proveedor && doc.emisor) c.proveedor = doc.emisor;
+    return `Precio de ${ok} códigos${nuevos ? ` y ${nuevos} códigos nuevos` : ""}${sinCargo ? `; ${sinCargo} códigos con unidades sin cargo (el precio se dividió entre todas)` : ""}. El precio pagado se puede cambiar.`;
+  }
+  if ((t === "factura_compra" || t === "remito" || t === "factura_comercial") && !imp) {
+    const rs = (doc.renglones ?? []).filter((r) => N(r.cantidad));
+    d.renglones = d.renglones.filter((r) => !vacio(r));
+    for (const r of rs) {
+      const p = prodPor(r.codigo, r.descripcion);
+      const pu = N(r.precio_unitario) || (N(r.cantidad) ? N(r.importe) / N(r.cantidad) : 0);
+      d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: r.codigo || r.descripcion || "", unidades: N(r.cantidad), precio_unit: pu, precio_factura: pu, moneda_factura: mon, moneda: mon, tc, iva_pct: r.iva_pct != null ? N(r.iva_pct) : 21 });
+    }
+    if (!c.proveedor && doc.emisor) c.proveedor = doc.emisor;
+    if (!c.comprobante) c.comprobante = [doc.letra, doc.numero].filter(Boolean).join(" ");
+    if (c.tipo === "con_impuestos") {
+      if (["A", "B", "C"].includes(doc.letra)) d.factura_tipo = doc.letra;
+      const trato = { percepcion_iva: "a_cuenta_iva", percepcion_iibb: "iibb", percepcion_ganancias: "ganancias" };
+      for (const x of [...percep, ...otrosImp]) d.impuestos.push({ nombre: x.nombre || x.tipo, monto: N(x.importe), trato: trato[x.tipo] ?? "costo" });
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(doc.fecha ?? "") && (!c.fecha || c.fecha === diaISO(new Date()))) c.fecha = doc.fecha;
+    const sinProd = d.renglones.filter((r) => !r.producto_id).length;
+    return `${rs.length} renglones${c.tipo === "con_impuestos" && percep.length + otrosImp.length ? ` y ${percep.length + otrosImp.length} impuestos` : ""}${sinProd ? `; ${sinProd} sin producto vinculado` : ""}.`;
+  }
+  if (t === "factura_flete" || t === "conocimiento_embarque") {
+    if (!imp) return comoGasto("Flete");
+    const modo = doc.flete?.modo;
+    if (t === "conocimiento_embarque" && d.flete.proveedor && d.flete.modo === "destino") return "El flete ya está cargado desde su factura.";
+    if (modo === "origen" && !N(doc.flete?.importe)) { d.flete.modo = "origen"; return "Flete pagado en origen."; }
+    const importe = N(doc.flete?.importe) || (doc.gastos ?? []).filter((g) => (g.moneda || mon) === (doc.flete?.moneda || mon)).reduce((a, g) => a + N(g.importe), 0);
+    d.flete = { modo: modo || "destino", proveedor: ref, moneda: doc.flete?.moneda || mon, monto: importe, tc: tc || d.despacho?.tc || "", iva: ivaDoc || "" };
+    // Lo que la factura cobra en otra moneda (por ejemplo gastos de origen en yuanes) va como gasto aparte
+    const otros = (doc.gastos ?? []).filter((g) => g.moneda && g.moneda !== d.flete.moneda && N(g.importe));
+    otros.forEach((g) => d.gastos.push({ concepto: g.concepto, proveedor: ref, moneda: g.moneda, monto: N(g.importe), tc: "", iva: "", otros_recuperables: "" }));
+    return `Flete ${d.flete.modo === "origen" ? "en origen" : "en destino"}: ${d.flete.moneda} ${nTxt(importe)}${otros.length ? `, más ${otros.length} gastos en otra moneda (falta su tipo de cambio)` : ""}.`;
+  }
+  if (t === "factura_despachante") return comoGasto("Despachante");
+  if (t === "factura_gasto" || (t === "factura_compra" && imp)) return comoGasto(t === "factura_compra" ? "Compra" : "Gasto");
+  if (t === "remito" && imp) return "Remito sin importes para la importación: no se usó.";
+  if (t === "despacho") return "Parece un despacho escaneado: subí el PDF original para leer sus ítems y tributos.";
+  return "No es un comprobante de esta compra: no se usó.";
 }
 
 // Texto de un PDF por renglones (agrupa por altura y deja dos espacios donde hay separación)
