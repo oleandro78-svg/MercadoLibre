@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260056";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260124";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -943,7 +943,6 @@ h3 .te{font-size:13px;margin-left:4px}
   .chat-cab .venta-cab{flex:1 1 calc(100% - 232px);min-width:0}
   .chat-cab .acc-cab{flex:0 0 auto;flex-wrap:nowrap;gap:2px;margin-left:0}
   .chat-cab .acc-i{min-width:46px;font-size:11px}
-  .chat-cab .m-listo{margin-left:auto}
 }
 .m-pie{display:grid;gap:6px;justify-items:center;text-align:center;padding:16px 18px 22px}
 .m-fil .fx{display:inline-flex;align-items:center;gap:5px}.m-fil .fx svg{width:14px;height:14px}
@@ -4924,8 +4923,7 @@ function pintarChat(d) {
         <button type="button" class="acc-i ${c.compartida ? "on" : ""}" id="mCompartir" title="${c.compartida ? "Ya se habló de esta venta en el chat del equipo. Tocá para compartirla de nuevo" : "Compartir en el chat del equipo"}">${ICO_ACC.chat}<span>${c.compartida ? "Compartida" : "Compartir"}</span></button>
         <button type="button" class="acc-i ${c.agendada ? "on" : ""}" id="mAgendar" title="${c.agendada ? "Tiene algo en el calendario. Tocá para agregar otro" : "Agregar al calendario algo que hay que hacer con este comprador"}">${ICO_ACC.cal}<span>${c.agendada ? "Agendada" : "Agendar"}</span></button>
         <button type="button" class="acc-i acc-fav ${c.favorita ? "on" : ""}" data-fav="${c.id}" aria-pressed="${!!c.favorita}" aria-label="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}" title="${c.favorita ? "Quitar de favoritas" : "Marcar como favorita"}">${ICO_ACC.fav}<span>Favorita</span></button>
-        </div>
-      ${c.pendiente ? `<button class="btn lin chico m-listo" type="button" id="mListo" title="Saca la conversación de pendientes sin enviar nada">No hace falta responder</button>` : ""}</div>
+        </div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
       ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
@@ -4937,6 +4935,8 @@ function pintarChat(d) {
     ${conX(estado, c.id)}${med || urg ? `<div class="chat-alertas" title="Tocá para ver el aviso completo">${conX(med, c.id)}${conX(urg, c.id)}</div>` : ""}${conX(avisos, c.id)}
     <div class="burbujas" id="mBur">${burbujas(d.mensajes) || `<div class="b b-sis">Todavía no hay mensajes en esta venta.</div>`}</div>
     <div id="mComp" class="m-comp">${compromisosHtml(c, d)}</div>
+    ${c.pendiente ? `<div class="m-comp"><div class="estado e-mot comp">${ICONO_M.info}<span><b>¿No hace falta responder?</b> Si el comprador no espera respuesta, sacala de pendientes sin enviarle nada.
+      <span class="comp-acc"><button type="button" class="btn pri chico" id="mListo">No hace falta responder</button></span></span></div></div>` : ""}
     <div class="redactar" id="mRed" data-pres="msj:${c.id}"></div></div>
     ${conRec ? `<div class="c-pane" id="cpRec" hidden><div class="rec-cuerpo" id="cRec"><p class="mut">Cargando el reclamo…</p></div></div>` : ""}
     <div class="c-pane" id="cpNot" hidden><div class="notas" id="cNot"><p class="mut">Cargando las notas…</p></div></div>
