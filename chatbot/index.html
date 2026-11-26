@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260407";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611260457";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -286,6 +286,7 @@ input[type=range]{width:100%;accent-color:var(--pino)}
 .imp-opc{border:1px solid var(--linea);border-radius:var(--r-m,10px);padding:10px 14px;margin:4px 0 0;display:grid;gap:6px;grid-column:1/-1}.imp-opc legend{font-weight:600;padding:0 4px}.imp-opc .ck{display:flex;gap:8px;align-items:center;justify-content:flex-start;text-align:left}.imp-form .imp-opc .ck input{width:auto;flex:none;margin:0}.imp-opc select{max-width:340px}
 .imp-sal{display:grid;gap:8px}.imp-sal-it{all:unset;cursor:pointer;display:grid;gap:2px;padding:12px 14px;border:1px solid var(--linea);border-radius:var(--r-m,10px);background:var(--sup)}.imp-sal-it:hover{border-color:var(--tinta)}.imp-sal-it:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}.imp-ok{color:var(--pino-t);font-size:12px;font-weight:600}
 .ver-res{display:grid;gap:2px;padding:12px 14px;border-radius:var(--r-m,10px);margin:10px 0}.ver-res.ok{background:color-mix(in srgb,var(--pino-t) 14%,transparent)}.ver-res.mal{background:color-mix(in srgb,#c0392b 16%,transparent)}.ver-res b{font-size:17px}
+.tab-pt{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ladrillo);margin-left:6px;vertical-align:2px}
 .tab-n{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:20px;background:var(--tinta);color:var(--papel);font-size:12px;font-weight:700;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}.tab-n[hidden]{display:none}
 .hilo-w{position:relative}.hilo-w .hilo .tags{padding-right:34px}
 .fav-h{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:transparent;line-height:0;flex:none}
@@ -828,7 +829,12 @@ input[type=file]{max-width:100%}
 .din-t{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.din-t .din-m{font-weight:700}.din-c{font-size:12.5px;color:var(--piz);margin:2px 0 4px;overflow-wrap:anywhere}
 .din-ev.aparte{border-style:dashed;background:var(--ambar-2)}.din-ev.aparte .din-c{color:var(--ambar-t)}
 .din-ev .lnk{all:unset;cursor:pointer;color:var(--cielo);font-weight:600;font-size:13px;margin-top:4px}
-.din-cp{margin-top:18px;border-top:1px solid var(--linea);padding-top:10px}.din-cp summary{cursor:pointer;font-weight:600;font-size:14px}.din-priv{margin-top:14px}
+.din-cp-b{margin-top:18px;border-top:1px solid var(--linea);padding-top:10px}.din-cp-b summary{cursor:pointer;font-weight:600;font-size:14px}
+.din-g{border-top:1px solid var(--linea);padding:8px 0}.din-op+.din-g,.din-sec h4+.din-g{border-top:0}.din-gh{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;font-weight:600;font-size:14.5px}
+.din-sl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;font-size:13.5px;color:var(--piz);padding:4px 0 0 12px}.din-sl .din-m{color:var(--piz)}
+.din-gt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;font-weight:700;font-size:15px;border-top:1.5px solid var(--tinta);padding-top:8px}
+.din-op{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--piz);margin:2px 0 6px}.din-op code{font:600 12.5px var(--fuente);color:var(--tinta);background:var(--sup2);border-radius:6px;padding:2px 6px;font-variant-numeric:tabular-nums}
+.din-cp{all:unset;cursor:pointer;font-size:12px;font-weight:600;color:var(--cielo)}.din-priv{margin-top:14px}
 .c-tabs{margin:0;padding:0 14px;background:var(--sup)}.c-tabs .chip{margin-left:6px;font-size:11.5px;padding:1px 8px}
 .rec-cuerpo{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
 .rec-ficha{background:var(--sup);border:1px solid var(--linea);border-radius:var(--r-m);padding:14px 16px;display:grid;gap:8px;font-size:14px}
@@ -4663,6 +4669,9 @@ async function refrescarConv(id) {
   const d = await api("mensajes_conversacion", { id }).catch(() => null);
   if (!d || S.msjId !== id || S.tab !== "mensajes") return;
   S.msjConv = d;
+  // En otra pestaña de la venta (Reclamo, Dinero, Factura…) no se vuelve a pintar todo: solo se ponen al día los mensajes
+  const pest = S.convTab?.[id];
+  if (pest && pest !== "chat" && pest !== "venta") { const bur = $("#mBur"); if (bur) { bur.innerHTML = burbujas(d.mensajes); cargarMinis(id); } return; }
   if (!escribiendo) { pintarChat(d); pintarVenta(d); return; }
   const bur = $("#mBur"); if (!bur) return;
   bur.innerHTML = burbujas(d.mensajes); bur.scrollTop = bur.scrollHeight; cargarMinis(id);
@@ -4955,7 +4964,7 @@ function pintarChat(d) {
         </div></div>
     <div class="pestanas c-tabs" role="tablist" aria-label="Vista de la venta">
       <button type="button" role="tab" data-ct="chat">Chat<span class="largo"> con el comprador</span></button>
-      ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo<span class="chip ${c.mediacion ? "c-urg" : "c-blo"}" id="cRecEst">${c.mediacion ? "Abierto" : "Cerrado"}</span></button>` : ""}
+      ${conRec ? `<button type="button" role="tab" data-ct="reclamo">Reclamo${c.mediacion?.tenes_que_responder ? `<span class="tab-pt" title="El reclamo te necesita" aria-label="El reclamo te necesita"></span>` : ""}</button>` : ""}
       <button type="button" role="tab" data-ct="notas">Notas<span class="largo"> internas</span><span class="tab-n" id="cNotN" ${c.con_notas ? "" : "hidden"}></span></button>
       <button type="button" role="tab" data-ct="factura">Factura</button>
       ${verDinero(c) ? `<button type="button" role="tab" data-ct="dinero">Dinero</button>` : ""}
@@ -5040,29 +5049,40 @@ function pestConv(t) {
 // ---------- Solapa "Dinero": lo que le quedó al negocio de la venta, con lo que pasó después (solo administradores) ----------
 const verDinero = (c) => dueno() || S.rol === "cliente" || clienteYo(c?.cliente_id)?.rol === "admin";
 const pesosD = (n) => (n < 0 ? "−" : "") + "$" + Math.abs(Number(n)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const lineaD = (l) => `<div class="din-l"><span>${esc(l.etiqueta)}</span><span class="din-m ${l.monto < 0 ? "neg" : l.monto > 0 && l.etiqueta !== "Precio" ? "pos" : ""}">${l.etiqueta === "Precio" ? pesosD(l.monto) : (l.monto > 0 ? "+" : "") + pesosD(l.monto)}</span>${l.detalle ? `<span class="din-d">${esc(l.detalle)}</span>` : ""}</div>`;
+// Se trae una vez por venta y queda guardado: no se vuelve a pedir al cambiar de pestaña ni se refresca solo
+function datosDinero(id) {
+  S.dinDatos = S.dinDatos ?? {};
+  return S.dinDatos[id] ??= api("venta_dinero", { conversacion_id: id }).catch((e) => { delete S.dinDatos[id]; throw e; });
+}
+const opD = (texto, id) => `<div class="din-op">${esc(texto)} ${String(id).split(" · ").map((x) => `<code>#${esc(x)}</code><button type="button" class="din-cp" data-cp="${esc(x)}">Copiar</button>`).join(" ")}</div>`;
+const grupoD = (g) => `<div class="din-g"><div class="din-gh"><span>${esc(g.titulo)}</span><span class="din-m ${g.monto < 0 ? "neg" : g.monto > 0 && g.titulo !== "Precio del producto" ? "pos" : ""}">${g.titulo === "Precio del producto" ? pesosD(g.monto) : (g.monto > 0 ? "+" : "") + pesosD(g.monto)}</span></div>
+  ${(g.sub ?? []).map((x) => `<div class="din-sl"><span>${esc(x.etiqueta)}</span><span class="din-m">${pesosD(x.monto)}</span></div>`).join("")}${g.op ? opD(g.op.texto, g.op.id) : ""}</div>`;
+const totalD = (t, m) => `<div class="din-gt"><span>${esc(t)}</span><span class="din-m">${pesosD(m)}</span></div>`;
 async function cargarDinero(id) {
   const caja = $("#cDin"); if (!caja) return;
-  caja.innerHTML = `<p class="mut">${buscandoTxt("Buscando el dinero de la venta")}</p>`;
-  const r = await seguro(() => api("venta_dinero", { conversacion_id: id }));
-  if (!r || S.msjConv?.conversacion?.id !== id || !caja.isConnected) return;
   caja.dataset.listo = "1";
+  if (!S.dinDatos?.[id]) caja.innerHTML = `<p class="mut">${buscandoTxt("Buscando el dinero de la venta")}</p>`;
+  const r = await datosDinero(id).catch((e) => ({ error: e.message }));
+  if (S.msjConv?.conversacion?.id !== id || !caja.isConnected) return;
+  if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el dinero de la venta: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cDinOtra">Probar de nuevo</button>`; $("#cDinOtra").onclick = () => cargarDinero(id); return; }
   if (r.sin_datos) { caja.innerHTML = `<p class="mut">${r.estado_pago ? `El pago está "${esc(r.estado_pago)}": todavía no hay dinero de esta venta.` : "Mercado Pago todavía no tiene movimientos de esta venta."}</p>`; return; }
   const pct = r.precio ? Math.round((r.quedo / r.precio) * 1000) / 10 : null;
   const b = r.barra ?? {}; const tot = r.precio || 1;
   const seg = (v, cl) => v > 0 ? `<i class="${cl}" style="width:${Math.min(100, (v / tot) * 100).toFixed(2)}%"></i>` : "";
   const barraOk = r.quedo >= 0 && b.ml >= 0 && b.envio >= 0 && b.otros >= -0.01;
-  const estado = r.estado === "liberado" ? `Liberado en Mercado Pago el ${diaMes(r.liberado_at)}` : r.estado === "a_liberar" ? `A liberar${r.libera_at ? ` el ${diaMes(r.libera_at)}` : ""}` : "Liberado en Mercado Pago";
+  const estado = r.estado === "liberado" ? `Disponible en Mercado Pago desde el ${diaMes(r.liberado_at)}` : r.estado === "a_liberar" ? `A liberar${r.libera_at ? ` el ${diaMes(r.libera_at)}` : ""}` : "Disponible en Mercado Pago";
   const reclamoTxt = (rc) => rc ? `reclamo n.º ${esc(rc.id)}${rc.problema ? ` · ${esc(rc.problema)}` : ""}${rc.titulo ? ` · ${esc(rc.titulo)}` : ""}` : "";
   const ev = (e) => `<div class="din-ev ${e.aparte ? "aparte" : ""}">
     <div class="din-t"><b>${esc(e.titulo)}</b><span class="din-m ${e.neto < 0 ? "neg" : "pos"}">${e.neto > 0 ? "+" : ""}${pesosD(e.neto)}</span></div>
     <div class="din-c">${esc(diaMes(e.fecha))}${e.reclamo ? ` · ${reclamoTxt(e.reclamo)}` : ""}</div>
     ${e.aparte ? `<div class="din-c">${esc(e.aparte)}</div>` : ""}
-    ${e.lineas.length > 1 || (e.lineas[0] && Math.abs(e.lineas[0].monto - e.neto) > 0.009) ? e.lineas.map(lineaD).join("") : ""}
+    ${(e.ops ?? []).map((o) => opD(o.texto, o.id)).join("")}
+    ${e.grupos.length > 1 || e.grupos[0]?.sub ? e.grupos.map(grupoD).join("") + totalD("Total", e.neto) : ""}
     ${e.reclamo ? `<button type="button" class="lnk" data-ct-ir="reclamo">Ver el reclamo</button>` : ""}</div>`;
   const cp = r.comprador;
+  const lin = (et, m, d) => `<div class="din-l"><span>${esc(et)}</span><span class="din-m">${m}</span>${d ? `<span class="din-d">${esc(d)}</span>` : ""}</div>`;
   caja.innerHTML = `<div class="din-res">
-      <div class="mut peq">${r.provisorio ? "Te va a quedar de esta venta" : "Te quedó de esta venta"}</div>
+      <div class="mut peq">${r.provisorio && r.estado === "a_liberar" ? "Te va a quedar de esta venta" : "Te quedó de esta venta"}</div>
       <div class="din-gran">${pesosD(r.quedo)}</div>
       ${pct !== null ? `<div class="mut peq">${String(pct).replace(".", ",")}% de los ${pesosD(r.precio)} del precio</div>` : ""}
       ${barraOk ? `<div class="din-barra" aria-hidden="true">${seg(r.quedo, "b-q")}${seg(b.ml, "b-ml")}${seg(b.envio, "b-env")}${seg(b.otros, "b-ot")}</div>
@@ -5070,18 +5090,20 @@ async function cargarDinero(id) {
       <span class="chip ${r.estado === "a_liberar" ? "c-cal" : "c-ok"} din-est">${esc(estado)}</span>
       ${r.retenido ? `<div class="estado e-mot din-ret">${pesosD(Math.abs(r.retenido))} retenidos por un reclamo o devolución en curso. Vuelven o se descuentan según cómo se resuelva.</div>` : ""}
     </div>
-    <div class="din-sec"><h4>Cuando se vendió <small>${esc(diaMes(r.vendido_at))}</small></h4>${r.venta.map(lineaD).join("")}
-      <div class="din-l din-tot"><span>${r.provisorio && r.estado === "a_liberar" ? "A cobrar" : "Cobrado"}</span><span class="din-m">${pesosD(r.cobrado)}</span></div></div>
+    <div class="din-sec"><h4>Cuando se vendió <small>${esc(diaMes(r.vendido_at))}</small></h4>
+      ${(r.cobros ?? []).length ? opD(r.cobros.length > 1 ? "Cobros" : "Cobro", r.cobros.join(" · ")) : ""}
+      ${(r.grupos ?? []).map(grupoD).join("")}${totalD(r.provisorio && r.estado === "a_liberar" ? "A cobrar" : "Total", r.cobrado)}</div>
     ${r.eventos.length ? `<div class="din-sec"><h4>Después de la venta <small>${r.eventos.length === 1 ? "1 movimiento" : r.eventos.length + " movimientos"}</small></h4>${r.eventos.map(ev).join("")}</div>` : ""}
-    ${cp ? `<details class="din-cp"><summary>Lo que pagó el comprador</summary>
-      ${lineaD({ etiqueta: "Precio", monto: cp.precio })}
-      ${cp.intereses ? `<div class="din-l"><span>Intereses de ${cp.cuotas} cuotas</span><span class="din-m">+${pesosD(cp.intereses)}</span><span class="din-d">Los cobra Mercado Pago, no pasan por tu cuenta</span></div>` : ""}
-      ${cp.cupon_ml ? `<div class="din-l"><span>Cupón de MercadoLibre</span><span class="din-m">−${pesosD(cp.cupon_ml)}</span><span class="din-d">Lo paga MercadoLibre, no vos</span></div>` : ""}
+    ${cp ? `<details class="din-cp-b"><summary>Lo que pagó el comprador</summary>
+      ${lin("Precio", pesosD(cp.precio))}
+      ${cp.intereses ? lin(`Intereses de ${cp.cuotas} cuotas`, "+" + pesosD(cp.intereses), "Los cobra Mercado Pago, no pasan por tu cuenta") : ""}
+      ${cp.cupon_ml ? lin("Cupón de MercadoLibre", "−" + pesosD(cp.cupon_ml), "Lo paga MercadoLibre, no vos") : ""}
       <div class="din-l din-tot"><span>Pagó</span><span class="din-m">${pesosD(cp.pago)}</span></div>
-      ${cp.le_devolvieron ? `<div class="din-l"><span>Le devolvieron</span><span class="din-m">${pesosD(cp.le_devolvieron)}</span>${Math.abs(cp.le_devolvieron - cp.devuelto_precio) > 0.009 ? `<span class="din-d">${pesosD(cp.devuelto_precio)} del precio y ${pesosD(cp.le_devolvieron - cp.devuelto_precio)} de intereses u otros cargos que había pagado</span>` : ""}</div>` : ""}
+      ${cp.le_devolvieron ? lin("Le devolvieron", pesosD(cp.le_devolvieron), Math.abs(cp.le_devolvieron - cp.devuelto_precio) > 0.009 ? `${pesosD(cp.devuelto_precio)} del precio y ${pesosD(cp.le_devolvieron - cp.devuelto_precio)} de intereses u otros cargos que había pagado` : "") : ""}
     </details>` : ""}
     <p class="din-priv mut peq">${r.provisorio && r.estado === "a_liberar" ? "Montos según el pago: pueden cambiar hasta que se libere. " : ""}Solo lo ven los administradores del negocio.</p>`;
   caja.querySelectorAll("[data-ct-ir]").forEach((x) => x.onclick = () => pestConv(x.dataset.ctIr));
+  caja.querySelectorAll(".din-cp").forEach((x) => x.onclick = async () => { try { await navigator.clipboard.writeText(x.dataset.cp); x.textContent = "Copiado"; setTimeout(() => { x.textContent = "Copiar"; }, 1500); } catch { aviso("No se pudo copiar"); } });
 }
 // ---------- Solapa "Factura": datos para facturar, la factura cargada en MercadoLibre (en miniatura) y lo vendido ----------
 const pdfJs = async () => { const l = await cargarScript("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js", "pdfjsLib"); l.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; return l; };
@@ -5268,7 +5290,6 @@ async function cargarReclamo(id) {
   if (r.error) { caja.dataset.listo = ""; caja.innerHTML = `<p class="mut">No se pudo traer el reclamo: ${esc(r.error)}</p><button class="btn lin chico" type="button" id="cRecOtra">Probar de nuevo</button>`; $("#cRecOtra").onclick = () => cargarReclamo(id); return; }
   const lista = r.reclamos ?? [];
   const abierto = lista.some((x) => x.abierto);
-  const est = $("#cRecEst"); if (est) { est.textContent = abierto ? "Abierto" : "Cerrado"; est.className = `chip ${abierto ? "c-urg" : "c-blo"}`; }
   caja.innerHTML = lista.map((x) => fichaReclamo(x)).join("") || `<p class="mut">MercadoLibre no informa reclamos para esta venta.</p>`;
   const pie = lista.find((x) => x.abierto);
   $("#cpRec").querySelector(".rec-pie")?.remove();
@@ -6221,7 +6242,7 @@ function rtEvento(ev, p) {
     rtLuego("av", revisarAvisos, 200);
     if (S.tab === "mensajes") {
       rtLuego("hil", () => cargarHilos(empMsj()), 400);
-      if (S.msjId && p.conv === S.msjId && Date.now() - (S.convAbiertaAt ?? 0) > 5000 && S.convTab?.[S.msjId] !== "reclamo") rtLuego("conv", () => refrescarConv(S.msjId), 500);
+      if (S.msjId && p.conv === S.msjId && Date.now() - (S.convAbiertaAt ?? 0) > 5000 && !["reclamo", "dinero"].includes(S.convTab?.[S.msjId])) rtLuego("conv", () => refrescarConv(S.msjId), 500);
     }
   } else if (ev === "despacho") {
     if (S.tab === "despacho" && !document.querySelector("#dsResM:not(.oculto)") && !document.querySelector(".velo")) rtLuego("desp", () => VISTAS.despacho({ rapido: true }), 400);
@@ -6229,6 +6250,7 @@ function rtEvento(ev, p) {
     // MercadoLibre avisó un cambio en un reclamo: se olvida lo guardado y, si está abierto en pantalla, se actualiza
     const convs = p.conv ? [Number(p.conv)] : Object.keys(S.recDatos ?? {}).map(Number);
     for (const c of convs) if (S.recDatos) delete S.recDatos[c];
+    for (const c of convs) if (S.dinDatos) delete S.dinDatos[c]; // el dinero se vuelve a traer la próxima vez que se abra
     const abierto = $("#cRec")?.isConnected ? (S.tab === "devoluciones" ? S.pvRec : S.msjId) : null;
     if (abierto && convs.includes(abierto)) rtLuego("rec", () => { if ($("#cRec")) { $("#cRec").dataset.listo = ""; cargarReclamo(abierto); } }, 400);
   } else if (ev === "devoluciones") {
