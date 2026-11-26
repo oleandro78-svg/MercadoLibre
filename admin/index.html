@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611260149";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611260216";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1174,6 +1174,13 @@ setInterval(() => {
   S.vistaUlt = j;
   api("vistas_guardar", { valor: JSON.parse(j) }).catch(() => {});
 }, 4000);
+// Como en WhatsApp: una vibración mínima al tocar el menú (el lateral, la barra de abajo del celular) y las solapas
+// y globitos de cada pantalla. Solo en los celulares que la permiten (en el iPhone el navegador no deja vibrar).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest('#nav button, #nav a, .pestanas button, [role="tab"], #recFil button, #rcFil button, #fEst button, [role="menuitem"], [role="menuitemradio"], .mas-menu button');
+  if (!b || b.disabled) return;
+  try { navigator.vibrate?.(8); } catch {}
+}, true);
 let S = { modo: "usuario", cliente: "", clave: "", rol: null, res: null, yo: null, clienteId: "", empSel: "", tab: "hoy", filtros: { estado: "", cuenta_id: "", buscar: "", desde: 0 }, confCta: "", confNivel: "", confEmp: "", conoc: "documentos", soporte: "", soporteNom: "", per: "30d", perDesde: "", perHasta: "", platEmp: "", platFil: null, platVer: 30, plat: null, planes: null, rankN: 5, rankC: "lento", rankPl: "" };
 let sondeo = null;
 
