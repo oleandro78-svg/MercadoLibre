@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261953";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611261955";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -9034,6 +9034,7 @@ function pintarCompra() {
     <div class="panel"><h2>${imp ? "Productos: lo que se le pagó al fabricante" : "Productos e insumos"}</h2>
       ${imp ? `<p class="mut peq" style="margin:0 0 8px">El precio de la factura comercial y el FOB del despacho son referencia: cargá el precio realmente pagado por unidad de venta y el tipo de cambio de ese pago. Las unidades son las que se venden, incluidas las que vinieron sin cargo.</p>` : ""}
       ${d.renglones.length > 12 ? `<input type="search" id="rcFil" placeholder="Buscar código o producto" value="${esc(S.rcFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
+      ${(d.controles ?? []).length ? `<details class="rt-nota" style="display:block"><summary>${d.controles.length} códigos con cantidades distintas entre la factura comercial y el despacho. Revisá cuántas unidades de venta llegaron: el precio pagado se reparte entre ellas.</summary><div class="peq" style="margin-top:6px">${d.controles.map(esc).join("<br>")}</div></details>` : ""}
       ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
       <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
         ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
@@ -9062,6 +9063,8 @@ function pintarCompra() {
     const x = e.target;
     if (x.dataset.rp) setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value);
     if (x.dataset.rpu != null) d.renglones[Number(x.dataset.rpu)].precio_editado = true;
+    const mu = x.dataset.rp?.match(/^datos\.renglones\.(\d+)\.unidades$/);
+    if (mu) { const r = d.renglones[Number(mu[1])]; if (!r.precio_editado && r.precio_factura != null && Number(r.unidades_factura) && Number(r.unidades)) { const otros = d.renglones.filter((y) => y !== r && String(y.codigo_proveedor).toLowerCase() === String(r.codigo_proveedor).toLowerCase()); if (!otros.length) { r.precio_unit = Math.round(r.precio_factura * r.unidades_factura / Number(r.unidades) * 100000) / 100000; const inpP = $(`#main [data-rpu="${mu[1]}"]`); if (inpP) inpP.value = nTxt(r.precio_unit, 6); } } }
     if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_editado = true; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
     if (x.id === "rcFil") { S.rcFil = x.value; clearTimeout(S.rcFT); S.rcFT = setTimeout(() => { pintarCompra(); const b = $("#rcFil"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 300); }
   };
@@ -9179,7 +9182,8 @@ function aplicarDocumento(c, doc) {
   const comoGasto = (concepto) => {
     const gs = (doc.gastos ?? []).filter((g) => N(g.importe));
     const lista = gs.length ? gs : [{ concepto, importe: N(doc.totales?.neto) + N(doc.totales?.no_gravado) || N(doc.totales?.total) - ivaDoc - percep.reduce((a, x) => a + N(x.importe), 0) }];
-    lista.forEach((g, i) => d.gastos.push({ concepto: g.concepto || concepto, proveedor: ref, moneda: g.moneda || mon, monto: N(g.importe), tc, iva: i === 0 ? ivaDoc : "", otros_recuperables: i === 0 ? percep.reduce((a, x) => a + N(x.importe), 0) || "" : "" }));
+    const iG = Math.max(0, lista.findIndex((g) => g.gravado));
+    lista.forEach((g, i) => d.gastos.push({ concepto: g.concepto || concepto, proveedor: ref, moneda: g.moneda || mon, monto: N(g.importe), tc, iva: i === iG ? ivaDoc : "", otros_recuperables: i === iG ? percep.reduce((a, x) => a + N(x.importe), 0) || "" : "" }));
     otrosImp.forEach((x) => d.gastos.push({ concepto: x.nombre || "Otros impuestos", proveedor: ref, moneda: mon, monto: N(x.importe), tc, iva: "", otros_recuperables: "" }));
     return `${lista.length + otrosImp.length} ${lista.length + otrosImp.length === 1 ? "gasto agregado" : "gastos agregados"}`;
   };
@@ -9187,17 +9191,24 @@ function aplicarDocumento(c, doc) {
     // Precio por código: importe total del código dividido todas sus unidades (incluidas las sin cargo)
     const por = new Map();
     for (const r of doc.renglones ?? []) { const k = String(r.codigo ?? "").trim().toLowerCase(); if (!k) continue; const x = por.get(k) ?? { codigo: r.codigo, desc: r.descripcion, q: 0, imp: 0, sin: 0 }; x.q += N(r.cantidad); x.imp += N(r.importe) || N(r.precio_unitario) * N(r.cantidad); if (r.sin_cargo || !N(r.importe)) x.sin += N(r.cantidad); por.set(k, x); }
-    let ok = 0, nuevos = 0, sinCargo = 0;
+    let ok = 0, nuevos = 0, sinCargo = 0; const difs = [];
     for (const [k, x] of por) {
       const pf = x.q ? Math.round(x.imp / x.q * 100000) / 100000 : 0;
       const rs = d.renglones.filter((r) => String(r.codigo_proveedor ?? "").toLowerCase() === k);
       if (x.sin) sinCargo++;
-      if (rs.length) { rs.forEach((r) => { r.precio_factura = pf; r.moneda_factura = mon; r.unidades_factura = x.q; if (!r.precio_editado) { r.precio_unit = pf; r.moneda = mon; if (mon !== "ARS" && !r.tc) r.tc = tc; } }); ok++; }
+      if (rs.length) {
+        // Se respeta el total pagado: si la factura y el despacho cuentan distinto (unidades sin cargo, cajas), el precio se reparte entre las unidades del despacho
+        const uDesp = rs.reduce((a, r) => a + N(r.unidades), 0);
+        const pu = uDesp ? Math.round(x.imp / uDesp * 100000) / 100000 : pf;
+        if (uDesp && Math.abs(uDesp - x.q) > 0.001) difs.push(`${x.codigo}: ${nTxt(x.q)} en la factura${x.sin ? ` (${nTxt(x.sin)} sin cargo)` : ""} y ${nTxt(uDesp)} en el despacho`);
+        rs.forEach((r) => { r.precio_factura = pf; r.moneda_factura = mon; r.unidades_factura = x.q; if (!r.precio_editado) { r.precio_unit = pu; r.moneda = mon; if (mon !== "ARS" && !r.tc) r.tc = tc; } }); ok++;
+      }
       else { const p = prodPor(x.codigo, x.desc); d.renglones = d.renglones.filter((r) => !vacio(r)); d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, unidades: x.q, precio_unit: pf, precio_factura: pf, moneda_factura: mon, moneda: mon, tc }); nuevos++; }
     }
     if (!c.comprobante) c.comprobante = [doc.letra, doc.numero].filter(Boolean).join(" ");
     if (!c.proveedor && doc.emisor) c.proveedor = doc.emisor;
-    return `Precio de ${ok} códigos${nuevos ? ` y ${nuevos} códigos nuevos` : ""}${sinCargo ? `; ${sinCargo} códigos con unidades sin cargo (el precio se dividió entre todas)` : ""}. El precio pagado se puede cambiar.`;
+    d.controles = difs;
+    return `Precio de ${ok} códigos${nuevos ? ` y ${nuevos} códigos nuevos` : ""}${sinCargo ? `; ${sinCargo} con unidades sin cargo` : ""}.${difs.length ? ` ${difs.length} códigos con cantidades distintas entre la factura y el despacho: se respetó el total pagado y se repartió entre las unidades del despacho.` : ""} El precio pagado se puede cambiar.`;
   }
   if ((t === "factura_compra" || t === "remito" || t === "factura_comercial") && !imp) {
     const rs = (doc.renglones ?? []).filter((r) => N(r.cantidad));
