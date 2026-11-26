@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611262107";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611262328";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8772,7 +8772,8 @@ const DET_RENT = { venta: "Ventas", devuelto: "Devoluciones de dinero", reclamos
 VISTAS.rentabilidad = async () => {
   if (sinEmpRent("Rentabilidad")) return;
   const { desde, hasta } = rangoPer();
-  const d = await seguro(() => rApi("rent_tablero", { desde, hasta, cuenta_id: S.rentCta || null }));
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Calculando ${esc(nombrePer())}…</p></div></div>`;
+  const d = await seguro(() => rApi("rent_tablero", { desde, hasta, cuenta_id: S.rentCta || null }, 140_000));
   if (!d || S.tab !== "rentabilidad") return;
   if (d.sin_cuentas) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad</h1></div></div><div class="vacio"><b>No hay cuentas de MercadoLibre conectadas</b></div>`; return; }
   const t = d.totales, hist = d.historial.filter((h) => !h.completo);
@@ -9007,7 +9008,7 @@ function pintarCompra() {
       ${conI ? `<div><label class="et">Tipo de factura</label><select data-rp="datos.factura_tipo">${["A", "B", "C"].map((x) => `<option ${x === d.factura_tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>` : ""}
     </div></div>
     <div class="panel"><h2>Comprobantes</h2>
-      <div class="fila" style="align-items:center"><label class="btn osc n" style="cursor:pointer">Subir archivos<input type="file" id="rcDocs" accept="application/pdf,image/jpeg,image/png" multiple hidden></label><span class="mut peq" id="rcDocsE">PDF o fotos. Se pueden elegir varios a la vez.</span></div>
+      <div class="fila" style="align-items:center"><label class="btn osc n" style="cursor:pointer">Subir archivos<input type="file" id="rcDocs" accept="application/pdf,image/jpeg,image/png" multiple hidden></label><span class="mut peq" id="rcDocsE">PDF o fotos. Se pueden elegir varios a la vez. La lectura automática solo ahorra trabajo: todo lo que carga se puede corregir.</span></div>
       ${(d.documentos ?? []).length ? `<div style="margin-top:10px">${d.documentos.map((x) => `<div class="rt-l"><span><b>${esc(DOC_NOMBRE[x.tipo] ?? x.tipo)}</b> · ${esc(x.nombre)}${x.emisor ? ` · ${esc(x.emisor)}` : ""}${x.numero ? ` ${esc(x.numero)}` : ""}<br><span class="mut peq">${esc(x.aplicado ?? "")}</span></span><span>${x.total ? esc(x.total) : ""}</span></div>`).join("")}</div>` : ""}
     </div>
     ${imp ? `<div class="panel"><h2>Despacho</h2>
@@ -9023,8 +9024,10 @@ function pintarCompra() {
         ${Object.values(trib).map((t) => `<tr><td>${esc(t.nombre)}<div class="peq mut">código ${esc(t.codigo)}</div></td><td>${[...t.alics].map((a) => nTxt(a) + "%").join(", ") || "—"}</td><td>USD ${nTxt(t.usd)}</td>
           <td><select data-rtt="${esc(t.codigo)}">${optsTrato(d.tributos_trato[t.codigo] ?? TRIB_TRATO[t.codigo] ?? "costo")}</select></td></tr>`).join("")}
         <tr><td><b>Total</b></td><td></td><td><b>USD ${nTxt(Object.values(trib).reduce((a, t) => a + t.usd, 0))}</b></td><td></td></tr></table></div>
-        <details style="margin-top:8px"><summary class="peq">Por ítem del despacho (${d.items_despacho.length})</summary><div class="tabla-scroll"><table class="tabla peq"><tr><th>Ítem</th><th>Posición</th><th>FOB</th><th>Valor en Aduana</th><th>Derechos</th><th>Tributos</th></tr>
-          ${d.items_despacho.map((it) => `<tr><td>${esc(it.item)}</td><td>${esc(it.posicion)}<div class="mut">${esc((it.descripcion ?? "").slice(0, 70))}</div></td><td>USD ${nTxt(it.fob_usd)}</td><td>USD ${nTxt(it.valor_aduana_usd)}</td><td>${nTxt(it.tributos.find((t) => t.codigo === "010")?.alicuota ?? "")}%</td><td>USD ${nTxt(it.tributos.reduce((a, t) => a + Number(t.usd || 0), 0))}</td></tr>`).join("")}</table></div></details>` : `<p class="mut peq">Sin el PDF, los tributos se pueden cargar a mano:</p>`}
+        <details style="margin-top:8px" ${S.rentItemsAb ? "open" : ""} id="rcItems"><summary class="peq">Por ítem del despacho (${d.items_despacho.length}): ver y corregir cada importe</summary><div class="tabla-scroll"><table class="tabla peq rt-reng"><tr><th>Ítem</th><th>Posición</th><th>FOB (USD)</th><th>Valor en Aduana (USD)</th><th>Tributos (USD): alícuota e importe</th><th>Total del ítem</th></tr>
+          ${d.items_despacho.map((it, k) => `<tr><td>${esc(it.item)}</td><td>${esc(it.posicion)}<div class="mut">${esc((it.descripcion ?? "").slice(0, 70))}</div></td><td>${inp(`datos.items_despacho.${k}.fob_usd`, nTxt(it.fob_usd), `inputmode="decimal" data-num data-rtr style="width:100px"`)}</td><td>${inp(`datos.items_despacho.${k}.valor_aduana_usd`, nTxt(it.valor_aduana_usd), `inputmode="decimal" data-num style="width:100px"`)}</td>
+            <td>${it.tributos.map((t, j) => `<div class="fila" style="gap:6px;align-items:center;margin:2px 0;flex-wrap:nowrap"><span class="n" style="min-width:150px">${esc(TRIB_NOMBRE[t.codigo] ?? t.nombre)}</span>${inp(`datos.items_despacho.${k}.tributos.${j}.alicuota`, t.alicuota == null ? "" : nTxt(t.alicuota), `inputmode="decimal" data-num style="width:60px" placeholder="%"`)}${inp(`datos.items_despacho.${k}.tributos.${j}.usd`, nTxt(t.usd), `inputmode="decimal" data-num data-rtr style="width:100px"`)}</div>`).join("")}</td>
+            <td>USD ${nTxt(it.tributos.reduce((a, t) => a + Number(t.usd || 0), 0))}</td></tr>`).join("")}</table></div></details>` : `<p class="mut peq">Sin el PDF, los tributos se pueden cargar a mano:</p>`}
       <h3 style="font-size:14px;margin:14px 0 6px">Tributos cargados a mano</h3>
       ${d.tributos_sueltos.map((t, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label>${inp(`datos.tributos_sueltos.${i}.nombre`, t.nombre)}</div><div><label class="et">Moneda</label><select data-rp="datos.tributos_sueltos.${i}.moneda">${optMon(t.moneda ?? "USD")}</select></div><div><label class="et">Importe</label>${inp(`datos.tributos_sueltos.${i}.monto`, nTxt(t.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tratamiento</label><select data-rp="datos.tributos_sueltos.${i}.trato">${optsTrato(t.trato ?? "costo")}</select></div><div class="n"><button class="btn pel chico" type="button" data-rq="tributos_sueltos.${i}">Quitar</button></div></div>`).join("")}
       <button class="btn chico lin" type="button" data-ra="tributos_sueltos" style="margin-top:6px">+ Agregar tributo</button></div>
@@ -9037,14 +9040,15 @@ function pintarCompra() {
       ${d.renglones.length > 12 ? `<input type="search" id="rcRenFil" placeholder="Buscar código o producto" value="${esc(S.rentRenFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
       ${(d.controles ?? []).length ? `<details class="rt-nota" style="display:block"><summary>${d.controles.length} códigos con cantidades distintas entre la factura comercial y el despacho. Revisá cuántas unidades de venta llegaron: el precio pagado se reparte entre ellas.</summary><div class="peq" style="margin-top:6px">${d.controles.map(esc).join("<br>")}</div></details>` : ""}
       ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
-      <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
+      <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Subtotal pagado</th>"}${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th><th>Importe de IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
         ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
           ${imp ? `<td>${inp(`datos.renglones.${i}.codigo_proveedor`, r.codigo_proveedor, `style="width:100px"`)}</td><td>${inp(`datos.renglones.${i}.item_despacho`, r.item_despacho, `style="width:70px"`)}</td><td>${inp(`datos.renglones.${i}.fob_usd`, nTxt(r.fob_usd), `inputmode="decimal" data-num style="width:100px"`)}</td>` : ""}
           <td>${inp(`datos.renglones.${i}.unidades`, nTxt(r.unidades, 4), `inputmode="decimal" data-num style="width:90px"`)}</td>
           ${sinI ? "" : `<td>${inp(`datos.renglones.${i}.precio_factura`, nTxt(r.precio_factura, 6), `inputmode="decimal" data-num data-rpf="${i}" style="width:100px" placeholder="${imp && Number(r.fob_usd) && Number(r.unidades) ? "FOB " + nTxt(Number(r.fob_usd) / Number(r.unidades), 4) : ""}"`)}</td>`}
           <td>${sinI ? `<input data-rtotal="${i}" inputmode="decimal" value="${esc(r.unidades && r.precio_unit ? nTxt(Number(r.unidades) * Number(r.precio_unit)) : "")}" style="width:120px">` : inp(`datos.renglones.${i}.precio_unit`, nTxt(r.precio_unit, 6), `inputmode="decimal" data-num data-rpu="${i}" style="width:110px"`)}</td>
+          ${sinI ? "" : `<td><input data-rsub="${i}" inputmode="decimal" value="${esc(Number(r.unidades) && r.precio_unit !== "" ? nTxt(Number(r.unidades) * Number(r.precio_unit), 2) : "")}" style="width:120px"></td>`}
           ${sinI ? "" : `<td><select data-rp="datos.renglones.${i}.moneda" style="width:80px">${optMon(r.moneda)}</select></td><td>${r.moneda === "ARS" ? "—" : inp(`datos.renglones.${i}.tc`, nTxt(r.tc, 6), `inputmode="decimal" data-num style="width:100px"`)}</td>`}
-          ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td>` : ""}
+          ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td><td>${inp(`datos.renglones.${i}.iva_monto`, r.iva_monto === "" || r.iva_monto == null ? "" : nTxt(r.iva_monto), `inputmode="decimal" data-num style="width:110px" placeholder="automático"`)}</td>` : ""}
           <td>${k ? pz(k.costo_unit) : "—"}</td><td>${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
       </table></div>${idx.length > 200 ? `<p class="mut peq">Se muestran 200 de ${idx.length}. Buscá para ver los demás.</p>` : ""}
       <button class="btn chico lin" type="button" data-ra="renglones" style="margin-top:6px">+ Agregar renglón</button></div>
@@ -9064,6 +9068,14 @@ function pintarCompra() {
     const x = e.target;
     if (x.dataset.rp) setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value);
     if (x.dataset.rpu != null) d.renglones[Number(x.dataset.rpu)].precio_editado = true;
+    if (x.dataset.rsub != null) {
+      // Subtotal corregido: el precio por unidad sale de dividirlo por las unidades
+      const k = x.dataset.rsub, r = d.renglones[Number(k)], u = Number(r.unidades) || 0;
+      r.precio_unit = u ? Math.round(nAR(x.value) / u * 1000000) / 1000000 : 0; r.precio_editado = true;
+      const pi = $(`#main [data-rpu="${k}"]`); if (pi) pi.value = nTxt(r.precio_unit, 6);
+    }
+    const mr = x.dataset.rp?.match(/^datos\.renglones\.(\d+)\.(unidades|precio_unit)$/);
+    if (mr) { const r = d.renglones[Number(mr[1])], si = $(`#main [data-rsub="${mr[1]}"]`); if (si) si.value = Number(r.unidades) && r.precio_unit !== "" ? nTxt(Number(r.unidades) * Number(r.precio_unit), 2) : ""; }
     const mu = x.dataset.rp?.match(/^datos\.renglones\.(\d+)\.unidades$/);
     if (mu) { const r = d.renglones[Number(mu[1])]; if (!r.precio_editado && r.precio_factura != null && Number(r.unidades_factura) && Number(r.unidades)) { const otros = d.renglones.filter((y) => y !== r && String(y.codigo_proveedor).toLowerCase() === String(r.codigo_proveedor).toLowerCase()); if (!otros.length) { r.precio_unit = Math.round(r.precio_factura * r.unidades_factura / Number(r.unidades) * 100000) / 100000; const inpP = $(`#main [data-rpu="${mu[1]}"]`); if (inpP) inpP.value = nTxt(r.precio_unit, 6); } } }
     if (x.dataset.rtotal != null) { const r = d.renglones[Number(x.dataset.rtotal)]; r.precio_editado = true; r.precio_unit = Number(r.unidades) ? nAR(x.value) / Number(r.unidades) : 0; r.moneda = "ARS"; }
@@ -9074,6 +9086,7 @@ function pintarCompra() {
     if (x.dataset.rprod != null && x.value === "nuevo") { const i = Number(x.dataset.rprod); x.value = ""; editarProducto(null, async (id) => { await prodsRent(); if (id) d.renglones[i].producto_id = id; pintarCompra(); }, d.renglones[i].codigo_proveedor); return; }
     if (x.dataset.rp) { setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value); if (x.tagName === "SELECT" && /moneda$/.test(x.dataset.rp)) pintarCompra(); }
     if (x.dataset.rtt) d.tributos_trato[x.dataset.rtt] = x.value;
+    if (x.hasAttribute("data-rtr")) { S.rentItemsAb = true; S.rcCalc = null; const y = window.scrollY; pintarCompra(); window.scrollTo(0, y); }
     if (x.name === "rcFm") { d.flete.modo = x.value; if (!d.flete.tc) d.flete.tc = d.despacho.tc; pintarCompra(); }
   };
   m.onclick = async (e) => {
@@ -9098,6 +9111,7 @@ function pintarCompra() {
     }
     await prodsRent(); pintarCompra();
   };
+  $("#rcItems")?.addEventListener("toggle", (e) => { S.rentItemsAb = e.target.open; });
   $("#rcDocs").onchange = async (e) => {
     const fs = [...e.target.files]; e.target.value = ""; if (!fs.length) return;
     const est = $("#rcDocsE"); const msgs = [];
