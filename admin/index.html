@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272032";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272034";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -415,7 +415,7 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .rt-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;padding:6px 4px}.rt-g>b{display:block;font-size:13px;margin-bottom:4px}
 .rt-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--linea);font-size:13.5px;font-variant-numeric:tabular-nums}.rt-l>span:last-child{white-space:nowrap}.rt-l.rt-t{font-weight:700;border-top:1.5px solid var(--tinta)}
 .rt-dos{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rt-med .medida b{font-variant-numeric:tabular-nums}
-.rt-fn{display:inline-block;min-width:18px;padding:0 6px;border-radius:999px;background:var(--tinta);color:var(--papel);font-size:12px;margin-left:4px}.rt-fchips{margin:0 0 12px}.rt-qt{background:none!important;color:var(--ladrillo)!important}.rt-fr{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.rt-fr input[type=radio]{width:auto}.rt-fres{display:grid;gap:4px;margin-top:6px}.rt-fop{all:unset;cursor:pointer;display:grid;padding:6px 10px;border:1px solid var(--linea);border-radius:var(--r-s)}.rt-fop:focus-visible{outline:2px solid var(--cielo)}.rt-rev{border:1px solid var(--ambar);border-radius:var(--r-m);padding:10px 12px;margin:0 0 10px}.rt-rev-it{border-top:1px dashed var(--linea);padding:8px 0 4px}.rt-rev-it:first-of-type{border-top:0}.rt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:0 6px 6px 0}.rt-chip-x{border:0;background:none;color:var(--piz);font-size:15px;line-height:1;padding:0 0 0 2px;cursor:pointer}.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
+.rt-acc{display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:0 0 auto}.rt-acc>.periodo{flex:0 0 auto}.rt-acc>.btn{flex:0 0 auto;width:auto;white-space:nowrap}.rt-fn{display:inline-block;min-width:18px;padding:0 6px;border-radius:999px;background:var(--tinta);color:var(--papel);font-size:12px;margin-left:4px}.rt-fchips{margin:0 0 12px}.rt-qt{background:none!important;color:var(--ladrillo)!important}.rt-fr{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.rt-fr input[type=radio]{width:auto}.rt-fres{display:grid;gap:4px;margin-top:6px}.rt-fop{all:unset;cursor:pointer;display:grid;padding:6px 10px;border:1px solid var(--linea);border-radius:var(--r-s)}.rt-fop:focus-visible{outline:2px solid var(--cielo)}.rt-rev{border:1px solid var(--ambar);border-radius:var(--r-m);padding:10px 12px;margin:0 0 10px}.rt-rev-it{border-top:1px dashed var(--linea);padding:8px 0 4px}.rt-rev-it:first-of-type{border-top:0}.rt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:0 6px 6px 0}.rt-chip-x{border:0;background:none;color:var(--piz);font-size:15px;line-height:1;padding:0 0 0 2px;cursor:pointer}.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
 .rt-radio{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px}.rt-radio label{display:flex;gap:6px;align-items:center}
 @media(max-width:700px){.rt-med{grid-template-columns:1fr 1fr}}
 .tabla-scroll{overflow-x:auto}
@@ -601,7 +601,7 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .nav button.off{opacity:.5}
 .p-dueno .nav .nav-g{color:#7E93A6}
 /* ---------- módulo Mensajes ---------- */
-.contenido.lleno{padding:0;max-width:none}
+.contenido.lleno{padding:0;max-width:none}.contenido.ancho{max-width:none}
 .msj{display:grid;grid-template-columns:330px minmax(0,1fr) 290px;height:100vh;min-width:0}
 .m-lista{border-right:1px solid var(--linea);background:var(--sup);display:flex;flex-direction:column;min-width:0;min-height:0}
 .m-cab{padding:20px 18px 12px;border-bottom:1px solid var(--linea)}
@@ -1743,6 +1743,7 @@ function ir(t) {
   if (S.rol === "operador" && MOD_TAB[t] && !modsActuales().has(MOD_TAB[t])) t = inicio();
   clearTimeout(sondeo);
   $("#main").onclick = null; $("#main").onchange = null; $("#main").classList.remove("lleno");
+  $("#main").classList.toggle("ancho", t === "rentabilidad" || t.startsWith("rent_"));
   setTimeout(pintarVolver, 0);
   if (t !== "mensajes") S.msjId = null;
   if (t !== "devoluciones") { S.devId = null; S.pvRec = null; }
@@ -8891,7 +8892,7 @@ function pintarRent() {
   const col = (v) => `<td class="${signo(v)}">${pz0(v)}</td>`;
   const pct = (a, b) => b ? String(Math.round(a / b * 1000) / 10).replace(".", ",") + "%" : "—";
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Lo que dejó cada publicación: ventas, cargos, envíos, publicidad, impuestos y costo del producto. Período: ${esc(nombrePer())}. Montos sin IVA${d.cuentas.some((c) => c.condicion_iva !== "ri") ? " (salvo razones sociales que no son responsables inscriptas)" : ""}.</p></div>
-      <div class="fila" style="flex:0 0 auto;gap:8px">${selPeriodo()}<button class="btn lin" type="button" id="rtFil">Filtros${nf ? ` <span class="rt-fn">${nf}</span>` : ""}</button></div></div>
+      <div class="rt-acc">${selPeriodo()}<button class="btn lin" type="button" id="rtFil">Filtros${nf ? ` <span class="rt-fn">${nf}</span>` : ""}</button></div></div>
     ${chipsRent(d, f)}
     ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por las del ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Hasta que termine, los números de este período pueden estar incompletos.</p>` : ""}
     ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
