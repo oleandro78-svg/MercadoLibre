@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611272308";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611272325";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -1600,18 +1600,21 @@ async function recargar() {
   }
   if (S.rol === "admin") S.empSel = S.soporte || "";
   S.res = await api("resumen", { cliente_id: S.empSel || null });
+  // Contador de Mercadería (revisiones pendientes): una vez por sesión, después de cargar lo principal
+  if (!S.revPedido && S.rol !== "operador" && (S.rol !== "admin" || S.soporte)) { S.revPedido = true; setTimeout(() => contarRevisiones(), 6000); }
   // El dueño de la app no elige cliente con un selector: entra a un cliente solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
 // Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
 const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
-  ["conocimiento", "Conocimiento"], ["rentabilidad", "Rentabilidad"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
+  ["conocimiento", "Conocimiento"], ["rentabilidad", "Rentabilidad"], ["rent_compras", "Mercadería"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
   conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
-  rentabilidad: [["rentabilidad", "Tablero"], ["rent_compras", "Compras"], ["rent_productos", "Productos e insumos"], ["rent_publicaciones", "Qué lleva cada publicación"], ["rent_fiscal", "Configuración fiscal"]],
+  rentabilidad: [["rentabilidad", "Tablero"]],
+  rent_compras: [["rent_compras", "Compras"], ["rent_productos", "Productos y stock"], ["rent_publicaciones", "Qué lleva cada publicación"], ["rent_revisiones", "Revisiones pendientes"]],
   equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["uso", "Plan y uso"]],
+  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["rent_fiscal", "Configuración fiscal"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "posventa"], ["chat", "Chat"], ["calendario", "Calendario"],
@@ -1627,7 +1630,7 @@ function armarNav() {
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
   const C = S.cont ?? {};
   const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0)
-    : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : 0;
+    : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_compras" ? (S.revN ?? 0) : 0;
   // Ventas nuevas (desde la última vez que se abrió Ventas): aparte, en verde
   const nuevas = (k) => k === "mensajes" ? (C.ventas_nuevas ?? 0) : 0;
   const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
@@ -8991,12 +8994,12 @@ async function rentCuentas() { S.rentCfg ??= (await rApi("rent_config")).cuentas
 
 // ---------- Productos e insumos ----------
 VISTAS.rent_productos = async () => {
-  if (sinEmpRent("Productos e insumos")) return;
+  if (sinEmpRent("Productos y stock")) return;
   const r = await seguro(() => rApi("rent_productos")); if (!r || S.tab !== "rent_productos") return;
   S.rentProds = r.productos;
   const fil = (S.rentProdFil ?? "").toLowerCase();
   const xs = r.productos.filter((p) => !fil || `${p.nombre} ${p.codigo ?? ""}`.toLowerCase().includes(fil));
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Productos e insumos</h1><p>Todo lo que se compra: mercadería, cajas, relleno, cinta. El costo sale de las compras cargadas: se vende primero lo más viejo, según el stock de MercadoLibre.</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Productos y stock</h1><p>Todo lo que se compra: mercadería, cajas, relleno, cinta. El costo sale de las compras cargadas: se vende primero lo más viejo, según el stock de MercadoLibre.</p></div>
       <div class="fila n" style="gap:8px"><button class="btn lin" id="rpStock" type="button">Actualizar stock de MercadoLibre</button><button class="btn pri" id="rpNuevo" type="button">Agregar producto o insumo</button></div></div>
     <div class="panel" style="padding:10px 14px"><input type="search" id="rpBus" placeholder="Buscar por nombre o código" value="${esc(S.rentProdFil ?? "")}" style="max-width:360px;margin-bottom:6px">
     <div class="tabla-scroll"><table class="tabla apilable" data-ord="productos"><tr><th>Producto o insumo</th><th>Tipo</th><th>Código</th><th>Se usa por</th><th>Costo por unidad</th><th>Recuperable</th><th>Compras</th><th></th></tr>
@@ -9221,6 +9224,22 @@ function tablasOrdenables(raiz = document) {
 new MutationObserver((ms) => { if (ms.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && (n.matches?.("table[data-ord]:not([data-ord-ok])") || n.querySelector?.("table[data-ord]:not([data-ord-ok])"))))) tablasOrdenables(document); }).observe(document.body, { childList: true, subtree: true });
 
 // ---------- Compras ----------
+// ---- Revisiones pendientes de Mercadería
+async function contarRevisiones() { try { const r = await rApi("rent_revisiones", {}, 90_000); S.revN = r.total ?? 0; S.revD = r; armarNav(); return r; } catch { return null; } }
+VISTAS.rent_revisiones = async () => {
+  if (sinEmpRent("Mercadería")) return;
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Revisiones pendientes</h1><p>Buscando…</p></div></div>`;
+  const r = await contarRevisiones(); if (!r || S.tab !== "rent_revisiones") return;
+  const vacio = !r.total;
+  const grupo = (tit, expl, filas) => filas ? `<div class="panel" style="margin-bottom:16px"><h2>${tit}</h2><p class="mut peq" style="margin:0 0 8px">${expl}</p>${filas}</div>` : "";
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Revisiones pendientes</h1><p>Lo que conviene completar para que el costo de cada venta sea correcto.</p></div></div>
+    ${vacio ? `<div class="vacio"><b>No hay nada pendiente</b><span>Todas las publicaciones vendidas tienen su producto y las compras cierran con el stock.</span></div>` : ""}
+    ${grupo("Publicaciones vendidas sin producto", "Se vendieron en los últimos 90 días pero no tienen cargado qué producto llevan, así que sus ventas no tienen costo.", r.sin_producto.length ? `<div class="tabla-scroll"><table class="tabla"><tr><th>Publicación</th><th class="n">Unidades vendidas</th><th></th></tr>${r.sin_producto.map((x) => `<tr><td>${esc(x.titulo)}<div class="peq mut">${esc(x.item_id)}</div></td><td class="n">${num(x.unidades)}</td><td class="n"><button class="btn chico lin" type="button" data-rvpub="${esc(x.item_id)}">Elegir producto</button></td></tr>`).join("")}</table></div>` : "")}
+    ${grupo("Productos sin compras cargadas", "Las publicaciones los llevan, pero no hay ninguna compra ni costo a mano.", r.sin_compra.length ? `<div class="tabla-scroll"><table class="tabla"><tr><th>Producto</th><th></th></tr>${r.sin_compra.map((x) => `<tr><td>${esc(x.nombre ?? "")}<div class="peq mut">${esc(x.codigo ?? "")}</div></td><td class="n"><button class="btn chico lin" type="button" data-rvprod="${x.id}">Ver producto</button></td></tr>`).join("")}</table></div>` : "")}
+    ${grupo("Compras que no cierran con las ventas y el stock", "Puede deberse a devoluciones que volvieron a la venta, a una compra que falta cargar o a un código del mismo producto que no está agrupado.", r.no_cierran.length ? `<div class="tabla-scroll"><table class="tabla"><tr><th>Producto</th><th class="n">Comprado</th><th class="n">Stock</th><th>Diferencia</th><th></th></tr>${r.no_cierran.map((x) => `<tr><td>${esc(x.nombre ?? "")}<div class="peq mut">${esc(x.codigo ?? "")}</div></td><td class="n">${num(x.comprado)}</td><td class="n">${num(x.stock)}</td><td>${x.ventas_de_mas ? `${num(x.ventas_de_mas)} unidades vendidas más de las que explican las compras` : ""}${x.stock_de_mas ? `${x.ventas_de_mas ? "; " : ""}${num(x.stock_de_mas)} unidades en stock más de las compradas` : ""}</td><td class="n"><button class="btn chico lin" type="button" data-rvprod="${x.id}">Ver producto</button></td></tr>`).join("")}</table></div>` : "")}`;
+  $("#main").querySelectorAll("[data-rvpub]").forEach((b) => b.onclick = () => { S.rentPubFil = b.dataset.rvpub; ir("rent_publicaciones"); });
+  $("#main").querySelectorAll("[data-rvprod]").forEach((b) => b.onclick = async () => { await prodsRent(); const p = (S.rentProds ?? []).find((x) => String(x.id) === b.dataset.rvprod); if (p) editarProducto(p, () => VISTAS.rent_revisiones()); });
+};
 VISTAS.rent_compras = async () => {
   if (sinEmpRent("Compras")) return;
   await rentCuentas().catch(() => null);
