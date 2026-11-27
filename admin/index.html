@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271951";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272032";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -415,7 +415,7 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .rt-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;padding:6px 4px}.rt-g>b{display:block;font-size:13px;margin-bottom:4px}
 .rt-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--linea);font-size:13.5px;font-variant-numeric:tabular-nums}.rt-l>span:last-child{white-space:nowrap}.rt-l.rt-t{font-weight:700;border-top:1.5px solid var(--tinta)}
 .rt-dos{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rt-med .medida b{font-variant-numeric:tabular-nums}
-.rt-rev{border:1px solid var(--ambar);border-radius:var(--r-m);padding:10px 12px;margin:0 0 10px}.rt-rev-it{border-top:1px dashed var(--linea);padding:8px 0 4px}.rt-rev-it:first-of-type{border-top:0}.rt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:0 6px 6px 0}.rt-chip-x{border:0;background:none;color:var(--piz);font-size:15px;line-height:1;padding:0 0 0 2px;cursor:pointer}.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
+.rt-fn{display:inline-block;min-width:18px;padding:0 6px;border-radius:999px;background:var(--tinta);color:var(--papel);font-size:12px;margin-left:4px}.rt-fchips{margin:0 0 12px}.rt-qt{background:none!important;color:var(--ladrillo)!important}.rt-fr{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.rt-fr input[type=radio]{width:auto}.rt-fres{display:grid;gap:4px;margin-top:6px}.rt-fop{all:unset;cursor:pointer;display:grid;padding:6px 10px;border:1px solid var(--linea);border-radius:var(--r-s)}.rt-fop:focus-visible{outline:2px solid var(--cielo)}.rt-rev{border:1px solid var(--ambar);border-radius:var(--r-m);padding:10px 12px;margin:0 0 10px}.rt-rev-it{border-top:1px dashed var(--linea);padding:8px 0 4px}.rt-rev-it:first-of-type{border-top:0}.rt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:0 6px 6px 0}.rt-chip-x{border:0;background:none;color:var(--piz);font-size:15px;line-height:1;padding:0 0 0 2px;cursor:pointer}.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
 .rt-radio{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px}.rt-radio label{display:flex;gap:6px;align-items:center}
 @media(max-width:700px){.rt-med{grid-template-columns:1fr 1fr}}
 .tabla-scroll{overflow-x:auto}
@@ -8786,24 +8786,124 @@ const pz0 = (n) => n == null || n === "" ? "—" : pesos0(n);
 const pzCorto = (n) => { if (n == null || n === "") return "—"; const v = Number(n), a = Math.abs(v), sg = v < 0 ? "−" : "";
   const [num, uni] = a >= 1e6 ? [Math.round(a / 1e6), "M"] : a >= 1e3 ? [Math.round(a / 1e3), "mil"] : [Math.round(a), ""];
   return `${sg}$${num.toLocaleString("es-AR")}${uni ? `<small class="med-uni">${uni}</small>` : ""}`; };
+// ---- Filtros del tablero: razón social y tipo de envío los aplica el servidor; el resto, la pantalla
+const LOG_RENT = [["fulfillment", "Full"], ["self_service", "Flex"], ["turbo", "Turbo"], ["cross_docking", "Colecta"], ["xd_drop_off", "Agencia"], ["drop_off", "Correo"], ["otro", "Otros"]];
+const rentFil = () => (S.rentF ??= { cuentas: [], logisticas: [], categorias: [], sel: [], margen: { t: "todos", a: 10, b: 25 }, pub: "todas" });
+const cantFil = (f) => (f.cuentas.length ? 1 : 0) + (f.logisticas.length ? 1 : 0) + (f.categorias.length ? 1 : 0) + (f.sel.length ? 1 : 0) + (f.margen.t !== "todos" ? 1 : 0) + (f.pub !== "todas" ? 1 : 0);
+function filtrarRent(filas, f) {
+  const prodSel = new Set(f.sel.filter((x) => x.tipo === "prod").map((x) => Number(x.id))), pubSel = new Set(f.sel.filter((x) => x.tipo === "pub").map((x) => x.id));
+  return filas.filter((x) => {
+    if (f.categorias.length && !(x.categorias ?? []).some((c) => f.categorias.includes(c)) && !(f.categorias.includes("Sin categoría") && !(x.categorias ?? []).length)) return false;
+    if (f.sel.length && !pubSel.has(x.item_id) && !(x.productos ?? []).some((p) => prodSel.has(Number(p)))) return false;
+    if (f.pub === "con" && !(x.publicidad < 0)) return false;
+    if (f.pub === "sin" && x.publicidad < 0) return false;
+    if (f.margen.t !== "todos") { const m = x.margen; if (m == null) return false; if (f.margen.t === "neg" && !(m < 0)) return false; if (f.margen.t === "entre" && !(m >= 0 && m <= Number(f.margen.a))) return false; if (f.margen.t === "mayor" && !(m > Number(f.margen.b))) return false; }
+    return true;
+  });
+}
+function chipsRent(d, f) {
+  const ch = [];
+  const ctaNom = (id) => d.cuentas.find((c) => c.cuenta_id === id)?.nombre ?? (S.rentCfg ?? []).find((c) => c.cuenta_id === id)?.nombre ?? "Cuenta";
+  f.cuentas.forEach((id) => ch.push([`cta:${id}`, ctaNom(id)]));
+  f.logisticas.forEach((k) => ch.push([`log:${k}`, LOG_RENT.find((x) => x[0] === k)?.[1] ?? k]));
+  f.categorias.forEach((c) => ch.push([`cat:${c}`, c]));
+  f.sel.forEach((x) => ch.push([`sel:${x.tipo}:${x.id}`, x.nombre]));
+  if (f.margen.t !== "todos") ch.push(["margen", `Margen: ${f.margen.t === "neg" ? "negativo" : f.margen.t === "entre" ? `entre 0 y ${f.margen.a} %` : `mayor a ${f.margen.b} %`}`]);
+  if (f.pub !== "todas") ch.push(["pub", f.pub === "con" ? "Con publicidad" : "Sin publicidad"]);
+  if (!ch.length) return "";
+  return `<div class="fx-act rt-fchips">${ch.map(([k, t]) => `<button type="button" data-rtq="${esc(k)}" aria-label="Quitar ${esc(t)}">${esc(t)} <span aria-hidden="true">×</span></button>`).join("")}<button type="button" id="rtQT" class="rt-qt">Quitar todos</button></div>`;
+}
+function quitarFilRent(k) {
+  const f = rentFil(); let srv = false;
+  if (k.startsWith("cta:")) { f.cuentas = f.cuentas.filter((x) => x !== k.slice(4)); srv = true; }
+  else if (k.startsWith("log:")) { f.logisticas = f.logisticas.filter((x) => x !== k.slice(4)); srv = true; }
+  else if (k.startsWith("cat:")) f.categorias = f.categorias.filter((x) => x !== k.slice(4));
+  else if (k.startsWith("sel:")) f.sel = f.sel.filter((x) => `sel:${x.tipo}:${x.id}` !== k);
+  else if (k === "margen") f.margen.t = "todos"; else if (k === "pub") f.pub = "todas";
+  if (srv) VISTAS.rentabilidad(); else pintarRent();
+}
+function abrirFiltrosRent() {
+  const d = S.rentD; if (!d) return;
+  const f = rentFil(), cfs = S.rentCfg ?? d.cuentas;
+  const cats = new Map(); for (const x of d.filas) for (const c of (x.categorias?.length ? x.categorias : ["Sin categoría"])) cats.set(c, (cats.get(c) ?? 0) + 1);
+  const ops = (name, lista, sel) => `<div class="fx-ops">${lista.map(([v, t]) => `<label><input type="checkbox" name="${name}" value="${esc(v)}" ${sel.includes(v) ? "checked" : ""}><span>${esc(t)}</span></label>`).join("")}</div>`;
+  const v = cajon(`<div class="cab"><h2>Filtros</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="fx-cuerpo">
+      ${cfs.length > 1 ? `<fieldset class="fx-g"><legend>Razón social</legend>${ops("fcta", cfs.map((c) => [c.cuenta_id, c.nombre]), f.cuentas)}</fieldset>` : ""}
+      <fieldset class="fx-g"><legend>Tipo de envío</legend>${ops("flog", LOG_RENT.filter(([k]) => d.filtros?.logisticas?.[k] || f.logisticas.includes(k)).map(([k, t]) => [k, `${t} · ${num(d.filtros?.logisticas?.[k] ?? 0)}`]), f.logisticas)}</fieldset>
+      <fieldset class="fx-g"><legend>Categoría</legend>${ops("fcat", [...cats.entries()].sort((a, b) => a[0] === "Sin categoría" ? 1 : b[0] === "Sin categoría" ? -1 : a[0].localeCompare(b[0])).map(([c, n]) => [c, `${c} · ${num(n)}`]), f.categorias)}</fieldset>
+      <fieldset class="fx-g"><legend>Publicación o producto</legend><input type="search" id="rfBus" placeholder="Buscar por título, producto o código" autocomplete="off">
+        <div id="rfRes" class="rt-fres"></div><div id="rfSel" class="fx-act" style="margin-top:6px"></div>
+        <p class="peq mut" style="margin:6px 0 0">Elegí una o varias. Al elegir un producto entran todas las publicaciones que lo llevan.</p></fieldset>
+      <fieldset class="fx-g"><legend>Margen</legend>
+        <label class="rt-fr"><input type="radio" name="fmar" value="todos" ${f.margen.t === "todos" ? "checked" : ""}> Todos</label>
+        <label class="rt-fr"><input type="radio" name="fmar" value="neg" ${f.margen.t === "neg" ? "checked" : ""}> Negativo (pierde plata)</label>
+        <label class="rt-fr"><input type="radio" name="fmar" value="entre" ${f.margen.t === "entre" ? "checked" : ""}> Entre 0 y <input id="rfMa" inputmode="decimal" value="${esc(f.margen.a)}" style="width:56px"> %</label>
+        <label class="rt-fr"><input type="radio" name="fmar" value="mayor" ${f.margen.t === "mayor" ? "checked" : ""}> Mayor a <input id="rfMb" inputmode="decimal" value="${esc(f.margen.b)}" style="width:56px"> %</label></fieldset>
+      <fieldset class="fx-g"><legend>Publicidad</legend>
+        <label class="rt-fr"><input type="radio" name="fpub" value="todas" ${f.pub === "todas" ? "checked" : ""}> Todas</label>
+        <label class="rt-fr"><input type="radio" name="fpub" value="con" ${f.pub === "con" ? "checked" : ""}> Con publicidad en el período</label>
+        <label class="rt-fr"><input type="radio" name="fpub" value="sin" ${f.pub === "sin" ? "checked" : ""}> Sin publicidad</label></fieldset>
+    </div>
+    <div class="fx-pie"><button class="btn lin" type="button" id="rfLimpiar">Limpiar</button><button class="btn pri" type="button" id="rfVer">Ver resultados</button></div>`);
+  let sel = [...f.sel];
+  const pintarSel = () => { v.querySelector("#rfSel").innerHTML = sel.map((x, i) => `<button type="button" data-rfx="${i}">${esc(x.nombre)} <span aria-hidden="true">×</span></button>`).join(""); v.querySelectorAll("[data-rfx]").forEach((b) => b.onclick = () => { sel.splice(Number(b.dataset.rfx), 1); pintarSel(); }); };
+  pintarSel();
+  v.querySelector("#rfBus").oninput = (e) => {
+    const q = e.target.value.trim().toLowerCase(), caja = v.querySelector("#rfRes");
+    if (q.length < 2) { caja.innerHTML = ""; return; }
+    const pr = (d.filtros?.productos ?? []).filter((p) => `${p.nombre} ${p.codigo ?? ""}`.toLowerCase().includes(q)).slice(0, 8).map((p) => ({ tipo: "prod", id: p.id, nombre: p.nombre, sub: `Producto${p.codigo ? " · " + p.codigo : ""}` }));
+    const pu = d.filas.filter((x) => `${x.titulo} ${x.item_id}`.toLowerCase().includes(q)).slice(0, 8).map((x) => ({ tipo: "pub", id: x.item_id, nombre: x.titulo, sub: `Publicación · ${x.item_id}` }));
+    const l = [...pr, ...pu].filter((x) => !sel.some((y) => y.tipo === x.tipo && String(y.id) === String(x.id)));
+    caja.innerHTML = l.length ? l.map((x, i) => `<button type="button" class="rt-fop" data-rfo="${i}"><b>${esc(x.nombre)}</b><span class="peq mut">${esc(x.sub)}</span></button>`).join("") : `<p class="peq mut" style="margin:6px 0">No hay coincidencias.</p>`;
+    caja.querySelectorAll("[data-rfo]").forEach((b) => b.onclick = () => { const x = l[Number(b.dataset.rfo)]; sel.push({ tipo: x.tipo, id: x.id, nombre: x.nombre }); e.target.value = ""; caja.innerHTML = ""; pintarSel(); e.target.focus(); });
+  };
+  const val = (n) => [...v.querySelectorAll(`input[name="${n}"]:checked`)].map((x) => x.value);
+  v.querySelector("#rfLimpiar").onclick = () => { v.querySelectorAll('input[type="checkbox"]').forEach((x) => x.checked = false); v.querySelector('input[name="fmar"][value="todos"]').checked = true; v.querySelector('input[name="fpub"][value="todas"]').checked = true; sel = []; pintarSel(); };
+  v.querySelector("#rfVer").onclick = () => {
+    const antes = JSON.stringify([f.cuentas, f.logisticas]);
+    f.cuentas = val("fcta"); f.logisticas = val("flog"); f.categorias = val("fcat"); f.sel = sel;
+    f.margen = { t: val("fmar")[0] ?? "todos", a: nAR(v.querySelector("#rfMa").value) || 10, b: nAR(v.querySelector("#rfMb").value) || 25 }; f.pub = val("fpub")[0] ?? "todas";
+    v.remove();
+    if (JSON.stringify([f.cuentas, f.logisticas]) !== antes) VISTAS.rentabilidad(); else pintarRent();
+  };
+}
 VISTAS.rentabilidad = async () => {
   if (sinEmpRent("Rentabilidad")) return;
   const { desde, hasta } = rangoPer();
+  const f = rentFil();
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Calculando ${esc(nombrePer())}…</p></div></div>`;
-  const d = await seguro(() => rApi("rent_tablero", { desde, hasta, cuenta_id: S.rentCta || null }, 140_000));
+  const d = await seguro(() => rApi("rent_tablero", { desde, hasta, cuentas: f.cuentas, logisticas: f.logisticas }, 140_000));
   if (!d || S.tab !== "rentabilidad") return;
   if (d.sin_cuentas) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad</h1></div></div><div class="vacio"><b>No hay cuentas de MercadoLibre conectadas</b></div>`; return; }
-  const t = d.totales, hist = d.historial.filter((h) => !h.completo);
+  S.rentD = d; if (d.cuentas.length > 1 || f.cuentas.length) await rentCuentas();
+  pintarRent();
+};
+function pintarRent() {
+  const d = S.rentD, f = rentFil();
+  const nf = cantFil(f), local = f.categorias.length || f.sel.length || f.margen.t !== "todos" || f.pub !== "todas";
+  const filas = local ? filtrarRent(d.filas, f) : d.filas;
+  const sum = (k) => filas.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+  const t = local ? { ...Object.fromEntries(["ventas", "unidades", "venta", "devoluciones", "cargos", "envios", "publicidad", "factura", "impuestos", "costo", "ganancia", "iva_debito", "iva_credito", "iva_retenido", "rec_iibb", "rec_ganancias", "costo_recuperable", "sin_costo", "a_cobrar", "estimadas", "retenido"].map((k) => [k, sum(k)])), generales: d.totales.generales } : d.totales;
+  t.resultado = t.ganancia + t.generales;
+  const hist = d.historial.filter((h) => !h.completo);
   const ivaNeto = t.iva_debito - t.iva_credito - t.iva_retenido;
   const col = (v) => `<td class="${signo(v)}">${pz0(v)}</td>`;
-  const filas = d.filas;
+  const pct = (a, b) => b ? String(Math.round(a / b * 1000) / 10).replace(".", ",") + "%" : "—";
   $("#main").innerHTML = `<div class="cabecera"><div><h1>Rentabilidad por publicación</h1><p>Lo que dejó cada publicación: ventas, cargos, envíos, publicidad, impuestos y costo del producto. Período: ${esc(nombrePer())}. Montos sin IVA${d.cuentas.some((c) => c.condicion_iva !== "ri") ? " (salvo razones sociales que no son responsables inscriptas)" : ""}.</p></div>
-      <div class="fila" style="flex:0 0 auto;gap:8px">${d.cuentas.length > 1 || S.rentCta ? `<select id="rtCta" aria-label="Razón social" style="width:auto"><option value="">Todas las razones sociales</option>${(await rentCuentas()).map((c) => `<option value="${c.cuenta_id}" ${c.cuenta_id === S.rentCta ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select>` : ""}${selPeriodo()}</div></div>
+      <div class="fila" style="flex:0 0 auto;gap:8px">${selPeriodo()}<button class="btn lin" type="button" id="rtFil">Filtros${nf ? ` <span class="rt-fn">${nf}</span>` : ""}</button></div></div>
+    ${chipsRent(d, f)}
     ${hist.length ? `<p class="rt-nota">Se está trayendo el historial de ventas desde MercadoLibre${hist[0].hasta ? ` (va por las del ${new Date(hist[0].hasta).toLocaleDateString("es-AR")})` : ""}. Hasta que termine, los números de este período pueden estar incompletos.</p>` : ""}
     ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
     ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad de esos días va en costos generales, según la factura de MercadoLibre.</p>` : ""}
     <div class="medidas rt-med">
       <div class="medida"><b class="med-grande" title="${pesos0(t.venta + t.devoluciones)}">${pzCorto(t.venta + t.devoluciones)}</b><span>vendido neto de devoluciones (${num(t.ventas)} ventas, ${num(t.unidades)} unidades)</span></div>
+      ${nf ? `<div class="medida"><b class="${signo(t.ganancia)} med-grande" title="${pesos0(t.ganancia)}">${pzCorto(t.ganancia)}</b><span>ganancia de las publicaciones filtradas</span></div>
+      <div class="medida"><b class="med-grande" title="${pesos0(-t.costo)}">${pzCorto(-t.costo)}</b><span>costo del producto</span></div>
+      <div class="medida"><b class="${signo(t.ganancia)} med-grande">${pct(t.ganancia, t.venta)}</b><span>margen sobre lo vendido</span></div>
+    </div>
+    <p class="mut peq" style="margin:8px 0 0">Con los filtros elegidos: ${num(filas.length)} de ${num(d.filas.length)} publicaciones, ${num(t.ventas)} ventas. Los costos generales no se filtran.</p>
+    <div class="oculto">` : ""}
       <div class="medida"><b class="${signo(t.ganancia)} med-grande" title="${pesos0(t.ganancia)}">${pzCorto(t.ganancia)}</b><span>ganancia de las publicaciones${t.venta ? ` (${String(Math.round(t.ganancia / t.venta * 1000) / 10).replace(".", ",")}% de lo vendido)` : ""}</span></div>
       <div class="medida"><b class="${signo(t.generales)} med-grande" title="${pesos0(t.generales)}">${pzCorto(t.generales)}</b><span>costos generales del período (no se reparten)</span></div>
       <div class="medida"><b class="${signo(t.resultado)} med-grande" title="${pesos0(t.resultado)}">${pzCorto(t.resultado)}</b><span>resultado del negocio</span></div>
@@ -8811,11 +8911,11 @@ VISTAS.rentabilidad = async () => {
     ${t.a_cobrar || t.estimadas ? `<p class="mut peq" style="margin:10px 0 0">${t.a_cobrar ? `${num(t.a_cobrar)} ventas todavía no se liberaron: se usan los montos del reporte de liquidaciones de Mercado Pago. ` : ""}${t.estimadas ? `${num(t.estimadas)} ventas todavía no figuran en Mercado Pago: se usa lo que dice la venta.` : ""}${t.retenido ? ` Hay ${pz0(t.retenido)} retenidos por reclamos.` : ""}</p>` : ""}
     <div class="panel" style="margin-top:16px;padding:6px 10px"><div class="tabla-scroll"><table class="tabla rt-tabla" data-ord="tablero">
       <tr><th>Publicación</th><th>Unid.</th><th>Vendido</th><th>Devoluciones</th><th>Cargos ML</th><th>Envíos</th><th>Publicidad</th><th>Factura ML</th><th>Impuestos</th><th>Costo producto</th><th>Ganancia</th><th>Margen</th></tr>
-      ${filas.map((f, i) => `<tr class="fila-click" data-rf="${i}" tabindex="0"><td><div class="rt-pub">${foto(f.thumbnail, "rt-foto")}<div><b>${esc(f.titulo)}</b><div class="peq mut">${esc(f.item_id)}${f.sin_costo ? ` · <span class="rt-falta">${num(f.sin_costo)} sin costo</span>` : ""}</div></div></div></td>
+      ${filas.map((f, i) => `<tr class="fila-click" data-rf="${i}" tabindex="0"><td><div class="rt-pub">${foto(f.thumbnail, "rt-foto")}<div><b>${esc(f.titulo)}</b><div class="peq mut">${esc(f.item_id)}${(f.categorias ?? []).length ? ` · ${esc(f.categorias.join(", "))}` : ""}${f.sin_costo ? ` · <span class="rt-falta">${num(f.sin_costo)} sin costo</span>` : ""}</div></div></div></td>
         <td>${num(f.unidades)}</td>${col(f.venta)}${col(f.devoluciones)}${col(f.cargos)}${col(f.envios)}${col(f.publicidad)}${col(f.factura)}${col(f.impuestos)}${col(f.costo)}<td class="${signo(f.ganancia)}"><b>${pz0(f.ganancia)}</b></td><td>${f.margen == null ? "—" : String(f.margen).replace(".", ",") + "%"}</td></tr>
         <tr class="rt-det oculto" data-rd="${i}"><td colspan="12"></td></tr>`).join("")}
       <tr class="rt-tot"><td><b>Total</b></td><td>${num(t.unidades)}</td>${col(t.venta)}${col(t.devoluciones)}${col(t.cargos)}${col(t.envios)}${col(t.publicidad)}${col(t.factura)}${col(t.impuestos)}${col(t.costo)}<td class="${signo(t.ganancia)}"><b>${pz0(t.ganancia)}</b></td><td></td></tr>
-    </table></div>${filas.length ? "" : `<div class="vacio"><b>No hay ventas en este período</b></div>`}</div>
+    </table></div>${filas.length ? "" : `<div class="vacio"><b>${nf ? "Ninguna publicación cumple los filtros" : "No hay ventas en este período"}</b></div>`}</div>
     <div class="grilla rt-dos" style="margin-top:16px">
       <div class="panel"><h2>Costos generales</h2><p class="mut peq" style="margin:0 0 8px">De la factura de MercadoLibre, sin venta ni publicación: colecta y almacenamiento de Full, mantenimiento de la tienda y otros. No se reparten entre publicaciones.</p>
         ${d.generales.length ? d.generales.map((g) => `<div class="rt-l"><span>${esc(g.concepto)}</span><span class="${signo(g.monto)}">${pz0(g.monto)}</span></div>`).join("") + `<div class="rt-l rt-t"><span>Total</span><span class="${signo(t.generales)}">${pz0(t.generales)}</span></div>` : `<p class="mut">No hubo en el período.</p>`}</div>
@@ -8831,7 +8931,9 @@ VISTAS.rentabilidad = async () => {
       </div>
     </div>`;
   enlazarPeriodo(VISTAS.rentabilidad);
-  if ($("#rtCta")) $("#rtCta").onchange = () => { S.rentCta = $("#rtCta").value || null; VISTAS.rentabilidad(); };
+  $("#rtFil").onclick = abrirFiltrosRent;
+  $("#main").querySelectorAll("[data-rtq]").forEach((b) => b.onclick = () => quitarFilRent(b.dataset.rtq));
+  if ($("#rtQT")) $("#rtQT").onclick = () => { const f0 = rentFil(), srv = f0.cuentas.length || f0.logisticas.length; S.rentF = null; if (srv) VISTAS.rentabilidad(); else pintarRent(); };
   if ($("#rtIrComp")) $("#rtIrComp").onclick = () => ir("rent_publicaciones");
   $("#main").querySelectorAll("tr[data-rf]").forEach((tr) => tr.onclick = () => {
     const i = Number(tr.dataset.rf), det = $(`#main tr[data-rd="${i}"]`);
@@ -8839,7 +8941,7 @@ VISTAS.rentabilidad = async () => {
     det.firstElementChild.innerHTML = detalleRent(filas[i]); det.classList.remove("oculto"); tr.classList.add("on");
     det.querySelector("[data-rcomp]")?.addEventListener("click", () => { S.rentPubFil = filas[i].item_id; ir("rent_publicaciones"); });
   });
-};
+}
 function detalleRent(f) {
   const ks = Object.entries(f.detalle).filter(([, v]) => Math.abs(v) >= 0.01);
   const grupo = (tit, filtro) => { const xs = ks.filter(([k]) => filtro(k)); return xs.length ? `<div class="rt-g"><b>${tit}</b>${xs.map(([k, v]) => `<div class="rt-l"><span>${esc(k.startsWith("prod_") ? k.slice(5) : k.startsWith("fsv_") ? k.slice(4) : DET_RENT[k] ?? k)}</span><span class="${signo(v)}">${pz0(v)}</span></div>`).join("")}</div>` : ""; };
