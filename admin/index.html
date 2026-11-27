@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271711";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271717";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8774,6 +8774,10 @@ const DET_RENT = { venta: "Ventas", devuelto: "Devoluciones de dinero", reclamos
 // En el tablero los importes van sin centavos
 const pesos0 = (n) => { const r = Math.round(Number(n)) || 0; return (r < 0 ? "−" : "") + "$" + Math.abs(r).toLocaleString("es-AR", { maximumFractionDigits: 0 }); };
 const pz0 = (n) => n == null || n === "" ? "—" : pesos0(n);
+// Recuadros de arriba del tablero: millones con "M" y miles con "mil", sin decimales (el número completo queda en el título)
+const pzCorto = (n) => { if (n == null || n === "") return "—"; const v = Number(n), a = Math.abs(v), sg = v < 0 ? "−" : "";
+  const t = a >= 1e6 ? `${Math.round(a / 1e6).toLocaleString("es-AR")} M` : a >= 1e3 ? `${Math.round(a / 1e3).toLocaleString("es-AR")} mil` : Math.round(a).toLocaleString("es-AR");
+  return `<span title="${pesos0(v)}">${sg}$${t}</span>`; };
 VISTAS.rentabilidad = async () => {
   if (sinEmpRent("Rentabilidad")) return;
   const { desde, hasta } = rangoPer();
@@ -8791,10 +8795,10 @@ VISTAS.rentabilidad = async () => {
     ${t.sin_costo ? `<p class="rt-nota">${num(t.sin_costo)} unidades vendidas no tienen costo del producto: falta cargar qué lleva la publicación o la compra de alguno de sus componentes. <button class="btn chico lin" id="rtIrComp" type="button">Completar</button></p>` : ""}
     ${!d.publicidad.ok ? `<p class="rt-nota">${esc(d.publicidad.motivo)}: la publicidad de esos días va en costos generales, según la factura de MercadoLibre.</p>` : ""}
     <div class="medidas rt-med">
-      <div class="medida"><b>${pz0(t.venta + t.devoluciones)}</b><span>vendido neto de devoluciones (${num(t.ventas)} ventas, ${num(t.unidades)} unidades)</span></div>
-      <div class="medida"><b class="${signo(t.ganancia)}">${pz0(t.ganancia)}</b><span>ganancia de las publicaciones${t.venta ? ` (${String(Math.round(t.ganancia / t.venta * 1000) / 10).replace(".", ",")}% de lo vendido)` : ""}</span></div>
-      <div class="medida"><b class="${signo(t.generales)}">${pz0(t.generales)}</b><span>costos generales del período (no se reparten)</span></div>
-      <div class="medida"><b class="${signo(t.resultado)}">${pz0(t.resultado)}</b><span>resultado del negocio</span></div>
+      <div class="medida"><b>${pzCorto(t.venta + t.devoluciones)}</b><span>vendido neto de devoluciones (${num(t.ventas)} ventas, ${num(t.unidades)} unidades)</span></div>
+      <div class="medida"><b class="${signo(t.ganancia)}">${pzCorto(t.ganancia)}</b><span>ganancia de las publicaciones${t.venta ? ` (${String(Math.round(t.ganancia / t.venta * 1000) / 10).replace(".", ",")}% de lo vendido)` : ""}</span></div>
+      <div class="medida"><b class="${signo(t.generales)}">${pzCorto(t.generales)}</b><span>costos generales del período (no se reparten)</span></div>
+      <div class="medida"><b class="${signo(t.resultado)}">${pzCorto(t.resultado)}</b><span>resultado del negocio</span></div>
     </div>
     ${t.a_cobrar || t.estimadas ? `<p class="mut peq" style="margin:10px 0 0">${t.a_cobrar ? `${num(t.a_cobrar)} ventas todavía no se liberaron: se usan los montos del reporte de liquidaciones de Mercado Pago. ` : ""}${t.estimadas ? `${num(t.estimadas)} ventas todavía no figuran en Mercado Pago: se usa lo que dice la venta.` : ""}${t.retenido ? ` Hay ${pz0(t.retenido)} retenidos por reclamos.` : ""}</p>` : ""}
     <div class="panel" style="margin-top:16px;padding:6px 10px"><div class="tabla-scroll"><table class="tabla rt-tabla" data-ord="tablero">
