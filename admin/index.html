@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272104";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272109";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8936,7 +8936,6 @@ function pintarRent() {
       <div class="medida"><b class="${signo(t.resultado)} med-grande" title="${pesos0(t.resultado)}">${pzCorto(t.resultado)}</b><span>resultado del negocio</span></div>
     </div>
     ${t.a_cobrar || t.estimadas ? `<p class="mut peq" style="margin:10px 0 0">${t.a_cobrar ? `${num(t.a_cobrar)} ventas todavía no se liberaron: se usan los montos del reporte de liquidaciones de Mercado Pago. ` : ""}${t.estimadas ? `${num(t.estimadas)} ventas todavía no figuran en Mercado Pago: se usa lo que dice la venta.` : ""}${t.retenido ? ` Hay ${pz0(t.retenido)} retenidos por reclamos.` : ""}</p>` : ""}
-    ${panelEnvioRent(filas)}
     <div class="panel" style="margin-top:16px;padding:6px 10px"><div class="tabla-scroll"><table class="tabla rt-tabla" data-ord="tablero">
       <tr><th>Publicación</th><th>Unid.</th><th>Vendido</th><th>Devoluciones</th><th>Cargos ML</th><th>Envíos</th><th>Publicidad</th><th>Factura ML</th><th>Impuestos</th><th>Costo producto</th><th>Ganancia</th><th>Margen</th></tr>
       ${filas.map((f, i) => `<tr class="fila-click" data-rf="${i}" tabindex="0"><td><div class="rt-pub">${foto(f.thumbnail, "rt-foto")}<div><b>${esc(f.titulo)}</b><div class="peq mut">${esc(f.item_id)}${(f.categorias ?? []).length ? ` · ${esc(f.categorias.join(", "))}` : ""}${f.sin_costo ? ` · <span class="rt-falta">${num(f.sin_costo)} sin costo</span>` : ""}</div></div></div></td>
@@ -8944,6 +8943,7 @@ function pintarRent() {
         <tr class="rt-det oculto" data-rd="${i}"><td colspan="12"></td></tr>`).join("")}
       <tr class="rt-tot"><td><b>Total</b></td><td>${num(t.unidades)}</td>${col(t.venta)}${col(t.devoluciones)}${col(t.cargos)}${col(t.envios)}${col(t.publicidad)}${col(t.factura)}${col(t.impuestos)}${col(t.costo)}<td class="${signo(t.ganancia)}"><b>${pz0(t.ganancia)}</b></td><td></td></tr>
     </table></div>${filas.length ? "" : `<div class="vacio"><b>${nf ? "Ninguna publicación cumple los filtros" : "No hay ventas en este período"}</b></div>`}</div>
+    ${panelEnvioRent(filas)}
     <div class="grilla rt-dos" style="margin-top:16px">
       <div class="panel"><h2>Costos generales</h2><p class="mut peq" style="margin:0 0 8px">De la factura de MercadoLibre, sin venta ni publicación: colecta y almacenamiento de Full, mantenimiento de la tienda y otros. No se reparten entre publicaciones.</p>
         ${d.generales.length ? d.generales.map((g) => `<div class="rt-l"><span>${esc(g.concepto)}</span><span class="${signo(g.monto)}">${pz0(g.monto)}</span></div>`).join("") + `<div class="rt-l rt-t"><span>Total</span><span class="${signo(t.generales)}">${pz0(t.generales)}</span></div>` : `<p class="mut">No hubo en el período.</p>`}</div>
