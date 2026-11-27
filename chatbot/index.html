@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611270115";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271528";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8758,7 +8758,7 @@ const pz = (n) => n == null || n === "" ? "—" : pesosD(Number(n));
 const nAR = (s) => { if (s == null) return 0; const t = String(s).trim(); if (!t) return 0; return Number(/,\d{1,6}$/.test(t) || /\.\d{3}(\.|,|$)/.test(t) ? t.replace(/\./g, "").replace(",", ".") : t.replace(",", ".")) || 0; };
 const nTxt = (n, d = 2) => n == null || n === "" ? "" : Number(n).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: d });
 const signo = (n) => Number(n) < 0 ? "rt-neg" : Number(n) > 0 ? "rt-pos" : "";
-const TIPO_COMPRA = { importacion: "Importación", con_impuestos: "Compra con impuestos", sin_impuestos: "Compra sin impuestos" };
+const TIPO_COMPRA = { importacion: "Importación", con_impuestos: "Compra en el país", sin_impuestos: "Compra en el país" };
 const TIPO_PROD = { mercaderia: "Mercadería", embalaje: "Embalaje", otro: "Otro" };
 const TRATOS = [["costo", "Costo"], ["iva", "Crédito fiscal IVA"], ["a_cuenta_iva", "A cuenta de IVA"], ["ganancias", "A cuenta de Ganancias"], ["iibb", "A cuenta de Ingresos Brutos"], ["otro_recuperable", "Otro recuperable"]];
 const optsTrato = (v) => TRATOS.map(([k, t]) => `<option value="${k}" ${k === v ? "selected" : ""}>${t}</option>`).join("");
@@ -8990,22 +8990,22 @@ VISTAS.rent_compras = async () => {
   await rentCuentas().catch(() => null);
   if (S.rcEd) return pintarCompra();
   const r = await seguro(() => rApi("rent_compras")); if (!r || S.tab !== "rent_compras") return;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Compras</h1><p>Importaciones, compras con impuestos y compras sin impuestos. Cada una le da costo a sus productos e insumos desde su fecha.</p></div>
-      <div class="fila n" style="gap:8px">${Object.entries(TIPO_COMPRA).map(([k, t]) => `<button class="btn ${k === "importacion" ? "pri" : "lin"}" type="button" data-rcn="${k}">${t}</button>`).join("")}</div></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Compras</h1><p>Importaciones y compras en el país. Cada una le da costo a sus productos e insumos desde su fecha.</p></div>
+      <div class="fila n" style="gap:8px">${Object.entries(TIPO_COMPRA).filter(([k]) => k !== "sin_impuestos").map(([k, t]) => `<button class="btn ${k === "importacion" ? "pri" : "lin"}" type="button" data-rcn="${k}">${t}</button>`).join("")}</div></div>
     <div class="panel" style="padding:6px 14px"><div class="tabla-scroll"><table class="tabla apilable"><tr><th>Fecha</th><th>Origen</th><th>Proveedor</th><th>Comprobante</th><th>Costo</th><th>Recuperable</th><th></th></tr>
       ${r.compras.map((c) => `<tr><td>${new Date(c.fecha + "T12:00").toLocaleDateString("es-AR")}</td><td>${TIPO_COMPRA[c.tipo]}</td><td>${esc(c.proveedor ?? "—")}</td><td>${esc(c.comprobante ?? "—")}</td><td>${pz(c.total_costo)}</td><td>${pz(c.total_recuperable)}</td><td><button class="btn chico lin" type="button" data-rco="${c.id}">Abrir</button></td></tr>`).join("")}</table></div>
     ${r.compras.length ? "" : `<div class="vacio"><b>Todavía no hay compras</b>Elegí arriba el origen de la primera.</div>`}</div>`;
-  $("#main").querySelectorAll("[data-rcn]").forEach((b) => b.onclick = async () => { S.rcEd = nuevaCompra(b.dataset.rcn); await prodsRent(); pintarCompra(); });
+  $("#main").querySelectorAll("[data-rcn]").forEach((b) => b.onclick = async () => { S.rcEd = nuevaCompra(b.dataset.rcn); S.rcSug = null; await prodsRent(); pintarCompra(); });
   $("#main").querySelectorAll("[data-rco]").forEach((b) => b.onclick = async () => {
     const x = await seguro(() => rApi("rent_compra", { id: Number(b.dataset.rco) })); if (!x) return;
     await prodsRent();
     S.rcEd = { id: x.compra.id, tipo: x.compra.tipo, fecha: x.compra.fecha, cuenta_id: x.compra.cuenta_id, proveedor: x.compra.proveedor ?? "", comprobante: x.compra.comprobante ?? "", datos: x.compra.datos ?? {} };
-    normalizarCompra(S.rcEd); S.rcCalc = x.calculo; pintarCompra();
+    normalizarCompra(S.rcEd); S.rcCalc = x.calculo; S.rcSug = null; pintarCompra();
   });
 };
 async function prodsRent() { S.rentProds = (await rApi("rent_productos")).productos; }
 function nuevaCompra(tipo) {
-  const c = { tipo, fecha: diaISO(new Date()), cuenta_id: S.rentCta || null, proveedor: "", comprobante: "", datos: {} };
+  const c = { tipo, fecha: diaISO(new Date()), cuenta_id: S.rentCta || null, proveedor: "", comprobante: "", datos: tipo === "con_impuestos" ? { factura_tipo: "" } : {} };
   normalizarCompra(c); S.rcCalc = null; return c;
 }
 function normalizarCompra(c) {
@@ -9021,21 +9021,23 @@ const optMon = (v) => ["ARS", "USD", "CNY", "EUR"].map((m) => `<option ${m === (
 const inp = (path, val, extra = "") => `<input data-rp="${path}" value="${esc(val ?? "")}" ${extra}>`;
 
 function pintarCompra() {
-  const c = S.rcEd, d = c.datos, imp = c.tipo === "importacion", conI = c.tipo === "con_impuestos", sinI = c.tipo === "sin_impuestos";
+  const c = S.rcEd, d = c.datos, imp = c.tipo === "importacion", pais = c.tipo === "con_impuestos";
+  // Compra en el país sin tipo de factura o sin número de comprobante: sin impuestos (todo es costo)
+  const sinI = c.tipo === "sin_impuestos" || (pais && (!["A", "B", "C"].includes(d.factura_tipo) || !String(c.comprobante ?? "").trim())), conI = pais && !sinI;
   const calc = S.rcCalc;
   const filtro = (S.rentRenFil ?? "").toLowerCase();
   const idx = d.renglones.map((r, i) => i).filter((i) => !filtro || `${d.renglones[i].codigo_proveedor} ${S.rentProds.find((p) => String(p.id) === String(d.renglones[i].producto_id))?.nombre ?? ""}`.toLowerCase().includes(filtro));
   const faltaProd = d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).length;
   const trib = {};
   for (const it of d.items_despacho ?? []) for (const t of it.tributos ?? []) { trib[t.codigo] ??= { codigo: t.codigo, nombre: t.nombre || TRIB_NOMBRE[t.codigo] || t.codigo, usd: 0, alics: new Set() }; trib[t.codigo].usd += Number(t.usd) || 0; if (t.alicuota != null) trib[t.codigo].alics.add(t.alicuota); }
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? TIPO_COMPRA[c.tipo] : "Nueva " + TIPO_COMPRA[c.tipo].toLowerCase()}</h1><p>${imp ? "Subí todos los comprobantes juntos (despacho, subítems, factura comercial, flete, despachante y otros gastos): la app reconoce cada uno y acomoda sus importes. El precio pagado de cada producto siempre se puede cambiar." : conI ? "Subí la factura de compra y la app completa los renglones. El IVA se recupera si es factura A y la razón social es responsable inscripta. Los precios se pueden cambiar." : "Compra sin impuestos: todo lo pagado queda como costo. Podés subir el remito o recibo para completar los renglones."}</p></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>${c.id ? TIPO_COMPRA[c.tipo] : "Nueva " + TIPO_COMPRA[c.tipo].toLowerCase()}</h1><p>${imp ? "Subí todos los comprobantes juntos (despacho, subítems, factura comercial, flete, despachante y otros gastos): la app reconoce cada uno y acomoda sus importes. El precio pagado de cada producto siempre se puede cambiar." : pais ? "Subí la factura, el remito o el ticket y la app completa los renglones. Los precios se pueden cambiar." : "Compra sin impuestos: todo lo pagado queda como costo. Podés subir el remito o recibo para completar los renglones."}</p></div>
       <div class="fila n" style="gap:8px"><button class="btn lin" id="rcV" type="button">Volver</button>${c.id ? `<button class="btn pel" id="rcB" type="button">Borrar</button>` : ""}<button class="btn pri" id="rcG" type="button">Guardar</button></div></div>
     <div class="panel"><div class="fila">
       <div><label class="et">Fecha</label><input type="date" data-rp="fecha" value="${esc(c.fecha)}"></div>
       <div><label class="et">Razón social</label><select data-rp="cuenta_id"><option value="">La principal</option>${(S.rentCfg ?? []).map((x) => `<option value="${x.cuenta_id}" ${x.cuenta_id === c.cuenta_id ? "selected" : ""}>${esc(x.nombre)}</option>`).join("")}</select></div>
-      <div><label class="et">Proveedor${sinI ? " (opcional)" : ""}</label>${inp("proveedor", c.proveedor)}</div>
-      <div><label class="et">${imp ? "Factura comercial" : conI ? "Tipo y número de factura" : "Comprobante (opcional)"}</label>${inp("comprobante", c.comprobante, sinI ? `placeholder="remito, recibo"` : "")}</div>
-      ${conI ? `<div><label class="et">Tipo de factura</label><select data-rp="datos.factura_tipo">${["A", "B", "C"].map((x) => `<option ${x === d.factura_tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>` : ""}
+      <div><label class="et">Proveedor${sinI && !pais ? " (opcional)" : ""}</label>${inp("proveedor", c.proveedor)}</div>
+      <div><label class="et">${imp ? "Factura comercial" : pais ? "Número de comprobante" : "Comprobante (opcional)"}</label>${inp("comprobante", c.comprobante, sinI && !pais ? `placeholder="remito, recibo"` : "")}</div>
+      ${pais ? `<div><label class="et">Tipo de factura</label><select data-rp="datos.factura_tipo"><option value="">—</option>${["A", "B", "C"].map((x) => `<option ${x === d.factura_tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>` : ""}
     </div></div>
     <div class="panel"><h2>Comprobantes</h2>
       <div class="fila" style="align-items:center"><label class="btn osc n" style="cursor:pointer">Subir archivos<input type="file" id="rcDocs" accept="application/pdf,image/jpeg,image/png" multiple hidden></label><span class="mut peq" id="rcDocsE">PDF o fotos. Se pueden elegir varios a la vez. La lectura automática solo ahorra trabajo: todo lo que carga se puede corregir.</span></div>
@@ -9082,6 +9084,7 @@ function pintarCompra() {
           <td>${k ? pz(k.costo_unit) : "—"}</td><td>${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
       </table></div>${idx.length > 200 ? `<p class="mut peq">Se muestran 200 de ${idx.length}. Buscá para ver los demás.</p>` : ""}
       <button class="btn chico lin" type="button" data-ra="renglones" style="margin-top:6px">+ Agregar renglón</button></div>
+    ${panelSugPub(c)}
     ${conI ? `<div class="panel"><h2>Otros impuestos de la factura</h2><p class="mut peq" style="margin:0 0 6px">Percepciones de IVA o Ingresos Brutos, impuestos internos. Se reparten entre los renglones según su importe.</p>
       ${d.impuestos.map((t, i) => `<div class="fila rt-gasto"><div><label class="et">Concepto</label>${inp(`datos.impuestos.${i}.nombre`, t.nombre)}</div><div><label class="et">Importe</label>${inp(`datos.impuestos.${i}.monto`, nTxt(t.monto), `inputmode="decimal" data-num`)}</div><div><label class="et">Tratamiento</label><select data-rp="datos.impuestos.${i}.trato">${optsTrato(t.trato ?? "costo")}</select></div><div class="n"><button class="btn pel chico" type="button" data-rq="impuestos.${i}">Quitar</button></div></div>`).join("")}
       <button class="btn chico lin" type="button" data-ra="impuestos" style="margin-top:6px">+ Agregar impuesto</button></div>` : ""}
@@ -9114,7 +9117,7 @@ function pintarCompra() {
   m.onchange = (e) => {
     const x = e.target;
     if (x.dataset.rprod != null && x.value === "nuevo") { const i = Number(x.dataset.rprod); x.value = ""; editarProducto(null, async (id) => { await prodsRent(); if (id) d.renglones[i].producto_id = id; pintarCompra(); }, d.renglones[i].codigo_proveedor); return; }
-    if (x.dataset.rp) { setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value); if (x.tagName === "SELECT" && /moneda$/.test(x.dataset.rp)) pintarCompra(); }
+    if (x.dataset.rp) { setp(x.dataset.rp, x.hasAttribute("data-num") ? nAR(x.value) : x.value); if ((x.tagName === "SELECT" && /moneda$/.test(x.dataset.rp)) || (pais && (x.dataset.rp === "comprobante" || x.dataset.rp === "datos.factura_tipo"))) { S.rcCalc = null; const y = window.scrollY; pintarCompra(); window.scrollTo(0, y); } }
     if (x.dataset.rtt) d.tributos_trato[x.dataset.rtt] = x.value;
     if (x.hasAttribute("data-rtr")) { S.rentItemsAb = true; S.rcCalc = null; const y = window.scrollY; pintarCompra(); window.scrollTo(0, y); }
     if (x.name === "rcFm") { d.flete.modo = x.value; if (!d.flete.tc) d.flete.tc = d.despacho.tc; pintarCompra(); }
@@ -9130,7 +9133,8 @@ function pintarCompra() {
     if (r) { aviso("Compra guardada: el costo de sus productos ya se usa en el tablero"); S.rcEd = null; S.rcCalc = null; VISTAS.rent_compras(); }
   };
   if ($("#rcB")) $("#rcB").onclick = async () => { if (!confirm("¿Borrar esta compra? Sus productos dejan de tener este costo.")) return; if (await seguro(() => rApi("rent_compra_borrar", { id: c.id }))) { S.rcEd = null; VISTAS.rent_compras(); } };
-  $("#rcC").onclick = async () => { const r = await seguro(() => rApi("rent_compra_calcular", { tipo: c.tipo, cuenta_id: c.cuenta_id || null, datos: d })); if (r) { S.rcCalc = r.calculo; pintarCompra(); } };
+  enganchesSugPub(c);
+  $("#rcC").onclick = async () => { const r = await seguro(() => rApi("rent_compra_calcular", { tipo: c.tipo, cuenta_id: c.cuenta_id || null, comprobante: c.comprobante, datos: d })); if (r) { S.rcCalc = r.calculo; pintarCompra(); } };
   if ($("#rcCrear")) $("#rcCrear").onclick = async () => {
     const faltan = [...new Set(d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).map((r) => r.codigo_proveedor))];
     if (!confirm(`Se van a crear ${faltan.length} productos, con el código como nombre. Después les podés cambiar el nombre. ¿Seguir?`)) return;
@@ -9149,7 +9153,8 @@ function pintarCompra() {
       est.textContent = `Leyendo ${n + 1} de ${fs.length}: ${f.name}…`;
       try { msgs.push(await leerComprobante(c, f)); } catch (err) { msgs.push(`${f.name}: ${err.message}`); d.documentos.push({ nombre: f.name, tipo: "error", aplicado: err.message }); }
     }
-    S.rcCalc = null; pintarCompra(); aviso(msgs.length === 1 ? msgs[0] : `${fs.length} archivos leídos`);
+    S.rcCalc = null; S.rcSug = null; pintarCompra(); aviso(msgs.length === 1 ? msgs[0] : `${fs.length} archivos leídos`);
+    if (d.renglones.some((r) => r.producto_id)) buscarSugPub(c);
   };
 }
 const DOC_NOMBRE = { despacho: "Despacho", subitems: "Subítems del despacho", factura_comercial: "Factura comercial", factura_compra: "Factura de compra", factura_despachante: "Factura del despachante", factura_flete: "Flete", conocimiento_embarque: "Conocimiento de embarque", factura_gasto: "Gasto", remito: "Remito", otro: "No se usó", error: "No se pudo leer" };
@@ -9174,6 +9179,9 @@ async function leerComprobante(c, f) {
   const paginas = txt.split("\f").map((x) => x.trim());
   const conTexto = pdf && txt.replace(/\s/g, "").length > 150 * Math.max(1, paginas.filter(Boolean).length) * 0.5;
   let doc;
+  const archivo = () => { if (bytes.length > 4.5 * 1024 * 1024) throw new Error("es muy grande para leerlo (máximo 4,5 MB)"); return { mime: pdf ? "application/pdf" : f.type || (/\.png$/i.test(f.name) ? "image/png" : "image/jpeg"), datos: b64Archivo(bytes) }; };
+  // Despacho que el navegador no pudo leer (otro formato o escaneado): lo lee la IA
+  if (pdf && conTexto && /SUBREGIMEN|IMPORTACION A CONSUMO/i.test(txt)) return await despachoIA(c, f, { texto: txt });
   if (conTexto) {
     // Partes de hasta ~9.000 caracteres (por páginas), para que cada lectura sea corta
     const partes = []; let cur = "";
@@ -9190,10 +9198,73 @@ async function leerComprobante(c, f) {
     const mime = pdf ? "application/pdf" : f.type || (/\.png$/i.test(f.name) ? "image/png" : "image/jpeg");
     doc = (await rApi("rent_leer_documento", { nombre: f.name, mime, datos: b64Archivo(bytes) }, 150_000)).documento;
   }
+  if (doc.tipo_documento === "despacho") return await despachoIA(c, f, conTexto ? { texto: txt } : archivo());
   const aplicado = aplicarDocumento(c, doc);
   const mon = doc.moneda && doc.moneda !== "ARS" ? doc.moneda + " " : "$";
   d.documentos.push({ nombre: f.name, tipo: doc.tipo_documento, emisor: doc.emisor ?? "", numero: [doc.letra, doc.numero].filter(Boolean).join(" "), total: doc.totales?.total ? mon + nTxt(doc.totales.total) : "", aplicado: aplicado + (doc.nota ? ` Revisar: ${doc.nota}` : "") });
   return `${f.name}: ${DOC_NOMBRE[doc.tipo_documento] ?? doc.tipo_documento}`;
+}
+// ---------- Qué publicación lleva cada producto de la compra (sugerencias) ----------
+async function buscarSugPub(c) {
+  const ps = [...new Map(c.datos.renglones.filter((r) => r.producto_id).map((r) => [String(r.producto_id), { producto_id: Number(r.producto_id), codigo: r.codigo_proveedor }])).values()];
+  if (!ps.length) return;
+  S.rcSug = { cargando: true }; if (S.rcEd === c) pintarSugPub(c);
+  const r = await rApi("rent_sugerir_publicaciones", { cuenta_id: c.cuenta_id || null, productos: ps }, 150_000).catch((e) => ({ error: e.message }));
+  S.rcSug = r.error ? { error: r.error } : { filas: r.sugerencias, pubs: r.publicaciones };
+  if (S.rcEd === c) pintarSugPub(c);
+}
+function pintarSugPub(c) { const p = $("#rcSug"); if (p) { p.outerHTML = panelSugPub(c); enganchesSugPub(c); } }
+const SUG_EST = { segura: ["Segura", "rt-pos"], revisar: ["Revisar", "rt-falta"], ya: ["Ya cargada", "mut"], sin: ["Sin sugerencia", "mut"] };
+function panelSugPub(c) {
+  const sg = S.rcSug, hay = c.datos.renglones.some((r) => r.producto_id);
+  if (!hay) return `<div id="rcSug"></div>`;
+  const cab = `<h2>Publicaciones de estos productos</h2><p class="mut peq" style="margin:0 0 8px">Así cada publicación toma el costo de esta compra. La app busca cada código en el SKU de tus publicaciones y, si no lo encuentra, por el título. Nada se guarda hasta que lo aceptes; después se corrige en "Qué lleva cada publicación".</p>`;
+  if (!sg) return `<div class="panel" id="rcSug">${cab}<button class="btn osc chico" type="button" id="rcSugB">Buscar publicaciones</button></div>`;
+  if (sg.cargando) return `<div class="panel" id="rcSug">${cab}<p class="mut peq">Buscando publicaciones…</p></div>`;
+  if (sg.error) return `<div class="panel" id="rcSug">${cab}<p class="rt-nota">${esc(sg.error)}</p><button class="btn osc chico" type="button" id="rcSugB">Volver a buscar</button></div>`;
+  const seguras = sg.filas.filter((x) => x.estado === "segura").length;
+  const lleva = (x) => (x.componentes ?? []).map((k) => `${nTxt(k.cantidad)} ${esc(k.codigo || k.nombre)}`).join(" + ");
+  return `<div class="panel" id="rcSug">${cab}
+    <div class="fila n" style="gap:8px;margin-bottom:8px">${seguras ? `<button class="btn pri chico" type="button" id="rcSugT">Aceptar las ${seguras} seguras</button>` : ""}<button class="btn lin chico" type="button" id="rcSugB">Volver a buscar</button></div>
+    <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Código y producto</th><th>Publicación</th><th>Lleva</th><th>Por qué</th><th></th></tr>
+    ${sg.filas.map((x, i) => `<tr><td><b>${esc(x.codigo ?? "")}</b>${x.codigo ? " · " : ""}${esc(x.nombre ?? "")}</td>
+      <td>${x.item_id ? `<div style="display:flex;gap:8px;align-items:center">${x.thumbnail ? `<img src="${esc(x.thumbnail)}" alt="" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none">` : ""}<span>${esc(x.titulo ?? x.item_id)}${x.variacion ? ` · variante ${esc(x.variacion)}` : ""}<div class="peq mut">${esc(x.item_id)}${x.sku ? ` · SKU ${esc(x.sku)}` : ""}</div></span></div>` : `<span class="mut">No se encontró ninguna publicación</span>`}
+        ${x._elegir ? `<select data-sgsel="${i}" style="margin-top:6px;max-width:340px"><option value="">Elegí la publicación…</option>${sg.pubs.map((p, j) => `<option value="${j}">${esc(p.titulo)}${p.variacion ? " · " + esc(p.variacion) : ""}${p.sku ? " (" + esc(p.sku) + ")" : ""}</option>`).join("")}</select>` : ""}</td>
+      <td>${x.item_id ? lleva(x) : ""}</td>
+      <td class="peq">${SUG_EST[x.estado] ? `<b class="${SUG_EST[x.estado][1]}">${SUG_EST[x.estado][0]}</b>` : ""}${x.por ? ` ${esc(x.por)}` : ""}</td>
+      <td style="white-space:nowrap">${x.estado === "segura" || x.estado === "revisar" ? `<button class="btn pri chico" type="button" data-sgok="${i}">Aceptar</button> ` : ""}${x.estado !== "ya" ? `<button class="btn lin chico" type="button" data-sgch="${i}">${x.item_id ? "Cambiar" : "Elegir publicación"}</button>` : ""}</td></tr>`).join("")}
+    </table></div></div>`;
+}
+async function aceptarSugPub(x) {
+  const comps = [...(x.actuales ?? []).map((k) => ({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 }))];
+  for (const k of x.componentes ?? []) if (!comps.some((y) => y.producto_id === Number(k.producto_id))) comps.push({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 });
+  await rApi("rent_composicion_guardar", { cuenta_id: x.cuenta_id, item_id: x.item_id, variacion: x.variacion ?? "", componentes: comps, iva_venta: x.iva_venta ?? null });
+  x.actuales = comps; x.estado = "ya"; x.por = "guardado";
+  // La misma publicación puede aparecer en otras filas: se actualiza lo que ya lleva
+  for (const y of S.rcSug.filas) if (y !== x && y.item_id === x.item_id && y.cuenta_id === x.cuenta_id && (y.variacion ?? "") === (x.variacion ?? "")) { y.actuales = comps; if (comps.some((k) => k.producto_id === Number(y.producto_id))) { y.estado = "ya"; y.por = "guardado"; } }
+}
+function enganchesSugPub(c) {
+  const p = $("#rcSug"); if (!p) return;
+  const b = $("#rcSugB"); if (b) b.onclick = () => buscarSugPub(c);
+  const t = $("#rcSugT"); if (t) t.onclick = async () => { t.disabled = true; let n = 0; for (const x of S.rcSug.filas.filter((x) => x.estado === "segura")) { if (await seguro(() => aceptarSugPub(x))) n++; } pintarSugPub(c); aviso(`${n} ${n === 1 ? "publicación guardada" : "publicaciones guardadas"}`); };
+  p.querySelectorAll("[data-sgok]").forEach((k) => k.onclick = async () => { k.disabled = true; const x = S.rcSug.filas[Number(k.dataset.sgok)]; if (await seguro(() => aceptarSugPub(x))) { pintarSugPub(c); aviso("Guardado"); } else k.disabled = false; });
+  p.querySelectorAll("[data-sgch]").forEach((k) => k.onclick = () => { const x = S.rcSug.filas[Number(k.dataset.sgch)]; x._elegir = !x._elegir; pintarSugPub(c); });
+  p.querySelectorAll("[data-sgsel]").forEach((k) => k.onchange = () => {
+    const x = S.rcSug.filas[Number(k.dataset.sgsel)], pb = S.rcSug.pubs[Number(k.value)]; if (!pb) return;
+    Object.assign(x, { cuenta_id: pb.cuenta_id, item_id: pb.item_id, variacion: pb.variacion, titulo: pb.titulo, sku: pb.sku, thumbnail: pb.thumbnail, actuales: pb.componentes ?? [], iva_venta: pb.iva_venta ?? null, componentes: [{ producto_id: x.producto_id, cantidad: 1, codigo: x.codigo, nombre: x.nombre }], _elegir: false });
+    const ya = (pb.componentes ?? []).some((y) => Number(y.producto_id) === Number(x.producto_id));
+    x.estado = ya ? "ya" : "revisar"; x.por = ya ? "la publicación ya lleva este producto" : "elegida a mano";
+    pintarSugPub(c);
+  });
+}
+async function despachoIA(c, f, args) {
+  if (c.tipo !== "importacion") throw new Error("es un despacho de importación: cargalo en una compra de tipo Importación");
+  const [a, b] = await Promise.all([rApi("rent_leer_despacho", { nombre: f.name, parte: "items", ...args }, 240_000), rApi("rent_leer_despacho", { nombre: f.name, parte: "subitems", ...args }, 240_000)]);
+  const r = { cabecera: a.cabecera ?? b.cabecera, items: a.items ?? [], subitems: (b.subitems ?? []).length ? b.subitems : (a.subitems ?? []) };
+  if (!r.items.length && !r.subitems.length) throw new Error("no se pudieron leer los ítems del despacho");
+  aplicarDespacho(c, r);
+  c.datos.documentos.push({ nombre: f.name, tipo: r.items.length ? "despacho" : "subitems", numero: r.cabecera?.numero ?? "", aplicado: r.items.length ? `${r.items.length} ítems y sus tributos` : `${r.subitems.length} subítems con el código de cada producto` });
+  return `${f.name}: ${r.items.length ? `${r.items.length} ítems` : `${r.subitems.length} subítems`}`;
 }
 function aplicarDespacho(c, r) {
   const d = c.datos;
