@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271853";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271951";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -415,7 +415,7 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .rt-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;padding:6px 4px}.rt-g>b{display:block;font-size:13px;margin-bottom:4px}
 .rt-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--linea);font-size:13.5px;font-variant-numeric:tabular-nums}.rt-l>span:last-child{white-space:nowrap}.rt-l.rt-t{font-weight:700;border-top:1.5px solid var(--tinta)}
 .rt-dos{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rt-med .medida b{font-variant-numeric:tabular-nums}
-.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
+.rt-rev{border:1px solid var(--ambar);border-radius:var(--r-m);padding:10px 12px;margin:0 0 10px}.rt-rev-it{border-top:1px dashed var(--linea);padding:8px 0 4px}.rt-rev-it:first-of-type{border-top:0}.rt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin:0 6px 6px 0}.rt-chip-x{border:0;background:none;color:var(--piz);font-size:15px;line-height:1;padding:0 0 0 2px;cursor:pointer}.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
 .rt-radio{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px}.rt-radio label{display:flex;gap:6px;align-items:center}
 @media(max-width:700px){.rt-med{grid-template-columns:1fr 1fr}}
 .tabla-scroll{overflow-x:auto}
@@ -8867,15 +8867,16 @@ VISTAS.rent_productos = async () => {
   S.rentProds = r.productos;
   const fil = (S.rentProdFil ?? "").toLowerCase();
   const xs = r.productos.filter((p) => !fil || `${p.nombre} ${p.codigo ?? ""}`.toLowerCase().includes(fil));
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Productos e insumos</h1><p>Todo lo que se compra: mercadería, cajas, relleno, cinta. El costo sale de las compras cargadas (promedio ponderado).</p></div>
-      <button class="btn pri" id="rpNuevo" type="button">Agregar producto o insumo</button></div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Productos e insumos</h1><p>Todo lo que se compra: mercadería, cajas, relleno, cinta. El costo sale de las compras cargadas: se vende primero lo más viejo, según el stock de MercadoLibre.</p></div>
+      <div class="fila n" style="gap:8px"><button class="btn lin" id="rpStock" type="button">Actualizar stock de MercadoLibre</button><button class="btn pri" id="rpNuevo" type="button">Agregar producto o insumo</button></div></div>
     <div class="panel" style="padding:10px 14px"><input type="search" id="rpBus" placeholder="Buscar por nombre o código" value="${esc(S.rentProdFil ?? "")}" style="max-width:360px;margin-bottom:6px">
     <div class="tabla-scroll"><table class="tabla apilable" data-ord="productos"><tr><th>Producto o insumo</th><th>Tipo</th><th>Código</th><th>Se usa por</th><th>Costo por unidad</th><th>Recuperable</th><th>Compras</th><th></th></tr>
-    ${xs.map((p) => `<tr><td><b>${esc(p.nombre)}</b></td><td>${TIPO_PROD[p.tipo] ?? p.tipo}</td><td>${esc(p.codigo ?? "—")}</td><td>${esc(p.unidad)}</td><td>${p.costo == null ? `<span class="rt-falta">sin compras</span>` : pz(p.costo) + (p.costo_manual != null ? ` <span class="mut peq">(a mano)</span>` : "")}</td><td>${p.recuperable ? pz(p.recuperable) : "—"}</td><td>${num(p.compras)}</td>
+    ${xs.map((p) => `<tr><td><b>${esc(p.nombre)}</b></td><td>${TIPO_PROD[p.tipo] ?? p.tipo}</td><td>${p.principal ? `${esc(p.codigo ?? "—")}<div class="mut peq">Mismo producto que ${esc(p.principal.nombre ?? "")}</div>` : esc([p.codigo, ...(p.otros_codigos ?? [])].filter(Boolean).join(", ") || "—")}</td><td>${esc(p.unidad)}</td><td>${p.costo == null ? `<span class="rt-falta">sin compras</span>` : pz(p.costo) + (p.costo_manual != null ? ` <span class="mut peq">(a mano)</span>` : "")}</td><td>${p.recuperable ? pz(p.recuperable) : "—"}</td><td>${num(p.compras)}</td>
       <td><button class="btn chico lin" type="button" data-rpe="${p.id}">Editar o cambiar costo</button></td></tr>`).join("")}</table></div>
     ${xs.length ? "" : `<div class="vacio"><b>${r.productos.length ? "No hay coincidencias" : "Todavía no hay productos"}</b>${r.productos.length ? "" : "Agregalos acá o al cargar una compra."}</div>`}</div>`;
   $("#rpBus").oninput = () => { S.rentProdFil = $("#rpBus").value; clearTimeout(S.rpT); S.rpT = setTimeout(() => { VISTAS.rent_productos().then(() => { const b = $("#rpBus"); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }); }, 300); };
   $("#rpNuevo").onclick = () => editarProducto(null, () => VISTAS.rent_productos());
+  $("#rpStock").onclick = async (e) => { e.target.disabled = true; e.target.textContent = "Leyendo el stock…"; const x = await seguro(() => rApi("rent_stock_leer", {}, 120_000)); if (x) { aviso(`Stock leído: ${num(x.productos)} productos`); VISTAS.rent_productos(); } else { e.target.disabled = false; e.target.textContent = "Actualizar stock de MercadoLibre"; } };
   $("#main").querySelectorAll("[data-rpe]").forEach((b) => b.onclick = () => editarProducto(r.productos.find((p) => String(p.id) === b.dataset.rpe), () => VISTAS.rent_productos()));
 };
 function editarProducto(p, alGuardar, nombre = "") {
@@ -8901,7 +8902,20 @@ function editarProducto(p, alGuardar, nombre = "") {
   const pintarCostos = async () => {
     const r = await seguro(() => rApi("rent_producto_detalle", { id: p.id })); if (!r) return;
     const caja = v.querySelector("#epCosto");
-    caja.innerHTML = `<p style="margin:0 0 8px">Costo actual: <b>${r.costo_actual == null ? "sin compras" : pz(r.costo_actual)}</b>${r.recuperable_actual ? ` · recuperable ${pz(r.recuperable_actual)}` : ""}${r.producto.costo_manual != null ? " (cargado a mano)" : ""}</p>
+    const otros = (r.grupo ?? []).length > 1, f = r.fifo;
+    const fH = (s) => new Date(s).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    const lugares = (r.stock?.detalle ?? []).reduce((a, d) => { for (const [k, q] of Object.entries(d.lugares ?? {})) a[k] = (a[k] ?? 0) + q * (d.por_unidad ?? 1); return a; }, {});
+    caja.innerHTML = `<p style="margin:0 0 8px">Costo por unidad hoy: <b>${r.costo_actual == null ? "sin compras" : pz(r.costo_actual)}</b>${r.recuperable_actual ? ` · recuperable ${pz(r.recuperable_actual)}` : ""}${r.producto.costo_manual != null ? " (cargado a mano)" : ""}</p>
+      <h3 style="font-size:15px;margin:14px 0 2px">Códigos del mismo producto</h3>
+      <p class="mut peq" style="margin:0">${otros ? "El proveedor le puso un código distinto en cada importación. Para el stock y el costo se cuentan como un solo producto." : "Si el proveedor mandó este mismo producto con otro código, agregalo acá: el stock y el costo se cuentan juntos."}</p>
+      ${otros ? `<div style="margin-top:8px">${r.grupo.map((x) => `<span class="rt-chip" title="${esc(x.nombre)}">${esc(x.codigo || x.nombre)}${x.principal ? "" : ` <button type="button" class="rt-chip-x" data-epsep="${x.id}" title="Separar este código" aria-label="Separar ${esc(x.codigo || x.nombre)}">×</button>`}</span>`).join("")}</div>` : ""}
+      <div class="fila" style="margin-top:8px"><select id="epIg" style="max-width:340px"><option value="">Agregar otro código del mismo producto…</option>${(S.rentProds ?? []).filter((x) => !(r.grupo ?? []).some((y) => String(y.id) === String(x.id)) && !x.principal).map((x) => `<option value="${x.id}">${esc((x.codigo ? x.codigo + " · " : "") + x.nombre)}</option>`).join("")}</select></div>
+      ${f ? `<h3 style="font-size:15px;margin:16px 0 2px">Compras y stock (sale primero lo más viejo)</h3>
+        <div class="tabla-scroll"><table class="tabla peq rt-reng" data-ord="prod_lotes"><tr><th>Compra</th><th>Código</th><th>Fecha</th><th class="n">Comprado</th><th class="n">Salió</th><th class="n">Queda</th><th class="n">Costo por unidad</th></tr>
+        ${f.capas.map((x) => `<tr><td>${esc(x.compra ?? "")}</td><td><b>${esc(x.codigo ?? "")}</b></td><td>${new Date(x.fecha + "T12:00").toLocaleDateString("es-AR")}</td><td class="rt-num">${num(x.unidades)}</td><td class="rt-num">${num(x.salio)}</td><td class="rt-num">${num(x.queda)}</td><td class="rt-num">${pz(x.costo_unit)}</td></tr>`).join("")}
+        <tr class="rt-tot"><td colspan="3"><b>Total</b></td><td class="rt-num"><b>${num(f.capas.reduce((a, x) => a + x.unidades, 0))}</b></td><td class="rt-num"><b>${num(f.capas.reduce((a, x) => a + x.salio, 0))}</b></td><td class="rt-num"><b>${num(f.queda)}</b></td><td></td></tr></table></div>
+        <p class="mut peq" style="margin:6px 0 0">Stock leído de MercadoLibre el ${fH(f.leido_at)}: ${num(f.stock)}${lugares.selling_address != null || lugares.meli_facility != null ? ` (depósito ${num(lugares.selling_address ?? 0)} + Full ${num(lugares.meli_facility ?? 0)})` : ""}.${f.stock_sin_compra > 0 ? ` <b class="rt-neg">Hay ${num(f.stock_sin_compra)} unidades en stock más de las compradas: falta cargar una compra.</b>` : ""}${f.ventas_sin_compra > 0 ? ` <b class="rt-neg">${num(f.ventas_sin_compra)} ventas no alcanzan a cubrirse con las compras cargadas: falta cargar una compra anterior.</b>` : ""}</p>` : r.compras.length ? `<p class="mut peq" style="margin:10px 0 0">Todavía no se leyó el stock de este producto en MercadoLibre (botón "Actualizar stock de MercadoLibre"). Mientras tanto el costo es el promedio de las compras.</p>` : ""}
+      <h3 style="font-size:15px;margin:16px 0 4px">Precio pagado en cada compra</h3>
       ${r.compras.length ? `<div class="tabla-scroll"><table class="tabla peq rt-reng" data-ord="prod_compras"><tr><th>Compra</th><th>Unidades</th><th>Precio en la factura</th><th>Precio pagado por unidad</th><th>Costo por unidad</th></tr>
         ${r.compras.map((x, k) => `<tr><td>${new Date(x.fecha + "T12:00").toLocaleDateString("es-AR")}<div class="mut">${esc(TIPO_COMPRA[x.tipo])}${x.comprobante ? ` · ${esc(x.comprobante)}` : ""}${x.item ? ` · ítem ${esc(x.item)}` : ""}</div></td><td>${nTxt(x.unidades, 4)}</td>
           <td class="mut">${x.precio_factura != null && x.precio_factura !== "" ? `${esc(x.moneda ?? "")} ${nTxt(x.precio_factura, 6)}` : "—"}</td>
@@ -8914,9 +8928,21 @@ function editarProducto(p, alGuardar, nombre = "") {
       const k = Number(bt.dataset.eps), x = r.compras[k];
       const pu = nAR(caja.querySelector(`[data-epp="${k}"]`).value), tcI = caja.querySelector(`[data-ept="${k}"]`);
       bt.disabled = true;
-      const ok = await seguro(() => rApi("rent_producto_precio", { compra_id: x.compra_id, idx: x.idx, producto_id: p.id, precio_unit: pu, tc: tcI ? nAR(tcI.value) : "" }, 60_000));
+      const ok = await seguro(() => rApi("rent_producto_precio", { compra_id: x.compra_id, idx: x.idx, producto_id: x.producto_id ?? p.id, precio_unit: pu, tc: tcI ? nAR(tcI.value) : "" }, 60_000));
       bt.disabled = false;
       if (ok) { aviso("Precio corregido"); pintarCostos(); }
+    });
+    caja.querySelector("#epIg").onchange = async (e) => {
+      const o = (S.rentProds ?? []).find((x) => String(x.id) === e.target.value); if (!o) return;
+      if (!confirm(`¿"${o.codigo || o.nombre}" es el mismo producto que "${p.codigo || p.nombre}"? Las publicaciones que llevaban los dos van a llevar uno solo, y se vuelve a leer el stock.`)) { e.target.value = ""; return; }
+      e.target.disabled = true;
+      if (await seguro(() => rApi("rent_producto_igual", { id: o.id, igual_a: r.principal_id }, 120_000))) { aviso("Listo: se cuentan como un solo producto"); await prodsRent(true); pintarCostos(); }
+      else e.target.disabled = false;
+    };
+    caja.querySelectorAll("[data-epsep]").forEach((bt) => bt.onclick = async () => {
+      const o = r.grupo.find((x) => String(x.id) === bt.dataset.epsep);
+      if (!confirm(`¿Separar "${o?.codigo || o?.nombre}"? Vuelve a ser un producto aparte; revisá después qué publicaciones lo llevan.`)) return;
+      if (await seguro(() => rApi("rent_producto_igual", { id: bt.dataset.epsep, igual_a: null }, 120_000))) { aviso("Código separado"); await prodsRent(true); pintarCostos(); }
     });
   };
   pintarCostos();
@@ -9097,6 +9123,47 @@ function normalizarCompra(c) {
   if (c.tipo === "con_impuestos") { d.factura_tipo ??= "A"; d.impuestos ??= []; }
 }
 const renglonNuevo = (c) => ({ producto_id: "", codigo_proveedor: "", unidades: "", precio_unit: "", moneda: c.tipo === "importacion" ? "USD" : "ARS", tc: c.tipo === "importacion" ? (c.datos?.despacho?.tc ?? "") : "", iva_pct: 21, fob_usd: "", item_despacho: "" });
+// ---- Revisá estos códigos: código nuevo parecido a un producto que ya existe, o código que ya existe con otro precio
+function codigosRev(c) {
+  const d = c.datos, tcD = Number(d.despacho?.tc) || 0;
+  const desc = new Map((d.items_despacho ?? []).map((it) => [String(it.item), it.descripcion]));
+  const m = new Map();
+  for (const r of d.renglones ?? []) {
+    const k = String(r.codigo_proveedor ?? "").trim(); if (!k || m.has(k.toLowerCase())) continue;
+    const tc = r.moneda === "ARS" ? 1 : (Number(r.tc) || tcD);
+    m.set(k.toLowerCase(), { codigo: k, producto_id: r.producto_id || null, descripcion: r.descripcion || desc.get(String(r.item_despacho)) || "", precio_ars: (Number(r.precio_unit) || 0) * tc });
+  }
+  return [...m.values()];
+}
+function pedirRevCod(c) {
+  const cods = codigosRev(c), key = JSON.stringify(cods.map((x) => [x.codigo, x.producto_id, Math.round(x.precio_ars)]));
+  if (!cods.length || S.rcRev?.key === key) return;
+  S.rcRev = { key, lista: null };
+  rApi("rent_revisar_codigos", { compra_id: c.id ?? null, codigos: cods }, 90_000).then((r) => { if (S.rcRev?.key !== key) return; S.rcRev.lista = r.revision ?? []; if (S.rcEd === c) pintarCompra(); }).catch(() => { if (S.rcRev?.key === key) S.rcRev.lista = []; });
+}
+function panelRevCod(c) {
+  const d = c.datos, ok = new Set((d.codigos_ok ?? []).map((x) => String(x).toLowerCase()));
+  const l = (S.rcRev?.lista ?? []).filter((x) => !ok.has(x.codigo.toLowerCase()) && (x.tipo === "distinto" || (d.renglones ?? []).some((r) => String(r.codigo_proveedor).toLowerCase() === x.codigo.toLowerCase() && !r.producto_id)));
+  if (!l.length) return "";
+  const usd = (n) => pz(n);
+  return `<div class="rt-rev"><h3 style="font-size:15px;margin:0 0 2px">Revisá estos códigos</h3><p class="mut peq" style="margin:0 0 6px">Confirmá si cada uno es un producto que ya tenés o uno nuevo.</p>
+    ${l.map((x, i) => `<div class="rt-rev-it"><b>${esc(x.codigo)}${x.descripcion ? ` · "${esc(x.descripcion)}"` : ""}</b>
+      <div class="peq">${x.tipo === "parecido" ? `Es un código nuevo, pero parece <b>${esc(x.nombre)}</b>${x.codigo_producto ? ` (${esc(x.codigo_producto)})` : ""}.${x.motivo ? ` <span class="mut">${esc(x.motivo)}</span>` : ""}`
+        : `Este código ya existe como <b>${esc(x.nombre)}</b> (${esc(x.antes.compra)}, ${usd(x.antes.precio)} por unidad), pero ahora el precio es ${usd(x.ahora)}.`}</div>
+      <div class="fila" style="margin-top:6px;gap:8px;align-items:center">${x.tipo === "parecido"
+        ? `<button class="btn chico pri" type="button" data-rvm="${i}">Es el mismo producto</button><button class="btn chico lin" type="button" data-rvn="${i}">Es un producto nuevo</button>`
+        : `<button class="btn chico lin" type="button" data-rvok="${i}">Es el mismo producto</button><button class="btn chico pri" type="button" data-rvo="${i}">Es otro producto</button><span class="peq mut">Se crea como</span><input data-rvc="${i}" value="${esc(x.codigo)}-2" style="width:140px">`}</div></div>`).join("")}</div>`;
+}
+function enganchesRevCod(c) {
+  const d = c.datos, ok = new Set((d.codigos_ok ?? []).map((x) => String(x).toLowerCase()));
+  const l = (S.rcRev?.lista ?? []).filter((x) => !ok.has(x.codigo.toLowerCase()) && (x.tipo === "distinto" || (d.renglones ?? []).some((r) => String(r.codigo_proveedor).toLowerCase() === x.codigo.toLowerCase() && !r.producto_id)));
+  const de = (cod) => (d.renglones ?? []).filter((r) => String(r.codigo_proveedor).toLowerCase() === cod.toLowerCase());
+  const crear = async (codigo, x) => { const r = await seguro(() => rApi("rent_producto_guardar", { nombre: `${x.codigo}${x.descripcion ? " · " + x.descripcion : ""}`.slice(0, 160), codigo, tipo: "mercaderia" })); if (!r) return; await prodsRent(); de(x.codigo).forEach((y) => { y.producto_id = r.id; }); (d.codigos_ok ??= []).push(x.codigo); pintarCompra(); };
+  $("#main").querySelectorAll("[data-rvm]").forEach((b) => b.onclick = () => { const x = l[Number(b.dataset.rvm)]; de(x.codigo).forEach((y) => { if (!y.producto_id) y.producto_id = x.producto_id; }); pintarCompra(); });
+  $("#main").querySelectorAll("[data-rvn]").forEach((b) => b.onclick = () => { const x = l[Number(b.dataset.rvn)]; crear(x.codigo, x); });
+  $("#main").querySelectorAll("[data-rvok]").forEach((b) => b.onclick = () => { const x = l[Number(b.dataset.rvok)]; (d.codigos_ok ??= []).push(x.codigo); pintarCompra(); });
+  $("#main").querySelectorAll("[data-rvo]").forEach((b) => b.onclick = () => { const i = Number(b.dataset.rvo), x = l[i], cod = $("#main").querySelector(`[data-rvc="${i}"]`).value.trim(); if (!cod) return aviso("Poné el código del producto nuevo"); if ((S.rentProds ?? []).some((p) => (p.codigo ?? "").toLowerCase() === cod.toLowerCase())) return aviso("Ya hay un producto con ese código"); crear(cod, x); });
+}
 const optProd = (v) => `<option value="">Elegí…</option>${(S.rentProds ?? []).map((p) => `<option value="${p.id}" ${String(p.id) === String(v) ? "selected" : ""}>${esc(p.nombre)}${p.codigo ? ` (${esc(p.codigo)})` : ""}</option>`).join("")}<option value="nuevo">+ Agregar producto o insumo…</option>`;
 const optMon = (v) => ["ARS", "USD", "CNY", "EUR"].map((m) => `<option ${m === (v || "ARS") ? "selected" : ""}>${m}</option>`).join("");
 const inp = (path, val, extra = "") => `<input data-rp="${path}" value="${esc(val ?? "")}" ${extra}>`;
@@ -9152,6 +9219,7 @@ function pintarCompra() {
       ${!sinI ? `<p class="mut peq" style="margin:0 0 8px">El <b>precio pagado por unidad</b> es el costo del producto y se puede corregir (por ejemplo, si el proveedor se equivocó en la factura). Cambiarlo no recalcula impuestos, tasas ni gastos: lo pagado queda como está.${imp ? " Las unidades son las que se venden, incluidas las que vinieron sin cargo." : ""}</p>` : ""}
       ${d.renglones.length > 12 ? `<input type="search" id="rcRenFil" placeholder="Buscar código o producto" value="${esc(S.rentRenFil ?? "")}" style="max-width:300px;margin-bottom:6px">` : ""}
       ${(d.controles ?? []).length ? `<details class="rt-nota" style="display:block"><summary>${d.controles.length} códigos con cantidades distintas entre la factura comercial y el despacho. Revisá cuántas unidades de venta llegaron: el precio pagado se reparte entre ellas.</summary><div class="peq" style="margin-top:6px">${d.controles.map(esc).join("<br>")}</div></details>` : ""}
+      ${panelRevCod(c)}
       ${faltaProd ? `<p class="rt-nota">${faltaProd} códigos sin producto vinculado. <button class="btn chico lin" type="button" id="rcCrear">Crear un producto por cada código</button></p>` : ""}
       <div class="tabla-scroll"><table class="tabla rt-reng" data-ord="renglones"><tr><th>Producto o insumo</th>${imp ? "<th>Código del proveedor</th><th>Ítem</th><th>FOB (USD)</th>" : ""}<th>Unidades</th>${sinI ? "" : "<th>Precio en la factura</th>"}<th>${sinI ? "Total pagado" : "Precio pagado por unidad"}</th>${sinI ? "" : "<th>Subtotal pagado</th>"}${sinI ? "" : "<th>Moneda</th><th>Tipo de cambio</th>"}${conI ? "<th>IVA</th><th>Importe de IVA</th>" : ""}<th>Costo por unidad</th><th>Recuperable</th><th></th></tr>
         ${idx.slice(0, 200).map((i) => { const r = d.renglones[i], k = calc?.[i]; return `<tr><td><select data-rp="datos.renglones.${i}.producto_id" data-rprod="${i}">${optProd(r.producto_id)}</select></td>
@@ -9215,6 +9283,7 @@ function pintarCompra() {
   };
   if ($("#rcB")) $("#rcB").onclick = async () => { if (!confirm("¿Borrar esta compra? Sus productos dejan de tener este costo.")) return; if (await seguro(() => rApi("rent_compra_borrar", { id: c.id }))) { S.rcEd = null; VISTAS.rent_compras(); } };
   enganchesSugPub(c);
+  enganchesRevCod(c); pedirRevCod(c);
   $("#rcC").onclick = async () => { const r = await seguro(() => rApi("rent_compra_calcular", { tipo: c.tipo, cuenta_id: c.cuenta_id || null, comprobante: c.comprobante, datos: d })); if (r) { S.rcCalc = r.calculo; pintarCompra(); } };
   if ($("#rcCrear")) $("#rcCrear").onclick = async () => {
     const faltan = [...new Set(d.renglones.filter((r) => !r.producto_id && r.codigo_proveedor).map((r) => r.codigo_proveedor))];
@@ -9417,7 +9486,7 @@ function aplicarDocumento(c, doc) {
         if (uDesp && Math.abs(uDesp - x.q) > 0.001) difs.push(`${x.codigo}: ${nTxt(x.q)} en la factura${x.sin ? ` (${nTxt(x.sin)} sin cargo)` : ""} y ${nTxt(uDesp)} en el despacho`);
         rs.forEach((r) => { r.precio_factura = pf; r.moneda_factura = mon; r.unidades_factura = x.q; if (!r.precio_editado) { r.precio_unit = pu; r.moneda = mon; if (mon !== "ARS" && !r.tc) r.tc = tc; } }); ok++;
       }
-      else { const p = prodPor(x.codigo, x.desc); d.renglones = d.renglones.filter((r) => !vacio(r)); d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, unidades: x.q, precio_unit: pf, precio_factura: pf, moneda_factura: mon, moneda: mon, tc }); nuevos++; }
+      else { const p = prodPor(x.codigo, x.desc); d.renglones = d.renglones.filter((r) => !vacio(r)); d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: x.codigo, descripcion: x.desc ?? "", unidades: x.q, precio_unit: pf, precio_factura: pf, moneda_factura: mon, moneda: mon, tc }); nuevos++; }
     }
     if (!c.comprobante) c.comprobante = [doc.letra, doc.numero].filter(Boolean).join(" ");
     if (!c.proveedor && doc.emisor) c.proveedor = doc.emisor;
@@ -9430,7 +9499,7 @@ function aplicarDocumento(c, doc) {
     for (const r of rs) {
       const p = prodPor(r.codigo, r.descripcion);
       const pu = N(r.precio_unitario) || (N(r.cantidad) ? N(r.importe) / N(r.cantidad) : 0);
-      d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: r.codigo || r.descripcion || "", unidades: N(r.cantidad), precio_unit: pu, precio_factura: pu, moneda_factura: mon, moneda: mon, tc, iva_pct: r.iva_pct != null ? N(r.iva_pct) : 21 });
+      d.renglones.push({ ...renglonNuevo(c), producto_id: p?.id ?? "", codigo_proveedor: r.codigo || r.descripcion || "", descripcion: r.descripcion ?? "", unidades: N(r.cantidad), precio_unit: pu, precio_factura: pu, moneda_factura: mon, moneda: mon, tc, iva_pct: r.iva_pct != null ? N(r.iva_pct) : 21 });
     }
     if (!c.proveedor && doc.emisor) c.proveedor = doc.emisor;
     if (!c.comprobante) c.comprobante = [doc.letra, doc.numero].filter(Boolean).join(" ");
