@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271528";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271531";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -9210,6 +9210,8 @@ async function buscarSugPub(c) {
   if (!ps.length) return;
   S.rcSug = { cargando: true }; if (S.rcEd === c) pintarSugPub(c);
   const r = await rApi("rent_sugerir_publicaciones", { cuenta_id: c.cuenta_id || null, productos: ps }, 150_000).catch((e) => ({ error: e.message }));
+  const orden = { segura: 0, revisar: 1, ya: 2, sin: 3 };
+  if (!r.error) r.sugerencias.sort((a, b) => orden[a.estado] - orden[b.estado] || String(a.codigo ?? "").localeCompare(String(b.codigo ?? ""), "es", { numeric: true }));
   S.rcSug = r.error ? { error: r.error } : { filas: r.sugerencias, pubs: r.publicaciones };
   if (S.rcEd === c) pintarSugPub(c);
 }
@@ -9225,15 +9227,17 @@ function panelSugPub(c) {
   const seguras = sg.filas.filter((x) => x.estado === "segura").length;
   const lleva = (x) => (x.componentes ?? []).map((k) => `${nTxt(k.cantidad)} ${esc(k.codigo || k.nombre)}`).join(" + ");
   return `<div class="panel" id="rcSug">${cab}
-    <div class="fila n" style="gap:8px;margin-bottom:8px">${seguras ? `<button class="btn pri chico" type="button" id="rcSugT">Aceptar las ${seguras} seguras</button>` : ""}<button class="btn lin chico" type="button" id="rcSugB">Volver a buscar</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${seguras ? `<button class="btn pri chico" type="button" id="rcSugT">Aceptar las ${seguras} seguras</button>` : ""}<button class="btn lin chico" type="button" id="rcSugB">Volver a buscar</button></div>
+    ${sg.filas.length ? "" : `<p class="mut peq">No hay productos para buscar.</p>`}
+    ${[["con", sg.filas.filter((x) => x.estado !== "sin")], ["sin", sg.filas.filter((x) => x.estado === "sin")]].filter(([, fs]) => fs.length).map(([k, fs]) => `${k === "sin" ? `<details style="margin-top:10px" ${S.rcSugSin ? "open" : ""} id="rcSugSin"><summary class="peq">${fs.length} ${fs.length === 1 ? "producto" : "productos"} sin publicación sugerida</summary>` : ""}
     <div class="tabla-scroll"><table class="tabla rt-reng"><tr><th>Código y producto</th><th>Publicación</th><th>Lleva</th><th>Por qué</th><th></th></tr>
-    ${sg.filas.map((x, i) => `<tr><td><b>${esc(x.codigo ?? "")}</b>${x.codigo ? " · " : ""}${esc(x.nombre ?? "")}</td>
+    ${fs.map((x) => { const i = sg.filas.indexOf(x), cod = String(x.codigo ?? ""), nom = cod && String(x.nombre ?? "").toLowerCase().startsWith(cod.toLowerCase()) ? String(x.nombre).slice(cod.length).replace(/^[\s·:\-]+/, "") : (x.nombre ?? ""); return `<tr><td><b>${esc(cod)}</b>${cod && nom ? " · " : ""}${esc(nom)}</td>
       <td>${x.item_id ? `<div style="display:flex;gap:8px;align-items:center">${x.thumbnail ? `<img src="${esc(x.thumbnail)}" alt="" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none">` : ""}<span>${esc(x.titulo ?? x.item_id)}${x.variacion ? ` · variante ${esc(x.variacion)}` : ""}<div class="peq mut">${esc(x.item_id)}${x.sku ? ` · SKU ${esc(x.sku)}` : ""}</div></span></div>` : `<span class="mut">No se encontró ninguna publicación</span>`}
         ${x._elegir ? `<select data-sgsel="${i}" style="margin-top:6px;max-width:340px"><option value="">Elegí la publicación…</option>${sg.pubs.map((p, j) => `<option value="${j}">${esc(p.titulo)}${p.variacion ? " · " + esc(p.variacion) : ""}${p.sku ? " (" + esc(p.sku) + ")" : ""}</option>`).join("")}</select>` : ""}</td>
       <td>${x.item_id ? lleva(x) : ""}</td>
       <td class="peq">${SUG_EST[x.estado] ? `<b class="${SUG_EST[x.estado][1]}">${SUG_EST[x.estado][0]}</b>` : ""}${x.por ? ` ${esc(x.por)}` : ""}</td>
-      <td style="white-space:nowrap">${x.estado === "segura" || x.estado === "revisar" ? `<button class="btn pri chico" type="button" data-sgok="${i}">Aceptar</button> ` : ""}${x.estado !== "ya" ? `<button class="btn lin chico" type="button" data-sgch="${i}">${x.item_id ? "Cambiar" : "Elegir publicación"}</button>` : ""}</td></tr>`).join("")}
-    </table></div></div>`;
+      <td style="white-space:nowrap">${x.estado === "segura" || x.estado === "revisar" ? `<button class="btn pri chico" type="button" data-sgok="${i}">Aceptar</button> ` : ""}${x.estado !== "ya" ? `<button class="btn lin chico" type="button" data-sgch="${i}">${x.item_id ? "Cambiar" : "Elegir publicación"}</button>` : ""}</td></tr>`; }).join("")}
+    </table></div>${k === "sin" ? "</details>" : ""}`).join("")}</div>`;
 }
 async function aceptarSugPub(x) {
   const comps = [...(x.actuales ?? []).map((k) => ({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 }))];
@@ -9246,6 +9250,7 @@ async function aceptarSugPub(x) {
 function enganchesSugPub(c) {
   const p = $("#rcSug"); if (!p) return;
   const b = $("#rcSugB"); if (b) b.onclick = () => buscarSugPub(c);
+  $("#rcSugSin")?.addEventListener("toggle", (e) => { S.rcSugSin = e.target.open; });
   const t = $("#rcSugT"); if (t) t.onclick = async () => { t.disabled = true; let n = 0; for (const x of S.rcSug.filas.filter((x) => x.estado === "segura")) { if (await seguro(() => aceptarSugPub(x))) n++; } pintarSugPub(c); aviso(`${n} ${n === 1 ? "publicación guardada" : "publicaciones guardadas"}`); };
   p.querySelectorAll("[data-sgok]").forEach((k) => k.onclick = async () => { k.disabled = true; const x = S.rcSug.filas[Number(k.dataset.sgok)]; if (await seguro(() => aceptarSugPub(x))) { pintarSugPub(c); aviso("Guardado"); } else k.disabled = false; });
   p.querySelectorAll("[data-sgch]").forEach((k) => k.onclick = () => { const x = S.rcSug.filas[Number(k.dataset.sgch)]; x._elegir = !x._elegir; pintarSugPub(c); });
