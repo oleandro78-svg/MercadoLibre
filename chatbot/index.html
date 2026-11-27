@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271724";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271821";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8260,16 +8260,22 @@ function bajarArchivo(nombre, blob) {
 const b64aBlob = (b, tipo) => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: tipo }); };
 const impLocal = (emp) => { try { return Number(localStorage.getItem(`mostrador_imp_${emp}`)) || null; } catch { return null; } };
 
+const diaDesp = (c) => c.dia_despacho ?? c.despachar_hasta ?? null;
 function plazoDespacho(c) {
+  if (!c.despachar_hasta && c.dia_despacho) {
+    const d = new Date(c.dia_despacho), hoy = new Date(), man = new Date(Date.now() + 86400_000);
+    const dia = d.toDateString() === hoy.toDateString() ? "hoy" : d.toDateString() === man.toDateString() ? "mañana" : `el ${d.toLocaleDateString("es-AR", { weekday: "long" })} ${d.getDate()}/${d.getMonth() + 1}`;
+    return `Dársela al conductor ${dia}`;
+  }
   if (!c.despachar_hasta) return "";
   const d = new Date(c.despachar_hasta), hoy = new Date(), man = new Date(Date.now() + 86400_000);
   const dia = d.toDateString() === hoy.toDateString() ? "hoy" : d.toDateString() === man.toDateString() ? "mañana" : diaMes(c.despachar_hasta);
   return `Despachar hasta ${dia} a las ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`;
 }
 function grupoDespacho(c) {
-  if (!c.despachar_hasta) return "hoy";
+  if (!diaDesp(c)) return "hoy";
   const fin = new Date(); fin.setHours(23, 59, 59, 999);
-  return new Date(c.despachar_hasta) <= fin ? "hoy" : "proximos";
+  return new Date(diaDesp(c)) <= fin ? "hoy" : "proximos";
 }
 const ETIQ_ESTADO = { ready_to_print: ["Lista para imprimir", "c-mot"], printed: ["Etiqueta impresa", "c-ok"], buffered: ["Etiqueta en procesamiento: se imprime el día del despacho", "c-blo"] };
 
@@ -8282,7 +8288,7 @@ const ORDEN_DS = [["plazo", "Por plazo"], ["producto", "Por producto"], ["tipo",
 const impresa = (c) => c.envio_subestado === "printed" || (c.impresiones ?? []).length > 0;
 const quienImprimio = (c) => (c.impresiones ?? []).length ? `Impresa por ${c.impresiones[0].quien} el ${new Date(c.impresiones[0].at).toLocaleString("es-AR", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}${c.impresiones.length > 1 ? ` (${c.impresiones.length} veces)` : ""}` : "";
 function ordenarDespacho(l, orden) {
-  const t = (c) => c.despachar_hasta ? new Date(c.despachar_hasta).getTime() : Infinity;
+  const t = (c) => diaDesp(c) ? new Date(diaDesp(c)).getTime() : Infinity;
   const k = { plazo: (c) => [t(c), c.item_titulo ?? ""], producto: (c) => [c.item_titulo ?? "", t(c)], tipo: (c) => [LOGISTICA[c.envio_logistica] ?? c.envio_logistica, t(c), c.item_titulo ?? ""], zona: (c) => [c.destino?.cp ?? "~", c.destino?.barrio ?? "", t(c)] }[orden];
   return [...l].sort((a, b) => { const x = k(a), y = k(b); for (let i = 0; i < x.length; i++) { if (x[i] < y[i]) return -1; if (x[i] > y[i]) return 1; } return 0; });
 }
@@ -8293,7 +8299,7 @@ function resumenDespacho(l, titulo) {
   for (const c of l) { const k = c.item_titulo ?? "Producto"; (grupos.get(k) ?? grupos.set(k, []).get(k)).push(c); }
   const filas = [...grupos.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([prod, cs]) => {
     const porPlazo = new Map();
-    for (const c of cs) { const k = c.despachar_hasta ? new Date(c.despachar_hasta).toLocaleString("es-AR", { weekday: "long", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : "Sin plazo informado"; const x = porPlazo.get(k) ?? { u: 0, e: 0, t: c.despachar_hasta ? new Date(c.despachar_hasta).getTime() : Infinity }; x.u += c.cantidad || 1; x.e++; porPlazo.set(k, x); }
+    for (const c of cs) { const k = !c.despachar_hasta && c.dia_despacho ? plazoDespacho(c) : c.despachar_hasta ? new Date(c.despachar_hasta).toLocaleString("es-AR", { weekday: "long", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : "Sin plazo informado"; const x = porPlazo.get(k) ?? { u: 0, e: 0, t: diaDesp(c) ? new Date(diaDesp(c)).getTime() : Infinity }; x.u += c.cantidad || 1; x.e++; porPlazo.set(k, x); }
     const ps = [...porPlazo.entries()].sort((a, b) => a[1].t - b[1].t);
     const tot = cs.reduce((n, c) => n + (c.cantidad || 1), 0);
     return ps.map(([pl, x], i) => `<tr>${i === 0 ? `<td rowspan="${ps.length}"><b>${esc(prod)}</b>${ps.length > 1 ? `<div class="m">Total: ${tot} u. en ${cs.length} envíos</div>` : ""}</td>` : ""}<td class="n">${x.u}</td><td class="n">${x.e}</td><td>${esc(pl)}</td></tr>`).join("");
