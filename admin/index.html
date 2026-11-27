@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272109";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272235";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -4964,7 +4964,7 @@ function pintarChat(d) {
   if (c.conv_estado === "active") estado = "";
   else if (c.con_motivo) estado = `<div class="estado e-mot">${ICONO_M.info}<span>El comprador todavía no escribió. MercadoLibre te deja iniciar la conversación solo eligiendo un motivo, con un cupo por venta. Cuando conteste, escribís libremente.</span></div>`;
   else estado = `<div class="estado e-blo">${ICONO_M.alto}<span>No se puede escribir: ${esc(c.bloqueo ?? "MercadoLibre no la habilita")}.${c.conv_subestado === "blocked_by_fulfillment" ? " Cuando el envío figure entregado se habilita sola." : ""}</span></div>`;
-  const med = c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>${esc(c.mediacion.tipo)} abierta</b>${c.mediacion.etapa ? ` (${esc(c.mediacion.etapa)})` : ""}.${c.mediacion.tenes_que_responder && c.mediacion.vence ? ` Tenés que responder antes del ${esc(venceTxt(c.mediacion.vence))}.` : ""} <a href="${esc(c.mediacion.url)}" target="_blank" rel="noopener">Abrir la venta en MercadoLibre</a></span></div>` : "";
+  const med = c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>${esc(c.mediacion.tipo)} abierta</b>${c.mediacion.etapa ? ` (${esc(c.mediacion.etapa)})` : ""}.${c.mediacion.tenes_que_responder && c.mediacion.vence ? ` Tenés que responder antes del ${esc(venceTxt(c.mediacion.vence))}.` : ""}</span></div>` : "";
   const urg = c.urgente && !c.mediacion ? `<div class="estado e-blo">${ICONO_M.alto}<span><b>Atención:</b> ${esc(c.urgente_motivo ?? "posible reclamo")}. Respondé cuanto antes.</span></div>` : "";
   const avisos = (d.avisos ?? []).map((a) => `<div class="estado e-mot">${ICONO_M.info}<span>${esc(a)}</span></div>`).join("");
   const env = c.envio ?? {};
@@ -5432,7 +5432,6 @@ function fichaReclamo(x) {
       ${dev?.estado ? fila("Devolución", esc(dev.estado)) : ""}
       ${dev?.envio_id ? fila("Envío de vuelta", `${esc(dev.envio_id)}${dev.envio_estado ? ` · ${esc(dev.envio_estado)}` : ""}`) : ""}
       ${dev?.revision_id && modsActuales().has("devoluciones") ? `<p class="peq"><button class="urg-marcar" style="padding:0" type="button" data-rdev="${esc(dev.revision_id)}">Ver la revisión de la devolución</button></p>` : ""}
-      <p class="peq"><a href="${esc(x.url)}" target="_blank" rel="noopener">Ver la venta en MercadoLibre</a>${x.url_reclamo ? ` · <a href="${esc(x.url_reclamo)}" target="_blank" rel="noopener">Ver el reclamo en MercadoLibre</a>` : ""}</p>
     </div>
     ${msjs ? `<div class="rec-msjs">${msjs}</div>` : `<p class="mut peq">No hay mensajes en este reclamo.</p>`}`;
 }
