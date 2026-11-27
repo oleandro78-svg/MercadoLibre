@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271531";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271540";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -9041,7 +9041,7 @@ function pintarCompra() {
     </div></div>
     <div class="panel"><h2>Comprobantes</h2>
       <div class="fila" style="align-items:center"><label class="btn osc n" style="cursor:pointer">Subir archivos<input type="file" id="rcDocs" accept="application/pdf,image/jpeg,image/png" multiple hidden></label><span class="mut peq" id="rcDocsE">PDF o fotos. Se pueden elegir varios a la vez. La lectura automática solo ahorra trabajo: todo lo que carga se puede corregir.</span></div>
-      ${(d.documentos ?? []).length ? `<div style="margin-top:10px">${d.documentos.map((x) => `<div class="rt-l"><span><b>${esc(DOC_NOMBRE[x.tipo] ?? x.tipo)}</b> · ${esc(x.nombre)}${x.emisor ? ` · ${esc(x.emisor)}` : ""}${x.numero ? ` ${esc(x.numero)}` : ""}<br><span class="mut peq">${esc(x.aplicado ?? "")}</span></span><span>${x.total ? esc(x.total) : ""}</span></div>`).join("")}</div>` : ""}
+      ${(d.documentos ?? []).length ? `<div style="margin-top:10px">${d.documentos.map((x) => { const no = x.usado === false || x.tipo === "otro" || /no se us(ó|o|aron)/i.test(x.aplicado ?? ""), mot = no ? String(x.aplicado ?? "").replace(/[:,]?\s*no se us(ó|o|aron)\.?/i, "").trim() : x.aplicado; return `<div class="rt-l"><span><b class="${x.tipo === "error" ? "rt-neg" : ""}">${esc(DOC_NOMBRE[x.tipo] ?? x.tipo)}</b> · ${esc(x.nombre)}${x.emisor ? ` · ${esc(x.emisor)}` : ""}${x.numero ? ` ${esc(x.numero)}` : ""}${no ? ` · <b class="rt-neg">No se usó</b>` : ""}${mot ? `<br><span class="mut peq">${esc(mot)}</span>` : ""}</span><span>${x.total ? esc(x.total) : ""}</span></div>`; }).join("")}</div>` : ""}
     </div>
     ${imp ? `<div class="panel"><h2>Despacho</h2>
       <div class="fila" style="margin-top:6px">
@@ -9157,7 +9157,7 @@ function pintarCompra() {
     if (d.renglones.some((r) => r.producto_id)) buscarSugPub(c);
   };
 }
-const DOC_NOMBRE = { despacho: "Despacho", subitems: "Subítems del despacho", factura_comercial: "Factura comercial", factura_compra: "Factura de compra", factura_despachante: "Factura del despachante", factura_flete: "Flete", conocimiento_embarque: "Conocimiento de embarque", factura_gasto: "Gasto", remito: "Remito", otro: "No se usó", error: "No se pudo leer" };
+const DOC_NOMBRE = { despacho: "Despacho", subitems: "Subítems del despacho", factura_comercial: "Factura comercial", factura_compra: "Factura de compra", factura_despachante: "Factura del despachante", factura_flete: "Flete", conocimiento_embarque: "Conocimiento de embarque", factura_gasto: "Gasto", remito: "Remito", otro: "Otro documento", error: "No se pudo leer" };
 const b64Archivo = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); };
 // Lee un comprobante: el despacho en el navegador; el resto con la IA (texto del PDF por partes, o el archivo si es escaneado o una foto)
 async function leerComprobante(c, f) {
@@ -9236,16 +9236,26 @@ function panelSugPub(c) {
         ${x._elegir ? `<select data-sgsel="${i}" style="margin-top:6px;max-width:340px"><option value="">Elegí la publicación…</option>${sg.pubs.map((p, j) => `<option value="${j}">${esc(p.titulo)}${p.variacion ? " · " + esc(p.variacion) : ""}${p.sku ? " (" + esc(p.sku) + ")" : ""}</option>`).join("")}</select>` : ""}</td>
       <td>${x.item_id ? lleva(x) : ""}</td>
       <td class="peq">${SUG_EST[x.estado] ? `<b class="${SUG_EST[x.estado][1]}">${SUG_EST[x.estado][0]}</b>` : ""}${x.por ? ` ${esc(x.por)}` : ""}</td>
-      <td style="white-space:nowrap">${x.estado === "segura" || x.estado === "revisar" ? `<button class="btn pri chico" type="button" data-sgok="${i}">Aceptar</button> ` : ""}${x.estado !== "ya" ? `<button class="btn lin chico" type="button" data-sgch="${i}">${x.item_id ? "Cambiar" : "Elegir publicación"}</button>` : ""}</td></tr>`; }).join("")}
+      <td style="white-space:nowrap">${x.estado === "segura" || x.estado === "revisar" ? `<button class="btn pri chico" type="button" data-sgok="${i}">Aceptar</button> ` : ""}<button class="btn lin chico" type="button" data-sgch="${i}">${x.item_id ? "Cambiar" : "Elegir publicación"}</button>${x.estado === "ya" ? ` <button class="btn pel chico" type="button" data-sgq="${i}">Quitar</button>` : ""}</td></tr>`; }).join("")}
     </table></div>${k === "sin" ? "</details>" : ""}`).join("")}</div>`;
 }
+async function guardarComp(pb, comps) {
+  await rApi("rent_composicion_guardar", { cuenta_id: pb.cuenta_id, item_id: pb.item_id, variacion: pb.variacion ?? "", componentes: comps, iva_venta: pb.iva_venta ?? null });
+  // Las demás filas y la lista de publicaciones ven lo que lleva ahora esa publicación
+  const igual = (y) => y.item_id === pb.item_id && y.cuenta_id === pb.cuenta_id && (y.variacion ?? "") === (pb.variacion ?? "");
+  for (const y of S.rcSug.pubs ?? []) if (igual(y)) y.componentes = comps;
+  for (const y of S.rcSug.filas) if (igual(y)) { y.actuales = comps; const lleva = comps.some((k) => k.producto_id === Number(y.producto_id)); if (lleva && y.estado !== "ya") { y.estado = "ya"; y.por = "guardado"; } else if (!lleva && y.estado === "ya") { y.estado = "revisar"; y.por = "se quitó de esta publicación"; } }
+}
+const sinProd = (lista, id) => (lista ?? []).map((k) => ({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 })).filter((k) => k.producto_id !== Number(id));
+async function quitarSugPub(x) { await guardarComp(x, sinProd(x.actuales, x.producto_id)); return true; }
 async function aceptarSugPub(x) {
+  // Si se cambió la publicación de un producto que ya estaba cargado, primero se lo saca de la anterior
+  if (x._previa) { await guardarComp(x._previa, sinProd(x._previa.actuales, x.producto_id)); delete x._previa; }
   const comps = [...(x.actuales ?? []).map((k) => ({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 }))];
   for (const k of x.componentes ?? []) if (!comps.some((y) => y.producto_id === Number(k.producto_id))) comps.push({ producto_id: Number(k.producto_id), cantidad: Number(k.cantidad) || 1 });
-  await rApi("rent_composicion_guardar", { cuenta_id: x.cuenta_id, item_id: x.item_id, variacion: x.variacion ?? "", componentes: comps, iva_venta: x.iva_venta ?? null });
-  x.actuales = comps; x.estado = "ya"; x.por = "guardado";
-  // La misma publicación puede aparecer en otras filas: se actualiza lo que ya lleva
-  for (const y of S.rcSug.filas) if (y !== x && y.item_id === x.item_id && y.cuenta_id === x.cuenta_id && (y.variacion ?? "") === (x.variacion ?? "")) { y.actuales = comps; if (comps.some((k) => k.producto_id === Number(y.producto_id))) { y.estado = "ya"; y.por = "guardado"; } }
+  await guardarComp(x, comps);
+  x.estado = "ya"; x.por = "guardado";
+  return true;
 }
 function enganchesSugPub(c) {
   const p = $("#rcSug"); if (!p) return;
@@ -9253,9 +9263,11 @@ function enganchesSugPub(c) {
   $("#rcSugSin")?.addEventListener("toggle", (e) => { S.rcSugSin = e.target.open; });
   const t = $("#rcSugT"); if (t) t.onclick = async () => { t.disabled = true; let n = 0; for (const x of S.rcSug.filas.filter((x) => x.estado === "segura")) { if (await seguro(() => aceptarSugPub(x))) n++; } pintarSugPub(c); aviso(`${n} ${n === 1 ? "publicación guardada" : "publicaciones guardadas"}`); };
   p.querySelectorAll("[data-sgok]").forEach((k) => k.onclick = async () => { k.disabled = true; const x = S.rcSug.filas[Number(k.dataset.sgok)]; if (await seguro(() => aceptarSugPub(x))) { pintarSugPub(c); aviso("Guardado"); } else k.disabled = false; });
+  p.querySelectorAll("[data-sgq]").forEach((k) => k.onclick = async () => { const x = S.rcSug.filas[Number(k.dataset.sgq)]; if (!confirm(`¿Sacar ${x.codigo || x.nombre} de "${x.titulo}"? Esa publicación deja de tomar su costo.`)) return; k.disabled = true; if (await seguro(() => quitarSugPub(x))) { pintarSugPub(c); aviso("Quitado"); } else k.disabled = false; });
   p.querySelectorAll("[data-sgch]").forEach((k) => k.onclick = () => { const x = S.rcSug.filas[Number(k.dataset.sgch)]; x._elegir = !x._elegir; pintarSugPub(c); });
   p.querySelectorAll("[data-sgsel]").forEach((k) => k.onchange = () => {
     const x = S.rcSug.filas[Number(k.dataset.sgsel)], pb = S.rcSug.pubs[Number(k.value)]; if (!pb) return;
+    if (x.estado === "ya" && !x._previa) x._previa = { cuenta_id: x.cuenta_id, item_id: x.item_id, variacion: x.variacion, iva_venta: x.iva_venta, actuales: x.actuales };
     Object.assign(x, { cuenta_id: pb.cuenta_id, item_id: pb.item_id, variacion: pb.variacion, titulo: pb.titulo, sku: pb.sku, thumbnail: pb.thumbnail, actuales: pb.componentes ?? [], iva_venta: pb.iva_venta ?? null, componentes: [{ producto_id: x.producto_id, cantidad: 1, codigo: x.codigo, nombre: x.nombre }], _elegir: false });
     const ya = (pb.componentes ?? []).some((y) => Number(y.producto_id) === Number(x.producto_id));
     x.estado = ya ? "ya" : "revisar"; x.por = ya ? "la publicación ya lleva este producto" : "elegida a mano";
