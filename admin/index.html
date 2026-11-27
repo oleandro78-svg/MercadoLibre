@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271821";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611271853";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -415,7 +415,7 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .rt-detalle{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 24px;padding:6px 4px}.rt-g>b{display:block;font-size:13px;margin-bottom:4px}
 .rt-l{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--linea);font-size:13.5px;font-variant-numeric:tabular-nums}.rt-l>span:last-child{white-space:nowrap}.rt-l.rt-t{font-weight:700;border-top:1.5px solid var(--tinta)}
 .rt-dos{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rt-med .medida b{font-variant-numeric:tabular-nums}
-.rt-reng td{vertical-align:middle}.rt-reng select{min-width:180px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
+.rt-reng td{vertical-align:middle}.rt-reng select[data-rprod],.rt-reng select[data-sgsel]{min-width:180px}.rt-reng select{min-width:0}.rt-reng td.rt-num{white-space:nowrap;text-align:right}.rt-reng th{min-width:70px}.rt-gasto{margin-top:4px;padding-top:6px;border-top:1px dashed var(--linea)}.rt-gasto>*{min-width:130px}
 .rt-radio{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px}.rt-radio label{display:flex;gap:6px;align-items:center}
 @media(max-width:700px){.rt-med{grid-template-columns:1fr 1fr}}
 .tabla-scroll{overflow-x:auto}
@@ -9162,7 +9162,7 @@ function pintarCompra() {
           ${sinI ? "" : `<td><input data-rsub="${i}" inputmode="decimal" value="${esc(Number(r.unidades) && r.precio_unit !== "" ? nTxt(Number(r.unidades) * Number(r.precio_unit), 2) : "")}" style="width:120px"></td>`}
           ${sinI ? "" : `<td><select data-rp="datos.renglones.${i}.moneda" style="width:80px">${optMon(r.moneda)}</select></td><td>${r.moneda === "ARS" ? "—" : inp(`datos.renglones.${i}.tc`, nTxt(r.tc, 6), `inputmode="decimal" data-num style="width:100px"`)}</td>`}
           ${conI ? `<td><select data-rp="datos.renglones.${i}.iva_pct" style="width:80px">${[21, 10.5, 27, 0].map((n) => `<option value="${n}" ${Number(r.iva_pct) === n ? "selected" : ""}>${String(n).replace(".", ",")}%</option>`).join("")}</select></td><td>${inp(`datos.renglones.${i}.iva_monto`, r.iva_monto === "" || r.iva_monto == null ? "" : nTxt(r.iva_monto), `inputmode="decimal" data-num style="width:110px" placeholder="automático"`)}</td>` : ""}
-          <td>${k ? pz(k.costo_unit) : "—"}</td><td>${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
+          <td class="rt-num">${k ? pz(k.costo_unit) : "—"}</td><td class="rt-num">${k ? pz(k.recuperable_unit) : "—"}</td><td><button class="btn pel chico" type="button" data-rq="renglones.${i}">Quitar</button></td></tr>`; }).join("")}
       </table></div>${idx.length > 200 ? `<p class="mut peq">Se muestran 200 de ${idx.length}. Buscá para ver los demás.</p>` : ""}
       <button class="btn chico lin" type="button" data-ra="renglones" style="margin-top:6px">+ Agregar renglón</button></div>
     ${panelSugPub(c)}
