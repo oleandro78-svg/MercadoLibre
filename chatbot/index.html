@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271615";</script>
+<script>window.MOSTRADOR_LINK = "app"; window.MOSTRADOR_BUILD = "202611271617";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -406,7 +406,7 @@ input[type=file]{max-width:100%}
 .rt-nota{background:var(--ambar-2,#FDF1D9);color:var(--ambar-t,#6B4A05);border-radius:10px;padding:8px 12px;font-size:13.5px;margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .rt-neg{color:var(--ladrillo)}.rt-pos{color:var(--pino-t)}.rt-falta{color:var(--ambar-t,#6B4A05);font-weight:600}
 .rt-tabla{min-width:1180px;font-variant-numeric:tabular-nums}.rt-tabla td,.rt-tabla th{text-align:right;white-space:nowrap;vertical-align:middle}.rt-tabla td:first-child,.rt-tabla th:first-child{text-align:left;white-space:normal;min-width:260px}
-th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.ord-fl{font-size:11px}.ord-movil{display:none}
+th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.ord-fl{font-size:11px;white-space:nowrap}.ord-fl.ord-inac{opacity:.45}.ord-movil{display:none}
 @media (max-width:720px){.ord-movil{display:flex;gap:8px;align-items:center;margin:4px 0 8px}.ord-movil select{flex:1;min-width:0;width:auto}.ord-movil label{white-space:nowrap}}
 .rt-tabla tr.rt-tot td{border-top:2px solid var(--tinta);font-weight:600}.rt-det>td{background:var(--papel);text-align:left!important;white-space:normal!important}
 .rt-pub{display:flex;gap:10px;align-items:center}.rt-foto{width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none;background:var(--sup2)}.rt-foto.sin{font-size:0}
@@ -9004,7 +9004,7 @@ function valorOrden(td) {
 function aplicarOrden(t) {
   const o = (S.ordTab ??= {})[t.dataset.ord];
   const cab = t.rows[0];
-  [...cab.cells].forEach((th, i) => { const fl = th.querySelector(".ord-fl"); if (fl) fl.textContent = o && o.col === i ? (o.dir > 0 ? " ▲" : " ▼") : ""; th.setAttribute("aria-sort", o && o.col === i ? (o.dir > 0 ? "ascending" : "descending") : "none"); });
+  [...cab.cells].forEach((th, i) => { const fl = th.querySelector(".ord-fl"), act = o && o.col === i; if (fl) { fl.textContent = act ? (o.dir > 0 ? " ▲" : " ▼") : " ↕"; fl.classList.toggle("ord-inac", !act); } th.setAttribute("aria-sort", o && o.col === i ? (o.dir > 0 ? "ascending" : "descending") : "none"); });
   const sel = t.parentElement?.previousElementSibling?.classList.contains("ord-movil") ? t.parentElement.previousElementSibling : null;
   if (sel) { sel.querySelector("select").value = o ? String(o.col) : ""; sel.querySelector("button").textContent = o && o.dir < 0 ? "Mayor a menor" : "Menor a mayor"; }
   if (!o) return;
