@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272052";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272054";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -8835,7 +8835,7 @@ function abrirFiltrosRent() {
     <p class="mut peq" style="margin:0 0 16px">Los números son las ventas de ${esc(nombrePer())}.</p>
     ${cfs.length > 1 ? `<fieldset class="fx-g"><legend>Razón social</legend><div class="rt-chs">${cfs.map((c) => chip("checkbox", "fcta", c.cuenta_id, c.nombre, null, f.cuentas.includes(c.cuenta_id))).join("")}</div></fieldset>` : ""}
     <fieldset class="fx-g"><legend>Tipo de envío</legend><div class="rt-chs">${LOG_RENT.filter(([k]) => d.filtros?.logisticas?.[k] || f.logisticas.includes(k)).map(([k, t]) => chip("checkbox", "flog", k, t, d.filtros?.logisticas?.[k] ?? 0, f.logisticas.includes(k))).join("")}</div></fieldset>
-    <fieldset class="fx-g"><legend>Categoría</legend><div class="rt-chs">${catsOrd.map(([c, n]) => chip("checkbox", "fcat", c, c, n, f.categorias.includes(c))).join("")}</div></fieldset>
+    <fieldset class="fx-g"><legend>Categoría</legend><div class="rt-chs">${catsOrd.filter(([c, n]) => n > 0 || f.categorias.includes(c)).map(([c, n]) => chip("checkbox", "fcat", c, c, n, f.categorias.includes(c))).join("")}</div></fieldset>
     <fieldset class="fx-g"><legend>Publicación o producto</legend>
       <input type="search" id="rfBus" placeholder="Buscar por título, producto o código" autocomplete="off">
       <div id="rfRes" class="rt-fres"></div><div id="rfSel" class="fx-act" style="margin-top:8px"></div>
