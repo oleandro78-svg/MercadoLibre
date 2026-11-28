@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611272335";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611281512";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -600,6 +600,29 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .nav .nav-g i{font-style:normal;font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--sup2);color:var(--piz)}
 .nav button.off{opacity:.5}
 .p-dueno .nav .nav-g{color:#7E93A6}
+.nav .nav-g:first-child{padding-top:0}
+.nav-sub{display:flex;flex-direction:column;gap:1px;padding:2px 0 6px 18px}
+.nav .nav-sub button{padding:6px 10px;font-size:14px}
+.nav .nav-sub button.on{background:var(--sup2);color:var(--tinta);font-weight:600}
+.p-dueno .nav .nav-sub button.on{background:#1E3140;color:#fff}
+.barra-inf{display:none}
+@media (max-width:960px){
+  body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) .barra-inf:not([hidden]){display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--sup);border-top:1px solid var(--linea);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+  .barra-inf button{all:unset;cursor:pointer;flex:1;display:grid;justify-items:center;gap:2px;font-size:11px;color:var(--piz);position:relative;padding:2px 0}
+  .barra-inf button.on{color:var(--tinta);font-weight:700}
+  .barra-inf button:focus-visible{outline:2px solid var(--cielo)}
+  .barra-inf svg,.mas-g svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .barra-inf em,.mas-g em{position:absolute;top:-4px;left:calc(50% + 4px);background:var(--ambar);color:#2B1D02;border-radius:999px;font-size:10.5px;font-style:normal;font-weight:700;padding:0 5px;line-height:16px}
+  body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) .contenido{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) .rec-pie{bottom:calc(62px + env(safe-area-inset-bottom))}
+  body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) .mod-bus.bus-dev .m-esc{bottom:calc(82px + env(safe-area-inset-bottom))}
+  body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) #abrirRiel{visibility:hidden}
+  .mas-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .mas-g button{all:unset;cursor:pointer;position:relative;display:grid;justify-items:center;gap:6px;background:var(--sup2);border-radius:14px;padding:14px 6px;text-align:center;font-size:13px;font-weight:600;color:var(--tinta)}
+  .mas-g button.off{opacity:.5}
+  .mas-g button:focus-visible{outline:2px solid var(--cielo)}
+  .mas-g em{left:auto;right:8px;top:6px}
+}
 /* ---------- módulo Mensajes ---------- */
 .contenido.lleno{padding:0;max-width:none}.contenido.ancho{max-width:none}
 .msj{display:grid;grid-template-columns:330px minmax(0,1fr) 290px;height:100vh;min-width:0}
@@ -1187,6 +1210,7 @@ h3 .te{font-size:13px;margin-left:4px}
     <div class="barra-movil"><button class="btn lin chico" id="abrirRiel" type="button">Menú</button><b>Mostrador</b><span></span></div>
     <div class="volver-nav" id="volverNav" hidden><button type="button" class="btn lin chico" id="volverBtn"></button></div>
     <main class="contenido" id="main"></main>
+    <nav class="barra-inf" id="barraInf" aria-label="Secciones" hidden></nav>
   </div>
 </div>
 
@@ -1607,16 +1631,19 @@ async function recargar() {
   // El dueño de la app no elige cliente con un selector: entra a un cliente solo en modo soporte
   if (S.rol === "admin") $("#selEmp").classList.add("oculto");
 }
-// Menú del administrador del cliente: seis entradas; las pantallas de cada una van en solapas arriba del título
-const TABS = [["hoy", "Inicio"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"], ["chat", "Chat"], ["calendario", "Calendario"],
-  ["conocimiento", "Conocimiento"], ["rentabilidad", "Rentabilidad"], ["rent_compras", "Mercadería"], ["equipo", "Equipo"], ["cuentas", "Mi negocio"]];
+// Menú del administrador del cliente, agrupado; las pantallas de cada sección van en solapas arriba del título
+// y, en la sección abierta, también debajo de ella en el menú. ["#", título] es el título de un grupo.
+const TABS = [["#", "Para empezar"], ["hoy", "Inicio"],
+  ["#", "Día a día"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"],
+  ["#", "Números"], ["rentabilidad", "Rentabilidad"], ["rent_compras", "Mercadería"],
+  ["#", "Equipo"], ["equipo", "Equipo"],
+  ["#", "Ajustes"], ["cuentas", "Configuración"]];
 const SUBTABS = {
   preguntas: [["preguntas", "Bandeja"], ["dudas", "Dudas frecuentes"], ["probar", "Probar el bot"]],
-  conocimiento: [["conocimiento", "Lo que sabe el bot"], ["material", "Documentación para enviar"]],
   rentabilidad: [["rentabilidad", "Tablero"]],
   rent_compras: [["rent_compras", "Compras"], ["rent_productos", "Productos y stock"], ["rent_publicaciones", "Qué lleva cada publicación"], ["rent_revisiones", "Revisiones pendientes"]],
-  equipo: [["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"], ["rendimiento", "Rendimiento"]],
-  cuentas: [["cuentas", "Cuentas de MercadoLibre"], ["config", "Configuración"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["rent_fiscal", "Configuración fiscal"], ["uso", "Plan y uso"]],
+  equipo: [["chat", "Chat"], ["calendario", "Calendario"], ["rendimiento", "Desempeño"], ["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"]],
+  cuentas: [["config", "Mi negocio"], ["cuentas", "Cuentas de MercadoLibre"], ["conocimiento", "Bot y conocimiento"], ["material", "Documentación para enviar"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["rent_fiscal", "Configuración fiscal"], ["uso", "Plan y uso"]],
 };
 const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "posventa"], ["chat", "Chat"], ["calendario", "Calendario"],
@@ -1626,28 +1653,89 @@ const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas"
 const permOp = (sec) => (S.yo?.clientes ?? []).filter((e) => !S.clienteId || e.id === S.clienteId).some((e) => (e.permisos ?? []).includes(sec));
 const TABS_APP = [["plataforma", "Inicio"], ["clientes", "Clientes"], ["planes", "Planes y módulos"], ["uso", "Uso y costos"], ["regulador", "Regulador de IA"], ["-"], ["motor", "Reglas generales"], ["config", "Configuración de la app"]];
 function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Object.values(S.res?.stats ?? {}).reduce((x, s) => x + (s.por_estado?.pendiente_revision ?? 0) + (s.por_estado?.borrador ?? 0), 0); }
+// Pantallas de la sección abierta, debajo de ella en el menú
+function pintarSubNav() {
+  const nav = $("#nav"); if (!nav) return;
+  nav.querySelector(".nav-sub")?.remove();
+  if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
+  const secK = seccionDe(S.tab), bt = nav.querySelector(`button[data-sec][data-t="${secK}"]`); if (!bt) return;
+  const ok = vistasPermitidas(), l = (SUBTABS[secK] ?? []).filter(([k]) => ok.has(k)); if (l.length < 2) return;
+  const C = S.cont ?? {}, n = (k) => k === "chat" ? (S.chatN ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_revisiones" ? (S.revN ?? 0) : k === "preguntas" ? pendientesTotal() : 0;
+  bt.insertAdjacentHTML("afterend", `<div class="nav-sub">${l.map(([k, t]) => `<button type="button" data-t="${k}" class="${k === S.tab ? "on" : ""}">${t}${n(k) ? `<span class="cuenta-n">${n(k)}</span>` : ""}</button>`).join("")}</div>`);
+}
+// Celular: barra de abajo con las cuatro secciones de todos los días y "Más" con el resto
+const ICONOS_BARRA = {
+  hoy: '<path d="M3 11l9-7 9 7v9H3z"/>', bandeja: '<path d="M4 5h16v11H8l-4 4z"/>', preguntas: '<path d="M4 5h16v11H8l-4 4z"/>',
+  mensajes: '<path d="M5 7h14l-1.5 13h-11zM9 7a3 3 0 016 0"/>', despacho: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/>', devoluciones: '<path d="M4 12a8 8 0 1 0 3-6.3M4 4v4h4"/>',
+  chat: '<path d="M4 5h16v11H8l-4 4z"/>', calendario: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  rentabilidad: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>', rent_compras: '<path d="M3 8l9-5 9 5-9 5zM3 8v8l9 5 9-5V8"/>',
+  equipo: '<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 14c2 .6 3 2.4 3 5"/>',
+  cuentas: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+  mas: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+};
+const icoBarra = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONOS_BARRA[k] ?? ICONOS_BARRA.mas}</svg>`;
+function pintarBarraInf(tot) {
+  const bar = $("#barraInf"); if (!bar) return;
+  const prin = [...$("#nav").querySelectorAll(":scope > button")].filter((b) => !b.classList.contains("off") && b.dataset.t !== "no_incluido");
+  if (S.rol === "admin" && !S.soporte || prin.length < 5) { bar.hidden = true; document.body.classList.remove("con-barra"); return; }
+  const pref = ["hoy", "bandeja", "preguntas", "mensajes", "despacho", "devoluciones", "chat"];
+  const en = pref.map((k) => prin.find((b) => b.dataset.t === k)).filter(Boolean).slice(0, 4);
+  const num = (b) => Number(b.querySelector(".cuenta-n")?.textContent) || 0;
+  const visto = en.reduce((x, b) => x + num(b), 0) + (en.some((b) => b.dataset.t === "hoy") && en.some((b) => b.dataset.t === "preguntas") ? -num(en.find((b) => b.dataset.t === "hoy")) : 0);
+  const resto = Math.max(0, (tot ?? 0) - visto - (en.some((b) => b.dataset.t === "mensajes") ? ((S.cont ?? {}).ventas_nuevas ?? 0) : 0));
+  const it = (k, t, n, extra = "") => `<button type="button" data-bt="${k}" ${extra}>${n ? `<em>${n > 99 ? "99+" : n}</em>` : ""}${icoBarra(k)}<span>${t}</span></button>`;
+  bar.innerHTML = en.map((b) => it(b.dataset.t, b.childNodes[0].textContent, b.dataset.t === "hoy" && en.some((x) => x.dataset.t === "preguntas") ? 0 : num(b) + (b.dataset.t === "mensajes" ? ((S.cont ?? {}).ventas_nuevas ?? 0) : 0))).join("") + it("mas", "Más", resto, 'aria-haspopup="dialog"');
+  bar.hidden = false; document.body.classList.add("con-barra");
+  bar.onclick = (e) => {
+    const b = e.target.closest("button[data-bt]"); if (!b) return;
+    if (b.dataset.bt === "mas") return abrirMas();
+    $("#nav").querySelector(`:scope > button[data-t="${b.dataset.bt}"]`)?.click();
+  };
+  marcarBarraInf();
+}
+function marcarBarraInf() {
+  const bar = $("#barraInf"); if (!bar || bar.hidden) return;
+  const sec = seccionDe(S.tab), enBarra = [...bar.querySelectorAll("button[data-bt]")].map((b) => b.dataset.bt);
+  bar.querySelectorAll("button[data-bt]").forEach((b) => b.classList.toggle("on", b.dataset.bt === S.tab || b.dataset.bt === sec || (b.dataset.bt === "mas" && !enBarra.includes(sec) && !enBarra.includes(S.tab))));
+  document.body.classList.toggle("sin-barra", S.tab === "chat");
+}
+function abrirMas() {
+  const enBarra = [...$("#barraInf").querySelectorAll("button[data-bt]")].map((b) => b.dataset.bt);
+  const l = [...$("#nav").querySelectorAll(":scope > button")].filter((b) => !enBarra.includes(b.dataset.t) && !(b.dataset.t === "hoy" && enBarra.includes("preguntas")));
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Más</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+    <div class="mas-g">${l.map((b) => { const n = Number(b.querySelector(".cuenta-n")?.textContent) || 0; return `<button type="button" data-ir="${b.dataset.t}" class="${b.classList.contains("off") ? "off" : ""}">${n ? `<em>${n}</em>` : ""}${icoBarra(b.dataset.t)}<span>${esc(b.childNodes[0].textContent)}</span></button>`; }).join("")}</div>
+    <button class="btn lin" type="button" id="masMenu" style="width:100%;margin-top:14px">Menú completo</button>`);
+  v.onclick = (e) => {
+    const b = e.target.closest("[data-ir]"), cerrar = () => v.querySelector("[data-cerrar]")?.click();
+    if (b) { cerrar(); $("#nav").querySelector(`:scope > button[data-t="${b.dataset.ir}"]`)?.click(); }
+    else if (e.target.closest("#masMenu")) { cerrar(); $("#riel").classList.add("abierto"); }
+  };
+}
 function armarNav() {
   try { rtSincronizar(); } catch {}
   $("#recargarTodos")?.classList.toggle("oculto", S.rol !== "admin");
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
   const C = S.cont ?? {};
   const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0)
-    : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_compras" ? (S.revN ?? 0) : 0;
+    : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_compras" ? (S.revN ?? 0)
+    : k === "equipo" && S.rol !== "operador" ? (S.chatN ?? 0) + (C.calendario ?? 0) : 0;
   // Ventas nuevas (desde la última vez que se abrió Ventas): aparte, en verde
   const nuevas = (k) => k === "mensajes" ? (C.ventas_nuevas ?? 0) : 0;
-  const boton = (t, off) => { const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
+  const boton = (t, off) => { if (t[0] === "#") return `<div class="nav-g">${t[1]}</div>`; const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" ${!off && SUBTABS[t[0]] && S.rol !== "operador" && !(S.rol === "admin" && !S.soporte) ? "data-sec" : ""} data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
   else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
   else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
   $("#nav").innerHTML = html;
+  pintarSubNav();
   // Total en el botón "Menú" (celular): todo lo que espera en las secciones visibles
   // (Inicio repite las preguntas: si está la sección Preguntas, no se cuentan dos veces)
   const conPreg = !!$("#nav button[data-t='preguntas'] .cuenta-n");
-  const tot = [...$("#nav").querySelectorAll("button")].filter((bt) => !(conPreg && ["hoy", "bandeja"].includes(bt.dataset.t)))
+  const tot = [...$("#nav").querySelectorAll("button")].filter((bt) => !bt.closest(".nav-sub") && !(conPreg && ["hoy", "bandeja"].includes(bt.dataset.t)))
     .reduce((x, bt) => x + (Number(bt.querySelector(".cuenta-n")?.textContent) || 0), 0) + (C.ventas_nuevas && $("#nav .cuenta-nueva") ? C.ventas_nuevas : 0);
   const bm = $("#abrirRiel"); if (bm) { bm.querySelector(".cuenta-n")?.remove(); if (tot) bm.insertAdjacentHTML("beforeend", `<span class="cuenta-n" aria-label="${tot} pendientes">${tot > 99 ? "99+" : tot}</span>`); }
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.pvRec = null; } S.msjAviso = null; S.pregAviso = null; ir(b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.pvRec = null; } S.msjAviso = null; S.pregAviso = null; const ok = b.hasAttribute("data-sec") ? vistasPermitidas() : null; ir(ok ? ((SUBTABS[b.dataset.t] ?? []).find(([k]) => ok.has(k))?.[0] ?? b.dataset.t) : b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  pintarBarraInf(tot);
   pintarPerfil();
   bannerReclamos();
 }
@@ -1760,6 +1848,7 @@ function ir(t) {
   const tb = $(".barra-movil b"); if (tb && tituloPantalla(t)) tb.textContent = tituloPantalla(t);
   const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", t === "no_incluido" ? b.dataset.mod === S.noMod && b.dataset.t === "no_incluido" : b.dataset.t === t || (secciones && b.dataset.t === seccionDe(t))));
+  pintarSubNav(); marcarBarraInf();
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
   VISTAS[t]();
 }
@@ -2096,7 +2185,7 @@ function listaRepreguntas(xs, h, propias) {
 
 VISTAS.rendimiento = async () => {
   const emp = S.rol === "admin" ? S.empSel : null;
-  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
+  if (S.rol === "admin" && !emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Desempeño</h1><p>Elegí un cliente arriba a la izquierda.</p></div></div>`; return; }
   S.rendMod ??= modsActuales().has("preguntas") ? "preguntas" : "mensajes";
   S.rendVista ??= "comparativo";
   if (S.rendVista === "comparativo") return rendimientoComparativo(emp ?? empRec());
@@ -2116,7 +2205,7 @@ VISTAS.rendimiento = async () => {
     <td>${extra.descartadas ?? "—"}</td><td>${extra.asignadas ?? "—"}</td><td class="peq mut">${extra.ultima ? hace(extra.ultima) : "—"}</td></tr>`;
   const avP = (p) => `<span class="av-m" style="width:34px;height:34px;background:${p.color}22;color:${p.color};box-shadow:inset 0 0 0 2px ${p.color}" aria-hidden="true">${esc(iniciales(p.nombre))}</span>`;
   const avI = (txt, c) => `<span class="av-m" style="width:34px;height:34px;background:${c};color:#fff" aria-hidden="true">${txt}</span>`;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Cómo se respondieron las preguntas. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Desempeño</h1><p>Cómo se respondieron las preguntas. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
       <div class="medida"><b>${num(t.recibidas)}</b><span>preguntas recibidas${t.pendientes_ahora ? `; ${num(t.pendientes_ahora)} esperando ahora` : ""}</span></div>
       <div class="medida"><b style="color:var(--pino-t)">${t.respondidas ? Math.round(t.bot.respondidas / t.respondidas * 100) + "%" : "—"}</b><span>las respondió el bot solo (${num(t.bot.respondidas)} de ${num(t.respondidas)})</span></div>
@@ -2396,7 +2485,7 @@ async function rendimientoComparativo(emp) {
   const maxH = Math.max(1, ...P.flatMap((p) => p.horas.slice(desdeH, hastaH)));
   const calor = `<div class="rc-heat" style="grid-template-columns:110px repeat(${horas.length},1fr)"><span></span>${horas.map((x) => `<span class="peq mut">${x}</span>`).join("")}
     ${P.map((p, i) => `<b>${esc(p.nombre)}</b>${horas.map((x) => { const v = p.horas[x] / maxH; return `<i title="${p.horas[x]} acciones entre las ${x} y las ${x + 1}" style="background:${v ? colorPersona(p.orden ?? i) : "var(--sup2)"};opacity:${v ? 0.18 + v * 0.82 : 1}"></i>`; }).join("")}`).join("")}</div>`;
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Comparación entre las personas del equipo. Período: ${esc(nombrePer())}. En verde, el mejor valor de cada fila; en rojo, los que se alejan mucho del promedio. Si alguien no está asignado a un módulo, aparece un guion.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Desempeño</h1><p>Comparación entre las personas del equipo. Período: ${esc(nombrePer())}. En verde, el mejor valor de cada fila; en rojo, los que se alejan mucho del promedio. Si alguien no está asignado a un módulo, aparece un guion.</p></div>${selPeriodo()}</div>
     <div class="panel" style="padding:6px 8px 4px;overflow-x:auto"><table class="tabla apilable rc"><tr><th></th>${P.map((p) => `<th><button type="button" class="lnk" data-rt="${esc(p.id)}" title="Ver solo a esta persona en el gráfico"><i class="rt-dot" style="background:${colorPersona(p.orden)}"></i>${esc(p.nombre)}</button></th>`).join("")}<th>Promedio</th></tr>${filas}</table></div>
     ${mods.has("preguntas") || mods.has("mensajes") ? `<div class="panel" id="rcTiempo"><h2>Cómo fue en el tiempo</h2><p class="peq mut" style="margin:-4px 0 4px">Mismo período de arriba. Elegí abajo a quiénes ver; en la computadora también podés tocar un nombre de la tabla.</p><div class="rt-cuerpo"><p class="mut">Cargando…</p></div></div>` : ""}
     <div class="panel"><h2>A qué hora trabaja cada uno</h2><p class="peq mut" style="margin:-4px 0 10px">Acciones por hora del día, de lunes a viernes, en el período. Más intenso, más actividad.</p>${calor}</div>`;
@@ -2467,7 +2556,7 @@ function graficoRendimiento(cont, st, conPeriodo) {
 }
 // Hoja aparte (desde Inicio y desde las tablas por persona): arranca con el período que se está mirando
 function verRendimiento(emp, uids, met = "tp") {
-  const v = abrirHoja(`<div class="cajon-cab"><h2>Rendimiento en el tiempo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div><div class="rt-cuerpo"><p class="mut">Cargando…</p></div>`);
+  const v = abrirHoja(`<div class="cajon-cab"><h2>Desempeño en el tiempo</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div><div class="rt-cuerpo"><p class="mut">Cargando…</p></div>`);
   graficoRendimiento(v.querySelector(".rt-cuerpo"), { emp, uids: [...new Set(uids)], met, per: rtPerInicial() }, true);
 }
 // Solapas de Rendimiento: Comparativo y el detalle de cada módulo
@@ -6160,7 +6249,7 @@ async function rendimientoMensajes(emp) {
   if (!d || S.tab !== "rendimiento") return;
   const t = d.totales;
   const gente = d.personas.filter((p) => p.estado !== "baja" || p.enviados);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Rendimiento</h1><p>Cómo se atendieron los mensajes de quienes ya compraron. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
+  $("#main").innerHTML = `<div class="cabecera"><div><h1>Desempeño</h1><p>Cómo se atendieron los mensajes de quienes ya compraron. Período: ${esc(nombrePer())}.</p></div>${selPeriodo()}</div>
     <div class="medidas">
       <div class="medida"><b>${num(t.recibidos)}</b><span>mensajes de compradores</span></div>
       <div class="medida"><b>${num(t.enviados)}</b><span>mensajes enviados (${num(t.conversaciones)} conversaciones)</span></div>
