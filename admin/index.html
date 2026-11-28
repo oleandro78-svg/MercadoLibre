@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mostrador admin">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611281512";</script>
+<script>window.MOSTRADOR_LINK = "dueno"; window.MOSTRADOR_BUILD = "202611281617";</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -606,6 +606,27 @@ th.ord-th{cursor:pointer;user-select:none}th.ord-th:hover{color:var(--tinta)}.or
 .nav .nav-sub button.on{background:var(--sup2);color:var(--tinta);font-weight:600}
 .p-dueno .nav .nav-sub button.on{background:#1E3140;color:#fff}
 .barra-inf{display:none}
+.pz-lay{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.pz-pers{display:grid;gap:2px;background:var(--sup);border:1px solid var(--linea);border-radius:14px;padding:6px}
+.pz-pe{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px}
+.pz-pe span{display:grid;min-width:0}.pz-pe small{color:var(--piz);font-size:12px}
+.pz-pe:hover{background:var(--sup2)}.pz-pe.on{background:var(--tinta);color:var(--papel)}.pz-pe.on small{color:inherit;opacity:.75}
+.pz-pe:focus-visible,.pz-alc:focus-visible{outline:2px solid var(--cielo);outline-offset:2px}
+.pz-nueva{font-style:normal;font-size:10.5px;font-weight:700;color:#7A5A00;background:#FFF1C2;border-radius:6px;padding:1px 6px;margin-left:6px}
+.pz-det{padding:18px 20px}
+.pz-cab{display:flex;align-items:center;gap:12px;margin-bottom:4px}.pz-cab h2{margin:0;font-size:20px}.pz-acc{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pz-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+.pz-g{margin-top:16px}.pz-g h3{margin:0 0 4px;font-size:12.5px;font-weight:600;color:var(--piz)}
+.pz-aviso{font-weight:500;color:#9A5B00;margin-left:6px}
+.pz-f{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--sup2)}
+.pz-g h3+.pz-f{border-top:0}
+.pz-f.sub{padding-left:24px}
+.pz-f small{display:block;font-size:12px}
+.pz-alc{all:unset;cursor:pointer;border:1px dashed var(--linea);border-radius:8px;padding:4px 10px;font-size:12.5px;font-weight:600;color:var(--piz);white-space:nowrap}
+.pz-alc.on{border-style:solid;color:var(--tinta);background:var(--sup)}
+.pz-alc[disabled]{opacity:.45;cursor:default}
+.pz-pie{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--linea)}
+@media (max-width:960px){.pz-lay,.pz-cols{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:960px){
   body.con-barra:not(.sin-barra):not(:has(.msj.ver-chat)) .barra-inf:not([hidden]){display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--sup);border-top:1px solid var(--linea);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
   .barra-inf button{all:unset;cursor:pointer;flex:1;display:grid;justify-items:center;gap:2px;font-size:11px;color:var(--piz);position:relative;padding:2px 0}
@@ -1431,10 +1452,10 @@ async function entrarUsuario() {
 function elegirCliente(id) {
   const m = S.yo.clientes.find((x) => x.id === id);
   S.clienteId = id === "*" ? "" : id;
-  S.rol = m?.rol === "admin" ? "cliente" : "operador";
+  S.rol = m?.rol === "admin" ? "cliente" : "operador"; S.rolReal = S.rol;
   try { localStorage.setItem("mostrador_cliente_sel", id); } catch {}
 }
-const inicio = () => S.rol === "operador" ? ([["preguntas", "bandeja"], ["mensajes", "mensajes"], ["despacho", "despacho"], ["posventa", "devoluciones"]].find(([m]) => modsActuales().has(m))?.[1] ?? "chat") : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
+const inicio = () => esOp() ? (() => { const ok = vistasPermitidas(); return ["hoy", "bandeja", "mensajes", "despacho", "devoluciones", "chat", "calendario", "numeros"].find((v) => ok.has(v)) ?? [...ok].find((v) => v !== "misnotif") ?? "sin_permisos"; })() : S.rol === "cliente" && !modsActuales().has("preguntas") && modsActuales().has("mensajes") ? "mensajes" : S.rol === "admin" && !S.soporte ? "plataforma" : "hoy";
 const clienteYo = (id) => S.yo?.clientes.find((x) => x.id === id);
 const iniciales = (n) => { const w = String(n ?? "").replace(/\bS\.?R\.?L\.?|\bS\.?A\.?(?=\s|$)/gi, "").trim().split(/\s+/).filter(Boolean); return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] ?? "").slice(0, 2)).toUpperCase(); };
 function etiquetaCliente(id) {
@@ -1617,11 +1638,18 @@ document.addEventListener("click", (e) => { if (e.target.closest("[data-activar-
 sb.auth.getSession().then(({ data }) => { if (data?.session) entrarUsuario().catch(() => sb.auth.signOut()); });
 
 async function recargar() {
-  if (S.rol === "operador") {
-    // El operador no ve la configuración del cliente: solo sus clientes y sus preguntas
+  if (esOp() || S.rol === "operador") {
+    // El operador ve solo lo que tiene habilitado; si tiene pantallas del administrador, se carga además el resumen de ese negocio
+    const rolAntes = S.rol;
     S.yo = await api("yo"); aplicarVistas(S.yo?.vistas);
-    if (S.clienteId && !clienteYo(S.clienteId)) { elegirCliente(S.yo.clientes.length > 1 ? "*" : S.yo.clientes[0]?.id); armarSelector(); }
+    if (S.clienteId && !clienteYo(S.clienteId)) { elegirCliente(S.yo.clientes.length > 1 ? "*" : S.yo.clientes[0]?.id); armarSelector(); S.rol = rolAntes; }
     S.res = { cuentas: [], clientes: S.yo.clientes, stats: {}, sitios: [] };
+    const ops = opsOp();
+    if (OPC_ELEV.some((o) => ops.has(o))) {
+      const emp = S.clienteId || S.yo.clientes.find((c) => c.rol !== "admin" && (c.permisos ?? []).some((p) => OPC_ELEV.includes(p)))?.id;
+      const r = emp ? await api("resumen", { cliente_id: emp }).catch(() => null) : null;
+      if (r) S.res = { ...r, clientes: (r.clientes ?? []).map((c) => ({ ...c, ...(clienteYo(c.id) ?? {}) })) };
+    }
     return;
   }
   if (S.rol === "admin") S.empSel = S.soporte || "";
@@ -1635,7 +1663,7 @@ async function recargar() {
 // y, en la sección abierta, también debajo de ella en el menú. ["#", título] es el título de un grupo.
 const TABS = [["#", "Para empezar"], ["hoy", "Inicio"],
   ["#", "Día a día"], ["preguntas", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "devoluciones"],
-  ["#", "Números"], ["rentabilidad", "Rentabilidad"], ["rent_compras", "Mercadería"],
+  ["#", "Números"], ["numeros", "Mis números", 0, null, "op"], ["rentabilidad", "Rentabilidad"], ["rent_compras", "Mercadería"],
   ["#", "Equipo"], ["equipo", "Equipo"],
   ["#", "Ajustes"], ["cuentas", "Configuración"]];
 const SUBTABS = {
@@ -1645,7 +1673,24 @@ const SUBTABS = {
   equipo: [["chat", "Chat"], ["calendario", "Calendario"], ["rendimiento", "Desempeño"], ["equipo", "Personas"], ["asignaciones", "Asignaciones"], ["permisos", "Permisos"], ["notificaciones", "Notificaciones"], ["actividad", "Actividad"]],
   cuentas: [["config", "Mi negocio"], ["cuentas", "Cuentas de MercadoLibre"], ["conocimiento", "Bot y conocimiento"], ["material", "Documentación para enviar"], ["listas", "Listas"], ["impresoras", "Impresoras"], ["circuito", "Circuito de despacho"], ["correo", "Correo Argentino"], ["rent_fiscal", "Configuración fiscal"], ["uso", "Plan y uso"]],
 };
-const seccionDe = (t) => Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
+const seccionDe = (t) => t === "bandeja" ? "preguntas" : Object.keys(SUBTABS).find((k) => SUBTABS[k].some((x) => x[0] === t)) ?? t;
+// Operadores: qué ve cada uno sale de Equipo → Permisos (opciones prendidas). La bandeja de Preguntas del operador es "bandeja".
+const esOp = () => S.rolReal === "operador";
+const subtabsDe = (sec) => (SUBTABS[sec] ?? []).map(([k, t]) => esOp() && k === "preguntas" ? ["bandeja", t] : [k, t]);
+const PADRE_OP = { dudas: "preguntas", probar: "preguntas", msj_enviar: "mensajes", desp_operar: "despacho", pv_reclamos: "posventa", pv_devoluciones: "posventa", pv_retiros: "posventa",
+  merc_compras: "mercaderia", merc_productos: "mercaderia", merc_publicaciones: "mercaderia", merc_revisiones: "mercaderia" };
+const OPC_VISTAS = { hoy: ["hoy"], preguntas: ["bandeja", "preguntas"], dudas: ["dudas"], probar: ["probar"], mensajes: ["mensajes"], despacho: ["despacho"], posventa: ["devoluciones"],
+  numeros: ["numeros"], rentabilidad: ["rentabilidad"], merc_compras: ["rent_compras"], merc_productos: ["rent_productos"], merc_publicaciones: ["rent_publicaciones"], merc_revisiones: ["rent_revisiones"],
+  chat: ["chat"], calendario: ["calendario"], desempeno: ["rendimiento"], equipo_admin: ["equipo", "asignaciones", "notificaciones", "actividad"], permisos: ["permisos"],
+  conocimiento: ["conocimiento"], material: ["material"], config_negocio: ["config", "cuentas"], config_despacho: ["listas", "impresoras", "circuito"], correo: ["correo"], fiscal: ["rent_fiscal"], uso: ["uso"] };
+// Pantallas del administrador: un operador que las tiene habilitadas las ve como el administrador de ese negocio
+const VISTAS_ELEV = new Set(["hoy", "rentabilidad", "rent_compras", "rent_productos", "rent_publicaciones", "rent_revisiones", "rendimiento", "equipo", "asignaciones", "notificaciones", "actividad", "permisos", "config", "cuentas", "listas", "impresoras", "circuito", "correo", "rent_fiscal", "uso"]);
+const OPC_ELEV = ["hoy", "rentabilidad", "merc_compras", "merc_productos", "merc_publicaciones", "merc_revisiones", "desempeno", "equipo_admin", "permisos", "config_negocio", "config_despacho", "correo", "fiscal", "uso"];
+function opsOp() {
+  const es = S.clienteId ? [clienteYo(S.clienteId)].filter(Boolean) : (S.yo?.clientes ?? []);
+  const raw = new Set(es.flatMap((e) => e.rol === "admin" ? [] : (e.permisos ?? [])));
+  return new Set([...raw].filter((o) => !PADRE_OP[o] || raw.has(PADRE_OP[o])));
+}
 const TABS_OP = [["bandeja", "Preguntas", 0, "preguntas"], ["mensajes", "Ventas", 0, "mensajes"], ["despacho", "Despacho", 0, "despacho"], ["devoluciones", "Posventa", 0, "posventa"], ["chat", "Chat"], ["calendario", "Calendario"],
   ["conocimiento", "Conocimiento", 0, "preguntas", "conocimiento"], ["material", "Documentación para enviar", 0, "mensajes", "material"], ["dudas", "Dudas frecuentes", 0, "preguntas", "dudas"], ["probar", "Probar el bot", 0, "preguntas", "probar"],
   ["numeros", "Mis números"]];
@@ -1657,10 +1702,10 @@ function pendientesTotal() { return S.rol === "operador" ? (S.pendOp ?? 0) : Obj
 function pintarSubNav() {
   const nav = $("#nav"); if (!nav) return;
   nav.querySelector(".nav-sub")?.remove();
-  if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
+  if (S.rol === "admin" && !S.soporte) return;
   const secK = seccionDe(S.tab), bt = nav.querySelector(`button[data-sec][data-t="${secK}"]`); if (!bt) return;
-  const ok = vistasPermitidas(), l = (SUBTABS[secK] ?? []).filter(([k]) => ok.has(k)); if (l.length < 2) return;
-  const C = S.cont ?? {}, n = (k) => k === "chat" ? (S.chatN ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_revisiones" ? (S.revN ?? 0) : k === "preguntas" ? pendientesTotal() : 0;
+  const ok = vistasPermitidas(), l = subtabsDe(secK).filter(([k]) => ok.has(k)); if (l.length < 2) return;
+  const C = S.cont ?? {}, n = (k) => k === "chat" ? (S.chatN ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_revisiones" ? (S.revN ?? 0) : k === "preguntas" || k === "bandeja" ? pendientesTotal() : 0;
   bt.insertAdjacentHTML("afterend", `<div class="nav-sub">${l.map(([k, t]) => `<button type="button" data-t="${k}" class="${k === S.tab ? "on" : ""}">${t}${n(k) ? `<span class="cuenta-n">${n(k)}</span>` : ""}</button>`).join("")}</div>`);
 }
 // Celular: barra de abajo con las cuatro secciones de todos los días y "Más" con el resto
@@ -1716,16 +1761,22 @@ function armarNav() {
   $("#recargarTodos")?.classList.toggle("oculto", S.rol !== "admin");
   const p = pendientesTotal(), pm = S.pendMsj ?? 0, mods = modsActuales();
   const C = S.cont ?? {};
-  const cuenta = (k) => (k === "hoy" || k === "bandeja" || (k === "preguntas" && S.rol !== "operador")) ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0)
+  const cuenta = (k) => (k === "hoy" || k === "bandeja" || k === "preguntas") ? p : k === "mensajes" ? pm : k === "chat" ? (S.chatN ?? 0)
     : k === "despacho" ? (C.despacho ?? 0) : k === "devoluciones" ? (C.devoluciones ?? 0) : k === "calendario" ? (C.calendario ?? 0) : k === "rent_compras" ? (S.revN ?? 0)
-    : k === "equipo" && S.rol !== "operador" ? (S.chatN ?? 0) + (C.calendario ?? 0) : 0;
+    : k === "equipo" ? (esOp() ? (vistasPermitidas().has("chat") ? S.chatN ?? 0 : 0) + (vistasPermitidas().has("calendario") ? C.calendario ?? 0 : 0) : (S.chatN ?? 0) + (C.calendario ?? 0)) : 0;
   // Ventas nuevas (desde la última vez que se abrió Ventas): aparte, en verde
   const nuevas = (k) => k === "mensajes" ? (C.ventas_nuevas ?? 0) : 0;
-  const boton = (t, off) => { if (t[0] === "#") return `<div class="nav-g">${t[1]}</div>`; const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" ${!off && SUBTABS[t[0]] && S.rol !== "operador" && !(S.rol === "admin" && !S.soporte) ? "data-sec" : ""} data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (S.rol !== "operador" && t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
+  const boton = (t, off) => { if (t[0] === "#") return `<div class="nav-g">${t[1]}</div>`; const n = off ? 0 : cuenta(t[0]); return `<button data-t="${off ? "no_incluido" : t[0]}" ${!off && SUBTABS[t[0]] && !(S.rol === "admin" && !S.soporte) ? "data-sec" : ""} data-mod="${t[3] ?? ""}" class="${t[0] === S.tab || (t[0] === seccionDe(S.tab) && !(S.rol === "admin" && !S.soporte)) || (off && S.tab === "no_incluido" && S.noMod === t[3]) ? "on" : ""} ${off ? "off" : ""}">${t[1]}${off ? `<i class="no-inc">No incluido</i>` : ""}${!off && nuevas(t[0]) ? `<span class="cuenta-nueva" title="Ventas nuevas">${nuevas(t[0])} ${nuevas(t[0]) === 1 ? "nueva" : "nuevas"}</span>` : ""}${t[0] === "devoluciones" && !off && C.reclamos && mods.has("reclamos") ? `<span class="cuenta-n rojo" aria-label="${C.reclamos} reclamos para responder">${C.reclamos}</span>` : n ? `<span class="cuenta-n">${n}</span>` : ""}</button>`; };
   let html;
   if (S.rol === "admin" && !S.soporte) html = TABS_APP.map((t) => t[0] === "-" ? `<div class="sep"></div>` : boton(t)).join("");
-  else if (S.rol === "operador") html = TABS_OP.filter((t) => (!t[3] || mods.has(t[3])) && (!t[4] || permOp(t[4]))).map((t) => boton(t)).join("");
-  else html = TABS.map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
+  else if (esOp()) {
+    // Operador: el mismo menú agrupado, solo con las secciones que tiene habilitadas
+    const ok = vistasPermitidas();
+    const ve = (t) => ok.has(t[0]) || subtabsDe(t[0]).some(([k]) => ok.has(k));
+    const l = TABS.filter((t) => t[0] === "#" || ve(t));
+    html = l.filter((t, i) => t[0] !== "#" || (l[i + 1] && l[i + 1][0] !== "#")).map((t) => boton(t)).join("");
+  }
+  else html = TABS.filter((t) => t[4] !== "op").map((t) => boton(t, !!t[3] && !mods.has(t[3]))).join("");
   $("#nav").innerHTML = html;
   pintarSubNav();
   // Total en el botón "Menú" (celular): todo lo que espera en las secciones visibles
@@ -1734,7 +1785,7 @@ function armarNav() {
   const tot = [...$("#nav").querySelectorAll("button")].filter((bt) => !bt.closest(".nav-sub") && !(conPreg && ["hoy", "bandeja"].includes(bt.dataset.t)))
     .reduce((x, bt) => x + (Number(bt.querySelector(".cuenta-n")?.textContent) || 0), 0) + (C.ventas_nuevas && $("#nav .cuenta-nueva") ? C.ventas_nuevas : 0);
   const bm = $("#abrirRiel"); if (bm) { bm.querySelector(".cuenta-n")?.remove(); if (tot) bm.insertAdjacentHTML("beforeend", `<span class="cuenta-n" aria-label="${tot} pendientes">${tot > 99 ? "99+" : tot}</span>`); }
-  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.pvRec = null; } S.msjAviso = null; S.pregAviso = null; const ok = b.hasAttribute("data-sec") ? vistasPermitidas() : null; ir(ok ? ((SUBTABS[b.dataset.t] ?? []).find(([k]) => ok.has(k))?.[0] ?? b.dataset.t) : b.dataset.t); $("#riel").classList.remove("abierto"); } };
+  $("#nav").onclick = (e) => { const b = e.target.closest("button"); if (b?.dataset.t) { S.pila = []; S.hojaVolver = false; if (b.dataset.t === "no_incluido") S.noMod = b.dataset.mod; if (b.dataset.t === "devoluciones") { S.pvRec = null; } S.msjAviso = null; S.pregAviso = null; const ok = b.hasAttribute("data-sec") ? vistasPermitidas() : null; ir(ok ? (subtabsDe(b.dataset.t).find(([k]) => ok.has(k))?.[0] ?? b.dataset.t) : b.dataset.t); $("#riel").classList.remove("abierto"); } };
   pintarBarraInf(tot);
   pintarPerfil();
   bannerReclamos();
@@ -1831,6 +1882,7 @@ function medirAlto() { const h = window.visualViewport?.height ?? innerHeight; d
 medirAlto(); window.visualViewport?.addEventListener("resize", medirAlto); addEventListener("resize", medirAlto);
 document.addEventListener("click", (e) => { if (e.target.closest("#volverBtn")) pedirVolver(); });
 function ir(t) {
+  if (esOp()) S.rol = VISTAS_ELEV.has(t) ? "cliente" : "operador";
   // Un operador no entra a los módulos que no tiene asignados (por ejemplo, desde un enlace o una notificación vieja)
   const MOD_TAB = { bandeja: "preguntas", preguntas: "preguntas", mensajes: "mensajes", despacho: "despacho", devoluciones: "posventa" };
   if (S.rol === "operador" && MOD_TAB[t] && !modsActuales().has(MOD_TAB[t])) t = inicio();
@@ -1846,7 +1898,7 @@ function ir(t) {
   if (t === "preguntas") S.filtros.elegir = true;
   S.tab = t;
   const tb = $(".barra-movil b"); if (tb && tituloPantalla(t)) tb.textContent = tituloPantalla(t);
-  const secciones = S.rol !== "operador" && !(S.rol === "admin" && !S.soporte);
+  const secciones = !(S.rol === "admin" && !S.soporte);
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", t === "no_incluido" ? b.dataset.mod === S.noMod && b.dataset.t === "no_incluido" : b.dataset.t === t || (secciones && b.dataset.t === seccionDe(t))));
   pintarSubNav(); marcarBarraInf();
   $("#main").innerHTML = `<p class="mut">Cargando…</p>`; window.scrollTo(0, 0);
@@ -2579,16 +2631,60 @@ setInterval(() => {
   api("conexion", { cliente_id: S.rol === "admin" ? S.soporte : null, dispositivo: /Mobi|Android/i.test(navigator.userAgent) ? "celular" : "computadora" }).catch(() => {});
 }, 60000);
 
+// Equipo → Permisos: qué ve y qué puede hacer cada operador. Todo arranca apagado; cada cambio se guarda en el momento.
+const avP = (n, t) => `<span class="av-m" style="width:${t}px;height:${t}px;background:var(--sup2);color:var(--tinta);flex:none" aria-hidden="true">${esc(iniciales(n))}</span>`;
+const permAlcTxt = (p) => !p ? "Sin acceso" : p.alcance === "todo" ? "Toda la cuenta" : p.alcance === "categorias" ? `${p.categorias.length} ${p.categorias.length === 1 ? "categoría" : "categorías"}` : `${p.publicaciones.length} ${p.publicaciones.length === 1 ? "publicación" : "publicaciones"}`;
 VISTAS.permisos = async () => {
   const emp = empRec();
   if (!emp) { $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Elegí un cliente.</p></div></div>`; return; }
   const r = await seguro(() => api("permisos_lista", { cliente_id: emp })); if (!r || S.tab !== "permisos") return;
-  const secs = Object.entries(r.secciones);
-  $("#main").innerHTML = `<div class="cabecera"><div><h1>Permisos</h1><p>Qué puede agregar o borrar cada operador en estas secciones, y sobre qué publicaciones. No dependen del horario. Los administradores pueden todo; un operador sin acceso no ve la sección.</p></div></div>
-    ${r.personas.length ? `<div class="tabla-p" role="table"><div class="tp-fila tp-cab" role="row"><span role="columnheader">Persona</span>${secs.map(([, t]) => `<span role="columnheader">${esc(t)}</span>`).join("")}</div>
-      ${r.personas.map((pe) => `<div class="tp-fila" role="row"><b role="cell">${esc(pe.nombre)}</b>${secs.map(([k, t]) => `<span role="cell" data-et="${esc(t)}"><button type="button" class="tp-b ${pe.permisos[k] ? "on" : ""}" data-u="${esc(pe.id)}" data-s="${k}">${esc(permTxt(pe.permisos[k], r))}</button></span>`).join("")}</div>`).join("")}</div>`
-      : `<div class="panel vacio"><b>No hay operadores en el equipo</b>Sumalos desde Equipo → Personas.</div>`}`;
-  $("#main").onclick = (e) => { const b = e.target.closest("[data-u]"); if (!b) return; const pe = r.personas.find((x) => x.id === b.dataset.u); editarPermiso(emp, r, pe, b.dataset.s); };
+  const cab = `<div class="cabecera"><div><h1>Permisos</h1><p>Qué ve y qué puede hacer cada operador. Una persona nueva empieza con todo apagado. Los administradores ven y hacen todo lo del plan.</p></div></div>`;
+  if (!r.personas.length) { $("#main").innerHTML = cab + `<div class="panel vacio"><b>No hay operadores en el equipo</b>Sumalos desde Equipo → Personas.</div>`; return; }
+  if (!r.personas.some((x) => x.id === S.permSel)) S.permSel = r.personas[0].id;
+  const pe = r.personas.find((x) => x.id === S.permSel);
+  const mods = new Set(r.modulos ?? []);
+  const crudo = (x, k) => k === "preg_publicar" ? x.preg_publicar : k === "pv_dev_aprob" ? x.pv_dev_aprob : !!x.permisos[k];
+  const PAD = { ...PADRE_OP, preg_publicar: "preguntas", pv_dev_aprob: "pv_devoluciones" };
+  const on = (x, k) => crudo(x, k) && (!PAD[k] || on(x, PAD[k]));
+  const cuantas = (x) => [...Object.keys(x.permisos), ...(x.preg_publicar ? ["preg_publicar"] : []), ...(x.pv_dev_aprob ? ["pv_dev_aprob"] : [])].filter((k) => on(x, k)).length;
+  const fila = (k, titulo, ayuda, sub = false) => `<div class="pz-f ${sub ? "sub" : ""}"><span>${sub ? esc(titulo) : `<b>${esc(titulo)}</b>`}${ayuda ? `<small class="mut">${esc(ayuda)}</small>` : ""}</span>${nfSw(`data-op="${k}" aria-label="${esc(titulo)}"`, on(pe, k), !!PAD[k] && !on(pe, PAD[k]))}</div>`;
+  const alc = (k, titulo, sub = false) => { const dis = !!PAD[k] && !on(pe, PAD[k]); const p = on(pe, k) ? pe.permisos[k] : null;
+    return `<div class="pz-f ${sub ? "sub" : ""}"><span>${sub ? esc(titulo) : `<b>${esc(titulo)}</b>`}</span><button type="button" class="pz-alc ${p ? "on" : ""}" data-alc-sec="${k}" ${dis ? "disabled" : ""}>${esc(permAlcTxt(p))}</button></div>`; };
+  const grupo = (t, filas, nota = "") => filas.trim() ? `<div class="pz-g"><h3>${t}${nota ? `<span class="pz-aviso">${nota}</span>` : ""}</h3>${filas}</div>` : "";
+  const hay = (m) => mods.has(m);
+  const izq = grupo("Para empezar", fila("hoy", "Inicio"))
+    + grupo("Día a día",
+      (hay("preguntas") ? fila("preguntas", "Preguntas") + fila("preg_publicar", "Publicar respuestas sin aprobación", "Apagado: sus respuestas esperan que las apruebe un administrador", true) + alc("dudas", "Dudas frecuentes", true) + alc("probar", "Probar el bot", true) : "")
+      + (hay("mensajes") ? fila("mensajes", "Ventas") + fila("msj_enviar", "Enviar mensajes sin aprobación", "Apagado: sus mensajes al comprador quedan como borrador para que los envíe un administrador", true) : "")
+      + (hay("despacho") ? fila("despacho", "Despacho") + fila("desp_operar", "Imprimir etiquetas y marcar despachado", "Apagado: solo puede ver", true) : "")
+      + (hay("devoluciones") ? fila("posventa", "Posventa") + fila("pv_reclamos", "Reclamos", "", true) + fila("pv_devoluciones", "Devoluciones", "", true) + fila("pv_dev_aprob", "Enviar revisiones de devoluciones sin aprobación", "", true) + fila("pv_retiros", "Retiros de Full", "", true) : ""));
+  const der = grupo("Números", fila("numeros", "Mis números", "Solo lo suyo") + fila("rentabilidad", "Rentabilidad") + fila("mercaderia", "Mercadería")
+      + fila("merc_compras", "Compras", "", true) + fila("merc_productos", "Productos y stock", "", true) + fila("merc_publicaciones", "Qué lleva cada publicación", "", true) + fila("merc_revisiones", "Revisiones pendientes", "", true), "muestran montos de dinero")
+    + grupo("Equipo", fila("chat", "Chat") + fila("calendario", "Calendario") + fila("desempeno", "Desempeño", "De todo el equipo") + fila("equipo_admin", "Personas, Asignaciones, Notificaciones y Actividad") + fila("permisos", "Permisos", "Podría cambiar sus propios permisos"))
+    + grupo("Ajustes", (hay("preguntas") ? alc("conocimiento", "Bot y conocimiento") : "") + (hay("mensajes") ? alc("material", "Documentación para enviar") : "")
+      + fila("config_negocio", "Mi negocio y Cuentas de MercadoLibre") + (hay("despacho") ? fila("config_despacho", "Listas, Impresoras y Circuito de despacho") : "") + fila("correo", "Correo Argentino") + fila("fiscal", "Configuración fiscal") + fila("uso", "Plan y uso"));
+  $("#main").innerHTML = cab + `<div class="pz-lay">
+    <div class="pz-pers" role="listbox" aria-label="Personas">${r.personas.map((x) => { const n = cuantas(x); return `<button type="button" role="option" aria-selected="${x.id === pe.id}" class="pz-pe ${x.id === pe.id ? "on" : ""}" data-pe="${esc(x.id)}">${avP(x.nombre, 30)}<span><b>${esc(x.nombre)}${x.nueva ? `<i class="pz-nueva">nueva</i>` : ""}</b><small>${n ? `${n} ${n === 1 ? "opción prendida" : "opciones prendidas"}` : "Todo apagado"}</small></span></button>`; }).join("")}</div>
+    <div class="panel pz-det">
+      <div class="pz-cab">${avP(pe.nombre, 34)}<h2>${esc(pe.nombre)}</h2><div class="pz-acc">${r.personas.length > 1 ? `<button type="button" class="btn lin chico" id="pmCopiar">Copiar de otra persona</button>` : ""}<button type="button" class="btn lin chico" id="pmApagar">Apagar todo</button></div></div>
+      <p class="mut peq" style="margin:0">Cada cambio se guarda en el momento. Si apagás una sección, sus opciones de adentro también quedan apagadas.</p>
+      <div class="pz-cols"><div>${izq}</div><div>${der}</div></div>
+      <p class="mut peq pz-pie">Los costos de IA y el uso de tokens no se pueden habilitar: solo los ve el dueño de la app.</p>
+    </div></div>`;
+  const guardar = async (opcion, valor) => { if (await seguro(() => api("opcion_guardar", { cliente_id: emp, usuario_id: pe.id, opcion, valor }))) { aviso(valor ? "Prendido" : "Apagado"); VISTAS.permisos(); } };
+  $("#main").onclick = async (e) => {
+    const x = e.target.closest("[data-pe]"); if (x) { S.permSel = x.dataset.pe; VISTAS.permisos(); return; }
+    const sw = e.target.closest("[data-op]"); if (sw && !sw.disabled) { sw.disabled = true; await guardar(sw.dataset.op, sw.getAttribute("aria-checked") !== "true"); return; }
+    const al = e.target.closest("[data-alc-sec]"); if (al && !al.disabled) { editarPermiso(emp, r, pe, al.dataset.alcSec); return; }
+    if (e.target.closest("#pmApagar")) { if (confirm(`¿Apagar todo lo de ${pe.nombre}? Va a dejar de ver todas las secciones.`)) await guardar("*", false); return; }
+    if (e.target.closest("#pmCopiar")) {
+      const v = cajon(`<div class="cajon-cab"><h2 style="margin:0">Copiar a ${esc(pe.nombre)}</h2><button class="btn lin chico" data-cerrar type="button">Cerrar</button></div>
+        <p class="mut">Le pone exactamente lo mismo que tiene la persona que elijas. Lo que tenía ${esc(pe.nombre)} se reemplaza.</p>
+        <div class="pz-pers">${r.personas.filter((y) => y.id !== pe.id).map((y) => `<button type="button" class="pz-pe" data-de="${esc(y.id)}">${avP(y.nombre, 30)}<span><b>${esc(y.nombre)}</b><small>${cuantas(y) || "Todo apagado"}${cuantas(y) ? " opciones prendidas" : ""}</small></span></button>`).join("")}</div>`, true);
+      v.onclick = async (ev) => { const d = ev.target.closest("[data-de]"); if (!d) return;
+        if (await seguro(() => api("opciones_copiar", { cliente_id: emp, usuario_id: pe.id, de_usuario_id: d.dataset.de }))) { v.remove(); aviso("Permisos copiados"); VISTAS.permisos(); } };
+    }
+  };
 };
 function editarPermiso(emp, r, pe, sec) {
   const p = pe.permisos[sec];
@@ -2888,7 +2984,7 @@ VISTAS.asignaciones = async () => {
       <div class="leyenda">${r.miembros.map((m) => `<span><i style="background:${m.color}"></i>${esc(m.corto)}</span>`).join("")}<span><i class="rayado"></i>Sin nadie</span></div></div>
     ${avisoAsig(r)}
     <div class="panel" style="padding:0;overflow-x:auto">${cuerpo}<p class="mut peq" style="margin:0;padding:12px 20px">Cada casilla es un día de 0 a 24 h. Donde hay dos colores, la pregunta les llega a los dos y la responde el primero que la toma.</p></div>
-    ${aprobAsigHTML(r)}
+
     <div class="g2" style="display:grid;gap:16px;margin-top:16px">
       <div class="panel"><h2 style="margin:0">Por un tiempo</h2><p class="mut peq" style="margin:4px 0 8px">Reemplazos o refuerzos con fecha de inicio o de fin.</p>
         ${temporales.length ? temporales.map((a) => `<div class="item-t"><div class="fecha-t"><span>${mes(a.fecha_desde ?? a.fecha_hasta)}</span><b>${Number((a.fecha_desde ?? a.fecha_hasta).slice(8))}</b></div>
@@ -3939,9 +4035,9 @@ VISTAS.motor = async () => {
 
 // Solapas de la sección (solo administrador del cliente o dueño en modo soporte)
 function ponerSubtabs() {
-  if (S.rol === "operador" || (S.rol === "admin" && !S.soporte)) return;
+  if (S.rol === "admin" && !S.soporte) return;
   const ok = vistasPermitidas();
-  const sec = (SUBTABS[seccionDe(S.tab)] ?? []).filter(([k]) => ok.has(k)); if (sec.length < 2 || $("#main .subnav")) return;
+  const sec = subtabsDe(seccionDe(S.tab)).filter(([k]) => ok.has(k)); if (sec.length < 2 || $("#main .subnav")) return;
   const html = `<nav class="subnav" aria-label="Pantallas de esta sección">${sec.map(([k, t]) => `<button type="button" data-st="${k}" class="${k === S.tab ? "on" : ""}" ${k === S.tab ? 'aria-current="page"' : ""}>${t}</button>`).join("")}</nav>`;
   const mcab = $("#main .m-cab"), cab = $("#main .cabecera");
   if (mcab) mcab.insertAdjacentHTML("afterbegin", html); else if (cab) cab.insertAdjacentHTML("beforebegin", html); else return;
@@ -3977,7 +4073,7 @@ function conPosventa(m) {
   return m;
 }
 function modsActuales() {
-  if (S.rol === "operador") {
+  if (esOp() || S.rol === "operador") {
     const es = S.clienteId ? [clienteYo(S.clienteId)].filter(Boolean) : (S.yo?.clientes ?? []);
     return conPosventa(new Set(es.flatMap((e) => e.modulos ?? ["preguntas"])));
   }
@@ -3994,6 +4090,9 @@ function pestModulo(clave, volver, solo = null, lista = MODULOS) {
   cab.insertAdjacentHTML("afterend", `<div class="pestanas" role="tablist" aria-label="Módulo">${Object.entries(lista).filter(([k]) => m.has(k)).map(([k, t]) => `<button role="tab" type="button" data-mod="${k}" aria-selected="${S[clave] === k}" class="${S[clave] === k ? "on" : ""}">${t}</button>`).join("")}</div>`);
   $("#main .pestanas").onclick = (e) => { const b = e.target.closest("[data-mod]"); if (b && S[clave] !== b.dataset.mod) { S[clave] = b.dataset.mod; volver(); } };
 }
+VISTAS.sin_permisos = () => {
+  $("#main").innerHTML = `<div class="panel vacio" style="margin-top:24px"><b>Todavía no tenés secciones habilitadas</b>Pedíselas al administrador del negocio: las prende en Equipo → Permisos.</div>`;
+};
 VISTAS.no_incluido = () => {
   const k = S.noMod || "mensajes";
   $("#main").innerHTML = `<div class="cabecera"><div><h1>${MODULOS[k]}</h1><p>Tu plan no tiene contratado este módulo.</p></div></div>
@@ -8624,7 +8723,7 @@ VISTAS.listas = async () => {
   $("#main").onclick = (e) => { const b = e.target.closest("[data-etq]"); if (b) etqEditor(b.dataset.etq, emp, muestras[b.dataset.etq], () => VISTAS.listas()); };
 };
 // Correo Argentino: lo habilita el dueño de la app (ajuste por cliente); el administrador del negocio lo configura
-const correoHab = () => S.rol !== "operador" && (S.res?.cuentas ?? []).some((c) => c.cotizar_correo_ar === true);
+const correoHab = () => (S.res?.cuentas ?? []).some((c) => c.cotizar_correo_ar === true);
 VISTAS.correo = async () => {
   const emp = empRec();
   const d = await seguro(() => api("correo_ver", { cliente_id: emp }));
@@ -9835,9 +9934,9 @@ function leerDespacho(t) {
 function vistasPermitidas() {
   const mods = modsActuales();
   let l;
-  if (S.rol === "operador") l = [...TABS_OP.filter((t) => !t[4] || permOp(t[4])).map((t) => t[0]), "preguntas"];
+  if (esOp()) l = [...opsOp()].flatMap((k) => OPC_VISTAS[k] ?? []);
   else if (S.rol === "admin" && !S.soporte) l = TABS_APP.map((t) => t[0]).filter((t) => t !== "-");
-  else l = [...TABS.map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
+  else l = [...TABS.filter((t) => t[4] !== "op").map((t) => t[0]), ...Object.values(SUBTABS).flat().map((x) => x[0])];
   l.push("misnotif");
   return new Set(l.filter((t) => VISTAS[t] && (mods.has("mensajes") || !["mensajes", "material"].includes(t)) && (mods.has("devoluciones") || t !== "devoluciones") && (mods.has("despacho") || !["despacho", "impresoras", "circuito"].includes(t)) && (mods.has("preguntas") || !["preguntas", "dudas", "probar", "bandeja"].includes(t)) && (t !== "correo" || correoHab())));
 }
